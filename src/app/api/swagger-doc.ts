@@ -3,10 +3,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET() {
     const spec = createSwaggerSpec({
-        title: 'Medicine Management System API',
-        version: '1.0.0',
+        definition: {
+            openapi: '3.0.0',
+            info: {
+                title: 'Medicine Management System API',
+                version: '1.0.0',
+            },
+        },
         apiFolder: 'src/app/api',
-        schemaFolder: 'src/models',
+        schemaFolders: ['src/models'],
     });
     /**
      * @swagger

@@ -2,8 +2,17 @@
 import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
+
 export default function ResetPasswordPage() {
     const router = useRouter();
+    return (
+        <React.Suspense fallback={<div>Loading...</div>}>
+            <ResetPasswordForm router={router} />
+        </React.Suspense>
+    );
+}
+
+function ResetPasswordForm({ router }: { router: ReturnType<typeof useRouter> }) {
     const searchParams = useSearchParams();
     const token = searchParams.get('token') || "";
     const [password, setPassword] = useState("");

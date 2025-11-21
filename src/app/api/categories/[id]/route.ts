@@ -86,12 +86,11 @@ import SubCategory from '@/models/SubCategory';
 // GET single category
 export async function GET(
     request: NextRequest,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectDB();
-        // Next.js 13+ app router: params may be a Promise
-        const params = context.params instanceof Promise ? await context.params : context.params;
+        const params = await context.params;
         console.log('Category GET API called with id:', params.id);
         const category = await Category.findById(params.id);
         if (!category) {
@@ -122,12 +121,11 @@ export async function GET(
 // PUT update category
 export async function PUT(
     request: NextRequest,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectDB();
-        // Next.js 13+ app router: params may be a Promise
-        const params = context.params instanceof Promise ? await context.params : context.params;
+        const params = await context.params;
         const body = await request.json();
         console.log('Category PUT API called with id:', params.id);
         const category = await Category.findByIdAndUpdate(
@@ -158,12 +156,11 @@ export async function PUT(
 // DELETE category
 export async function DELETE(
     request: NextRequest,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectDB();
-        // Next.js 13+ app router: params may be a Promise
-        const params = context.params instanceof Promise ? await context.params : context.params;
+        const params = await context.params;
         // Check if category has subcategories
         const subCategoriesCount = await SubCategory.countDocuments({ categoryId: params.id });
         if (subCategoriesCount > 0) {

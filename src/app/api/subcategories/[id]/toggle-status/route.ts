@@ -5,12 +5,12 @@ import SubCategory from '@/models/SubCategory';
 // PATCH - Toggle subcategory active/inactive status
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectDB();
-
-        const { id } = await params;
+        const params = await context.params;
+        const id = params.id;
         const subcategory = await SubCategory.findById(id);
 
         if (!subcategory) {

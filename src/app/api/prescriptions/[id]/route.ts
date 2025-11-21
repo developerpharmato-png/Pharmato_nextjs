@@ -4,10 +4,11 @@ import Prescription from '@/models/Prescription';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectDB();
+        const params = await context.params;
         const prescription = await Prescription.findById(params.id);
         if (!prescription) {
             return NextResponse.json(
@@ -26,10 +27,11 @@ export async function GET(
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectDB();
+        const params = await context.params;
         const body = await request.json();
         const prescription = await Prescription.findByIdAndUpdate(
             params.id,
@@ -60,10 +62,11 @@ export async function PUT(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectDB();
+        const params = await context.params;
         const prescription = await Prescription.findByIdAndDelete(params.id);
         if (!prescription) {
             return NextResponse.json(

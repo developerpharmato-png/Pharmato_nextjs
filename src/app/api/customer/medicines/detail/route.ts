@@ -12,18 +12,21 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Medicine id is required' }, { status: 400 });
     }
 
-    const medicine = await Medicine.findById(id).lean();
+    let medicine = await Medicine.findById(id).lean();
+    // Defensive: If medicine is an array, take the first element
+    if (Array.isArray(medicine)) {
+        medicine = medicine[0];
+    }
     if (!medicine) {
         return NextResponse.json({ error: 'Medicine not found' }, { status: 404 });
     }
 
-    // Populate category and subcategory
     let category = null;
     let subcategory = null;
-    if (medicine.categoryId) {
+    if (medicine && medicine.categoryId) {
         category = await Category.findById(medicine.categoryId).lean();
     }
-    if (medicine.subCategoryId) {
+    if (medicine && medicine.subCategoryId) {
         subcategory = await SubCategory.findById(medicine.subCategoryId).lean();
     }
 

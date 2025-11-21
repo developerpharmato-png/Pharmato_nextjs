@@ -85,12 +85,11 @@ import SubCategory from '@/models/SubCategory';
 // GET single subcategory
 export async function GET(
     request: NextRequest,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectDB();
-        // Next.js 13+ app router: params may be a Promise
-        const params = context.params instanceof Promise ? await context.params : context.params;
+        const params = await context.params;
         const subcategory = await SubCategory.findById(params.id)
             .populate('categoryId', 'name isOTC');
         if (!subcategory) {
@@ -114,12 +113,11 @@ export async function GET(
 // PUT update subcategory
 export async function PUT(
     request: NextRequest,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectDB();
-        // Next.js 13+ app router: params may be a Promise
-        const params = context.params instanceof Promise ? await context.params : context.params;
+        const params = await context.params;
         const body = await request.json();
         const subcategory = await SubCategory.findByIdAndUpdate(
             params.id,
@@ -147,12 +145,11 @@ export async function PUT(
 // DELETE subcategory
 export async function DELETE(
     request: NextRequest,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectDB();
-        // Next.js 13+ app router: params may be a Promise
-        const params = context.params instanceof Promise ? await context.params : context.params;
+        const params = await context.params;
         const subcategory = await SubCategory.findByIdAndDelete(params.id);
         if (!subcategory) {
             return NextResponse.json(
