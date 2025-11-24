@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
         })
     );
 
+    // ...existing code...
     return NextResponse.json({
         success: true,
         message: 'Categories fetched successfully',

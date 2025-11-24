@@ -66,6 +66,8 @@ export async function POST(req: NextRequest) {
         ...sub,
         images: Array.isArray(sub.images) ? sub.images : [],
     }));
+
+    // ...existing code...
     return NextResponse.json({
         success: true,
         message: 'Subcategories fetched successfully',

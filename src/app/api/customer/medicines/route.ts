@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Medicine from '@/models/Medicine';
+import { allowedOrigins } from '@/lib/allowedOrigins';
 import dbConnect from '@/lib/mongodb';
 
 export async function POST(req: NextRequest) {
+    // ...existing code...
     await dbConnect();
     const { limit = 10, offset = 0, search = "" } = await req.json();
 
@@ -42,7 +44,12 @@ export async function POST(req: NextRequest) {
     // Get total count for pagination info
     const total = await Medicine.countDocuments(filter);
 
-    return NextResponse.json({ medicines: populatedMedicines, total }, { status: 200 });
+    return NextResponse.json(
+        { medicines: populatedMedicines, total },
+        {
+            status: 200,
+        }
+    );
 }
 
 // Swagger DTO Example
