@@ -1,6 +1,7 @@
-import mongoose, { Document, Schema } from 'mongoose';
-
-export interface IMedicine extends Document {
+import mongoose from 'mongoose';
+const { Schema } = mongoose;
+export interface IMedicine {
+    uniqueIdentity: string;
     name: string;
     description: string;
     manufacturer: string;
@@ -31,6 +32,12 @@ export interface IMedicine extends Document {
 }
 
 const MedicineSchema = new Schema<IMedicine>({
+    uniqueIdentity: {
+        type: String,
+        required: true,
+        unique: true,
+        maxlength: [100, 'Unique identity cannot be more than 100 characters'],
+    },
     name: {
         type: String,
         required: [true, 'Please provide medicine name'],
