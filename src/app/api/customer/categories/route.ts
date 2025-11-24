@@ -40,6 +40,8 @@ export async function POST(req: NextRequest) {
     );
 
     return NextResponse.json({
+        success: true,
+        message: 'Categories fetched successfully',
         categories: categoryList,
         total: totalCategories,
         limit,

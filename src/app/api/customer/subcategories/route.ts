@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
     }));
     return NextResponse.json({
         success: true,
+        message: 'Subcategories fetched successfully',
         subcategories: subcategoriesWithImages,
         total,
         limit,

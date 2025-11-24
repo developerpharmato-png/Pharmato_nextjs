@@ -1,6 +1,6 @@
 /**
  * @swagger
- * /api/customer/medicines/category-list:
+ * /api/customer/category/medicines-list:
  *   post:
  *     summary: Get filtered medicine list by category and subcategory
  *     tags:
