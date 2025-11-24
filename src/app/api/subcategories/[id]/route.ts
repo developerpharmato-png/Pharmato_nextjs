@@ -119,6 +119,10 @@ export async function PUT(
         await connectDB();
         const params = await context.params;
         const body = await request.json();
+        // Ensure images is always an array
+        if (body.images && !Array.isArray(body.images)) {
+            body.images = String(body.images).split(',').map((url: string) => url.trim()).filter(Boolean);
+        }
         const subcategory = await SubCategory.findByIdAndUpdate(
             params.id,
             body,

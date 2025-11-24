@@ -34,6 +34,11 @@ import SubCategory from '@/models/SubCategory';
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/SubCategory'
+ *                     properties:
+ *                       images:
+ *                         type: array
+ *                         items:
+ *                           type: string
  *   post:
  *     summary: Create a new subcategory
  *     tags:
@@ -97,6 +102,10 @@ export async function POST(request: NextRequest) {
         await connectDB();
 
         const body = await request.json();
+        // Ensure images is always an array
+        if (body.images && !Array.isArray(body.images)) {
+            body.images = String(body.images).split(',').map((url: string) => url.trim()).filter(Boolean);
+        }
         const subcategory = await SubCategory.create(body);
 
         const populatedSubCategory = await SubCategory.findById(subcategory._id)

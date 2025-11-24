@@ -10,6 +10,7 @@ export default function NewSubCategoryPage() {
         name: '',
         description: '',
         categoryId: '',
+        images: [''],
         isOTC: false,
         isActive: true,
     });
@@ -79,7 +80,12 @@ export default function NewSubCategoryPage() {
                             <option value="">Select a category</option>
                             {categories.map(cat => (
                                 <option key={cat._id} value={cat._id}>
-                                    {cat.icon} {cat.name} {cat.isOTC ? '(OTC)' : '(Prescription)'}
+                                    {Array.isArray(cat.images) && cat.images[0] ? (
+                                        <>
+                                            <img src={cat.images[0]} alt="Category" style={{ width: 24, height: 24, display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                                        </>
+                                    ) : null}
+                                    {cat.name} {cat.isOTC ? '(OTC)' : '(Prescription)'}
                                 </option>
                             ))}
                         </select>
@@ -105,9 +111,7 @@ export default function NewSubCategoryPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Description *
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
                         <textarea
                             required
                             value={formData.description}
@@ -115,6 +119,16 @@ export default function NewSubCategoryPage() {
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                             rows={4}
                             placeholder="Brief description of the subcategory"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Subcategory Images (URLs, comma separated)</label>
+                        <input
+                            type="text"
+                            value={formData.images.join(',')}
+                            onChange={e => setFormData({ ...formData, images: e.target.value.split(',').map(url => url.trim()).filter(Boolean) })}
+                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
                         />
                     </div>
 

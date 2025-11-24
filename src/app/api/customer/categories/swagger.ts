@@ -36,8 +36,10 @@
  *                         type: string
  *                       isOTC:
  *                         type: boolean
- *                       icon:
- *                         type: string
+*                       images:
+*                         type: array
+*                         items:
+*                           type: string
  *                       isActive:
  *                         type: boolean
  *                       subcategories:
@@ -55,4 +57,8 @@
  *                               type: boolean
  *                             isActive:
  *                               type: boolean
+*                             images:
+*                               type: array
+*                               items:
+*                                 type: string
  */

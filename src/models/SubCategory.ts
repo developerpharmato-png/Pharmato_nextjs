@@ -5,6 +5,7 @@ export interface ISubCategory extends Document {
     description: string;
     categoryId: mongoose.Types.ObjectId;
     isOTC: boolean; // Over-the-counter flag
+    images: string[];
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -32,6 +33,12 @@ const SubCategorySchema = new Schema<ISubCategory>({
         default: false,
         required: [true, 'Please specify if this is an over-the-counter subcategory'],
     },
+    images: [
+        {
+            type: String,
+            required: false,
+        }
+    ],
     isActive: {
         type: Boolean,
         default: true,

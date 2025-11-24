@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 export default function EditCategoryPage() {
     const { id } = useParams();
     const router = useRouter();
-    const [form, setForm] = useState({ name: "", description: "", isOTC: false, icon: "💊", isActive: true });
+    const [form, setForm] = useState({ name: "", description: "", isOTC: false, images: [""], isActive: true });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +19,7 @@ export default function EditCategoryPage() {
                         name: data.data.name,
                         description: data.data.description,
                         isOTC: data.data.isOTC,
-                        icon: data.data.icon || "💊",
+                        images: Array.isArray(data.data.images) ? data.data.images : [""],
                         isActive: data.data.isActive,
                     });
                 } else {
@@ -37,7 +37,11 @@ export default function EditCategoryPage() {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
         const checked = (e.target as HTMLInputElement).checked;
-        setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+        if (name === "images") {
+            setForm({ ...form, images: value.split(',').map(url => url.trim()).filter(Boolean) });
+        } else {
+            setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -81,6 +85,11 @@ export default function EditCategoryPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
                     <textarea name="description" value={form.description} onChange={handleChange} required rows={3} className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent" />
                 </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Category Images (URLs, comma separated)</label>
+                    <input name="images" value={form.images.join(',')} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg" />
+                    <p className="text-xs text-gray-500 mt-1">Enter one or more image URLs separated by commas.</p>
+                </div>
                 <div className="flex items-center gap-3">
                     <input type="checkbox" id="isOTC" name="isOTC" checked={form.isOTC} onChange={handleChange} className="w-5 h-5 text-green-600 rounded focus:ring-green-500" />
                     <label htmlFor="isOTC" className="text-sm font-medium text-gray-700 cursor-pointer">OTC Category</label>
@@ -88,10 +97,6 @@ export default function EditCategoryPage() {
                 <div className="flex items-center gap-3">
                     <input type="checkbox" id="isActive" name="isActive" checked={form.isActive} onChange={handleChange} className="w-5 h-5 text-green-600 rounded focus:ring-green-500" />
                     <label htmlFor="isActive" className="text-sm font-medium text-gray-700 cursor-pointer">Active</label>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
-                    <input name="icon" value={form.icon} onChange={handleChange} className="w-16 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent text-2xl" />
                 </div>
                 <div className="flex gap-4 pt-4">
                     <button type="submit" disabled={loading} className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium shadow-md hover:shadow-lg">{loading ? "Saving..." : "Save Changes"}</button>

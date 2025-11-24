@@ -215,7 +215,10 @@ export default function MedicineForm() {
                                 <option value="">Select a category</option>
                                 {categories.map(cat => (
                                     <option key={cat._id} value={cat._id}>
-                                        {cat.icon} {cat.name} {cat.isOTC ? '(OTC)' : ''}
+                                        {Array.isArray(cat.images) && cat.images[0] ? (
+                                            <img src={cat.images[0]} alt="Category" style={{ width: 24, height: 24, display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                                        ) : null}
+                                        {cat.name} {cat.isOTC ? '(OTC)' : ''}
                                     </option>
                                 ))}
                             </select>

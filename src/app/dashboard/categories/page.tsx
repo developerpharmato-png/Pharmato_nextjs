@@ -61,223 +61,212 @@ export default function CategoriesPage() {
             </div>
         </div>
     );
-}
 
-function CategoriesTable() {
-    const [categories, setCategories] = useState<any[]>([]);
-    const [filteredCategories, setFilteredCategories] = useState<any[]>([]);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filterOTC, setFilterOTC] = useState<string>('all');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [loading, setLoading] = useState(true);
-    const itemsPerPage = 10;
+    function CategoriesTable() {
+        const [categories, setCategories] = useState<any[]>([]);
+        const [filteredCategories, setFilteredCategories] = useState<any[]>([]);
+        const [searchTerm, setSearchTerm] = useState('');
+        const [filterOTC, setFilterOTC] = useState<string>('all');
+        const [currentPage, setCurrentPage] = useState(1);
+        const [loading, setLoading] = useState(true);
+        const itemsPerPage = 10;
 
-    React.useEffect(() => {
-        fetchCategories();
-    }, []);
+        React.useEffect(() => {
+            fetchCategories();
+        }, []);
 
-    React.useEffect(() => {
-        let filtered = categories;
-
-        // Filter by search term
-        if (searchTerm) {
-            filtered = filtered.filter(cat =>
-                cat.name.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-
-        // Filter by OTC status
-        if (filterOTC !== 'all') {
-            filtered = filtered.filter(cat => cat.isOTC === (filterOTC === 'true'));
-        }
-
-        setFilteredCategories(filtered);
-        setCurrentPage(1); // Reset to first page when filters change
-    }, [searchTerm, filterOTC, categories]);
-
-    const fetchCategories = async () => {
-        try {
-            const res = await fetch('/api/categories');
-            const data = await res.json();
-            setCategories(data.data || []);
-            setFilteredCategories(data.data || []);
-        } catch (error) {
-            console.error('Failed to fetch categories:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleToggleStatus = async (id: string) => {
-        try {
-            const res = await fetch(`/api/categories/${id}/toggle-status`, {
-                method: 'PATCH',
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                fetchCategories();
-            } else {
-                const data = await res.json();
-                alert(data.error || 'Failed to toggle category status');
+        React.useEffect(() => {
+            let filtered = categories;
+            if (searchTerm) {
+                filtered = filtered.filter(cat =>
+                    cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+                );
             }
-        } catch (error) {
-            console.error('Failed to toggle category status:', error);
-            alert('Failed to toggle category status');
-        }
-    };
+            if (filterOTC !== 'all') {
+                filtered = filtered.filter(cat => cat.isOTC === (filterOTC === 'true'));
+            }
+            setFilteredCategories(filtered);
+            setCurrentPage(1);
+        }, [searchTerm, filterOTC, categories]);
 
-    if (loading) {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch('/api/categories');
+                const data = await res.json();
+                setCategories(data.data || []);
+                setFilteredCategories(data.data || []);
+            } catch (error) {
+                console.error('Failed to fetch categories:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const currentCategories = filteredCategories.slice(startIndex, endIndex);
+
+        // Add missing handleToggleStatus function
+        const handleToggleStatus = async (categoryId: string) => {
+            try {
+                const res = await fetch(`/api/categories/${categoryId}/toggle-status`, {
+                    method: 'PUT',
+                });
+                const data = await res.json();
+                if (data.success) {
+                    fetchCategories();
+                } else {
+                    alert('Failed to toggle status: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Failed to toggle status');
+            }
+        };
         return (
-            <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-            </div>
-        );
-    }
-
-    // Pagination calculations
-    const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentCategories = filteredCategories.slice(startIndex, endIndex);
-
-    return (
-        <div className="space-y-4">
-            {/* Filters */}
-            <div className="flex items-center gap-4">
-                <div className="flex-1 relative">
-                    <input
-                        type="text"
-                        placeholder="Search categories..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    />
-                    <span className="absolute left-3 top-2.5 text-gray-400 text-xl">🔍</span>
+            <div className="space-y-4">
+                {/* Filters */}
+                <div className="flex items-center gap-4">
+                    <div className="flex-1 relative">
+                        <input
+                            type="text"
+                            placeholder="Search categories..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                        <span className="absolute left-3 top-2.5 text-gray-400 text-xl">🔍</span>
+                    </div>
+                    <select
+                        value={filterOTC}
+                        onChange={(e) => setFilterOTC(e.target.value)}
+                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    >
+                        <option value="all">All Types</option>
+                        <option value="true">OTC Only</option>
+                        <option value="false">Prescription Only</option>
+                    </select>
+                    <div className="text-sm text-gray-600">
+                        {filteredCategories.length} categor{filteredCategories.length !== 1 ? 'ies' : 'y'}
+                    </div>
                 </div>
-                <select
-                    value={filterOTC}
-                    onChange={(e) => setFilterOTC(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                >
-                    <option value="all">All Types</option>
-                    <option value="true">OTC Only</option>
-                    <option value="false">Prescription Only</option>
-                </select>
-                <div className="text-sm text-gray-600">
-                    {filteredCategories.length} categor{filteredCategories.length !== 1 ? 'ies' : 'y'}
-                </div>
-            </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto">
-                <table className="min-w-full border-collapse">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Icon</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Name</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Description</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Type</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Status</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {currentCategories.map((category: any) => (
-                            <tr key={category._id} className="hover:bg-green-50 transition">
-                                <td className="px-4 py-3 text-2xl">{category.icon || '💊'}</td>
-                                <td className="px-4 py-3 text-sm font-medium text-gray-900">{category.name}</td>
-                                <td className="px-4 py-3 text-sm text-gray-600">{category.description}</td>
-                                <td className="px-4 py-3 text-sm">
-                                    {category.isOTC ? (
-                                        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                                            🟢 OTC (Over-the-Counter)
-                                        </span>
-                                    ) : (
-                                        <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
-                                            📋 Prescription Required
-                                        </span>
-                                    )}
-                                </td>
-                                <td className="px-4 py-3 text-sm">
-                                    <button
-                                        onClick={() => handleToggleStatus(category._id)}
-                                        className="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                                        style={{
-                                            backgroundColor: category.isActive ? '#10b981' : '#d1d5db'
-                                        }}
-                                        title={category.isActive ? 'Click to deactivate' : 'Click to activate'}
-                                    >
-                                        <span
-                                            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${category.isActive ? 'translate-x-6' : 'translate-x-1'
-                                                }`}
-                                        />
-                                    </button>
-                                </td>
-                                <td className="px-4 py-3 text-sm">
-                                    <Link
-                                        href={`/dashboard/categories/edit/${category._id}`}
-                                        className="text-blue-600 hover:text-blue-800 font-medium"
-                                    >
-                                        Edit
-                                    </Link>
-                                </td>
+                {/* Table */}
+                <div className="overflow-x-auto">
+                    <table className="min-w-full border-collapse">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Image</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Name</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Description</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Type</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Status</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {currentCategories.map((category: any) => (
+                                <tr key={category._id} className="hover:bg-green-50 transition">
+                                    <td className="px-4 py-3">
+                                        {Array.isArray(category.images) && category.images.length > 0 ? (
+                                            <img src={category.images[0]} alt="Category" className="h-10 w-10 object-cover rounded" />
+                                        ) : (
+                                            <span className="inline-block h-10 w-10 bg-gray-200 rounded text-xl flex items-center justify-center">📦</span>
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{category.name}</td>
+                                    <td className="px-4 py-3 text-sm text-gray-600">{category.description}</td>
+                                    <td className="px-4 py-3 text-sm">
+                                        {category.isOTC ? (
+                                            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                                                🟢 OTC (Over-the-Counter)
+                                            </span>
+                                        ) : (
+                                            <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
+                                                📋 Prescription Required
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm">
+                                        <button
+                                            onClick={() => handleToggleStatus(category._id)}
+                                            className="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                            style={{
+                                                backgroundColor: category.isActive ? '#10b981' : '#d1d5db'
+                                            }}
+                                            title={category.isActive ? 'Click to deactivate' : 'Click to activate'}
+                                        >
+                                            <span
+                                                className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${category.isActive ? 'translate-x-6' : 'translate-x-1'
+                                                    }`}
+                                            />
+                                        </button>
+                                    </td>
+                                    <td className="px-4 py-3 text-sm">
+                                        <Link
+                                            href={`/dashboard/categories/edit/${category._id}`}
+                                            className="text-blue-600 hover:text-blue-800 font-medium"
+                                        >
+                                            Edit
+                                        </Link>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
 
-                {filteredCategories.length === 0 && (
-                    <div className="text-center py-12">
-                        <div className="text-6xl mb-4">📂</div>
-                        <p className="text-gray-500 text-lg">No categories found.</p>
-                        {searchTerm && (
-                            <p className="text-gray-400 text-sm mt-2">Try adjusting your search term</p>
-                        )}
+                    {filteredCategories.length === 0 && (
+                        <div className="text-center py-12">
+                            <div className="text-6xl mb-4">📂</div>
+                            <p className="text-gray-500 text-lg">No categories found.</p>
+                            {searchTerm && (
+                                <p className="text-gray-400 text-sm mt-2">Try adjusting your search term</p>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                        <div className="text-sm text-gray-600">
+                            Showing {startIndex + 1} to {Math.min(endIndex, filteredCategories.length)} of {filteredCategories.length} categories
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            >
+                                Previous
+                            </button>
+
+                            <div className="flex gap-1">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                    <button
+                                        key={page}
+                                        onClick={() => setCurrentPage(page)}
+                                        className={`px-3 py-2 rounded-lg text-sm font-medium transition ${currentPage === page
+                                            ? 'bg-green-600 text-white'
+                                            : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                            }`}
+                                    >
+                                        {page}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            >
+                                Next
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                    <div className="text-sm text-gray-600">
-                        Showing {startIndex + 1} to {Math.min(endIndex, filteredCategories.length)} of {filteredCategories.length} categories
-                    </div>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
-                            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                        >
-                            Previous
-                        </button>
-
-                        <div className="flex gap-1">
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                <button
-                                    key={page}
-                                    onClick={() => setCurrentPage(page)}
-                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition ${currentPage === page
-                                        ? 'bg-green-600 text-white'
-                                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                                        }`}
-                                >
-                                    {page}
-                                </button>
-                            ))}
-                        </div>
-
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                            disabled={currentPage === totalPages}
-                            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                        >
-                            Next
-                        </button>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
+        );
+    }
 }

@@ -5,7 +5,41 @@ import { useParams, useRouter } from "next/navigation";
 export default function EditSubCategoryPage() {
     const { id } = useParams();
     const router = useRouter();
-    const [form, setForm] = useState({ name: "", description: "", categoryId: "", isOTC: false, isActive: true });
+    const [form, setForm] = useState({ name: "", description: "", categoryId: "", images: [""], isOTC: false, isActive: true });
+    // Add images to form state
+    useEffect(() => {
+        async function fetchSubCategory() {
+            try {
+                const res = await fetch(`/api/subcategories/${id}`);
+                const data = await res.json();
+                if (data.success && data.data) {
+                    setForm({
+                        name: data.data.name,
+                        description: data.data.description,
+                        categoryId: data.data.categoryId?._id || "",
+                        images: Array.isArray(data.data.images) ? data.data.images : [""],
+                        isOTC: data.data.isOTC,
+                        isActive: data.data.isActive,
+                    });
+                } else {
+                    setError("Subcategory not found");
+                }
+            } catch {
+                setError("Failed to fetch subcategory");
+            } finally {
+                setLoading(false);
+            }
+        }
+        async function fetchCategories() {
+            try {
+                const res = await fetch("/api/categories");
+                const data = await res.json();
+                setCategories(data.data || []);
+            } catch { }
+        }
+        fetchSubCategory();
+        fetchCategories();
+    }, [id]);
     const [categories, setCategories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -20,6 +54,7 @@ export default function EditSubCategoryPage() {
                         name: data.data.name,
                         description: data.data.description,
                         categoryId: data.data.categoryId?._id || "",
+                        images: Array.isArray(data.data.images) ? data.data.images : [""],
                         isOTC: data.data.isOTC,
                         isActive: data.data.isActive,
                     });
@@ -46,7 +81,11 @@ export default function EditSubCategoryPage() {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
         const checked = (e.target as HTMLInputElement).checked;
-        setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+        if (name === "images") {
+            setForm({ ...form, images: value.split(',').map(url => url.trim()).filter(Boolean) });
+        } else {
+            setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -91,11 +130,20 @@ export default function EditSubCategoryPage() {
                     <textarea name="description" value={form.description} onChange={handleChange} required rows={3} className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent" />
                 </div>
                 <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Subcategory Images (URLs, comma separated)</label>
+                    <input name="images" value={form.images?.join(',') || ''} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg" />
+                </div>
+                <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Parent Category *</label>
                     <select name="categoryId" value={form.categoryId} onChange={handleChange} required className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent">
                         <option value="">Select a category</option>
                         {categories.map(cat => (
-                            <option key={cat._id} value={cat._id}>{cat.icon} {cat.name}</option>
+                            <option key={cat._id} value={cat._id}>
+                                {Array.isArray(cat.images) && cat.images[0] ? (
+                                    <img src={cat.images[0]} alt="Category" style={{ width: 24, height: 24, display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                                ) : null}
+                                {cat.name}
+                            </option>
                         ))}
                     </select>
                 </div>

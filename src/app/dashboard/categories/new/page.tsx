@@ -9,7 +9,7 @@ export default function NewCategoryPage() {
         name: '',
         description: '',
         isOTC: false,
-        icon: '💊',
+        images: [''],
         isActive: true,
     });
 
@@ -40,7 +40,7 @@ export default function NewCategoryPage() {
         }
     };
 
-    const iconOptions = ['💊', '💉', '🏥', '⚕️', '🩺', '🧪', '🧬', '💊', '🩹', '🔬'];
+    // Removed iconOptions
 
     return (
         <div className="p-6">
@@ -81,21 +81,16 @@ export default function NewCategoryPage() {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Category Icon
+                            Category Images (URLs, comma separated)
                         </label>
-                        <div className="flex gap-2 flex-wrap">
-                            {iconOptions.map((icon) => (
-                                <button
-                                    key={icon}
-                                    type="button"
-                                    onClick={() => setFormData({ ...formData, icon })}
-                                    className={`text-3xl p-3 border-2 rounded-lg hover:border-green-500 transition ${formData.icon === icon ? 'border-green-600 bg-green-50' : 'border-gray-200'
-                                        }`}
-                                >
-                                    {icon}
-                                </button>
-                            ))}
-                        </div>
+                        <input
+                            type="text"
+                            value={formData.images.join(',')}
+                            onChange={(e) => setFormData({ ...formData, images: e.target.value.split(',').map(url => url.trim()).filter(Boolean) })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Enter one or more image URLs separated by commas.</p>
                     </div>
 
                     <div className="space-y-4">

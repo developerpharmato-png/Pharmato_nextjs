@@ -4,7 +4,7 @@ export interface ICategory extends Document {
     name: string;
     description: string;
     isOTC: boolean; // Over-the-counter flag
-    icon?: string;
+    images: string[];
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -28,10 +28,12 @@ const CategorySchema = new Schema<ICategory>({
         default: false,
         required: [true, 'Please specify if this is an over-the-counter category'],
     },
-    icon: {
-        type: String,
-        default: '💊',
-    },
+    images: [
+        {
+            type: String,
+            required: false,
+        }
+    ],
     isActive: {
         type: Boolean,
         default: true,

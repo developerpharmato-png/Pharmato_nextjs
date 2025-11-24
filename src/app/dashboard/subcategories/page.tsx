@@ -176,7 +176,12 @@ function SubCategoriesTable() {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {currentSubcategories.map((subcategory: any) => (
                             <tr key={subcategory._id} className="hover:bg-green-50 transition">
-                                <td className="px-4 py-3 text-sm font-medium text-gray-900">{subcategory.name}</td>
+                                <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                                    {Array.isArray(subcategory.images) && subcategory.images[0] ? (
+                                        <img src={subcategory.images[0]} alt="Subcategory" style={{ width: 32, height: 32, display: 'inline', marginRight: 8, verticalAlign: 'middle', borderRadius: '6px' }} />
+                                    ) : null}
+                                    {subcategory.name}
+                                </td>
                                 <td className="px-4 py-3 text-sm text-gray-600">{subcategory.description}</td>
                                 <td className="px-4 py-3 text-sm">
                                     <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
