@@ -4,10 +4,24 @@ import dbConnect from '@/lib/mongodb';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { limit = 10, offset = 0 } = await req.json();
+    const { limit = 10, offset = 0, search = "" } = await req.json();
+    const corsHeaders = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
+    if (req.method === 'OPTIONS') {
+        return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    // Build filter for search
+    const filter: Record<string, any> = { isActive: true };
+    if (search && search.trim() !== "") {
+        filter.name = { $regex: search, $options: "i" };
+    }
 
     // Fetch medicines with pagination
-    const medicines = await Medicine.find({ isActive: true })
+    const medicines = await Medicine.find(filter)
         .skip(offset)
         .limit(limit)
         .lean();
@@ -34,9 +48,9 @@ export async function POST(req: NextRequest) {
     );
 
     // Get total count for pagination info
-    const total = await Medicine.countDocuments({ isActive: true });
+    const total = await Medicine.countDocuments(filter);
 
-    return NextResponse.json({ medicines: populatedMedicines, total });
+    return NextResponse.json({ medicines: populatedMedicines, total }, { status: 200, headers: corsHeaders });
 }
 
 // Swagger DTO Example

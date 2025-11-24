@@ -19,6 +19,10 @@
  *                 type: integer
  *                 description: Number of medicines to skip
  *                 example: 0
+ *               search:
+ *                 type: string
+ *                 description: Search by medicine name (case-insensitive, partial match)
+ *                 example: "paracetamol"
  *     responses:
  *       200:
  *         description: Paginated medicine list
