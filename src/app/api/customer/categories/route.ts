@@ -1,20 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Category from '@/models/Category';
 import SubCategory from '@/models/SubCategory';
-import { allowedOrigins } from '@/lib/corsOrigins';
 import dbConnect from '@/lib/mongodb';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
     const { otcOnly = false, limit = 10, offset = 0, search = "" } = await req.json();
-    const corsHeaders: Record<string, string> = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    };
-    if (req.method === 'OPTIONS') {
-        return new Response(null, { status: 204, headers: corsHeaders });
-    }
 
     // Category filter
     const categoryFilter: any = otcOnly ? { isOTC: true } : {};
@@ -56,7 +47,7 @@ export async function POST(req: NextRequest) {
         limit,
         offset,
         search,
-    }, { status: 200, headers: corsHeaders });
+    }, { status: 200 });
 }
 
 /**

@@ -1,19 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Medicine from '@/models/Medicine';
-import { allowedOrigins } from '@/lib/corsOrigins';
 import dbConnect from '@/lib/mongodb';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
     const { limit = 10, offset = 0, search = "" } = await req.json();
-    const corsHeaders: Record<string, string> = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    };
-    if (req.method === 'OPTIONS') {
-        return new Response(null, { status: 204, headers: corsHeaders });
-    }
 
     // Build filter for search
     const filter: Record<string, any> = { isActive: true };
@@ -51,7 +42,7 @@ export async function POST(req: NextRequest) {
     // Get total count for pagination info
     const total = await Medicine.countDocuments(filter);
 
-    return NextResponse.json({ medicines: populatedMedicines, total }, { status: 200, headers: corsHeaders });
+    return NextResponse.json({ medicines: populatedMedicines, total }, { status: 200 });
 }
 
 // Swagger DTO Example
