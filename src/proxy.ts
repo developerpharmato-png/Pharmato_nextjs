@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { allowedOrigins } from '@/lib/allowedOrigins';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const origin = request.headers.get('origin');
     const response = NextResponse.next();
 
