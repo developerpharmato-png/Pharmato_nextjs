@@ -7,10 +7,8 @@ import dbConnect from '@/lib/mongodb';
 export async function POST(req: NextRequest) {
     await dbConnect();
     const { otcOnly = false, limit = 10, offset = 0, search = "" } = await req.json();
-    const requestOrigin = req.headers.get('origin') || allowedOrigins[0];
-    const corsOrigin = allowedOrigins.includes(requestOrigin) ? requestOrigin : allowedOrigins[0];
     const corsHeaders: Record<string, string> = {
-        'Access-Control-Allow-Origin': corsOrigin,
+        'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     };
