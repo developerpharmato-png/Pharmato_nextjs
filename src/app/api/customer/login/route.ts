@@ -48,27 +48,19 @@ function generateOTP() {
 export async function POST(request: NextRequest) {
     await connectDB();
     const { mobile, countryCode } = await request.json();
-    const corsHeaders = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    };
-    if (request.method === 'OPTIONS') {
-        return new Response(null, { status: 204, headers: corsHeaders });
-    }
     if (!mobile) {
-        return NextResponse.json({ success: false, error: 'Mobile number required' }, { status: 400, headers: corsHeaders });
+        return NextResponse.json({ success: false, error: 'Mobile number required' }, { status: 400 });
     }
     // Find user or create new
     let user = await User.findOne({ mobile });
     const now = new Date();
     // Blocked user check
     if (user && user.isBlocked && user.userBlockedTime && user.userBlockedTime > now) {
-        return NextResponse.json({ success: false, error: 'User is blocked. Try later.' }, { status: 403, headers: corsHeaders });
+        return NextResponse.json({ success: false, error: 'User is blocked. Try later.' }, { status: 403 });
     }
     // OTP request limit (example: max 5 per hour)
     if (user && user.otpCount && user.otpCount >= 5 && user.otpGenerateTime && (now.getTime() - new Date(user.otpGenerateTime).getTime()) < 60 * 60 * 1000) {
-        return NextResponse.json({ success: false, error: 'Too many OTP requests. Try again later.' }, { status: 429, headers: corsHeaders });
+        return NextResponse.json({ success: false, error: 'Too many OTP requests. Try again later.' }, { status: 429 });
     }
     const otp = generateOTP();
     const otpExpires = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes from now
@@ -95,5 +87,5 @@ export async function POST(request: NextRequest) {
         await user.save();
     }
     // TODO: Integrate SMS gateway here
-    return NextResponse.json({ success: true, message: 'OTP sent', otp, userId: user._id }, { status: 200, headers: corsHeaders }); // For dev, return OTP and userId
+    return NextResponse.json({ success: true, message: 'OTP sent', otp, userId: user._id }, { status: 200 }); // For dev, return OTP and userId
 }
