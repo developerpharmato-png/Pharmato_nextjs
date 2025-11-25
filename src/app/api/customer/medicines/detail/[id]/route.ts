@@ -8,7 +8,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     const { id } = await context.params;
     await dbConnect();
     if (!id) {
-        return NextResponse.json({ error: 'Medicine id is required' }, { status: 400 });
+        return NextResponse.json({ success: false, message: 'Medicine id is required', data: null }, { status: 400 });
     }
 
     let medicine = await Medicine.findById(id).lean();
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
         medicine = medicine[0];
     }
     if (!medicine) {
-        return NextResponse.json({ error: 'Medicine not found' }, { status: 404 });
+        return NextResponse.json({ success: false, message: 'Medicine not found', data: null }, { status: 404 });
     }
 
     let category = null;
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
         subcategory = await SubCategory.findById(medicine.subCategoryId).lean();
     }
 
-    return NextResponse.json({ ...medicine, category, subcategory });
+    return NextResponse.json({ success: true, message: 'Medicine details fetched successfully', data: { ...medicine, category, subcategory } });
 }
 
 /**
