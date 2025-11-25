@@ -37,6 +37,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'Subcategories', path: '/dashboard/subcategories', icon: '📁' },
         { name: 'Prescriptions', path: '/dashboard/prescriptions', icon: '📋' },
         { name: 'Admins', path: '/dashboard/admins', icon: '👥' },
+        { name: 'Admin Customers', path: '/dashboard/admin/customers', icon: '👤' }, // New menu item
     ];
 
     if (loading) {
