@@ -12,6 +12,9 @@
  *           schema:
  *             type: object
  *             properties:
+ *               userId:
+ *                 type: string
+ *                 example: "USER_OBJECT_ID"
  *               medicineId:
  *                 type: string
  *                 example: "MEDICINE_OBJECT_ID"
@@ -40,10 +43,9 @@ import Medicine from '@/models/Medicine';
 export async function POST(request: NextRequest) {
     await dbConnect();
     const body = await request.json();
-    const userId = body.userId || request.headers.get('x-user-id');
-    const { medicineId, quantity } = body;
-    if (!userId) {
-        return NextResponse.json({ success: false, error: 'User not authenticated' }, { status: 401 });
+    const { userId, medicineId, quantity } = body;
+    if (!userId || typeof userId !== 'string') {
+        return NextResponse.json({ success: false, error: 'userId is required and must be a string' }, { status: 401 });
     }
     if (!medicineId || typeof medicineId !== 'string') {
         return NextResponse.json({ success: false, error: 'medicineId is required and must be a string' }, { status: 400 });

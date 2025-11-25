@@ -89,7 +89,11 @@ export async function GET(
     try {
         await connectDB();
         const params = await context.params;
-        const medicine = await Medicine.findById(params.id);
+        const medicine = await Medicine.findById(params.id)
+            .populate({
+                path: 'relatedProducts',
+                select: '_id name manufacturer mrp price images discount'
+            });
         if (!medicine) {
             return NextResponse.json(
                 { success: false, error: 'Medicine not found' },
