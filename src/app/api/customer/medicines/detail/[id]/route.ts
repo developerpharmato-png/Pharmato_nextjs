@@ -4,10 +4,9 @@ import Category from '@/models/Category';
 import SubCategory from '@/models/SubCategory';
 import dbConnect from '@/lib/mongodb';
 
-export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+    const { id } = await context.params;
     await dbConnect();
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
     if (!id) {
         return NextResponse.json({ error: 'Medicine id is required' }, { status: 400 });
     }
@@ -33,6 +32,38 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ...medicine, category, subcategory });
 }
 
-// Swagger DTO Example
-// GET /api/customer/medicines/detail?id=<medicineId>
-// Response: { ...medicine, category: {...}, subcategory: {...} }
+/**
+ * @swagger
+ * /api/customer/medicines/detail/{id}:
+ *   get:
+ *     summary: Get medicine details by ID
+ *     tags:
+ *       - Medicine
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Medicine MongoDB ID
+ *     responses:
+ *       200:
+ *         description: Medicine details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 category:
+ *                   type: object
+ *                 subcategory:
+ *                   type: object
+ *       400:
+ *         description: Medicine id is required
+ *       404:
+ *         description: Medicine not found
+ */

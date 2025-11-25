@@ -29,73 +29,89 @@ export interface IMedicine {
     };
     createdAt: Date;
     updatedAt: Date;
+    margData?: any;
 }
 
 const MedicineSchema = new Schema<IMedicine>({
+    margData: {
+        type: Schema.Types.Mixed,
+        required: false,
+        default: {},
+    },
     uniqueIdentity: {
         type: String,
-        required: true,
+        required: false,
         unique: true,
+        default: '',
         maxlength: [100, 'Unique identity cannot be more than 100 characters'],
     },
     name: {
         type: String,
-        required: [true, 'Please provide medicine name'],
+        required: false,
+        default: 'Unnamed',
         maxlength: [100, 'Name cannot be more than 100 characters'],
     },
     description: {
         type: String,
-        required: [true, 'Please provide description'],
+        required: false,
+        default: '',
         maxlength: [500, 'Description cannot be more than 500 characters'],
     },
     manufacturer: {
         type: String,
-        required: [true, 'Please provide manufacturer'],
+        required: false,
+        default: 'Unknown',
         maxlength: [100, 'Manufacturer cannot be more than 100 characters'],
     },
     category: {
         type: String,
-        required: [true, 'Please provide category'],
+        required: false,
+        default: 'Other',
         enum: ['Tablet', 'Capsule', 'Syrup', 'Injection', 'Cream', 'Drops', 'Other'],
     },
     categoryId: {
         type: Schema.Types.ObjectId,
         ref: 'Category',
         required: false,
+        default: null,
     },
     subCategoryId: {
         type: Schema.Types.ObjectId,
         ref: 'SubCategory',
         required: false,
+        default: null,
     },
     isOTC: {
         type: Boolean,
         default: false,
-        required: [true, 'Please specify if this is an over-the-counter medicine'],
+        required: false,
     },
     isPrescription: {
         type: Boolean,
         default: false,
-        required: [true, 'Please specify if this is a prescription medicine'],
+        required: false,
     },
     price: {
         type: Number,
-        required: [true, 'Please provide selling price'],
+        required: false,
+        default: 0,
         min: [0, 'Price cannot be negative'],
     },
     purchasePrice: {
         type: Number,
-        required: [true, 'Please provide purchase price'],
+        required: false,
+        default: 0,
         min: [0, 'Purchase price cannot be negative'],
     },
     mrp: {
         type: Number,
-        required: [true, 'Please provide MRP'],
+        required: false,
+        default: 0,
         min: [0, 'MRP cannot be negative'],
     },
     discount: {
         type: Number,
-        required: true,
+        required: false,
         min: [0, 'Discount cannot be negative'],
         max: [100, 'Discount cannot be more than 100%'],
         default: function () {
@@ -107,32 +123,35 @@ const MedicineSchema = new Schema<IMedicine>({
     },
     stock: {
         type: Number,
-        required: [true, 'Please provide stock quantity'],
+        required: false,
+        default: 0,
         min: [0, 'Stock cannot be negative'],
     },
     expiryDate: {
         type: Date,
-        required: [true, 'Please provide expiry date'],
+        required: false,
+        default: null,
     },
     batchNumber: {
         type: String,
-        required: [true, 'Please provide batch number'],
-        unique: true,
+        required: false,
+        default: '',
+        unique: false,
     },
     composition: [
         {
-            name: { type: String, required: true },
-            value: { type: String, required: true },
+            name: { type: String, required: false, default: '' },
+            value: { type: String, required: false, default: '' },
         }
     ],
     images: [
-        { type: String, required: false }
+        { type: String, required: false, default: '' }
     ],
     highlights: [
-        { type: String, required: false }
+        { type: String, required: false, default: '' }
     ],
     relatedProducts: [
-        { type: Schema.Types.ObjectId, ref: 'Medicine', required: false }
+        { type: Schema.Types.ObjectId, ref: 'Medicine', required: false, default: null }
     ],
     rating: {
         average: { type: Number, default: 0 },
@@ -141,10 +160,12 @@ const MedicineSchema = new Schema<IMedicine>({
     isActive: {
         type: Boolean,
         default: true,
+        required: false,
     },
     isDeleted: {
         type: Boolean,
         default: false,
+        required: false,
     },
 }, {
     timestamps: true,

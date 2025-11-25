@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
+// Updated to use /api/customer/medicines/detail/{id}
 export default function MedicineDetailPage() {
     const { id } = useParams();
     const [medicine, setMedicine] = useState<any>(null);

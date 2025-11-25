@@ -1,16 +1,16 @@
 /**
  * @swagger
- * /api/customer/medicines/detail:
+ * /api/customer/medicines/detail/{id}:
  *   get:
  *     summary: Get medicine detail for customer
  *     description: Returns detailed information about a medicine, including category and subcategory.
  *     parameters:
- *       - in: query
+ *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: string
- *         description: The ID of the medicine to retrieve
+ *         description: Medicine MongoDB ID
  *     responses:
  *       200:
  *         description: Medicine detail
