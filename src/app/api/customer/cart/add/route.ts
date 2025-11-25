@@ -50,8 +50,8 @@ export async function POST(request: NextRequest) {
     if (!medicineId || typeof medicineId !== 'string') {
         return NextResponse.json({ success: false, error: 'medicineId is required and must be a string' }, { status: 400 });
     }
-    if (typeof quantity !== 'number' || quantity < 1) {
-        return NextResponse.json({ success: false, error: 'quantity must be a positive integer' }, { status: 400 });
+    if (typeof quantity !== 'number' || quantity === 0) {
+        return NextResponse.json({ success: false, error: 'quantity must be a non-zero integer' }, { status: 400 });
     }
     let cart = await Cart.findOne({ userId });
     if (!cart) {
@@ -60,8 +60,15 @@ export async function POST(request: NextRequest) {
         const itemIndex = cart.items.findIndex((item: any) => item.medicineId.toString() === medicineId);
         if (itemIndex > -1) {
             cart.items[itemIndex].quantity += quantity;
+            // Remove item if quantity goes to zero or below
+            if (cart.items[itemIndex].quantity <= 0) {
+                cart.items.splice(itemIndex, 1);
+            }
         } else {
-            cart.items.push({ medicineId, quantity });
+            // Only add if quantity is positive
+            if (quantity > 0) {
+                cart.items.push({ medicineId, quantity });
+            }
         }
         await cart.save();
     }
