@@ -101,22 +101,42 @@ export default function AdminCustomerListPage() {
                             <table className="min-w-full text-sm rounded-xl overflow-hidden shadow-lg">
                                 <thead className="bg-gradient-to-r from-green-100 to-blue-100 sticky top-0 z-10">
                                     <tr>
+                                        <th className="px-6 py-4 text-left font-bold text-gray-700">ID</th>
                                         <th className="px-6 py-4 text-left font-bold text-gray-700">Name</th>
                                         <th className="px-6 py-4 text-left font-bold text-gray-700">Email</th>
                                         <th className="px-6 py-4 text-left font-bold text-gray-700">Mobile</th>
                                         <th className="px-6 py-4 text-left font-bold text-gray-700">Wallet</th>
-                                        <th className="px-6 py-4 text-left font-bold text-gray-700">Actions</th>
+                                        <th className="px-6 py-4 text-left font-bold text-gray-700">Active</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {currentCustomers.map((c, idx) => (
                                         <tr key={c._id} className={`border-b transition-all duration-150 ${idx % 2 === 0 ? 'bg-white' : 'bg-green-50'} hover:bg-green-100`}>
+                                            <td className="px-6 py-4 font-mono text-xs">
+                                                <Link href={`/dashboard/admin/customers/${c._id}`} className="text-green-700 underline hover:text-green-900 font-semibold transition-all duration-150">{c._id}</Link>
+                                            </td>
                                             <td className="px-6 py-4 font-medium text-gray-900">{c.name || <span className="text-gray-400">-</span>}</td>
                                             <td className="px-6 py-4 text-gray-600">{c.email || <span className="text-gray-400">-</span>}</td>
                                             <td className="px-6 py-4 text-gray-600">{c.mobile || <span className="text-gray-400">-</span>}</td>
                                             <td className="px-6 py-4 text-green-700 font-bold">₹{c.walletAmount ?? 0}</td>
                                             <td className="px-6 py-4">
-                                                <Link href={`/dashboard/admin/customers/${c._id}`} className="text-blue-600 hover:underline font-semibold transition-all duration-150">View</Link>
+                                                <button
+                                                    className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${c.isActive ? 'bg-green-500' : 'bg-gray-300'}`}
+                                                    onClick={async () => {
+                                                        const res = await fetch(`/api/admin/customers/active/${c._id}`, {
+                                                            method: 'PUT',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({ isActive: !c.isActive })
+                                                        });
+                                                        if (res.ok) {
+                                                            setCustomers(prev => prev.map(u => u._id === c._id ? { ...u, isActive: !c.isActive } : u));
+                                                            setFilteredCustomers(prev => prev.map(u => u._id === c._id ? { ...u, isActive: !c.isActive } : u));
+                                                        }
+                                                    }}
+                                                >
+                                                    <span className={`w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-300 ${c.isActive ? 'translate-x-6' : ''}`}></span>
+                                                </button>
+                                                <span className={`ml-2 text-xs font-mono ${c.isActive ? 'text-green-700' : 'text-gray-500'}`}>{String(c.isActive)}</span>
                                             </td>
                                         </tr>
                                     ))}

@@ -12,6 +12,7 @@ export interface IUser extends Document {
     socialProvider?: string;
     socialId?: string;
     isVerified: boolean;
+    isActive?: boolean;
     walletAmount?: number;
     createdAt: Date;
     updatedAt: Date;
@@ -30,6 +31,7 @@ const UserSchema = new Schema<IUser>({
     socialId: { type: String },
     isVerified: { type: Boolean, default: false },
     walletAmount: { type: Number, default: 0 },
+    isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
 export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
