@@ -41,9 +41,13 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     if (!id) {
         return NextResponse.json({ success: false, message: 'Customer id is required', data: null }, { status: 400 });
     }
-    const user = await User.findById(id).lean();
+    let user = await User.findById(id).lean();
+    if (Array.isArray(user)) {
+        user = user[0];
+    }
     if (!user) {
         return NextResponse.json({ success: false, message: 'Customer not found', data: null }, { status: 404 });
     }
+    if (typeof user.walletAmount === 'undefined') user.walletAmount = 0;
     return NextResponse.json({ success: true, message: 'Customer details fetched successfully', data: user });
 }
