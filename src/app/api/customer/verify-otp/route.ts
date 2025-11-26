@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         user.incorrectOtpAttempt = (user.incorrectOtpAttempt || 0) + 1;
         if (user.incorrectOtpAttempt >= 5) {
             user.isBlocked = 1;
-            user.userBlockedTime = new Date(now.getTime() + 30 * 60 * 1000); // Block 30 min
+            user.userBlockedTime = new Date(now.getTime() + 15 * 60 * 1000); // Block 15 min
         }
         await user.save();
         return NextResponse.json({ success: false, error: 'Invalid or expired OTP' }, { status: 400 });

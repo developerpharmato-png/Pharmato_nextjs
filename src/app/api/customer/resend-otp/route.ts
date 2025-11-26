@@ -58,8 +58,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, error: 'Too many OTP requests. Try again later.' }, { status: 429 });
     }
     const otp = generateOTP();
+    const otpExpires = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes from now
     user.otp = otp;
     user.otpGenerateTime = now;
+    user.otpExpires = otpExpires;
     user.otpCount = (user.otpCount || 0) + 1;
     user.incorrectOtpAttempt = 0;
     user.isBlocked = 0;

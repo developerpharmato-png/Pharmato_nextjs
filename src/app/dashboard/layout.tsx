@@ -40,6 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'Admin Customers', path: '/dashboard/admin/customers', icon: '👤' },
         { name: 'Pincodes', path: '/dashboard/pincode', icon: '📍' },
         { name: 'Stores', path: '/dashboard/store', icon: '🏬' },
+        { name: 'Banner Images', path: '/dashboard/banner-images', icon: '🖼️' },
     ];
 
     if (loading) {
