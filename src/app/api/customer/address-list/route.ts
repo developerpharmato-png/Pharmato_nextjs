@@ -47,7 +47,17 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, message: 'Missing userId' }, { status: 400 });
     }
     try {
-        const addressList = await UserAddress.find({ userId });
+        const addressList = await UserAddress.find({ userId }).lean();
+        // For each address, find stores with matching servicePinCodes
+        for (const address of addressList) {
+            const pinCode = address?.address?.pinCode || address?.address?.pincode;
+            if (pinCode) {
+                const storeList = await (await import('@/models/Store')).default.find({ servicePinCodes: pinCode, status: 1 }).lean();
+                address.storeList = storeList;
+            } else {
+                address.storeList = [];
+            }
+        }
         return NextResponse.json({ success: true, message: 'Address list fetched successfully', addressList });
     } catch (error: any) {
         return NextResponse.json({ success: false, message: 'Error fetching address list', error: error.message });
