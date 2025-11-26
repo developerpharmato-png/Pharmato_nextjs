@@ -1,12 +1,82 @@
+
+/**
+ * @swagger
+ * /api/customer/medicines:
+ *   post:
+ *     summary: Get paginated medicines with cart info for a user
+ *     description: Returns medicines with category, subcategory, and cart status/quantity for the given userId.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               limit:
+ *                 type: integer
+ *                 default: 10
+ *               offset:
+ *                 type: integer
+ *                 default: 0
+ *               search:
+ *                 type: string
+ *                 default: ""
+ *               userId:
+ *                 type: string
+ *                 description: User's ObjectId
+ *             required:
+ *               - userId
+ *     responses:
+ *       200:
+ *         description: Medicines list with cart info
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 medicines:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       price:
+ *                         type: number
+ *                       category:
+ *                         type: object
+ *                       subcategory:
+ *                         type: object
+ *                       isInCart:
+ *                         type: boolean
+ *                         description: true if medicine is in user's cart
+ *                       cartQuantity:
+ *                         type: integer
+ *                         description: quantity in cart if in cart, else 0
+ *                 total:
+ *                   type: integer
+ *       400:
+ *         description: userId is required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 import { NextRequest, NextResponse } from 'next/server';
 import Medicine from '@/models/Medicine';
+import Cart from '@/models/Cart';
 import { allowedOrigins } from '@/lib/allowedOrigins';
 import dbConnect from '@/lib/mongodb';
 
 export async function POST(req: NextRequest) {
-    // ...existing code...
     await dbConnect();
-    const { limit = 10, offset = 0, search = "" } = await req.json();
+    const { limit = 10, offset = 0, search = "", userId } = await req.json();
+    // userId can be empty string, do not return error
 
     // Build filter for search
     const filter: Record<string, any> = { isActive: true };
@@ -20,7 +90,14 @@ export async function POST(req: NextRequest) {
         .limit(limit)
         .lean();
 
-    // Loop and populate category and subcategory details
+    // Get user's cart only if userId is not empty
+    let cartItems: any[] = [];
+    if (userId && typeof userId === 'string' && userId.trim() !== "") {
+        const cart = await Cart.findOne({ userId }).lean();
+        cartItems = cart && typeof cart === 'object' && 'items' in cart && Array.isArray((cart as any).items) ? (cart as any).items : [];
+    }
+
+    // Loop and populate category, subcategory, and cart info
     const populatedMedicines = await Promise.all(
         medicines.map(async (med: any) => {
             let category = null;
@@ -33,10 +110,16 @@ export async function POST(req: NextRequest) {
                 const subcat = await import('@/models/SubCategory').then(m => m.default.findById(med.subCategoryId).lean());
                 subcategory = subcat || null;
             }
+            // Cart info
+            const cartItem = cartItems.find((item: any) => item.medicineId?.toString() === med._id?.toString());
+            const isInCart = !!cartItem;
+            const cartQuantity = cartItem ? cartItem.quantity : 0;
             return {
                 ...med,
                 category,
                 subcategory,
+                isInCart,
+                cartQuantity,
             };
         })
     );
@@ -53,5 +136,29 @@ export async function POST(req: NextRequest) {
 }
 
 // Swagger DTO Example
-// Request Body: { "limit": 10, "offset": 0 }
-// Response: { "medicines": [ ... ], "total": 100 }
+// Request Body:
+// {
+//   "limit": 10,
+//   "offset": 0,
+//   "search": "",
+//   "userId": "<userId>"
+// }
+// Response:
+// {
+//   "medicines": [
+//     {
+//       "_id": "...",
+//       "name": "...",
+//       "price": 100,
+//       "category": { /* ... */ },
+//       "subcategory": { /* ... */ },
+//       "isInCart": true,
+//       "cartQuantity": 2,
+//       // ...other medicine fields
+//     }
+//   ],
+//   "total": 100
+// }
+// isInCart: true if medicine is in user's cart, false otherwise
+// cartQuantity: quantity in cart if in cart, else 0
+// userId: required in request body

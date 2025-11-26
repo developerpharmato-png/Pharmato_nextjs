@@ -33,6 +33,13 @@
  *                   type: boolean
  *                 cart:
  *                   $ref: '#/components/schemas/Cart'
+ *                 medicineInCart:
+ *                   type: object
+ *                   properties:
+ *                     medicineId:
+ *                       type: string
+ *                     quantity:
+ *                       type: number
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -54,6 +61,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, error: 'quantity must be a non-zero integer' }, { status: 400 });
     }
     let cart = await Cart.findOne({ userId });
+    let medicineInCart: { medicineId: string, quantity: number } | null = null;
     if (!cart) {
         cart = await Cart.create({ userId, items: [{ medicineId, quantity }] });
     } else {
@@ -72,5 +80,14 @@ export async function POST(request: NextRequest) {
         }
         await cart.save();
     }
-    return NextResponse.json({ success: true, cart });
+    if (cart) {
+        const updatedItem = cart.items.find((item: any) => item.medicineId.toString() === medicineId);
+        if (updatedItem) {
+            medicineInCart = {
+                medicineId: updatedItem.medicineId.toString(),
+                quantity: updatedItem.quantity
+            };
+        }
+    }
+    return NextResponse.json({ success: true, cart, medicineInCart });
 }

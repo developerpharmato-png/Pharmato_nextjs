@@ -12,7 +12,9 @@
  *           schema:
  *             type: object
  *             properties:
- *               # No body required
+ *               userId:
+ *                 type: string
+ *                 example: "USER_OBJECT_ID"
  *     responses:
  *       200:
  *         description: Cart fetched
@@ -44,6 +46,9 @@ export async function POST(request: NextRequest) {
     if (!userId) {
         return NextResponse.json({ success: false, error: 'User not authenticated' }, { status: 401 });
     }
-    const cart = await Cart.findOne({ userId }).populate('items.medicineId');
+    const cart = await Cart.findOne({ userId }).populate({
+        path: 'items.medicineId',
+        select: '_id name manufacturer isPrescription mrp price images'
+    });
     return NextResponse.json({ success: true, cart });
 }
