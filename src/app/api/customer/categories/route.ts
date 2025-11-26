@@ -8,7 +8,10 @@ export async function POST(req: NextRequest) {
     const { otcOnly = false, limit = 10, offset = 0, search = "" } = await req.json();
 
     // Category filter
-    const categoryFilter: any = otcOnly ? { isOTC: true } : {};
+    let categoryFilter: any = {};
+    if (typeof otcOnly === 'boolean') {
+        categoryFilter.isOTC = otcOnly;
+    }
     if (search) {
         categoryFilter.name = { $regex: search, $options: "i" };
     }

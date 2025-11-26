@@ -51,7 +51,7 @@ export default function DashboardPage() {
             {/* Quick Actions */}
             <div className="bg-white rounded-xl shadow-md p-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Quick Actions</h2>
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-4">
                     <Link
                         href="/dashboard/medicines/new"
                         className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition group"
@@ -88,6 +88,19 @@ export default function DashboardPage() {
                         <div className="ml-4">
                             <p className="font-semibold text-gray-800">Manage Admins</p>
                             <p className="text-xs text-gray-600">View and edit admin accounts</p>
+                        </div>
+                    </Link>
+
+                    <Link
+                        href="/dashboard/pincode"
+                        className="flex items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition group"
+                    >
+                        <div className="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center text-white text-2xl group-hover:scale-110 transition">
+                            📍
+                        </div>
+                        <div className="ml-4">
+                            <p className="font-semibold text-gray-800">Manage Pincodes</p>
+                            <p className="text-xs text-gray-600">Add, update, or delete pincodes</p>
                         </div>
                     </Link>
                 </div>

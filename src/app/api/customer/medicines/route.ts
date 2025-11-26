@@ -128,7 +128,12 @@ export async function POST(req: NextRequest) {
     const total = await Medicine.countDocuments(filter);
 
     return NextResponse.json(
-        { medicines: populatedMedicines, total },
+        {
+            success: true,
+            message: 'Medicines fetched successfully',
+            medicines: populatedMedicines,
+            total
+        },
         {
             status: 200,
         }

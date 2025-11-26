@@ -76,15 +76,15 @@ export async function POST(req: NextRequest) {
     await dbConnect();
     const { userId, calculationData } = await req.json();
     if (!userId || typeof userId !== 'string') {
-        return NextResponse.json({ status: false, message: 'userId is required' }, { status: 400 });
+        return NextResponse.json({ success: false, message: 'userId is required' }, { status: 400 });
     }
     if (!calculationData || typeof calculationData !== 'object') {
-        return NextResponse.json({ status: false, message: 'calculationData is required' }, { status: 400 });
+        return NextResponse.json({ success: false, message: 'calculationData is required' }, { status: 400 });
     }
     // Check user exists
     const userCheck = await User.findOne({ _id: userId });
     if (!userCheck) {
-        return NextResponse.json({ status: false, message: 'User not found' }, { status: 404 });
+        return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
     // Prepare medicineId array
     const medicineId = (calculationData.medicineId || []).map((id: string) => new mongoose.Types.ObjectId(id));
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
     });
     if (createOrder) {
         return NextResponse.json({
-            status: true,
+            success: true,
             message: 'Ordered successfully',
             data: {
                 order_id_fk: createOrder.id,
@@ -137,6 +137,6 @@ export async function POST(req: NextRequest) {
             }
         });
     } else {
-        return NextResponse.json({ status: false, message: 'Order not created' });
+        return NextResponse.json({ success: false, message: 'Order not created' });
     }
 }
