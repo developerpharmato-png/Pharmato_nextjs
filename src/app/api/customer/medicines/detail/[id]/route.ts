@@ -11,7 +11,12 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
         return NextResponse.json({ success: false, message: 'Medicine id is required', data: null }, { status: 400 });
     }
 
-    let medicine = await Medicine.findById(id).lean();
+    let medicine = await Medicine.findById(id)
+        .populate({
+            path: 'relatedProducts',
+            select: '_id name manufacturer mrp price images discount'
+        })
+        .lean();
     // Defensive: If medicine is an array, take the first element
     if (Array.isArray(medicine)) {
         medicine = medicine[0];

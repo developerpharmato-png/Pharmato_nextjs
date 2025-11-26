@@ -12,9 +12,12 @@
  *           schema:
  *             type: object
  *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: User's ObjectId
  *               medicineId:
  *                 type: string
- *                 example: "MEDICINE_OBJECT_ID"
+ *                 description: Medicine ObjectId to remove
  *     responses:
  *       200:
  *         description: Cart item removed
@@ -27,6 +30,39 @@
  *                   type: boolean
  *                 cart:
  *                   $ref: '#/components/schemas/Cart'
+ *       400:
+ *         description: Missing or invalid input
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 error:
+ *                   type: string
+ *       401:
+ *         description: User not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 error:
+ *                   type: string
+ *       404:
+ *         description: Cart not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 error:
+ *                   type: string
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -37,8 +73,7 @@ import Medicine from '@/models/Medicine';
 export async function POST(request: NextRequest) {
     await dbConnect();
     const body = await request.json();
-    const userId = body.userId || request.headers.get('x-user-id');
-    const { medicineId } = body;
+    const { userId, medicineId } = body;
     if (!userId) {
         return NextResponse.json({ success: false, error: 'User not authenticated' }, { status: 401 });
     }
