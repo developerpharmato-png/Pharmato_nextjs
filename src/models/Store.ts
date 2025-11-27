@@ -8,7 +8,7 @@ export interface IStore extends Document {
 }
 
 const StoreSchema: Schema = new Schema({
-    name: { type: String, required: true },
+    name: { type: String },
     servicePinCodes: { type: [String], default: [] },
     address: { type: Object, default: {} },
     status: { type: Number, default: 1 },

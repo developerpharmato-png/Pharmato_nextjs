@@ -16,7 +16,7 @@ export interface IWallet extends Document {
 
 const WalletSchema: Schema<IWallet> = new Schema(
     {
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         payment_mode: { type: String, default: '' },
         amount: { type: Number, default: 0 },
         totalAmount: { type: Number, default: 0 },

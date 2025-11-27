@@ -14,29 +14,24 @@ export interface ISubCategory extends Document {
 const SubCategorySchema = new Schema<ISubCategory>({
     name: {
         type: String,
-        required: [true, 'Please provide subcategory name'],
         maxlength: [100, 'Name cannot be more than 100 characters'],
         trim: true,
     },
     description: {
         type: String,
-        required: [true, 'Please provide description'],
         maxlength: [500, 'Description cannot be more than 500 characters'],
     },
     categoryId: {
         type: Schema.Types.ObjectId,
         ref: 'Category',
-        required: [true, 'Please provide category'],
     },
     isOTC: {
         type: Boolean,
         default: false,
-        required: [true, 'Please specify if this is an over-the-counter subcategory'],
     },
     images: [
         {
             type: String,
-            required: false,
         }
     ],
     isActive: {

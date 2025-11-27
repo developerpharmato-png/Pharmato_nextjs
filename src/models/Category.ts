@@ -13,25 +13,21 @@ export interface ICategory extends Document {
 const CategorySchema = new Schema<ICategory>({
     name: {
         type: String,
-        required: [true, 'Please provide category name'],
-        unique: true,
+
         maxlength: [100, 'Name cannot be more than 100 characters'],
         trim: true,
     },
     description: {
         type: String,
-        required: [true, 'Please provide description'],
         maxlength: [500, 'Description cannot be more than 500 characters'],
     },
     isOTC: {
         type: Boolean,
         default: false,
-        required: [true, 'Please specify if this is an over-the-counter category'],
     },
     images: [
         {
             type: String,
-            required: false,
         }
     ],
     isActive: {

@@ -11,11 +11,11 @@ export interface ICart extends Document {
 }
 
 const CartSchema = new Schema<ICart>({
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'User' },
     items: [
         {
-            medicineId: { type: Schema.Types.ObjectId, ref: 'Medicine', required: true },
-            quantity: { type: Number, required: true, min: 1 }
+            medicineId: { type: Schema.Types.ObjectId, ref: 'Medicine' },
+            quantity: { type: Number, min: 1 }
         }
     ]
 }, { timestamps: true });

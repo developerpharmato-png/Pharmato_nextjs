@@ -13,7 +13,7 @@ export interface IUserAddress extends Document {
 }
 
 const UserAddressSchema = new Schema<IUserAddress>({
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'User' },
     addressType: { type: String, trim: true, default: '' },
     name: { type: String, trim: true, default: '' },
     phone: { type: String, trim: true, default: '' },

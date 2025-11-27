@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import Medicine from '@/models/Medicine';
 
@@ -89,6 +90,13 @@ export async function GET(
     try {
         await connectDB();
         const params = await context.params;
+        const id = params?.id;
+        if (!id || id === 'undefined' || !mongoose.Types.ObjectId.isValid(id)) {
+            return NextResponse.json(
+                { success: false, error: 'Invalid medicine id', details: process.env.NODE_ENV === 'production' ? undefined : `id: ${String(id)}` },
+                { status: 400 }
+            );
+        }
         const medicine = await Medicine.findById(params.id)
             .populate({
                 path: 'relatedProducts',
@@ -102,8 +110,9 @@ export async function GET(
         }
         return NextResponse.json({ success: true, data: medicine });
     } catch (error) {
+        console.error('Error in GET /api/medicines/[id]:', error);
         return NextResponse.json(
-            { success: false, error: 'Failed to fetch medicine' },
+            { success: false, error: 'Failed to fetch medicine', details: process.env.NODE_ENV === 'production' ? undefined : (error instanceof Error ? error.message : String(error)) },
             { status: 500 }
         );
     }
@@ -116,81 +125,26 @@ export async function PUT(
     try {
         await connectDB();
         const params = await context.params;
-        let updateData: any = {};
-        if (request.headers.get('content-type')?.includes('multipart/form-data')) {
-            const formData = await request.formData();
-            for (const [key, value] of formData.entries()) {
-                if (key === 'images') {
-                    if (!updateData.images) updateData.images = [];
-                    if (typeof value === 'string') updateData.images.push(value);
-                    else if (value instanceof File) updateData.images.push(`/uploads/${value.name}`); // Placeholder path
-                } else if (key === 'highlights') {
-                    updateData.highlights = typeof value === 'string' ? value.split(',').map(v => v.trim()) : [];
-                } else if (key === 'composition') {
-                    // If composition is sent as a string, convert to array of objects
-                    if (typeof value === 'string') {
-                        updateData.composition = value.split(',').map(pair => {
-                            const [name, val] = pair.split(':');
-                            return { name: name?.trim() || '', value: val?.trim() || '' };
-                        });
-                    }
-                } else if (key === 'relatedProducts') {
-                    updateData.relatedProducts = typeof value === 'string' ? value.split(',').map(v => v.trim()) : [];
-                } else {
-                    updateData[key] = value;
-                }
-            }
-        } else {
-            updateData = await request.json();
-        }
-        // Sanitize and convert fields
-        if (updateData.highlights && typeof updateData.highlights === 'string') {
-            updateData.highlights = updateData.highlights.split(',').map((v: string) => v.trim());
-        }
-        if (updateData.composition && typeof updateData.composition === 'string') {
-            // Try to parse as JSON array, else fallback to comma split
-            try {
-                updateData.composition = JSON.parse(updateData.composition);
-            } catch {
-                updateData.composition = updateData.composition.split(',').map((pair: string) => {
-                    const [name, val] = pair.split(':');
-                    return { name: name?.trim() || '', value: val?.trim() || '' };
-                });
-            }
-        }
-        if (updateData.relatedProducts && typeof updateData.relatedProducts === 'string') {
-            updateData.relatedProducts = updateData.relatedProducts.split(',').map((v: string) => v.trim());
-        }
-        if (updateData.rating && typeof updateData.rating === 'string') {
-            try {
-                updateData.rating = JSON.parse(updateData.rating);
-            } catch {
-                updateData.rating = undefined;
-            }
-        }
-        console.log('updateData:', updateData);
-        const medicine = await Medicine.findByIdAndUpdate(
-            params.id,
-            updateData,
-            { new: true, runValidators: true }
-        );
-        if (!medicine) {
+        const id = params?.id;
+        if (!id || id === 'undefined' || !mongoose.Types.ObjectId.isValid(id)) {
             return NextResponse.json(
-                { success: false, error: 'Medicine not found' },
-                { status: 404 }
-            );
-        }
-        return NextResponse.json({ success: true, data: medicine });
-    } catch (error: any) {
-        if (error.name === 'ValidationError') {
-            const messages = Object.values(error.errors).map((val: any) => val.message);
-            return NextResponse.json(
-                { success: false, error: messages },
+                { success: false, error: 'Invalid medicine id', details: process.env.NODE_ENV === 'production' ? undefined : `id: ${String(id)}` },
                 { status: 400 }
             );
         }
+        const body = await request.json();
+        const update = { ...body };
+        delete update._id;
+        delete update.createdAt;
+        delete update.updatedAt;
+        const result = await Medicine.findByIdAndUpdate(id, update, { new: true });
+        if (!result) {
+            return NextResponse.json({ success: false, error: 'Medicine not found' }, { status: 404 });
+        }
+        return NextResponse.json({ success: true, data: result });
+    } catch (error) {
         return NextResponse.json(
-            { success: false, error: 'Failed to update medicine' },
+            { success: false, error: 'Failed to update medicine', details: process.env.NODE_ENV === 'production' ? undefined : (error instanceof Error ? error.message : String(error)) },
             { status: 500 }
         );
     }

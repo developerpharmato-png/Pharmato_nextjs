@@ -23,7 +23,7 @@ export interface IOrder extends Document {
 }
 
 const OrderSchema = new Schema<IOrder>({
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'User' },
     medicineId: [{ type: Schema.Types.ObjectId, ref: 'Medicine' }],
     payment_mode: { type: String, default: '' },
     total_order_amount: { type: Number, default: 0 },

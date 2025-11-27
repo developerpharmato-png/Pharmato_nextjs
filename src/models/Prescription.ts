@@ -21,41 +21,33 @@ export interface IPrescription extends Document {
 const PrescriptionSchema = new Schema<IPrescription>({
     patientName: {
         type: String,
-        required: [true, 'Please provide patient name'],
         maxlength: [100, 'Patient name cannot be more than 100 characters'],
     },
     patientAge: {
         type: Number,
-        required: [true, 'Please provide patient age'],
         min: [0, 'Age cannot be negative'],
         max: [150, 'Age cannot be more than 150'],
     },
     doctorName: {
         type: String,
-        required: [true, 'Please provide doctor name'],
         maxlength: [100, 'Doctor name cannot be more than 100 characters'],
     },
     medicines: [{
         medicineId: {
             type: Schema.Types.ObjectId,
             ref: 'Medicine',
-            required: true,
         },
         medicineName: {
             type: String,
-            required: true,
         },
         dosage: {
             type: String,
-            required: [true, 'Please provide dosage'],
         },
         frequency: {
             type: String,
-            required: [true, 'Please provide frequency'],
         },
         duration: {
             type: String,
-            required: [true, 'Please provide duration'],
         },
     }],
     dateIssued: {

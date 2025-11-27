@@ -8,7 +8,7 @@ export interface IPincode extends Document {
 }
 
 const PincodeSchema = new Schema<IPincode>({
-    pincode: { type: String, required: true, unique: true },
+    pincode: { type: String },
     isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 

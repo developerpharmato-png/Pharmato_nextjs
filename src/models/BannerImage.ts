@@ -5,7 +5,7 @@ export interface IBannerImage extends Document {
 }
 
 const BannerImageSchema: Schema = new Schema({
-    images: { type: [String], required: true, default: [] },
+    images: { type: [String], default: [] },
 }, { timestamps: true });
 
 export default mongoose.models.BannerImage || mongoose.model<IBannerImage>('BannerImage', BannerImageSchema);
