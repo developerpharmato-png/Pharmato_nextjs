@@ -8,12 +8,10 @@ export function proxy(request: NextRequest) {
     const origin = request.headers.get('origin') || '';
     const pathname = request.nextUrl.pathname;
 
-    // OPTION: skip CORS injection for customer APIs entirely
-    if (pathname.startsWith('/api/customer')) {
-        // If it's a preflight OPTIONS for customer API, return plain 204 (no CORS headers)
-        if (request.method === 'OPTIONS') return new NextResponse(null, { status: 204 });
-        return NextResponse.next();
-    }
+    // NOTE: we no longer skip `/api/customer` routes — allow CORS headers
+    // to be injected for customer APIs as well (so web clients from allowed
+    // origins can call login/verify endpoints). If you want to restrict
+    // access, remove the origin from `src/lib/allowedOrigins.ts`.
 
     const response = NextResponse.next();
 
