@@ -2,10 +2,28 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import HeaderWithAction from '../../components/HeaderWithAction';
 
 export default function MedicineForm() {
     const router = useRouter();
-    const [form, setForm] = useState({
+    const [form, setForm] = useState<{
+        name: string;
+        description: string;
+        manufacturer: string;
+        category: string;
+        categoryId: string;
+        subCategoryId: string;
+        price: string;
+        purchasePrice: string;
+        mrp: string;
+        discount: number;
+        stock: string;
+        expiryDate: string;
+        batchNumber: string;
+        isOTC: boolean;
+        requiresPrescription: boolean;
+        images: string[];
+    }>({
         name: '',
         description: '',
         manufacturer: '',
@@ -21,7 +39,20 @@ export default function MedicineForm() {
         batchNumber: '',
         isOTC: false,
         requiresPrescription: true,
+        images: [],
     });
+    const [newImageUrl, setNewImageUrl] = useState('');
+
+    const addImageUrl = () => {
+        const url = newImageUrl.trim();
+        if (!url) return;
+        setForm(prev => ({ ...prev, images: [...(prev.images || []), url] }));
+        setNewImageUrl('');
+    };
+
+    const removeImageAt = (idx: number) => {
+        setForm(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }));
+    };
     const [composition, setComposition] = useState([{ name: '', value: '' }]);
     const [categories, setCategories] = useState<any[]>([]);
     const [subcategories, setSubcategories] = useState<any[]>([]);
@@ -144,16 +175,53 @@ export default function MedicineForm() {
     return (
         <div className="p-8">
             <div className="mb-8">
-                <div className="flex items-center gap-3 mb-2">
-                    <Link href="/dashboard/medicines" className="text-gray-500 hover:text-green-600">
-                        ← Back
-                    </Link>
-                </div>
-                <h1 className="text-4xl font-bold text-gray-800 mb-2">Add New Medicine 💊</h1>
-                <p className="text-gray-600">Enter medicine details to add to inventory</p>
+                <HeaderWithAction
+                    title="Add New Medicine"
+                    subtitle="Enter medicine details to add to inventory"
+                    showBack={true}
+                    showSearch={false}
+                />
             </div>
             <div className="bg-white rounded-xl shadow-md p-8 max-w-3xl">
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Medicine Images (URLs)</label>
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                placeholder="https://example.com/image.jpg"
+                                value={newImageUrl}
+                                onChange={e => setNewImageUrl(e.target.value)}
+                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                            />
+                            <button
+                                type="button"
+                                onClick={addImageUrl}
+                                className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                            >
+                                Add
+                            </button>
+                        </div>
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                            {form.images.map((url, idx) => (
+                                <div key={idx} className="relative">
+                                    <img
+                                        src={url}
+                                        alt={`preview-${idx}`}
+                                        className="w-16 h-16 object-cover rounded border shadow"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeImageAt(idx)}
+                                        className="absolute -top-2 -right-2 bg-white rounded-full p-1 text-red-500 border"
+                                        aria-label={`Remove image ${idx}`}
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                     <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">Medicine Name *</label>
                         <input

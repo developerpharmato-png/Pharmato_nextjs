@@ -20,6 +20,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
     }, [router]);
 
+    // Load Material Icons for improved UI
+    useEffect(() => {
+        if (typeof document === 'undefined') return;
+        if (!document.getElementById('material-icons-stylesheet')) {
+            const link = document.createElement('link');
+            link.id = 'material-icons-stylesheet';
+            link.rel = 'stylesheet';
+            link.href = 'https://fonts.googleapis.com/icon?family=Material+Icons';
+            document.head.appendChild(link);
+        }
+    }, []);
+
     const handleLogout = async () => {
         try {
             await fetch('/api/auth/logout', { method: 'POST' });
@@ -31,16 +43,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     };
 
     const menuItems = [
-        { name: 'Dashboard', path: '/dashboard', icon: '📊' },
-        { name: 'Medicines', path: '/dashboard/medicines', icon: '💊' },
-        { name: 'Categories', path: '/dashboard/categories', icon: '📂' },
-        { name: 'Subcategories', path: '/dashboard/subcategories', icon: '📁' },
-        { name: 'Prescriptions', path: '/dashboard/prescriptions', icon: '📋' },
-        { name: 'Admins', path: '/dashboard/admins', icon: '👥' },
-        { name: 'Admin Customers', path: '/dashboard/admin/customers', icon: '👤' },
-        { name: 'Pincodes', path: '/dashboard/pincode', icon: '📍' },
-        { name: 'Stores', path: '/dashboard/store', icon: '🏬' },
-        { name: 'Banner Images', path: '/dashboard/banner-images', icon: '🖼️' },
+        { name: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
+        { name: 'Medicines', path: '/dashboard/medicines', icon: 'medication' },
+        { name: 'Categories', path: '/dashboard/categories', icon: 'category' },
+        { name: 'Subcategories', path: '/dashboard/subcategories', icon: 'folder' },
+        { name: 'Prescriptions', path: '/dashboard/prescriptions', icon: 'receipt_long' },
+        { name: 'Admins', path: '/dashboard/admins', icon: 'admin_panel_settings' },
+        { name: 'Admin Customers', path: '/dashboard/admin/customers', icon: 'person' },
+        { name: 'Pincodes', path: '/dashboard/pincode', icon: 'place' },
+        { name: 'Stores', path: '/dashboard/store', icon: 'store' },
+        { name: 'Banner Images', path: '/dashboard/banner-images', icon: 'image' },
     ];
 
     if (loading) {
@@ -62,17 +74,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     {/* Logo/Brand */}
                     <div className="p-6 border-b border-gray-200">
                         <div className="flex items-center justify-between">
-                            {sidebarOpen && (
-                                <div>
-                                    <h1 className="text-2xl font-bold text-green-600">Pharmato</h1>
-                                    <p className="text-xs text-gray-500">Medicine Management</p>
-                                </div>
-                            )}
+                            <div className="flex items-center gap-3">
+                                <span className="material-icons text-green-600 text-2xl">local_pharmacy</span>
+                                {sidebarOpen && (
+                                    <div>
+                                        <h1 className="text-2xl font-bold text-green-600">Pharmato</h1>
+                                        <p className="text-xs text-gray-500">Medicine Management</p>
+                                    </div>
+                                )}
+                            </div>
                             <button
                                 onClick={() => setSidebarOpen(!sidebarOpen)}
                                 className="text-gray-500 hover:text-green-600 transition"
+                                aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
                             >
-                                {sidebarOpen ? '◀' : '▶'}
+                                <span className="material-icons">{sidebarOpen ? 'chevron_left' : 'chevron_right'}</span>
                             </button>
                         </div>
                     </div>
@@ -90,7 +106,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                         : 'text-gray-700 hover:bg-green-50 hover:text-green-600'
                                         }`}
                                 >
-                                    <span className="text-2xl">{item.icon}</span>
+                                    <span className="material-icons text-xl">{item.icon}</span>
                                     {sidebarOpen && (
                                         <span className="ml-3 font-medium">{item.name}</span>
                                     )}
@@ -114,10 +130,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         </div>
                         <button
                             onClick={handleLogout}
-                            className={`w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition ${!sidebarOpen ? 'text-xs' : ''
-                                }`}
+                            className={`w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition ${!sidebarOpen ? 'text-xs' : ''}`}
+                            aria-label="Logout"
                         >
-                            {sidebarOpen ? 'Logout' : '🚪'}
+                            <span className="inline-flex items-center gap-2 justify-center">
+                                <span className="material-icons">logout</span>
+                                {sidebarOpen && <span>Logout</span>}
+                            </span>
                         </button>
                     </div>
                 </div>

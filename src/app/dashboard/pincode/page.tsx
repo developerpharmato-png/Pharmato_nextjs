@@ -62,17 +62,17 @@ export default function PincodeDashboard() {
 
     return (
         <div className="max-w-2xl mx-auto min-h-[80vh] flex items-center justify-center p-0 bg-gradient-to-br from-blue-50 to-green-50">
-            <div className="w-full p-8 bg-white rounded-2xl shadow-xl border border-gray-200">
-                <h2 className="text-3xl font-extrabold mb-6 text-green-700 flex items-center gap-2">
-                    <span>📍</span> Pincode Management
+            <div className="w-full p-8 bg-gradient-to-br from-white via-blue-50 to-green-50 rounded-3xl shadow-2xl border border-green-200">
+                <h2 className="text-4xl font-extrabold mb-8 text-green-700 flex items-center gap-3">
+                    <span className="inline-block text-4xl">📍</span> Pincode Management
                 </h2>
-                <form onSubmit={handleSubmit} className="mb-8 flex flex-wrap gap-4 items-end bg-white p-4 rounded-xl shadow">
+                <form onSubmit={handleSubmit} className="mb-8 flex flex-wrap gap-4 items-end bg-white/80 p-6 rounded-2xl shadow-lg border border-blue-100">
                     <input
                         type="text"
                         placeholder="Enter pincode"
                         value={form.pincode}
                         required
-                        className="border-2 border-green-300 px-4 py-2 rounded-lg w-44 focus:outline-none focus:border-green-500 text-lg font-mono"
+                        className="border-2 border-green-400 px-4 py-2 rounded-xl w-48 focus:outline-none focus:border-blue-500 text-lg font-mono shadow-sm transition-all duration-200"
                         onChange={e => setForm({ ...form, pincode: e.target.value })}
                     />
                     <label className="flex items-center gap-2 text-lg">
@@ -82,11 +82,11 @@ export default function PincodeDashboard() {
                             onChange={e => setForm({ ...form, isActive: e.target.checked })}
                             className="accent-green-600 w-5 h-5"
                         />
-                        <span className="text-green-700">Active</span>
+                        <span className="text-green-700 font-bold">Active</span>
                     </label>
                     <button
                         type="submit"
-                        className={`px-6 py-2 rounded-lg font-bold text-white transition-all ${editId ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-600 hover:bg-blue-700'} shadow`}
+                        className={`px-6 py-2 rounded-xl font-bold text-white transition-all ${editId ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-600 hover:bg-blue-700'} shadow-lg`}
                         disabled={loading}
                     >
                         {editId ? 'Update' : 'Add'}
@@ -94,7 +94,7 @@ export default function PincodeDashboard() {
                     {editId && (
                         <button
                             type="button"
-                            className="ml-2 px-6 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 font-bold text-gray-700 shadow"
+                            className="ml-2 px-6 py-2 rounded-xl bg-gray-300 hover:bg-gray-400 font-bold text-gray-700 shadow-lg"
                             onClick={() => { setEditId(null); setForm({ pincode: '', isActive: true }); }}
                         >
                             Cancel
@@ -103,7 +103,7 @@ export default function PincodeDashboard() {
                 </form>
                 {error && <div className="text-red-600 mb-4 font-semibold">{error}</div>}
                 <div className="overflow-x-auto">
-                    <table className="w-full border rounded-xl shadow bg-white">
+                    <table className="w-full border rounded-2xl shadow-lg bg-white/90">
                         <thead>
                             <tr className="bg-green-100 text-green-800">
                                 <th className="py-3 px-4 text-left text-lg font-bold">Pincode</th>
@@ -113,23 +113,23 @@ export default function PincodeDashboard() {
                         </thead>
                         <tbody>
                             {pincodes.map((pin: any) => (
-                                <tr key={pin._id} className="border-t hover:bg-green-50 transition">
-                                    <td className="py-2 px-4 font-mono text-xl text-gray-800">{pin.pincode}</td>
+                                <tr key={pin._id} className="border-t hover:bg-blue-50 transition-all">
+                                    <td className="py-2 px-4 font-mono text-xl text-blue-700 font-bold">{pin.pincode}</td>
                                     <td className="py-2 px-4">
                                         {pin.isActive ? (
-                                            <span className="inline-block px-3 py-1 rounded-full bg-green-200 text-green-800 font-semibold">Yes</span>
+                                            <span className="inline-block px-4 py-1 rounded-full bg-green-200 text-green-800 font-bold shadow">Yes</span>
                                         ) : (
-                                            <span className="inline-block px-3 py-1 rounded-full bg-red-200 text-red-800 font-semibold">No</span>
+                                            <span className="inline-block px-4 py-1 rounded-full bg-red-200 text-red-800 font-bold shadow">No</span>
                                         )}
                                     </td>
                                     <td className="py-2 px-4 flex gap-2">
                                         <button
-                                            className="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded-lg font-bold shadow"
+                                            className="bg-green-500 hover:bg-green-600 text-white px-5 py-1 rounded-xl font-bold shadow-lg border border-green-300"
                                             onClick={() => handleEdit(pin)}
                                             disabled={loading}
                                         >Edit</button>
                                         <button
-                                            className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-lg font-bold shadow"
+                                            className="bg-red-500 hover:bg-red-600 text-white px-5 py-1 rounded-xl font-bold shadow-lg border border-red-300"
                                             onClick={() => handleDelete(pin._id)}
                                             disabled={loading}
                                         >Delete</button>
@@ -139,7 +139,7 @@ export default function PincodeDashboard() {
                         </tbody>
                     </table>
                 </div>
-                {loading && <div className="mt-6 text-gray-500 text-lg font-semibold">Loading...</div>}
+                {loading && <div className="mt-6 text-blue-500 text-lg font-bold">Loading...</div>}
             </div>
         </div>
     );

@@ -159,7 +159,7 @@ export default function CategoriesPage() {
                                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Image</th>
                                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Name</th>
                                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Description</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Type</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">OTC</th>
                                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Status</th>
                                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Actions</th>
                             </tr>
@@ -178,13 +178,9 @@ export default function CategoriesPage() {
                                     <td className="px-4 py-3 text-sm text-gray-600">{category.description}</td>
                                     <td className="px-4 py-3 text-sm">
                                         {category.isOTC ? (
-                                            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                                                🟢 OTC (Over-the-Counter)
-                                            </span>
+                                            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">Yes</span>
                                         ) : (
-                                            <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
-                                                📋 Prescription Required
-                                            </span>
+                                            <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-bold">No</span>
                                         )}
                                     </td>
                                     <td className="px-4 py-3 text-sm">

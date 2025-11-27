@@ -116,10 +116,62 @@ export async function PUT(
     try {
         await connectDB();
         const params = await context.params;
-        const body = await request.json();
+        let updateData: any = {};
+        if (request.headers.get('content-type')?.includes('multipart/form-data')) {
+            const formData = await request.formData();
+            for (const [key, value] of formData.entries()) {
+                if (key === 'images') {
+                    if (!updateData.images) updateData.images = [];
+                    if (typeof value === 'string') updateData.images.push(value);
+                    else if (value instanceof File) updateData.images.push(`/uploads/${value.name}`); // Placeholder path
+                } else if (key === 'highlights') {
+                    updateData.highlights = typeof value === 'string' ? value.split(',').map(v => v.trim()) : [];
+                } else if (key === 'composition') {
+                    // If composition is sent as a string, convert to array of objects
+                    if (typeof value === 'string') {
+                        updateData.composition = value.split(',').map(pair => {
+                            const [name, val] = pair.split(':');
+                            return { name: name?.trim() || '', value: val?.trim() || '' };
+                        });
+                    }
+                } else if (key === 'relatedProducts') {
+                    updateData.relatedProducts = typeof value === 'string' ? value.split(',').map(v => v.trim()) : [];
+                } else {
+                    updateData[key] = value;
+                }
+            }
+        } else {
+            updateData = await request.json();
+        }
+        // Sanitize and convert fields
+        if (updateData.highlights && typeof updateData.highlights === 'string') {
+            updateData.highlights = updateData.highlights.split(',').map((v: string) => v.trim());
+        }
+        if (updateData.composition && typeof updateData.composition === 'string') {
+            // Try to parse as JSON array, else fallback to comma split
+            try {
+                updateData.composition = JSON.parse(updateData.composition);
+            } catch {
+                updateData.composition = updateData.composition.split(',').map((pair: string) => {
+                    const [name, val] = pair.split(':');
+                    return { name: name?.trim() || '', value: val?.trim() || '' };
+                });
+            }
+        }
+        if (updateData.relatedProducts && typeof updateData.relatedProducts === 'string') {
+            updateData.relatedProducts = updateData.relatedProducts.split(',').map((v: string) => v.trim());
+        }
+        if (updateData.rating && typeof updateData.rating === 'string') {
+            try {
+                updateData.rating = JSON.parse(updateData.rating);
+            } catch {
+                updateData.rating = undefined;
+            }
+        }
+        console.log('updateData:', updateData);
         const medicine = await Medicine.findByIdAndUpdate(
             params.id,
-            body,
+            updateData,
             { new: true, runValidators: true }
         );
         if (!medicine) {

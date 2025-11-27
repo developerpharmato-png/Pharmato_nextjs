@@ -153,7 +153,7 @@ function SubCategoriesTable() {
                 >
                     <option value="all">All Types</option>
                     <option value="true">OTC Only</option>
-                    <option value="false">Prescription Only</option>
+                    <option value="false">Non OTC Only</option>
                 </select>
                 <div className="text-sm text-gray-600">
                     {filteredSubcategories.length} subcategor{filteredSubcategories.length !== 1 ? 'ies' : 'y'}
@@ -168,7 +168,7 @@ function SubCategoriesTable() {
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Name</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Description</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Category</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Type</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">OTC</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Status</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Actions</th>
                         </tr>
@@ -190,13 +190,9 @@ function SubCategoriesTable() {
                                 </td>
                                 <td className="px-4 py-3 text-sm">
                                     {subcategory.isOTC ? (
-                                        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                                            🟢 OTC
-                                        </span>
+                                        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">Yes</span>
                                     ) : (
-                                        <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
-                                            📋 Prescription
-                                        </span>
+                                        <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-bold">No</span>
                                     )}
                                 </td>
                                 <td className="px-4 py-3 text-sm">

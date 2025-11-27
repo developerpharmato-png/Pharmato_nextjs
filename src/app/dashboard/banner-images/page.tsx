@@ -46,6 +46,13 @@ export default function BannerImagesDashboard() {
 
     return (
         <div className="max-w-3xl mx-auto mt-10 p-8 bg-gradient-to-br from-blue-50 to-green-50 rounded-2xl shadow-xl border border-gray-200">
+            <button
+                type="button"
+                onClick={() => window.history.back()}
+                className="mb-4 px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold flex items-center gap-2 shadow"
+            >
+                <span className="text-xl">←</span> Back
+            </button>
             <h2 className="text-3xl font-extrabold text-green-700 flex items-center gap-2 mb-8">
                 <span>🖼️</span> Banner Images
             </h2>
