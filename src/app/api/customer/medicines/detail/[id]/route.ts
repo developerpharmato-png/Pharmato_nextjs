@@ -1,12 +1,16 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import Medicine from '@/models/Medicine';
 import Category from '@/models/Category';
 import SubCategory from '@/models/SubCategory';
+import Cart from '@/models/Cart';
 import dbConnect from '@/lib/mongodb';
 
-export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
-    const { id } = await context.params;
+export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
     await dbConnect();
+    const { id } = await context.params;
+    const body = await req.json();
+    const { userId } = body;
     if (!id) {
         return NextResponse.json({ success: false, message: 'Medicine id is required', data: null }, { status: 400 });
     }
@@ -17,7 +21,6 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
             select: '_id name manufacturer mrp price images discount'
         })
         .lean();
-    // Defensive: If medicine is an array, take the first element
     if (Array.isArray(medicine)) {
         medicine = medicine[0];
     }
@@ -34,14 +37,35 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
         subcategory = await SubCategory.findById(medicine.subCategoryId).lean();
     }
 
-    return NextResponse.json({ success: true, message: 'Medicine details fetched successfully', data: { ...medicine, category, subcategory } });
+    // Cart info
+    let isInCart = false;
+    let cartQuantity = 0;
+    if (userId && typeof userId === 'string' && userId.trim() !== "") {
+        const cart = await Cart.findOne({ userId }).lean();
+        const cartItems = cart && typeof cart === 'object' && 'items' in cart && Array.isArray((cart as any).items) ? (cart as any).items : [];
+        const cartItem = cartItems.find((item: any) => item.medicineId?.toString() === medicine._id?.toString());
+        isInCart = !!cartItem;
+        cartQuantity = cartItem ? cartItem.quantity : 0;
+    }
+
+    return NextResponse.json({
+        success: true,
+        message: 'Medicine details fetched successfully',
+        data: {
+            ...medicine,
+            category,
+            subcategory,
+            isInCart,
+            cartQuantity
+        }
+    });
 }
 
 /**
  * @swagger
  * /api/customer/medicines/detail/{id}:
- *   get:
- *     summary: Get medicine details by ID
+ *   post:
+ *     summary: Get medicine details by ID and user cart info
  *     tags:
  *       - Medicine
  *     parameters:
@@ -51,22 +75,45 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
  *         schema:
  *           type: string
  *         description: Medicine MongoDB ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: User MongoDB ID
  *     responses:
  *       200:
- *         description: Medicine details
+ *         description: Medicine details with cart info
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 _id:
+ *                 success:
+ *                   type: boolean
+ *                 message:
  *                   type: string
- *                 name:
- *                   type: string
- *                 category:
+ *                 data:
  *                   type: object
- *                 subcategory:
- *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     category:
+ *                       type: object
+ *                     subcategory:
+ *                       type: object
+ *                     isInCart:
+ *                       type: boolean
+ *                       description: true if medicine is in user's cart
+ *                     cartQuantity:
+ *                       type: integer
+ *                       description: quantity in cart if in cart, else 0
  *       400:
  *         description: Medicine id is required
  *       404:
