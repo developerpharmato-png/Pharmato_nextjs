@@ -53,13 +53,23 @@ export async function GET(request: NextRequest) {
 
         const { searchParams } = new URL(request.url);
         const isOTC = searchParams.get('isOTC');
+        const name = searchParams.get('name') || '';
+        const limit = parseInt(searchParams.get('limit') || '0', 10);
+        const offset = parseInt(searchParams.get('offset') || '0', 10);
 
-        let query = {};
+        let query: any = {};
         if (isOTC !== null) {
-            query = { isOTC: isOTC === 'true' };
+            query.isOTC = isOTC === 'true';
+        }
+        if (name) {
+            query.name = { $regex: name, $options: 'i' };
         }
 
-        const categories = await Category.find(query).sort({ createdAt: -1 });
+        let categoriesQuery = Category.find(query).sort({ createdAt: -1 });
+        if (offset) categoriesQuery = categoriesQuery.skip(offset);
+        if (limit) categoriesQuery = categoriesQuery.limit(limit);
+
+        const categories = await categoriesQuery.exec();
 
         return NextResponse.json({
             success: true,

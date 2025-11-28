@@ -1,9 +1,12 @@
 "use client";
 import React, { useState } from 'react';
+
 import Link from 'next/link';
+import HeaderWithAction from '../components/HeaderWithAction';
 
 export default function CategoriesPage() {
     const [seeding, setSeeding] = React.useState(false);
+    const [filterOTC, setFilterOTC] = useState<string>('all');
 
     const handleSeedData = async () => {
         if (!confirm('This will clear all existing categories and subcategories. Continue?')) return;
@@ -28,34 +31,39 @@ export default function CategoriesPage() {
 
     return (
         <div className="p-6">
-            <button
-                onClick={() => window.history.back()}
-                className="mb-6 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg shadow inline-flex items-center gap-2"
-            >
-                <span className="text-lg">←</span> Back
-            </button>
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Categories</h1>
-                    <p className="text-gray-600 mt-1">Manage medicine categories and OTC classification</p>
-                </div>
-                <div className="flex gap-3">
-                    <button
-                        onClick={handleSeedData}
-                        disabled={seeding}
-                        className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium disabled:opacity-50"
-                    >
-                        {seeding ? 'Seeding...' : '🌱 Seed Dummy Data'}
-                    </button>
-                    <Link
-                        href="/dashboard/categories/new"
-                        className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
-                    >
-                        + Add Category
-                    </Link>
-                </div>
+            <HeaderWithAction
+                title="Categories"
+                subtitle="Manage medicine categories and OTC classification"
+                showBack={false}
+                showSearch={false}
+            />
+            <div className="flex items-center mb-6 justify-end gap-3">
+                <select
+                    value={filterOTC}
+                    onChange={e => setFilterOTC(e.target.value)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    style={{ minWidth: 160 }}
+                >
+                    <option value="all">All</option>
+                    <option value="true">OTC Only</option>
+                    <option value="false">Non-OTC Only</option>
+                </select>
+                <button
+                    onClick={handleSeedData}
+                    disabled={seeding}
+                    className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium disabled:opacity-50 flex items-center gap-2"
+                >
+                    <span className="material-icons" style={{ fontSize: 22 }}>auto_awesome</span>
+                    {seeding ? 'Seeding...' : 'Seed Dummy Data'}
+                </button>
+                <Link
+                    href="/dashboard/categories/new"
+                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium flex items-center gap-2"
+                >
+                    <span className="material-icons" style={{ fontSize: 22 }}>add_circle</span>
+                    Add Category
+                </Link>
             </div>
-
             <div className="bg-white rounded-lg shadow-md p-6">
                 <CategoriesTable />
             </div>
@@ -66,35 +74,26 @@ export default function CategoriesPage() {
         const [categories, setCategories] = useState<any[]>([]);
         const [filteredCategories, setFilteredCategories] = useState<any[]>([]);
         const [searchTerm, setSearchTerm] = useState('');
-        const [filterOTC, setFilterOTC] = useState<string>('all');
+        // Remove duplicate filterOTC, use parent state
         const [currentPage, setCurrentPage] = useState(1);
         const [loading, setLoading] = useState(true);
         const itemsPerPage = 10;
 
         React.useEffect(() => {
             fetchCategories();
-        }, []);
-
-        React.useEffect(() => {
-            let filtered = categories;
-            if (searchTerm) {
-                filtered = filtered.filter(cat =>
-                    cat.name.toLowerCase().includes(searchTerm.toLowerCase())
-                );
-            }
-            if (filterOTC !== 'all') {
-                filtered = filtered.filter(cat => cat.isOTC === (filterOTC === 'true'));
-            }
-            setFilteredCategories(filtered);
-            setCurrentPage(1);
-        }, [searchTerm, filterOTC, categories]);
+        }, [searchTerm, filterOTC]);
 
         const fetchCategories = async () => {
+            setLoading(true);
             try {
-                const res = await fetch('/api/categories');
+                const params = new URLSearchParams();
+                if (searchTerm) params.append('name', searchTerm);
+                if (filterOTC !== 'all') params.append('isOTC', filterOTC);
+                const res = await fetch(`/api/categories?${params.toString()}`);
                 const data = await res.json();
                 setCategories(data.data || []);
                 setFilteredCategories(data.data || []);
+                setCurrentPage(1);
             } catch (error) {
                 console.error('Failed to fetch categories:', error);
             } finally {
@@ -126,29 +125,15 @@ export default function CategoriesPage() {
         return (
             <div className="space-y-4">
                 {/* Filters */}
-                <div className="flex items-center gap-4">
-                    <div className="flex-1 relative">
-                        <input
-                            type="text"
-                            placeholder="Search categories..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        />
-                        <span className="absolute left-3 top-2.5 text-gray-400 text-xl">🔍</span>
-                    </div>
-                    <select
-                        value={filterOTC}
-                        onChange={(e) => setFilterOTC(e.target.value)}
+                <div className="flex items-center gap-4 mb-4">
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        placeholder="Search category name..."
                         className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    >
-                        <option value="all">All Types</option>
-                        <option value="true">OTC Only</option>
-                        <option value="false">Prescription Only</option>
-                    </select>
-                    <div className="text-sm text-gray-600">
-                        {filteredCategories.length} categor{filteredCategories.length !== 1 ? 'ies' : 'y'}
-                    </div>
+                        style={{ minWidth: 200 }}
+                    />
                 </div>
 
                 {/* Table */}
