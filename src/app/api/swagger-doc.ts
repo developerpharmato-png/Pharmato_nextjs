@@ -15,6 +15,8 @@ export async function GET() {
     });
 }
 
+
+
 /**
  * @swagger
  * /api/settings/get-by-type:
@@ -26,21 +28,27 @@ export async function GET() {
  *       required: true
  *       content:
  *         application/json:
-        * parameters:
-* - in: path
-        * name: id
-            * required: true
-                * schema:
-* type: string
-        * description: Medicine MongoDB ID
-            * requestBody:
-* required: true
-        * content:
-* application / json:
-* schema:
-* type: object
-        * description: quantity in cart if in cart, else 0
-            * 400:
-* description: Medicine id is required
-*/
+ *           schema:
+ *             type: object
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 description: The type of setting to fetch
+ *     responses:
+ *       200:
+ *         description: Setting data found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Setting'
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: No data found
+ */
 
