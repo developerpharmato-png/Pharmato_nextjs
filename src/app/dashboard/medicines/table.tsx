@@ -132,7 +132,6 @@ export default function MedicinesTable({ searchValue, onSearchChange }: Props) {
                             <th onClick={() => toggleSort('stock')} className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200 cursor-pointer select-none">Stock {sortKey === 'stock' ? (sortOrder === 'asc' ? <span className="material-icons text-xs align-middle">arrow_upward</span> : <span className="material-icons text-xs align-middle">arrow_downward</span>) : ''}</th>
                             <th onClick={() => toggleSort('expiry')} className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200 cursor-pointer select-none">Expiry {sortKey === 'expiry' ? (sortOrder === 'asc' ? <span className="material-icons text-xs align-middle">arrow_upward</span> : <span className="material-icons text-xs align-middle">arrow_downward</span>) : ''}</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Highlights</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Rating</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -201,13 +200,6 @@ export default function MedicinesTable({ searchValue, onSearchChange }: Props) {
                                         <span className="text-gray-400">-</span>
                                     )}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-yellow-600 font-semibold">
-                                    {medicine.rating && medicine.rating.average > 0 ? (
-                                        <span className="inline-flex items-center gap-1"><span className="material-icons text-yellow-600 text-base">star</span> {medicine.rating.average.toFixed(1)} <span className="text-gray-400 text-xs">({medicine.rating.count})</span></span>
-                                    ) : (
-                                        <span className="text-gray-400">-</span>
-                                    )}
-                                </td>
                             </tr>
                         ))}
                     </tbody>
@@ -246,7 +238,6 @@ export default function MedicinesTable({ searchValue, onSearchChange }: Props) {
                                 <div className={`text-xs px-2 py-1 rounded-full ${medicine.stock > 50 ? 'bg-green-100 text-green-800' : medicine.stock > 20 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{medicine.stock} units</div>
                             </div>
                             <div className="mt-2 flex items-center gap-3 text-sm text-gray-600">
-                                <div className="inline-flex items-center gap-1"><span className="material-icons text-base text-yellow-600">star</span> {medicine.rating?.average ? medicine.rating.average.toFixed(1) : '-'}</div>
                                 <div className="inline-flex items-center gap-1"><span className="material-icons text-base">event</span> <span className="text-xs">{new Date(medicine.expiryDate).toLocaleDateString()}</span></div>
                             </div>
                         </div>

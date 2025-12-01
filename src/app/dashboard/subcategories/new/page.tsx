@@ -60,11 +60,20 @@ export default function NewSubCategoryPage() {
 
     return (
         <div className="p-6">
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800">Add New Subcategory</h1>
-                <p className="text-gray-600 mt-1">Create a new medicine subcategory</p>
+            <div className="mb-8 flex items-center gap-4">
+                <button
+                    type="button"
+                    onClick={() => router.back()}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg shadow hover:bg-gray-300 transition flex items-center gap-2"
+                >
+                    <span className="text-xl">←</span> Back
+                </button>
+                <span className="inline-block text-4xl">🗂️</span>
+                <div>
+                    <h1 className="text-4xl font-extrabold text-green-700">Add New Subcategory</h1>
+                    <p className="text-gray-600 text-lg">Create a new medicine subcategory for your inventory</p>
+                </div>
             </div>
-
             <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>

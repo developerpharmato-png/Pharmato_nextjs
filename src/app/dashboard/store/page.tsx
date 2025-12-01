@@ -137,13 +137,6 @@ export default function StoreDashboard() {
     return (
         <div className="flex justify-center items-center min-h-[80vh] bg-[#f3fff3]">
             <div className="w-full max-w-3xl p-8 rounded-2xl shadow-xl border border-gray-200 bg-gradient-to-br from-blue-50 to-green-50">
-                <button
-                    type="button"
-                    onClick={() => window.history.back()}
-                    className="mb-4 px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold flex items-center gap-2 shadow"
-                >
-                    <span className="text-xl">←</span> Back
-                </button>
                 <div className="flex justify-between items-center mb-8">
                     <h2 className="text-4xl font-extrabold text-green-700 flex items-center gap-3">
                         <span className="inline-block text-4xl">🧃</span>

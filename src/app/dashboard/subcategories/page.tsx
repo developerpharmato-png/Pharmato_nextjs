@@ -5,12 +5,6 @@ import Link from 'next/link';
 export default function SubCategoriesPage() {
     return (
         <div className="p-6">
-            <button
-                onClick={() => window.history.back()}
-                className="mb-6 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg shadow inline-flex items-center gap-2"
-            >
-                <span className="text-lg">←</span> Back
-            </button>
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-800">Subcategories</h1>

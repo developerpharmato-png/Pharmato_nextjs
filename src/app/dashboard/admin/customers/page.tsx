@@ -48,12 +48,6 @@ export default function AdminCustomerListPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 p-8">
-            <button
-                onClick={() => window.history.back()}
-                className="mb-8 px-4 py-2 bg-white hover:bg-gray-100 text-gray-700 rounded-lg shadow inline-flex items-center gap-2 transition-all duration-150"
-            >
-                <span className="text-lg">←</span> Back
-            </button>
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-4xl font-extrabold text-green-700 mb-2 flex items-center gap-2 animate-fade-in">

@@ -89,5 +89,10 @@ export async function POST(request: NextRequest) {
             };
         }
     }
-    return NextResponse.json({ success: true, cart, medicineInCart });
+    return NextResponse.json({
+        success: true,
+        cart,
+        medicineInCart,
+        message: 'Cart added successfully'
+    });
 }

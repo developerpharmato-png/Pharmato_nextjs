@@ -48,6 +48,27 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
         cartQuantity = cartItem ? cartItem.quantity : 0;
     }
 
+    // Add isInCart and cartQuantity to each relatedProduct
+    let relatedProductsWithCart = [];
+    if (medicine.relatedProducts && Array.isArray(medicine.relatedProducts)) {
+        let cartItems: any[] = [];
+        if (userId && typeof userId === 'string' && userId.trim() !== "") {
+            const cart = await Cart.findOne({ userId }).lean();
+            cartItems = cart && typeof cart === 'object' && 'items' in cart && Array.isArray((cart as any).items) ? (cart as any).items : [];
+        }
+        relatedProductsWithCart = medicine.relatedProducts.map((prod: any) => {
+            const cartItem = cartItems.find((item: any) => item.medicineId?.toString() === prod._id?.toString());
+            return {
+                ...prod,
+                isInCart: !!cartItem,
+                cartQuantity: cartItem ? cartItem.quantity : 0
+            };
+        });
+    }
+    // Update relatedProducts in the medicine object itself
+    if (medicine && Array.isArray(relatedProductsWithCart)) {
+        medicine.relatedProducts = relatedProductsWithCart;
+    }
     return NextResponse.json({
         success: true,
         message: 'Medicine details fetched successfully',
