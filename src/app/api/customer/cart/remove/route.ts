@@ -86,5 +86,5 @@ export async function POST(request: NextRequest) {
     }
     cart.items = cart.items.filter((item: any) => item.medicineId.toString() !== medicineId);
     await cart.save();
-    return NextResponse.json({ success: true, cart });
+    return NextResponse.json({ success: true, cart, message: 'Remove from cart successfully' });
 }

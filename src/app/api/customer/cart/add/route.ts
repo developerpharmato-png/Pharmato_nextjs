@@ -87,6 +87,11 @@ export async function POST(request: NextRequest) {
                 medicineId: updatedItem.medicineId.toString(),
                 quantity: updatedItem.quantity
             };
+        } else {
+            medicineInCart = {
+                medicineId: medicineId,
+                quantity: 0
+            };
         }
     }
     return NextResponse.json({
