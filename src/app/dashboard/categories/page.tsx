@@ -71,6 +71,8 @@ export default function CategoriesPage() {
     );
 
     function CategoriesTable() {
+        const [dialogOpen, setDialogOpen] = useState(false);
+        const [pendingCategory, setPendingCategory] = useState<{ id: string; isActive: boolean } | null>(null);
         const [categories, setCategories] = useState<any[]>([]);
         const [filteredCategories, setFilteredCategories] = useState<any[]>([]);
         const [searchTerm, setSearchTerm] = useState('');
@@ -107,33 +109,94 @@ export default function CategoriesPage() {
         const currentCategories = filteredCategories.slice(startIndex, endIndex);
 
         // Add missing handleToggleStatus function
-        const handleToggleStatus = async (categoryId: string) => {
+        const handleToggleStatus = (categoryId: string, isActive: boolean) => {
+            setPendingCategory({ id: categoryId, isActive });
+            setDialogOpen(true);
+        };
+
+        const confirmToggleStatus = async () => {
+            if (!pendingCategory) return;
             try {
-                const res = await fetch(`/api/categories/${categoryId}/toggle-status`, {
+                const res = await fetch(`/api/categories/${pendingCategory.id}/toggle-status`, {
                     method: 'PATCH',
                 });
                 const data = await res.json();
                 if (data.success) {
-                    fetchCategories();
+                    // Update only the affected category in local state
+                    setCategories(prev => prev.map(cat =>
+                        cat._id === pendingCategory.id
+                            ? { ...cat, isActive: !cat.isActive }
+                            : cat
+                    ));
+                    setFilteredCategories(prev => prev.map(cat =>
+                        cat._id === pendingCategory.id
+                            ? { ...cat, isActive: !cat.isActive }
+                            : cat
+                    ));
                 } else {
                     alert('Failed to toggle status: ' + (data.error || 'Unknown error'));
                 }
             } catch (error) {
                 alert('Failed to toggle status');
+            } finally {
+                setDialogOpen(false);
+                setPendingCategory(null);
             }
+        };
+
+        const cancelToggleStatus = () => {
+            setDialogOpen(false);
+            setPendingCategory(null);
         };
         return (
             <div className="space-y-4">
+                {/* Dialog for status toggle confirmation */}
+                {dialogOpen && pendingCategory && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backdropFilter: 'blur(6px)' }}>
+                        <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+                            <h2 className="text-lg font-bold mb-2">Confirm Status Change</h2>
+                            <p className="mb-6 text-gray-700">
+                                Are you sure you want to {pendingCategory.isActive ? 'inactivate' : 'activate'} this category?
+                            </p>
+                            <div className="flex gap-4 justify-end">
+                                <button
+                                    onClick={cancelToggleStatus}
+                                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmToggleStatus}
+                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+                                >
+                                    Yes, {pendingCategory.isActive ? 'Inactivate' : 'Activate'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {/* Filters */}
                 <div className="flex items-center gap-4 mb-4">
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                        placeholder="Search category name..."
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        style={{ minWidth: 200 }}
-                    />
+                    <div className="relative" style={{ minWidth: 200 }}>
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            placeholder="Search category name..."
+                            className="px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent w-full"
+                        />
+                        {searchTerm && (
+                            <button
+                                type="button"
+                                onClick={() => setSearchTerm('')}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                                style={{ outline: 'none' }}
+                                aria-label="Clear search"
+                            >
+                                <span style={{ fontSize: 18, pointerEvents: 'none' }}>✕</span>
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Loader */}
@@ -180,7 +243,7 @@ export default function CategoriesPage() {
                                         </td>
                                         <td className="px-4 py-3 text-sm">
                                             <button
-                                                onClick={() => handleToggleStatus(category._id)}
+                                                onClick={() => handleToggleStatus(category._id, category.isActive)}
                                                 className="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                                                 style={{
                                                     backgroundColor: category.isActive ? '#10b981' : '#d1d5db'

@@ -39,7 +39,6 @@ const MedicineSchema = new Schema<IMedicine>({
     },
     uniqueIdentity: {
         type: String,
-
         default: '',
         maxlength: [100, 'Unique identity cannot be more than 100 characters'],
     },
