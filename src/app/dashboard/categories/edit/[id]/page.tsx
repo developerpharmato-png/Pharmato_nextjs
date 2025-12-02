@@ -5,9 +5,11 @@ import { useParams, useRouter } from "next/navigation";
 export default function EditCategoryPage() {
     const { id } = useParams();
     const router = useRouter();
-    const [form, setForm] = useState({ name: "", description: "", isOTC: false, images: [""], isActive: true });
+    const [form, setForm] = useState<{ name: string; description: string; isOTC: boolean; images: string[]; isActive: boolean }>({ name: "", description: "", isOTC: false, images: [], isActive: true });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [imageFiles, setImageFiles] = useState<File[]>([]);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         async function fetchCategory() {
@@ -19,7 +21,7 @@ export default function EditCategoryPage() {
                         name: data.data.name,
                         description: data.data.description,
                         isOTC: data.data.isOTC,
-                        images: Array.isArray(data.data.images) ? data.data.images : [""],
+                        images: Array.isArray(data.data.images) ? data.data.images : [],
                         isActive: data.data.isActive,
                     });
                 } else {
@@ -41,6 +43,51 @@ export default function EditCategoryPage() {
             setForm({ ...form, images: value.split(',').map(url => url.trim()).filter(Boolean) });
         } else {
             setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+        }
+    };
+
+    // Handle file selection
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setImageFiles(Array.from(e.target.files));
+        }
+    };
+
+    // Upload selected files to Cloudinary
+    const handleUploadImages = async () => {
+        setUploading(true);
+        const uploadedUrls: string[] = [];
+        for (const file of imageFiles) {
+            const uploadFormData = new FormData();
+            uploadFormData.append('file', file);
+            const res = await fetch('/api/cloudinary/upload-image', {
+                method: 'POST',
+                body: uploadFormData,
+            });
+            const data = await res.json();
+            if (data.success && data.url) {
+                uploadedUrls.push(data.url);
+            }
+        }
+        setForm(prev => ({ ...prev, images: [...prev.images, ...uploadedUrls] }));
+        setImageFiles([]);
+        setUploading(false);
+        const fileInput = document.getElementById('edit-category-image-input') as HTMLInputElement | null;
+        if (fileInput) fileInput.value = '';
+    };
+
+    // Delete image from Cloudinary and remove from array
+    const handleDeleteImage = async (url: string) => {
+        const res = await fetch('/api/cloudinary/delete-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl: url }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            setForm(prev => ({ ...prev, images: prev.images.filter(img => img !== url) }));
+        } else {
+            alert('Failed to delete image');
         }
     };
 
@@ -72,10 +119,15 @@ export default function EditCategoryPage() {
 
     return (
         <div className="p-8 max-w-2xl mx-auto">
+            {/* Back button top left */}
             <button onClick={() => router.back()} className="mb-6 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg shadow inline-flex items-center gap-2">
                 <span className="text-lg">←</span> Back
             </button>
-            <h1 className="text-3xl font-bold mb-4">Edit Category</h1>
+            {/* Custom Header */}
+            <div className="mb-6">
+                <h1 className="text-3xl font-bold">Edit Category</h1>
+                <p className="text-gray-500 mt-1">Update category details, images, and status.</p>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-xl shadow-md p-6">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Category Name *</label>
@@ -86,9 +138,41 @@ export default function EditCategoryPage() {
                     <textarea name="description" value={form.description} onChange={handleChange} required rows={3} className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent" />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Category Images (URLs, comma separated)</label>
-                    <input name="images" value={form.images.join(',')} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg" />
-                    <p className="text-xs text-gray-500 mt-1">Enter one or more image URLs separated by commas.</p>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Category Images (Upload & Manage)</label>
+                    <input
+                        id="edit-category-image-input"
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="mb-2"
+                    />
+                    <button
+                        type="button"
+                        onClick={handleUploadImages}
+                        disabled={uploading || imageFiles.length === 0}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50"
+                    >
+                        {uploading ? 'Uploading...' : 'Upload Selected Images'}
+                    </button>
+                    <div className="mt-4 flex flex-wrap gap-4">
+                        {form.images.map((img, idx) => (
+                            <div key={img} className="relative group">
+                                <img src={img} alt={`Category ${idx}`} className="h-20 w-20 object-cover rounded border" />
+                                <button
+                                    type="button"
+                                    onClick={() => handleDeleteImage(img)}
+                                    className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-80 group-hover:opacity-100"
+                                    title="Delete image"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                    {form.images.length === 0 && (
+                        <p className="text-xs text-gray-500 mt-2">No images uploaded yet.</p>
+                    )}
                 </div>
                 <div className="flex items-center gap-3">
                     <input type="checkbox" id="isOTC" name="isOTC" checked={form.isOTC} onChange={handleChange} className="w-5 h-5 text-green-600 rounded focus:ring-green-500" />

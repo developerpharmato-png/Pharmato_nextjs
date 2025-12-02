@@ -111,7 +111,11 @@ export default function AdminCustomerListPage() {
                                             </td>
                                             <td className="px-6 py-4 font-medium text-gray-900">{c.name || <span className="text-gray-400">-</span>}</td>
                                             <td className="px-6 py-4 text-gray-600">{c.email || <span className="text-gray-400">-</span>}</td>
-                                            <td className="px-6 py-4 text-gray-600">{c.mobile || <span className="text-gray-400">-</span>}</td>
+                                            <td className="px-6 py-4 text-gray-600">
+                                                {c.mobile
+                                                    ? `${c.countryCode ? c.countryCode : ''} ${c.mobile}`.trim()
+                                                    : <span className="text-gray-400">-</span>}
+                                            </td>
                                             <td className="px-6 py-4 text-green-700 font-bold">₹{c.walletAmount ?? 0}</td>
                                             <td className="px-6 py-4">
                                                 <button

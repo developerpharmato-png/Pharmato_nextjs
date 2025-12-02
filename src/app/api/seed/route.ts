@@ -14,8 +14,12 @@ export async function POST() {
         await SubCategory.deleteMany({});
         await Medicine.deleteMany({});
 
-        // Insert categories
-        const categories = await Category.insertMany(dummyCategories);
+        // Insert categories one by one to ensure uniqueCode increments
+        const categories = [];
+        for (const cat of dummyCategories) {
+            const created = await Category.create(cat);
+            categories.push(created);
+        }
         console.log(`✅ Inserted ${categories.length} categories`);
 
         // Create a map of category names to IDs

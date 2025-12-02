@@ -6,6 +6,7 @@ export interface ICategory extends Document {
     isOTC: boolean; // Over-the-counter flag
     images: string[];
     isActive: boolean;
+    uniqueCode: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -13,7 +14,6 @@ export interface ICategory extends Document {
 const CategorySchema = new Schema<ICategory>({
     name: {
         type: String,
-
         maxlength: [100, 'Name cannot be more than 100 characters'],
         trim: true,
     },
@@ -34,8 +34,21 @@ const CategorySchema = new Schema<ICategory>({
         type: Boolean,
         default: true,
     },
+    uniqueCode: {
+        type: String
+    },
 }, {
     timestamps: true,
+});
+
+// Auto-increment uniqueCode on new category creation
+CategorySchema.pre('validate', async function (next) {
+    if (this.isNew && !this.uniqueCode) {
+        const Category = mongoose.models.Category || mongoose.model<ICategory>('Category', CategorySchema);
+        const count = await Category.countDocuments();
+        this.uniqueCode = `CAT-${count + 1}`;
+    }
+    next();
 });
 
 export default mongoose.models.Category || mongoose.model<ICategory>('Category', CategorySchema);

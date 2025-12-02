@@ -110,7 +110,7 @@ export default function CategoriesPage() {
         const handleToggleStatus = async (categoryId: string) => {
             try {
                 const res = await fetch(`/api/categories/${categoryId}/toggle-status`, {
-                    method: 'PUT',
+                    method: 'PATCH',
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -136,79 +136,90 @@ export default function CategoriesPage() {
                     />
                 </div>
 
-                {/* Table */}
-                <div className="overflow-x-auto">
-                    <table className="min-w-full border-collapse">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Image</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Name</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Description</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">OTC</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Status</th>
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {currentCategories.map((category: any) => (
-                                <tr key={category._id} className="hover:bg-green-50 transition">
-                                    <td className="px-4 py-3">
-                                        {Array.isArray(category.images) && category.images.length > 0 ? (
-                                            <img src={category.images[0]} alt="Category" className="h-10 w-10 object-cover rounded" />
-                                        ) : (
-                                            <span className="inline-block h-10 w-10 bg-gray-200 rounded text-xl flex items-center justify-center">📦</span>
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{category.name}</td>
-                                    <td className="px-4 py-3 text-sm text-gray-600">{category.description}</td>
-                                    <td className="px-4 py-3 text-sm">
-                                        {category.isOTC ? (
-                                            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">Yes</span>
-                                        ) : (
-                                            <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-bold">No</span>
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm">
-                                        <button
-                                            onClick={() => handleToggleStatus(category._id)}
-                                            className="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                                            style={{
-                                                backgroundColor: category.isActive ? '#10b981' : '#d1d5db'
-                                            }}
-                                            title={category.isActive ? 'Click to deactivate' : 'Click to activate'}
-                                        >
-                                            <span
-                                                className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${category.isActive ? 'translate-x-6' : 'translate-x-1'
-                                                    }`}
-                                            />
-                                        </button>
-                                    </td>
-                                    <td className="px-4 py-3 text-sm">
-                                        <Link
-                                            href={`/dashboard/categories/edit/${category._id}`}
-                                            className="text-blue-600 hover:text-blue-800 font-medium"
-                                        >
-                                            Edit
-                                        </Link>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                {/* Loader */}
+                {loading && (
+                    <div className="flex items-center justify-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+                    </div>
+                )}
 
-                    {filteredCategories.length === 0 && (
-                        <div className="text-center py-12">
-                            <div className="text-6xl mb-4">📂</div>
-                            <p className="text-gray-500 text-lg">No categories found.</p>
-                            {searchTerm && (
-                                <p className="text-gray-400 text-sm mt-2">Try adjusting your search term</p>
-                            )}
-                        </div>
-                    )}
-                </div>
+                {/* Table */}
+                {!loading && (
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full border-collapse">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Id</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Image</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Name</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Description</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">OTC</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Status</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {currentCategories.map((category: any) => (
+                                    <tr key={category._id} className="hover:bg-green-50 transition">
+                                        <td className="px-4 py-3 text-sm font-mono text-gray-700 whitespace-nowrap">{category.uniqueCode ? category.uniqueCode : '-'}</td>
+                                        <td className="px-4 py-3">
+                                            {Array.isArray(category.images) && category.images.length > 0 ? (
+                                                <img src={category.images[0]} alt="Category" className="h-10 w-10 object-cover rounded" />
+                                            ) : (
+                                                <span className="inline-block h-10 w-10 bg-gray-200 rounded text-xl flex items-center justify-center">📦</span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{category.name}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-600">{category.description}</td>
+                                        <td className="px-4 py-3 text-sm">
+                                            {category.isOTC ? (
+                                                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">Yes</span>
+                                            ) : (
+                                                <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-bold">No</span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm">
+                                            <button
+                                                onClick={() => handleToggleStatus(category._id)}
+                                                className="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                                style={{
+                                                    backgroundColor: category.isActive ? '#10b981' : '#d1d5db'
+                                                }}
+                                                title={category.isActive ? 'Click to deactivate' : 'Click to activate'}
+                                            >
+                                                <span
+                                                    className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${category.isActive ? 'translate-x-6' : 'translate-x-1'
+                                                        }`}
+                                                />
+                                            </button>
+                                        </td>
+                                        <td className="px-4 py-3 text-sm">
+                                            <Link
+                                                href={`/dashboard/categories/edit/${category._id}`}
+                                                className="text-blue-600 hover:text-blue-800 font-medium"
+                                            >
+                                                Edit
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {filteredCategories.length === 0 && (
+                            <div className="text-center py-12">
+                                <div className="text-6xl mb-4">📂</div>
+                                <p className="text-gray-500 text-lg">No categories found.</p>
+                                {searchTerm && (
+                                    <p className="text-gray-400 text-sm mt-2">Try adjusting your search term</p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Pagination */}
-                {totalPages > 1 && (
+                {!loading && totalPages > 1 && (
                     <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                         <div className="text-sm text-gray-600">
                             Showing {startIndex + 1} to {Math.min(endIndex, filteredCategories.length)} of {filteredCategories.length} categories

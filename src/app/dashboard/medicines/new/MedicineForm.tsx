@@ -112,6 +112,11 @@ export default function MedicineForm() {
             ...form,
             [name]: type === 'checkbox' ? checked : value
         };
+        // Prevent negative stock
+        if (name === 'stock') {
+            const stockNum = Math.max(0, Number(value));
+            newForm.stock = stockNum.toString();
+        }
         // Reset subcategory when category changes
         if (name === 'categoryId') {
             newForm.subCategoryId = '';

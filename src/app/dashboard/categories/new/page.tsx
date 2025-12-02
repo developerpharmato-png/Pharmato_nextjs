@@ -9,13 +9,66 @@ export default function NewCategoryPage() {
     };
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        name: string;
+        description: string;
+        isOTC: boolean;
+        images: string[];
+        isActive: boolean;
+    }>({
         name: '',
         description: '',
         isOTC: false,
-        images: [''],
+        images: [],
         isActive: true,
     });
+    const [imageFiles, setImageFiles] = useState<File[]>([]);
+    const [uploading, setUploading] = useState(false);
+    // Handle file selection
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setImageFiles(Array.from(e.target.files));
+        }
+    };
+
+    // Upload selected files to Cloudinary
+    const handleUploadImages = async () => {
+        setUploading(true);
+        const uploadedUrls: string[] = [];
+        for (const file of imageFiles) {
+            const uploadFormData = new FormData();
+            uploadFormData.append('file', file);
+            const res = await fetch('/api/cloudinary/upload-image', {
+                method: 'POST',
+                body: uploadFormData,
+            });
+            const data = await res.json();
+            if (data.success && data.url) {
+                uploadedUrls.push(data.url);
+            }
+        }
+        setFormData(prev => ({ ...prev, images: [...prev.images, ...uploadedUrls] }));
+        setImageFiles([]); // Clear selected files so user can select more
+        setUploading(false);
+        // Optionally, reset the file input value so user can re-select same files if needed
+        const fileInput = document.getElementById('category-image-input') as HTMLInputElement | null;
+        if (fileInput) fileInput.value = '';
+    };
+
+    // Delete image from Cloudinary and remove from array
+    const handleDeleteImage = async (url: string) => {
+        const res = await fetch('/api/cloudinary/delete-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl: url }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            setFormData(prev => ({ ...prev, images: prev.images.filter(img => img !== url) }));
+        } else {
+            alert('Failed to delete image');
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -94,16 +147,42 @@ export default function NewCategoryPage() {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Category Images (URLs, comma separated)
+                            Category Images (Upload & Manage)
                         </label>
                         <input
-                            type="text"
-                            value={formData.images.join(',')}
-                            onChange={(e) => setFormData({ ...formData, images: e.target.value.split(',').map(url => url.trim()).filter(Boolean) })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                            placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
+                            id="category-image-input"
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="mb-2"
                         />
-                        <p className="text-xs text-gray-500 mt-1">Enter one or more image URLs separated by commas.</p>
+                        <button
+                            type="button"
+                            onClick={handleUploadImages}
+                            disabled={uploading || imageFiles.length === 0}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50"
+                        >
+                            {uploading ? 'Uploading...' : 'Upload Selected Images'}
+                        </button>
+                        <div className="mt-4 flex flex-wrap gap-4">
+                            {formData.images.map((img, idx) => (
+                                <div key={img} className="relative group">
+                                    <img src={img} alt={`Category ${idx}`} className="h-20 w-20 object-cover rounded border" />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDeleteImage(img)}
+                                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-80 group-hover:opacity-100"
+                                        title="Delete image"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        {formData.images.length === 0 && (
+                            <p className="text-xs text-gray-500 mt-2">No images uploaded yet.</p>
+                        )}
                     </div>
 
                     <div className="space-y-4">
