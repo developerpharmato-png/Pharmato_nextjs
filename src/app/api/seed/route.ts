@@ -29,16 +29,18 @@ export async function POST() {
         });
 
         // Insert subcategories with proper categoryId references
-        const subcategoriesWithIds = dummySubcategories.map(sub => ({
-            name: sub.name,
-            description: sub.description,
-            categoryId: categoryMap.get(sub.categoryName),
-            isOTC: sub.isOTC,
-            isActive: true,
-        }));
-
-        const subcategories = await SubCategory.insertMany(subcategoriesWithIds);
-        console.log(`✅ Inserted ${subcategories.length} subcategories`);
+        const subcategories: any[] = [];
+        for (const sub of dummySubcategories) {
+            const doc = await SubCategory.create({
+                name: sub.name,
+                description: sub.description,
+                categoryId: categoryMap.get(sub.categoryName),
+                isOTC: sub.isOTC,
+                isActive: true,
+            });
+            subcategories.push(doc);
+        }
+        console.log(`✅ Inserted ${subcategories.length} subcategories (hooks executed)`);
 
         // Create a map of subcategory names to IDs
         const subcategoryMap = new Map();
@@ -117,8 +119,12 @@ export async function POST() {
             };
         });
 
-        const medicines = await Medicine.insertMany(medicinesWithIds);
-        console.log(`✅ Inserted ${medicines.length} medicines`);
+        const medicines: any[] = [];
+        for (const med of medicinesWithIds) {
+            const doc = await Medicine.create(med);
+            medicines.push(doc);
+        }
+        console.log(`✅ Inserted ${medicines.length} medicines (hooks executed)`);
 
         return NextResponse.json({
             success: true,

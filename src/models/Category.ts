@@ -1,5 +1,4 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import Counter from './Counter';
 
 export interface ICategory extends Document {
     name: string;
@@ -38,27 +37,20 @@ const CategorySchema = new Schema<ICategory>({
     uniqueCode: {
         type: String,
         unique: true,
-        index: true,
+        required: true,
     },
 }, {
     timestamps: true,
 });
 
-// Assign uniqueCode using atomic counter to avoid duplicates
+// Auto-increment uniqueCode on new category creation
 CategorySchema.pre('validate', async function (next) {
-    try {
-        if (this.isNew && !this.uniqueCode) {
-            const counter = await Counter.findOneAndUpdate(
-                { key: 'CAT' },
-                { $inc: { seq: 1 } },
-                { new: true, upsert: true }
-            );
-            this.uniqueCode = `CAT-${counter.seq}`;
-        }
-        next();
-    } catch (err) {
-        next(err as Error);
+    if (this.isNew && !this.uniqueCode) {
+        const Category = mongoose.models.Category || mongoose.model<ICategory>('Category', CategorySchema);
+        const count = await Category.countDocuments();
+        this.uniqueCode = `CAT-${count + 1}`;
     }
+    next();
 });
 
 export default mongoose.models.Category || mongoose.model<ICategory>('Category', CategorySchema);

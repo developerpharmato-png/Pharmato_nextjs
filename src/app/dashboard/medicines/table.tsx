@@ -137,9 +137,9 @@ export default function MedicinesTable({ searchValue, onSearchChange }: Props) {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {currentMedicines.map((medicine: any) => (
                             <tr key={medicine._id} className="hover:bg-green-50 transition">
-                                <td className="px-4 py-3 text-xs font-mono">
-                                    <a href={`/dashboard/medicines/${medicine._id}`} className="text-green-700 underline hover:text-green-900">
-                                        {medicine._id}
+                                <td className="px-4 py-3 text-xs font-mono whitespace-nowrap">
+                                    <a href={`/dashboard/medicines/${medicine._id}`} className="text-green-700 underline hover:text-green-900" title={String(medicine._id)}>
+                                        {medicine.uniqueCode || '—'}
                                     </a>
                                 </td>
                                 <td className="px-4 py-3">

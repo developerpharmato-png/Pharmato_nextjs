@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import HeaderWithAction from '../../components/HeaderWithAction';
+import Swal from 'sweetalert2';
 
 export default function MedicineForm() {
     const router = useRouter();
@@ -23,6 +24,7 @@ export default function MedicineForm() {
         isOTC: boolean;
         requiresPrescription: boolean;
         images: string[];
+        highlights: string[];
     }>({
         name: '',
         description: '',
@@ -40,18 +42,60 @@ export default function MedicineForm() {
         isOTC: false,
         requiresPrescription: true,
         images: [],
+        highlights: [],
     });
-    const [newImageUrl, setNewImageUrl] = useState('');
+    const [uploading, setUploading] = useState(false);
 
-    const addImageUrl = () => {
-        const url = newImageUrl.trim();
-        if (!url) return;
-        setForm(prev => ({ ...prev, images: [...(prev.images || []), url] }));
-        setNewImageUrl('');
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+            if (!allowedTypes.includes(file.type)) {
+                Swal.fire({ icon: 'error', title: 'Invalid file type', text: 'Please upload only image files (JPEG, PNG, GIF, WebP, SVG)' });
+                const inp = document.getElementById('medicine-image-input') as HTMLInputElement | null;
+                if (inp) inp.value = '';
+                return;
+            }
+
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                Swal.fire({ icon: 'error', title: 'File too large', text: 'Please upload an image smaller than 5MB' });
+                const inp = document.getElementById('medicine-image-input') as HTMLInputElement | null;
+                if (inp) inp.value = '';
+                return;
+            }
+
+            setUploading(true);
+            const uploadFormData = new FormData();
+            uploadFormData.append('file', file);
+            const res = await fetch('/api/cloudinary/upload-image', { method: 'POST', body: uploadFormData });
+            const data = await res.json();
+            if (data.success && data.url) {
+                setForm(prev => ({ ...prev, images: [data.url] }));
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Image uploaded successfully', showConfirmButton: false, timer: 2000 });
+            } else {
+                Swal.fire({ icon: 'error', title: 'Image upload failed', text: data.error || 'Failed to upload image' });
+            }
+            setUploading(false);
+            const inp2 = document.getElementById('medicine-image-input') as HTMLInputElement | null;
+            if (inp2) inp2.value = '';
+        }
     };
 
-    const removeImageAt = (idx: number) => {
-        setForm(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }));
+    const handleDeleteImage = async (url: string) => {
+        const res = await fetch('/api/cloudinary/delete-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl: url }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            setForm(prev => ({ ...prev, images: [] }));
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Image deleted', showConfirmButton: false, timer: 2000 });
+        } else {
+            Swal.fire({ icon: 'error', title: 'Delete failed', text: data.error || 'Failed to delete image' });
+        }
     };
     const [composition, setComposition] = useState([{ name: '', value: '' }]);
     const [categories, setCategories] = useState<any[]>([]);
@@ -140,17 +184,32 @@ export default function MedicineForm() {
     const addCompositionRow = () => setComposition(prev => [...prev, { name: '', value: '' }]);
     const removeCompositionRow = (idx: number) => setComposition(prev => prev.filter((_, i) => i !== idx));
 
+    const handleHighlightChange = (idx: number, value: string) => {
+        setForm(prev => ({
+            ...prev,
+            highlights: prev.highlights.map((h, i) => (i === idx ? value : h)),
+        }));
+    };
+    const addHighlightRow = () => setForm(prev => ({ ...prev, highlights: [...prev.highlights, ''] }));
+    const removeHighlightRow = (idx: number) => setForm(prev => ({ ...prev, highlights: prev.highlights.filter((_, i) => i !== idx) }));
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
         try {
+            if (!form.images || form.images.length === 0) {
+                Swal.fire({ icon: 'error', title: 'Image required', text: 'Please upload a medicine image before submitting' });
+                setLoading(false);
+                return;
+            }
             const res = await fetch('/api/medicines', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...form,
                     composition,
+                    highlights: (form.highlights || []).map(h => (h || '').trim()).filter(h => h.length > 0),
                     price: Number(form.price),
                     purchasePrice: Number(form.purchasePrice),
                     mrp: Number(form.mrp),
@@ -165,7 +224,8 @@ export default function MedicineForm() {
             if (!data.success) {
                 setError(Array.isArray(data.error) ? data.error.join(', ') : data.error);
             } else {
-                router.push('/dashboard/medicines');
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Medicine created successfully', showConfirmButton: false, timer: 2000 });
+                setTimeout(() => router.push('/dashboard/medicines'), 1000);
             }
         } catch (err) {
             setError('Failed to create medicine');
@@ -190,42 +250,43 @@ export default function MedicineForm() {
             <div className="bg-white rounded-xl shadow-md p-8 max-w-3xl">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Medicine Images (URLs)</label>
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                placeholder="https://example.com/image.jpg"
-                                value={newImageUrl}
-                                onChange={e => setNewImageUrl(e.target.value)}
-                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
-                            />
-                            <button
-                                type="button"
-                                onClick={addImageUrl}
-                                className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                            >
-                                Add
-                            </button>
-                        </div>
-                        <div className="flex gap-2 mt-2 flex-wrap">
-                            {form.images.map((url, idx) => (
-                                <div key={idx} className="relative">
-                                    <img
-                                        src={url}
-                                        alt={`preview-${idx}`}
-                                        className="w-16 h-16 object-cover rounded border shadow"
-                                    />
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Medicine Image *</label>
+                        <div className="flex items-center gap-4">
+                            {form.images.length === 0 ? (
+                                <div>
+                                    <input id="medicine-image-input" type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
                                     <button
                                         type="button"
-                                        onClick={() => removeImageAt(idx)}
-                                        className="absolute -top-2 -right-2 bg-white rounded-full p-1 text-red-500 border"
-                                        aria-label={`Remove image ${idx}`}
+                                        onClick={() => document.getElementById('medicine-image-input')?.click()}
+                                        className="w-16 h-16 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg hover:bg-gray-200 transition"
+                                        title="Upload photo"
                                     >
-                                        ×
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-gray-500">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 12.75l2.25 3 3-4.5 4.5 6" />
+                                        </svg>
+                                    </button>
+                                    {uploading && <span className="ml-2 text-blue-600">Uploading...</span>}
+                                </div>
+                            ) : (
+                                <div className="relative group">
+                                    <img src={form.images[0]} alt="Medicine" className="h-20 w-20 object-cover rounded border cursor-pointer" title="Click to preview" />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDeleteImage(form.images[0])}
+                                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-80 group-hover:opacity-100"
+                                        title="Delete image"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
                                     </button>
                                 </div>
-                            ))}
+                            )}
                         </div>
+                        {form.images.length === 0 && !uploading && (
+                            <p className="text-xs text-gray-500 mt-2">No image uploaded yet.</p>
+                        )}
                     </div>
                     <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">Medicine Name *</label>
@@ -453,6 +514,25 @@ export default function MedicineForm() {
                             </div>
                         ))}
                         <button type="button" onClick={addCompositionRow} className="text-green-600 mt-2">+ Add Composition</button>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Highlights</label>
+                        {form.highlights.length === 0 && (
+                            <p className="text-xs text-gray-500 mb-2">Add short bullet points to highlight key info.</p>
+                        )}
+                        {form.highlights.map((h, idx) => (
+                            <div key={idx} className="flex gap-2 mb-2">
+                                <input
+                                    type="text"
+                                    placeholder={`Highlight #${idx + 1}`}
+                                    value={h}
+                                    onChange={e => handleHighlightChange(idx, e.target.value)}
+                                    className="border rounded px-2 py-1 flex-1"
+                                />
+                                <button type="button" onClick={() => removeHighlightRow(idx)} className="text-red-500">Remove</button>
+                            </div>
+                        ))}
+                        <button type="button" onClick={addHighlightRow} className="text-green-600 mt-2">+ Add Highlight</button>
                     </div>
                     <div className="space-y-4 border-t pt-6">
                         <h3 className="text-lg font-semibold text-gray-800">Medicine Classification</h3>

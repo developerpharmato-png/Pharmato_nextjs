@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 export interface IMedicine {
+    uniqueCode?: string;
     uniqueIdentity: string;
     name: string;
     description: string;
@@ -41,6 +42,11 @@ const MedicineSchema = new Schema<IMedicine>({
         type: String,
         default: '',
         maxlength: [100, 'Unique identity cannot be more than 100 characters'],
+    },
+    uniqueCode: {
+        type: String,
+        unique: true,
+        required: true,
     },
     name: {
         type: String,
@@ -149,6 +155,18 @@ const MedicineSchema = new Schema<IMedicine>({
     },
 }, {
     timestamps: true,
+});
+
+// Auto-increment uniqueCode on new medicine creation (count-based) before save
+MedicineSchema.pre('save', async function (next) {
+    // @ts-ignore
+    if (this.isNew && !this.uniqueCode) {
+        const Medicine = mongoose.models.Medicine || mongoose.model<IMedicine>('Medicine', MedicineSchema);
+        const count = await Medicine.countDocuments();
+        // @ts-ignore
+        this.uniqueCode = `MED-${count + 1}`;
+    }
+    next();
 });
 
 export default mongoose.models.Medicine || mongoose.model<IMedicine>('Medicine', MedicineSchema);
