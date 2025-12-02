@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import Counter from './Counter';
 
 export interface ISubCategory extends Document {
     name: string;
@@ -7,6 +8,7 @@ export interface ISubCategory extends Document {
     isOTC: boolean; // Over-the-counter flag
     images: string[];
     isActive: boolean;
+    uniqueCode: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -38,11 +40,33 @@ const SubCategorySchema = new Schema<ISubCategory>({
         type: Boolean,
         default: true,
     },
+    uniqueCode: {
+        type: String,
+        unique: true,
+        index: true,
+    },
 }, {
     timestamps: true,
 });
 
 // Index for faster queries
 SubCategorySchema.index({ categoryId: 1 });
+
+// Assign uniqueCode using atomic counter to avoid duplicates on concurrent inserts
+SubCategorySchema.pre('validate', async function (next) {
+    try {
+        if (this.isNew && !this.uniqueCode) {
+            const counter = await Counter.findOneAndUpdate(
+                { key: 'SUB' },
+                { $inc: { seq: 1 } },
+                { new: true, upsert: true }
+            );
+            this.uniqueCode = `SUB-${counter.seq}`;
+        }
+        next();
+    } catch (err) {
+        next(err as Error);
+    }
+});
 
 export default mongoose.models.SubCategory || mongoose.model<ISubCategory>('SubCategory', SubCategorySchema);

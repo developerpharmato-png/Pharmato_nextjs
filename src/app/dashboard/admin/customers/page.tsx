@@ -79,9 +79,24 @@ export default function AdminCustomerListPage() {
                                     placeholder="Search customers by name..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    className="w-full px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                                 />
-                                <span className="absolute left-3 top-2.5 text-gray-400 text-xl">🔍</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-3 top-2.5 w-5 h-5 text-gray-400">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35" />
+                                </svg>
+                                {searchTerm && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setSearchTerm('')}
+                                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                                        title="Clear search"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                )}
                             </div>
                             <div className="text-sm text-gray-600 ml-4">
                                 Showing {startIndex + 1} to {Math.min(endIndex, filteredCustomers.length)} of {filteredCustomers.length} customers

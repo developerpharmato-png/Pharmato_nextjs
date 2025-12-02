@@ -37,6 +37,8 @@ function SubCategoriesTable() {
     const [filterOTC, setFilterOTC] = useState<string>('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [pendingSubcategory, setPendingSubcategory] = useState<{ id: string; isActive: boolean } | null>(null);
     const itemsPerPage = 10;
 
     React.useEffect(() => {
@@ -87,13 +89,29 @@ function SubCategoriesTable() {
         }
     };
 
-    const handleToggleStatus = async (id: string) => {
+    const handleToggleStatus = (id: string, isActive: boolean) => {
+        setPendingSubcategory({ id, isActive });
+        setDialogOpen(true);
+    };
+
+    const confirmToggleStatus = async () => {
+        if (!pendingSubcategory) return;
         try {
-            const res = await fetch(`/api/subcategories/${id}/toggle-status`, {
+            const res = await fetch(`/api/subcategories/${pendingSubcategory.id}/toggle-status`, {
                 method: 'PATCH',
             });
-
-            if (res.ok) {
+            const data = await res.json();
+            if (data.success) {
+                setSubcategories(prev => prev.map(sub =>
+                    sub._id === pendingSubcategory.id
+                        ? { ...sub, isActive: !sub.isActive }
+                        : sub
+                ));
+                setFilteredSubcategories(prev => prev.map(sub =>
+                    sub._id === pendingSubcategory.id
+                        ? { ...sub, isActive: !sub.isActive }
+                        : sub
+                ));
                 Swal.fire({
                     toast: true,
                     position: 'top-end',
@@ -102,9 +120,7 @@ function SubCategoriesTable() {
                     showConfirmButton: false,
                     timer: 2000
                 });
-                fetchData();
             } else {
-                const data = await res.json();
                 Swal.fire({
                     icon: 'error',
                     title: 'Failed to toggle status',
@@ -117,7 +133,15 @@ function SubCategoriesTable() {
                 title: 'Failed to toggle status',
                 text: 'Network error',
             });
+        } finally {
+            setDialogOpen(false);
+            setPendingSubcategory(null);
         }
+    };
+
+    const cancelToggleStatus = () => {
+        setDialogOpen(false);
+        setPendingSubcategory(null);
     };
 
     if (loading) {
@@ -136,6 +160,31 @@ function SubCategoriesTable() {
 
     return (
         <div className="space-y-4">
+            {/* Dialog for status toggle confirmation */}
+            {dialogOpen && pendingSubcategory && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backdropFilter: 'blur(6px)' }}>
+                    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+                        <h2 className="text-lg font-bold mb-2">Confirm Status Change</h2>
+                        <p className="mb-6 text-gray-700">
+                            Are you sure you want to {pendingSubcategory.isActive ? 'inactivate' : 'activate'} this subcategory?
+                        </p>
+                        <div className="flex gap-4 justify-end">
+                            <button
+                                onClick={cancelToggleStatus}
+                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmToggleStatus}
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+                            >
+                                Yes, {pendingSubcategory.isActive ? 'Inactivate' : 'Activate'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* Filters */}
             <div className="flex items-center gap-4 flex-wrap">
                 <div className="flex-1 min-w-[200px] relative">
@@ -144,12 +193,24 @@ function SubCategoriesTable() {
                         placeholder="Search subcategories..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className="w-full px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     />
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-3 top-2.5 w-5 h-5 text-gray-400">
                         <circle cx="11" cy="11" r="8" />
                         <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35" />
                     </svg>
+                    {searchTerm && (
+                        <button
+                            type="button"
+                            onClick={() => setSearchTerm('')}
+                            className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                            title="Clear search"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    )}
                 </div>
                 <select
                     value={filterCategory}
@@ -180,6 +241,7 @@ function SubCategoriesTable() {
                 <table className="min-w-full border-collapse">
                     <thead className="bg-gray-50">
                         <tr>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Id</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Name</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Description</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Category</th>
@@ -191,6 +253,11 @@ function SubCategoriesTable() {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {currentSubcategories.map((subcategory: any) => (
                             <tr key={subcategory._id} className="hover:bg-green-50 transition">
+                                <td className="px-4 py-3 text-sm whitespace-nowrap">
+                                    <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium inline-block">
+                                        {subcategory.uniqueCode || '—'}
+                                    </span>
+                                </td>
                                 <td className="px-4 py-3 text-sm font-medium text-gray-900">
                                     {Array.isArray(subcategory.images) && subcategory.images[0] ? (
                                         <img src={subcategory.images[0]} alt="Subcategory" style={{ width: 32, height: 32, display: 'inline', marginRight: 8, verticalAlign: 'middle', borderRadius: '6px' }} />
@@ -212,7 +279,7 @@ function SubCategoriesTable() {
                                 </td>
                                 <td className="px-4 py-3 text-sm">
                                     <button
-                                        onClick={() => handleToggleStatus(subcategory._id)}
+                                        onClick={() => handleToggleStatus(subcategory._id, subcategory.isActive)}
                                         className="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                                         style={{
                                             backgroundColor: subcategory.isActive ? '#10b981' : '#d1d5db'

@@ -6,12 +6,13 @@ import Swal from 'sweetalert2';
 export default function NewSubCategoryPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [categories, setCategories] = useState<any[]>([]);
     const [formData, setFormData] = useState({
         name: '',
         description: '',
         categoryId: '',
-        images: [''],
+        images: [] as string[],
         isOTC: false,
         isActive: true,
     });
@@ -30,8 +31,106 @@ export default function NewSubCategoryPage() {
         }
     };
 
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+
+            // Validate file type - only allow images
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+            if (!allowedTypes.includes(file.type)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid file type',
+                    text: 'Please upload only image files (JPEG, PNG, GIF, WebP, SVG)',
+                });
+                const fileInput = document.getElementById('subcategory-image-input') as HTMLInputElement | null;
+                if (fileInput) fileInput.value = '';
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'File too large',
+                    text: 'Please upload an image smaller than 5MB',
+                });
+                const fileInput = document.getElementById('subcategory-image-input') as HTMLInputElement | null;
+                if (fileInput) fileInput.value = '';
+                return;
+            }
+
+            setUploading(true);
+            const uploadFormData = new FormData();
+            uploadFormData.append('file', file);
+            const res = await fetch('/api/cloudinary/upload-image', {
+                method: 'POST',
+                body: uploadFormData,
+            });
+            const data = await res.json();
+            if (data.success && data.url) {
+                setFormData(prev => ({ ...prev, images: [data.url] }));
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Image uploaded successfully',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Image upload failed',
+                    text: data.error || 'Failed to upload image',
+                });
+            }
+            setUploading(false);
+            const fileInput = document.getElementById('subcategory-image-input') as HTMLInputElement | null;
+            if (fileInput) fileInput.value = '';
+        }
+    };
+
+    const handleDeleteImage = async (url: string) => {
+        const res = await fetch('/api/cloudinary/delete-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl: url }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            setFormData(prev => ({ ...prev, images: [] }));
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Image deleted',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Delete failed',
+                text: data.error || 'Failed to delete image',
+            });
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validate image is uploaded
+        if (formData.images.length === 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Image required',
+                text: 'Please upload a subcategory image before submitting',
+            });
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -152,14 +251,54 @@ export default function NewSubCategoryPage() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Subcategory Images (URLs, comma separated)</label>
-                            <input
-                                type="text"
-                                value={formData.images.join(',')}
-                                onChange={e => setFormData({ ...formData, images: e.target.value.split(',').map(url => url.trim()).filter(Boolean) })}
-                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
-                            />
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Subcategory Image *</label>
+                            <div className="flex items-center gap-4">
+                                {formData.images.length === 0 ? (
+                                    <div>
+                                        <input
+                                            id="subcategory-image-input"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => document.getElementById('subcategory-image-input')?.click()}
+                                            className="w-16 h-16 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg hover:bg-gray-200 transition"
+                                            title="Upload photo"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-gray-500">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 12.75l2.25 3 3-4.5 4.5 6" />
+                                            </svg>
+                                        </button>
+                                        {uploading && <span className="ml-2 text-blue-600">Uploading...</span>}
+                                    </div>
+                                ) : (
+                                    <div className="relative group">
+                                        <img
+                                            src={formData.images[0]}
+                                            alt="Subcategory"
+                                            className="h-20 w-20 object-cover rounded border cursor-pointer"
+                                            title="Click to preview"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteImage(formData.images[0])}
+                                            className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-80 group-hover:opacity-100"
+                                            title="Delete image"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            {formData.images.length === 0 && !uploading && (
+                                <p className="text-xs text-gray-500 mt-2">No image uploaded yet.</p>
+                            )}
                         </div>
 
                         <div className="space-y-4">
