@@ -198,6 +198,14 @@ export default function MedicineForm() {
         setLoading(true);
         setError(null);
         try {
+            // UI validation: Selling price must not exceed MRP
+            const priceNum = Number(form.price);
+            const mrpNum = Number(form.mrp);
+            if (!Number.isNaN(priceNum) && !Number.isNaN(mrpNum) && priceNum > mrpNum) {
+                Swal.fire({ icon: 'error', title: 'Invalid price', text: 'Selling price cannot be greater than MRP' });
+                setLoading(false);
+                return;
+            }
             if (!form.images || form.images.length === 0) {
                 Swal.fire({ icon: 'error', title: 'Image required', text: 'Please upload a medicine image before submitting' });
                 setLoading(false);
