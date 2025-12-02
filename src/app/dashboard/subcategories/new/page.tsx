@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Swal from 'sweetalert2';
 
 export default function NewSubCategoryPage() {
     const router = useRouter();
@@ -43,14 +44,31 @@ export default function NewSubCategoryPage() {
             });
 
             if (res.ok) {
-                router.push('/dashboard/subcategories');
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Subcategory created successfully',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                setTimeout(() => {
+                    router.push('/dashboard/subcategories');
+                }, 1200);
             } else {
                 const data = await res.json();
-                alert(data.error || 'Failed to create subcategory');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Create failed',
+                    text: data.error || 'Failed to create subcategory',
+                });
             }
         } catch (error) {
-            console.error('Failed to create subcategory:', error);
-            alert('Failed to create subcategory');
+            Swal.fire({
+                icon: 'error',
+                title: 'Create failed',
+                text: 'Failed to create subcategory',
+            });
         } finally {
             setLoading(false);
         }
@@ -59,138 +77,142 @@ export default function NewSubCategoryPage() {
     const selectedCategory = categories.find(cat => cat._id === formData.categoryId);
 
     return (
-        <div className="p-6">
-            <div className="mb-8 flex items-center gap-4">
-                <button
-                    type="button"
-                    onClick={() => router.back()}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg shadow hover:bg-gray-300 transition flex items-center gap-2"
-                >
-                    <span className="text-xl">←</span> Back
-                </button>
-                <span className="inline-block text-4xl">🗂️</span>
-                <div>
-                    <h1 className="text-4xl font-extrabold text-green-700">Add New Subcategory</h1>
-                    <p className="text-gray-600 text-lg">Create a new medicine subcategory for your inventory</p>
-                </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Parent Category *
-                        </label>
-                        <select
-                            required
-                            value={formData.categoryId}
-                            onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        >
-                            <option value="">Select a category</option>
-                            {categories.map(cat => (
-                                <option key={cat._id} value={cat._id}>
-                                    {Array.isArray(cat.images) && cat.images[0] ? (
-                                        <>
-                                            <img src={cat.images[0]} alt="Category" style={{ width: 24, height: 24, display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                                        </>
-                                    ) : null}
-                                    {cat.name} {cat.isOTC ? '(OTC)' : '(Prescription)'}
-                                </option>
-                            ))}
-                        </select>
-                        {selectedCategory && (
-                            <p className="text-xs text-gray-500 mt-1">
-                                Parent category is {selectedCategory.isOTC ? 'OTC' : 'Prescription Required'}
-                            </p>
-                        )}
+        <div className="w-full min-h-screen bg-gray-50 py-8 px-2 sm:px-6">
+            <div className="max-w-3xl mx-auto">
+                <header className="mb-8 relative">
+                    <button
+                        type="button"
+                        onClick={() => router.back()}
+                        className="absolute left-0 top-0 inline-flex items-center justify-center w-10 h-10 text-gray-500 bg-white border border-gray-200 rounded-full shadow hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        aria-label="Go back"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <div className="pl-14">
+                        <h1 className="text-3xl font-bold text-gray-900 mb-1">Add New Subcategory</h1>
+                        <p className="text-gray-500 text-base">Create a new medicine subcategory for your inventory</p>
                     </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Subcategory Name *
-                        </label>
-                        <input
-                            type="text"
-                            required
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                            placeholder="e.g., Headache Relief, Cold & Flu, Multivitamins"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
-                        <textarea
-                            required
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                            rows={4}
-                            placeholder="Brief description of the subcategory"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Subcategory Images (URLs, comma separated)</label>
-                        <input
-                            type="text"
-                            value={formData.images.join(',')}
-                            onChange={e => setFormData({ ...formData, images: e.target.value.split(',').map(url => url.trim()).filter(Boolean) })}
-                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                            placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
-                        />
-                    </div>
-
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                            <input
-                                type="checkbox"
-                                id="isOTC"
-                                checked={formData.isOTC}
-                                onChange={(e) => setFormData({ ...formData, isOTC: e.target.checked })}
-                                className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
-                            />
-                            <label htmlFor="isOTC" className="text-sm font-medium text-gray-700 cursor-pointer">
-                                <div className="flex items-center gap-2">
-                                    <span>🟢 Over-the-Counter (OTC) Subcategory</span>
-                                </div>
-                                <p className="text-xs text-gray-600 mt-1">
-                                    Medicines in this subcategory can be purchased without a prescription
+                </header>
+                <div className="bg-white rounded-lg shadow p-6 sm:p-8">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Parent Category *
+                            </label>
+                            <select
+                                required
+                                value={formData.categoryId}
+                                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            >
+                                <option value="">Select a category</option>
+                                {categories.map(cat => (
+                                    <option key={cat._id} value={cat._id}>
+                                        {Array.isArray(cat.images) && cat.images[0] ? (
+                                            <>
+                                                <img src={cat.images[0]} alt="Category" style={{ width: 24, height: 24, display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                                            </>
+                                        ) : null}
+                                        {cat.name} {cat.isOTC ? '(OTC)' : '(Prescription)'}
+                                    </option>
+                                ))}
+                            </select>
+                            {selectedCategory && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Parent category is {selectedCategory.isOTC ? 'OTC' : 'Prescription Required'}
                                 </p>
-                            </label>
+                            )}
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Subcategory Name *
+                            </label>
                             <input
-                                type="checkbox"
-                                id="isActive"
-                                checked={formData.isActive}
-                                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
+                                type="text"
+                                required
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                placeholder="e.g., Headache Relief, Cold & Flu, Multivitamins"
                             />
-                            <label htmlFor="isActive" className="text-sm font-medium text-gray-700 cursor-pointer">
-                                Active Subcategory
-                            </label>
                         </div>
-                    </div>
 
-                    <div className="flex gap-4 pt-4">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {loading ? 'Creating...' : 'Create Subcategory'}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => router.back()}
-                            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </form>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                            <textarea
+                                required
+                                value={formData.description}
+                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                rows={4}
+                                placeholder="Brief description of the subcategory"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Subcategory Images (URLs, comma separated)</label>
+                            <input
+                                type="text"
+                                value={formData.images.join(',')}
+                                onChange={e => setFormData({ ...formData, images: e.target.value.split(',').map(url => url.trim()).filter(Boolean) })}
+                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
+                            />
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                                <input
+                                    type="checkbox"
+                                    id="isOTC"
+                                    checked={formData.isOTC}
+                                    onChange={(e) => setFormData({ ...formData, isOTC: e.target.checked })}
+                                    className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
+                                />
+                                <label htmlFor="isOTC" className="text-sm font-medium text-gray-700 cursor-pointer">
+                                    <div className="flex items-center gap-2">
+                                        <span>Over-the-Counter (OTC) Subcategory</span>
+                                    </div>
+                                    <p className="text-xs text-gray-600 mt-1">
+                                        Medicines in this subcategory can be purchased without a prescription
+                                    </p>
+                                </label>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <input
+                                    type="checkbox"
+                                    id="isActive"
+                                    checked={formData.isActive}
+                                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                                    className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
+                                />
+                                <label htmlFor="isActive" className="text-sm font-medium text-gray-700 cursor-pointer">
+                                    Active Subcategory
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4 pt-4">
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {loading ? 'Creating...' : 'Create Subcategory'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => router.back()}
+                                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );

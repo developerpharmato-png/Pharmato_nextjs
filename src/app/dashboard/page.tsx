@@ -6,11 +6,10 @@ export default function DashboardPage() {
         <div className="p-4 sm:p-8">
             {/* Header */}
             <div className="mb-6 sm:mb-8">
-                <h1 className="text-2xl sm:text-4xl font-bold text-gray-800 mb-2 flex items-center gap-3">
-                    <span className="material-icons text-3xl text-green-600">emoji_people</span>
-                    <span>Welcome back</span>
-                    <span className="text-sm text-gray-500 font-normal">— here's what's happening with your pharmacy today</span>
+                <h1 className="text-2xl sm:text-4xl font-bold text-gray-800 mb-2">
+                    Welcome back
                 </h1>
+                <p className="text-sm sm:text-base text-gray-500">Here's what's happening with your pharmacy today</p>
             </div>
 
             {/* Stats Cards */}

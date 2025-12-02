@@ -1,25 +1,28 @@
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Swal from 'sweetalert2';
 
 export default function SubCategoriesPage() {
     return (
-        <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Subcategories</h1>
-                    <p className="text-gray-600 mt-1">Manage medicine subcategories and OTC classification</p>
+        <div className="w-full min-h-screen bg-gray-50 py-8 px-2 sm:px-6">
+            <div className="max-w-6xl mx-auto">
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">Subcategories</h1>
+                        <p className="text-gray-500 mt-1">Manage medicine subcategories and OTC classification</p>
+                    </div>
+                    <Link
+                        href="/dashboard/subcategories/new"
+                        className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
+                    >
+                        + Add Subcategory
+                    </Link>
                 </div>
-                <Link
-                    href="/dashboard/subcategories/new"
-                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
-                >
-                    + Add Subcategory
-                </Link>
-            </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6">
-                <SubCategoriesTable />
+                <div className="bg-white rounded-lg shadow p-6">
+                    <SubCategoriesTable />
+                </div>
             </div>
         </div>
     );
@@ -91,14 +94,29 @@ function SubCategoriesTable() {
             });
 
             if (res.ok) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Status updated',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
                 fetchData();
             } else {
                 const data = await res.json();
-                alert(data.error || 'Failed to toggle subcategory status');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed to toggle status',
+                    text: data.error || 'Failed to toggle subcategory status',
+                });
             }
         } catch (error) {
-            console.error('Failed to toggle subcategory status:', error);
-            alert('Failed to toggle subcategory status');
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed to toggle status',
+                text: 'Network error',
+            });
         }
     };
 
@@ -128,7 +146,10 @@ function SubCategoriesTable() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     />
-                    <span className="absolute left-3 top-2.5 text-gray-400 text-xl">🔍</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-3 top-2.5 w-5 h-5 text-gray-400">
+                        <circle cx="11" cy="11" r="8" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35" />
+                    </svg>
                 </div>
                 <select
                     value={filterCategory}
@@ -219,7 +240,12 @@ function SubCategoriesTable() {
 
                 {filteredSubcategories.length === 0 && (
                     <div className="text-center py-12">
-                        <div className="text-6xl mb-4">📁</div>
+                        <div className="flex items-center justify-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-12 h-12 text-gray-300">
+                                <rect x="3" y="7" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7l9 5 9-5" />
+                            </svg>
+                        </div>
                         <p className="text-gray-500 text-lg">No subcategories found.</p>
                         {searchTerm && (
                             <p className="text-gray-400 text-sm mt-2">Try adjusting your search or filters</p>

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import Swal from 'sweetalert2';
 
 import Link from 'next/link';
 import HeaderWithAction from '../components/HeaderWithAction';
@@ -9,35 +10,57 @@ export default function CategoriesPage() {
     const [filterOTC, setFilterOTC] = useState<string>('all');
 
     const handleSeedData = async () => {
-        if (!confirm('This will clear all existing categories and subcategories. Continue?')) return;
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: 'This will clear all existing categories and subcategories. Continue?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, seed data',
+            cancelButtonText: 'Cancel',
+        });
+        if (!result.isConfirmed) return;
 
         setSeeding(true);
         try {
             const res = await fetch('/api/seed', { method: 'POST' });
             const data = await res.json();
             if (data.success) {
-                alert(`Successfully seeded ${data.data.categories} categories and ${data.data.subcategories} subcategories!`);
-                window.location.reload();
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: `Seeded ${data.data.categories} categories and ${data.data.subcategories} subcategories!`,
+                    showConfirmButton: false,
+                    timer: 2500
+                });
+                setTimeout(() => window.location.reload(), 1200);
             } else {
-                alert('Failed to seed data: ' + data.error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed to seed data',
+                    text: data.error || 'Unknown error',
+                });
             }
         } catch (error) {
-            console.error('Seed failed:', error);
-            alert('Failed to seed data');
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed to seed data',
+                text: 'Seed failed',
+            });
         } finally {
             setSeeding(false);
         }
     };
 
     return (
-        <div className="p-6">
+        <div className="w-full min-h-screen bg-gray-50 p-0">
             <HeaderWithAction
                 title="Categories"
                 subtitle="Manage medicine categories and OTC classification"
                 showBack={false}
                 showSearch={false}
             />
-            <div className="flex items-center mb-6 justify-end gap-3">
+            <div className="flex items-center mb-6 justify-end gap-3 w-full">
                 <select
                     value={filterOTC}
                     onChange={e => setFilterOTC(e.target.value)}
@@ -53,18 +76,23 @@ export default function CategoriesPage() {
                     disabled={seeding}
                     className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium disabled:opacity-50 flex items-center gap-2"
                 >
-                    <span className="material-icons" style={{ fontSize: 22 }}>auto_awesome</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
                     {seeding ? 'Seeding...' : 'Seed Dummy Data'}
                 </button>
                 <Link
                     href="/dashboard/categories/new"
                     className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium flex items-center gap-2"
                 >
-                    <span className="material-icons" style={{ fontSize: 22 }}>add_circle</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v8m4-4H8" />
+                    </svg>
                     Add Category
                 </Link>
             </div>
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="w-full bg-white rounded-lg shadow-md p-8">
                 <CategoriesTable />
             </div>
         </div>
@@ -122,7 +150,6 @@ export default function CategoriesPage() {
                 });
                 const data = await res.json();
                 if (data.success) {
-                    // Update only the affected category in local state
                     setCategories(prev => prev.map(cat =>
                         cat._id === pendingCategory.id
                             ? { ...cat, isActive: !cat.isActive }
@@ -133,11 +160,27 @@ export default function CategoriesPage() {
                             ? { ...cat, isActive: !cat.isActive }
                             : cat
                     ));
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Status updated',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
                 } else {
-                    alert('Failed to toggle status: ' + (data.error || 'Unknown error'));
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed to toggle status',
+                        text: data.error || 'Unknown error',
+                    });
                 }
             } catch (error) {
-                alert('Failed to toggle status');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed to toggle status',
+                    text: 'Network error',
+                });
             } finally {
                 setDialogOpen(false);
                 setPendingCategory(null);
@@ -229,7 +272,12 @@ export default function CategoriesPage() {
                                             {Array.isArray(category.images) && category.images.length > 0 ? (
                                                 <img src={category.images[0]} alt="Category" className="h-10 w-10 object-cover rounded" />
                                             ) : (
-                                                <span className="inline-block h-10 w-10 bg-gray-200 rounded text-xl flex items-center justify-center">📦</span>
+                                                <span className="inline-block h-10 w-10 bg-gray-200 rounded flex items-center justify-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-gray-400">
+                                                        <rect x="3" y="7" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 7l9 5 9-5" />
+                                                    </svg>
+                                                </span>
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-sm font-medium text-gray-900">{category.name}</td>
@@ -271,7 +319,12 @@ export default function CategoriesPage() {
 
                         {filteredCategories.length === 0 && (
                             <div className="text-center py-12">
-                                <div className="text-6xl mb-4">📂</div>
+                                <div className="flex items-center justify-center mb-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-12 h-12 text-gray-300">
+                                        <rect x="3" y="7" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 7l9 5 9-5" />
+                                    </svg>
+                                </div>
                                 <p className="text-gray-500 text-lg">No categories found.</p>
                                 {searchTerm && (
                                     <p className="text-gray-400 text-sm mt-2">Try adjusting your search term</p>
