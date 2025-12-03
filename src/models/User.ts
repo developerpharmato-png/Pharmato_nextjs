@@ -15,6 +15,7 @@ export interface IUser extends Document {
     isActive?: boolean;
     isDelete?: boolean;
     walletAmount?: number;
+    uniqueCode: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -34,6 +35,17 @@ const UserSchema = new Schema<IUser>({
     walletAmount: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },
     isDelete: { type: Boolean, default: false },
+    uniqueCode: { type: String, unique: true, required: true },
 }, { timestamps: true });
+
+// Auto-generate sequential uniqueCode on new user creation (reference: Category model)
+UserSchema.pre('validate', async function (next) {
+    if (this.isNew && !(this as any).uniqueCode) {
+        const User = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+        const count = await User.countDocuments();
+        (this as any).uniqueCode = `CUST-${count + 1}`;
+    }
+    next();
+});
 
 export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
