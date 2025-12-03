@@ -35,9 +35,7 @@ const CategorySchema = new Schema<ICategory>({
         default: true,
     },
     uniqueCode: {
-        type: String,
-        unique: true,
-        required: true,
+        type: String
     },
 }, {
     timestamps: true,

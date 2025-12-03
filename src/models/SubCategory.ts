@@ -40,9 +40,7 @@ const SubCategorySchema = new Schema<ISubCategory>({
         default: true,
     },
     uniqueCode: {
-        type: String,
-        unique: true,
-        required: true,
+        type: String
     },
 }, {
     timestamps: true,

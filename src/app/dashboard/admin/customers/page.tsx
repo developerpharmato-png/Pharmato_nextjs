@@ -6,6 +6,7 @@ import Swal from 'sweetalert2';
 
 type Customer = {
     _id: string;
+    uniqueCode?: string;
     name?: string;
     email?: string;
     mobile?: string;
@@ -80,44 +81,44 @@ export default function AdminCustomerListPage() {
                 />
             </div>
             <div className="bg-white rounded-xl shadow-md p-8">
-            
 
-                 {/* Search Bar Above List */}
-                        <div className="mb-6 flex items-center justify-between">
-                            <div className="flex-1  max-w-md">
-                                <input
-                                    type="text"
-                                    placeholder="Search by name, email or mobile..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                    aria-label="Search customers"
-                                />
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" aria-hidden="true">
-                                    <circle cx="11" cy="11" r="8" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35" />
+
+                {/* Search Bar Above List */}
+                <div className="mb-6 flex items-center justify-between">
+                    <div className="flex-1  max-w-md">
+                        <input
+                            type="text"
+                            placeholder="Search by name, email or mobile..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            aria-label="Search customers"
+                        />
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35" />
+                        </svg>
+                        {searchTerm && (
+                            <button
+                                type="button"
+                                onClick={() => setSearchTerm('')}
+                                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                                title="Clear search"
+                                aria-label="Clear search"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
-                                {searchTerm && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setSearchTerm('')}
-                                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
-                                        title="Clear search"
-                                        aria-label="Clear search"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                )}
-                            </div>
-                            <div className="text-sm text-gray-600 ml-4">
-                                Showing {startIndex + 1} to {Math.min(endIndex, filteredCustomers.length)} of {filteredCustomers.length} customers
-                                {searchTerm && (
-                                    <span className="ml-2 text-green-700">(Search: "{searchTerm}")</span>
-                                )}
-                            </div>
-                        </div>
+                            </button>
+                        )}
+                    </div>
+                    <div className="text-sm text-gray-600 ml-4">
+                        Showing {startIndex + 1} to {Math.min(endIndex, filteredCustomers.length)} of {filteredCustomers.length} customers
+                        {searchTerm && (
+                            <span className="ml-2 text-green-700">(Search: "{searchTerm}")</span>
+                        )}
+                    </div>
+                </div>
 
 
                 {loading ? (
@@ -133,7 +134,7 @@ export default function AdminCustomerListPage() {
                     </div>
                 ) : (
                     <>
-                       
+
                         {/* Customer List Table */}
                         <div className="overflow-x-auto">
                             <table className="min-w-full text-sm rounded-xl overflow-hidden shadow">
@@ -151,7 +152,7 @@ export default function AdminCustomerListPage() {
                                     {currentCustomers.map((c, idx) => (
                                         <tr key={c._id} className={`border-b ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100`}>
                                             <td className="px-4 py-3 font-mono text-xs whitespace-nowrap" title={c._id}>
-                                                <Link href={`/dashboard/admin/customers/${c._id}`} className="text-green-700 underline hover:text-green-900 font-semibold">{c._id}</Link>
+                                                <Link href={`/dashboard/admin/customers/${c._id}`} className="text-green-700 underline hover:text-green-900 font-semibold">{c.uniqueCode || c._id}</Link>
                                             </td>
                                             <td className="px-4 py-3 font-medium text-gray-900 truncate max-w-[220px]">{c.name || <span className="text-gray-400">-</span>}</td>
                                             <td className="px-4 py-3 text-gray-600 truncate max-w-[240px]">{c.email || <span className="text-gray-400">-</span>}</td>

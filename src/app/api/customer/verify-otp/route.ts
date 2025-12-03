@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
         await user.save();
         return NextResponse.json({ success: false, error: 'Invalid or expired OTP' }, { status: 400 });
     }
-    user.isVerified = true;
+    // user.isVerified = true;
     user.otp = undefined;
     user.otpExpires = undefined;
     user.incorrectOtpAttempt = 0;

@@ -143,11 +143,11 @@ export default function MedicinesTable({ searchValue, onSearchChange }: Props) {
                                     </a>
                                 </td>
                                 <td className="px-4 py-3">
-                                    {medicine.images && medicine.images.length > 0 ? (
-                                        <img src={medicine.images[0]} alt={medicine.name} className="h-10 w-10 object-cover rounded" />
+                                    {(medicine.coverImage && medicine.coverImage.trim()) ? (
+                                        <img src={medicine.coverImage} alt={medicine.name} className="h-10 w-10 object-cover rounded" />
                                     ) : (
-                                        <span className="inline-block h-10 w-10 bg-gray-200 rounded text-gray-400 flex items-center justify-center">
-                                            <span className="material-icons">medication</span>
+                                        <span className="inline-flex h-10 w-10 bg-gray-200 rounded-full text-gray-500 items-center justify-center" title="No image">
+                                            <span className="material-icons text-base">person</span>
                                         </span>
                                     )}
                                 </td>
@@ -221,10 +221,12 @@ export default function MedicinesTable({ searchValue, onSearchChange }: Props) {
                 {currentMedicines.map((medicine: any) => (
                     <div key={medicine._id} className="bg-white border rounded-lg p-3 shadow-sm flex items-start gap-3">
                         <div className="w-16 h-16 flex-shrink-0 rounded overflow-hidden bg-gray-100 flex items-center justify-center">
-                            {medicine.images && medicine.images.length > 0 ? (
-                                <img src={medicine.images[0]} alt={medicine.name} className="h-full w-full object-cover" />
+                            {(medicine.coverImage && medicine.coverImage.trim()) ? (
+                                <img src={medicine.coverImage} alt={medicine.name} className="h-full w-full object-cover" />
                             ) : (
-                                <span className="material-icons text-gray-400">medication</span>
+                                <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                                    <span className="material-icons text-gray-500">person</span>
+                                </div>
                             )}
                         </div>
                         <div className="flex-1">

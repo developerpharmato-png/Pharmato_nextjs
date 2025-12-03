@@ -21,6 +21,7 @@ export interface IMedicine {
     isActive: boolean;
     isDeleted?: boolean;
     composition: { name: string; value: string }[];
+    coverImage?: string;
     images: string[];
     highlights: string[];
     relatedProducts: mongoose.Types.ObjectId[];
@@ -44,9 +45,7 @@ const MedicineSchema = new Schema<IMedicine>({
         maxlength: [100, 'Unique identity cannot be more than 100 characters'],
     },
     uniqueCode: {
-        type: String,
-        unique: true,
-        required: true,
+        type: String
     },
     name: {
         type: String,
@@ -135,6 +134,10 @@ const MedicineSchema = new Schema<IMedicine>({
     images: [
         { type: String, default: '' }
     ],
+    coverImage: {
+        type: String,
+        default: ''
+    },
     highlights: [
         { type: String, default: '' }
     ],

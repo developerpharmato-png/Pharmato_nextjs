@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
             incorrectOtpAttempt: 0,
             otpCount: 1,
             isBlocked: 0,
-            isActive: 0,
+            // isActive: 0,
         });
     } else {
         user.otp = otp;
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
         user.incorrectOtpAttempt = 0;
         user.otpCount = (user.otpCount || 0) + 1;
         user.isBlocked = 0;
-        user.isActive = 0;
+        // user.isActive = 0;
         await user.save();
     }
     // TODO: Integrate SMS gateway here

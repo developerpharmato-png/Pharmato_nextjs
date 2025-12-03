@@ -35,7 +35,7 @@ const UserSchema = new Schema<IUser>({
     walletAmount: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },
     isDelete: { type: Boolean, default: false },
-    uniqueCode: { type: String, unique: true, required: true },
+    uniqueCode: { type: String },
 }, { timestamps: true });
 
 // Auto-generate sequential uniqueCode on new user creation (reference: Category model)

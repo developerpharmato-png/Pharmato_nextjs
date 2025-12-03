@@ -31,6 +31,7 @@ export default function EditFormClient({ id }: { id?: string }) {
         isOTC: false,
         requiresPrescription: true,
         images: [] as string[],
+        coverImage: '' as string,
         highlights: [] as string[],
     });
     const [uploading, setUploading] = useState(false);
@@ -78,7 +79,8 @@ export default function EditFormClient({ id }: { id?: string }) {
                         batchNumber: data.batchNumber ?? '',
                         isOTC: data.isOTC ?? false,
                         requiresPrescription: data.requiresPrescription ?? true,
-                        images: data.images ?? [],
+                        images: Array.isArray(data.images) ? data.images : [],
+                        coverImage: data.coverImage || (Array.isArray(data.images) && data.images.length > 0 ? data.images[0] : ''),
                         highlights: Array.isArray(data.highlights) ? data.highlights : [],
                     });
                     setComposition(Array.isArray(data.composition) ? data.composition : [{ name: '', value: '' }]);
@@ -171,36 +173,52 @@ export default function EditFormClient({ id }: { id?: string }) {
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+        const files = e.target.files ? Array.from(e.target.files) : [];
+        if (files.length === 0) return;
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+        const maxSize = 5 * 1024 * 1024;
+        const currentCount = form.images.length;
+        if (currentCount >= 5) {
+            Swal.fire({ icon: 'error', title: 'Limit reached', text: 'Maximum 5 images allowed' });
+            (document.getElementById('medicine-edit-image-input') as HTMLInputElement | null)?.value && ((document.getElementById('medicine-edit-image-input') as HTMLInputElement).value = '');
+            return;
+        }
+        setUploading(true);
+        const newUrls: string[] = [];
+        for (const file of files) {
             if (!allowedTypes.includes(file.type)) {
                 Swal.fire({ icon: 'error', title: 'Invalid file type', text: 'Please upload only image files (JPEG, PNG, GIF, WebP, SVG)' });
-                const inp = document.getElementById('medicine-edit-image-input') as HTMLInputElement | null;
-                if (inp) inp.value = '';
-                return;
+                continue;
             }
-            const maxSize = 5 * 1024 * 1024;
             if (file.size > maxSize) {
                 Swal.fire({ icon: 'error', title: 'File too large', text: 'Please upload an image smaller than 5MB' });
-                const inp = document.getElementById('medicine-edit-image-input') as HTMLInputElement | null;
-                if (inp) inp.value = '';
-                return;
+                continue;
             }
-            setUploading(true);
+            if (currentCount + newUrls.length >= 5) break;
             const fd = new FormData();
             fd.append('file', file);
-            const res = await fetch('/api/cloudinary/upload-image', { method: 'POST', body: fd });
-            const data = await res.json();
-            if (data.success && data.url) {
-                setForm(prev => ({ ...prev, images: [data.url] }));
-                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Image uploaded successfully', showConfirmButton: false, timer: 2000 });
-            } else {
-                Swal.fire({ icon: 'error', title: 'Image upload failed', text: data.error || 'Failed to upload image' });
+            try {
+                const res = await fetch('/api/cloudinary/upload-image', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success && data.url) {
+                    newUrls.push(data.url);
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Upload failed', text: data.error || 'Failed to upload image' });
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Upload failed', text: String(err) });
             }
-            setUploading(false);
-            const inp2 = document.getElementById('medicine-edit-image-input') as HTMLInputElement | null;
-            if (inp2) inp2.value = '';
+        }
+        setForm(prev => {
+            const updated = [...prev.images, ...newUrls].slice(0, 5);
+            const cover = prev.coverImage || (updated.length > 0 ? updated[0] : '');
+            return { ...prev, images: updated, coverImage: cover };
+        });
+        setUploading(false);
+        const inp2 = document.getElementById('medicine-edit-image-input') as HTMLInputElement | null;
+        if (inp2) inp2.value = '';
+        if (newUrls.length > 0) {
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: `Uploaded ${newUrls.length} image(s)`, showConfirmButton: false, timer: 2000 });
         }
     };
 
@@ -212,11 +230,22 @@ export default function EditFormClient({ id }: { id?: string }) {
         });
         const data = await res.json();
         if (data.success) {
-            setForm(prev => ({ ...prev, images: [] }));
+            setForm(prev => {
+                const updated = prev.images.filter(u => u !== url);
+                let newCover = prev.coverImage;
+                if (prev.coverImage === url) {
+                    newCover = updated[0] || '';
+                }
+                return { ...prev, images: updated, coverImage: newCover };
+            });
             Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Image deleted', showConfirmButton: false, timer: 2000 });
         } else {
             Swal.fire({ icon: 'error', title: 'Delete failed', text: data.error || 'Failed to delete image' });
         }
+    };
+
+    const setPrimaryImage = (url: string) => {
+        setForm(prev => ({ ...prev, coverImage: url }));
     };
 
     const handleCompositionChange = (idx: number, field: string, value: string) => {
@@ -251,10 +280,30 @@ export default function EditFormClient({ id }: { id?: string }) {
             setLoading(false);
             return;
         }
+        // Images min/max validation
         if (!form.images || form.images.length === 0) {
-            Swal.fire({ icon: 'error', title: 'Image required', text: 'Please upload a medicine image before saving' });
+            Swal.fire({ icon: 'error', title: 'Image required', text: 'Please upload at least 1 image' });
             setLoading(false);
             return;
+        }
+        if (form.images.length > 5) {
+            Swal.fire({ icon: 'error', title: 'Too many images', text: 'Maximum 5 images allowed' });
+            setLoading(false);
+            return;
+        }
+        // Ensure coverImage is among images
+        const cover = form.coverImage && form.images.includes(form.coverImage) ? form.coverImage : form.images[0];
+        // Expiry date: disallow past dates
+        if (form.expiryDate) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const exp = new Date(form.expiryDate);
+            exp.setHours(0, 0, 0, 0);
+            if (exp < today) {
+                Swal.fire({ icon: 'error', title: 'Invalid Expiry Date', text: 'Expiry date cannot be in the past' });
+                setLoading(false);
+                return;
+            }
         }
         const payload = {
             ...form,
@@ -268,6 +317,7 @@ export default function EditFormClient({ id }: { id?: string }) {
             expiryDate: new Date(form.expiryDate),
             categoryId: form.categoryId || undefined,
             subCategoryId: form.subCategoryId || undefined,
+            coverImage: cover,
             finalUpdate: true,
         };
         fetch(`/api/medicines/${effectiveId}`, {
@@ -322,42 +372,52 @@ export default function EditFormClient({ id }: { id?: string }) {
             <div className="bg-white rounded-xl shadow-md p-4 sm:p-8 max-w-3xl w-full">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Medicine Image *</label>
-                        <div className="flex items-center gap-4">
-                            {form.images.length === 0 ? (
-                                <div>
-                                    <input id="medicine-edit-image-input" type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
-                                    <button
-                                        type="button"
-                                        onClick={() => document.getElementById('medicine-edit-image-input')?.click()}
-                                        className="w-16 h-16 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg hover:bg-gray-200 transition"
-                                        title="Upload photo"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-gray-500">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 12.75l2.25 3 3-4.5 4.5 6" />
-                                        </svg>
-                                    </button>
-                                    {uploading && <span className="ml-2 text-blue-600">Uploading...</span>}
-                                </div>
-                            ) : (
-                                <div className="relative group">
-                                    <img src={form.images[0]} alt="Medicine" className="h-20 w-20 object-cover rounded border cursor-pointer" title="Click to preview" />
-                                    <button
-                                        type="button"
-                                        onClick={() => handleDeleteImage(form.images[0])}
-                                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-80 group-hover:opacity-100"
-                                        title="Delete image"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            )}
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Medicine Images *</label>
+                        <p className="text-xs text-gray-500 mb-2">Min 1, Max 5 images. Each ≤ 5MB.</p>
+                        <input id="medicine-edit-image-input" type="file" accept="image/*" multiple onChange={handleFileChange} style={{ display: 'none' }} />
+                        <div className="flex items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={() => document.getElementById('medicine-edit-image-input')?.click()}
+                                className="h-24 w-24 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-md hover:bg-gray-200 transition"
+                                title="Upload photos"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-gray-500">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 12.75l2.25 3 3-4.5 4.5 6" />
+                                </svg>
+                            </button>
+                            {uploading && <span className="text-blue-600">Uploading...</span>}
                         </div>
-                        {form.images.length === 0 && !uploading && (
-                            <p className="text-xs text-gray-500 mt-2">No image uploaded yet.</p>
+                        {form.images.length > 0 && (
+                            <div className="mt-3 mb-4 grid grid-cols-2 sm:grid-cols-4 gap-2 justify-start w-fit">
+                                {form.images.map((url) => (
+                                    <div key={url} className="relative group h-24 w-24">
+                                        <img src={url} alt="Medicine" className="h-24 w-24 object-cover rounded-md border" />
+                                        {form.coverImage === url ? (
+                                            <span className="absolute top-1 left-1 bg-green-600 text-white text-[10px] px-1.5 py-0.5 rounded-md shadow-sm">Primary</span>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => setPrimaryImage(url)}
+                                                className="absolute top-1 left-1 bg-gray-800 text-white text-[10px] px-1.5 py-0.5 rounded-md opacity-80 hover:opacity-100 shadow-sm"
+                                            >
+                                                Set Primary
+                                            </button>
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteImage(url)}
+                                            className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-80 hover:opacity-100 shadow-sm"
+                                            title="Delete image"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
                         )}
                     </div>
                     <div>
@@ -449,7 +509,7 @@ export default function EditFormClient({ id }: { id?: string }) {
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Stock Quantity *</label>
                             <input
                                 name="stock"
-                                type="number"
+                                type="text"
                                 value={form.stock}
                                 onChange={handleChange}
                                 required
@@ -463,7 +523,7 @@ export default function EditFormClient({ id }: { id?: string }) {
                             <label className="block text-sm font-semibold text-gray-700 mb-2">MRP (₹) *</label>
                             <input
                                 name="mrp"
-                                type="number"
+                                type="text"
                                 step="0.01"
                                 value={form.mrp}
                                 onChange={handleChange}
@@ -476,7 +536,7 @@ export default function EditFormClient({ id }: { id?: string }) {
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Purchase Price (₹) *</label>
                             <input
                                 name="purchasePrice"
-                                type="number"
+                                type="text"
                                 step="0.01"
                                 value={form.purchasePrice}
                                 onChange={handleChange}
@@ -489,7 +549,7 @@ export default function EditFormClient({ id }: { id?: string }) {
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Selling Price (₹) *</label>
                             <input
                                 name="price"
-                                type="number"
+                                type="text"
                                 step="0.01"
                                 value={form.price}
                                 onChange={handleChange}
@@ -502,7 +562,7 @@ export default function EditFormClient({ id }: { id?: string }) {
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Discount (%)</label>
                             <input
                                 name="discount"
-                                type="number"
+                                type="text"
                                 value={form.discount}
                                 readOnly
                                 className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-gray-100 text-gray-700"
@@ -520,6 +580,7 @@ export default function EditFormClient({ id }: { id?: string }) {
                                 onChange={handleChange}
                                 required
                                 className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                                min={(() => { const d = new Date(); const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0'); return `${y}-${m}-${day}`; })()}
                             />
                         </div>
                         <div>
@@ -609,24 +670,7 @@ export default function EditFormClient({ id }: { id?: string }) {
                     <div className="space-y-4 border-t pt-6">
                         <h3 className="text-lg font-semibold text-gray-800">Medicine Classification</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                                <input
-                                    type="checkbox"
-                                    id="isOTC"
-                                    name="isOTC"
-                                    checked={form.isOTC}
-                                    onChange={handleChange}
-                                    className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
-                                />
-                                <label htmlFor="isOTC" className="text-sm font-medium text-gray-700 cursor-pointer">
-                                    <div className="flex items-center gap-2">
-                                        <span>🟢 Over-the-Counter (OTC)</span>
-                                    </div>
-                                    <p className="text-xs text-gray-600 mt-1">
-                                        Can be purchased without prescription
-                                    </p>
-                                </label>
-                            </div>
+                          
                             <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
                                 <input
                                     type="checkbox"
