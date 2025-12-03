@@ -53,13 +53,25 @@ export default function AdminCustomerDetailTabs({ id }: { id?: string }) {
 
     return (
         <div className="p-8">
-            <div className="mb-8">
-                <HeaderWithAction
-                    title="Admin: Customer Detail"
-                    subtitle={'View and manage customer details'}
-                    showBack={false}
-                    showSearch={false}
-                />
+            <div className="mb-8 relative">
+                <button
+                    type="button"
+                    onClick={() => window.history.back()}
+                    className="absolute left-0 top-0 inline-flex items-center justify-center w-10 h-10 text-gray-500 bg-white border border-gray-200 rounded-full shadow hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    aria-label="Go back"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <div className="pl-14">
+                    <HeaderWithAction
+                        title="Admin: Customer Detail"
+                        subtitle={'View and manage customer details'}
+                        showBack={false}
+                        showSearch={false}
+                    />
+                </div>
             </div>
             <div className="mb-8 flex gap-6 border-b pb-2" role="tablist" aria-label="Customer detail tabs">
                 {TABS.map((tab) => (

@@ -85,7 +85,7 @@ export default function AdminCustomerListPage() {
 
                 {/* Search Bar Above List */}
                 <div className="mb-6 flex items-center justify-between">
-                    <div className="flex-1  max-w-md">
+                    <div className="flex-1 max-w-md relative">
                         <input
                             type="text"
                             placeholder="Search by name, email or mobile..."
@@ -94,7 +94,15 @@ export default function AdminCustomerListPage() {
                             className="w-full px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                             aria-label="Search customers"
                         />
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" aria-hidden="true">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2}
+                            stroke="currentColor"
+                            className="absolute left-3 top-2.5 w-5 h-5 text-gray-400"
+                            aria-hidden="true"
+                        >
                             <circle cx="11" cy="11" r="8" />
                             <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35" />
                         </svg>
@@ -106,7 +114,14 @@ export default function AdminCustomerListPage() {
                                 title="Clear search"
                                 aria-label="Clear search"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    className="w-5 h-5"
+                                >
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>

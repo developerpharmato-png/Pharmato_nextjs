@@ -1,0 +1,44 @@
+
+import * as Yup from 'yup';
+
+export const initialMedicineFormValues = {
+  name: '',
+  description: '',
+  manufacturer: '',
+  category: 'Tablet',
+  categoryId: '',
+  subCategoryId: '',
+  price: '',
+  purchasePrice: '',
+  mrp: '',
+  discount: 0,
+  stock: '',
+  expiryDate: '',
+  batchNumber: '',
+  isOTC: false,
+  requiresPrescription: true,
+  images: [],
+  coverImage: undefined,
+  highlights: [] as string[],
+};
+
+export const medicineFormValidationSchema = Yup.object().shape({
+  name: Yup.string().required('Name is required'),
+  description: Yup.string().required('Description is required'),
+  manufacturer: Yup.string().required('Manufacturer is required'),
+  category: Yup.string().required('Form type is required'),
+  categoryId: Yup.string().required('Category is required'),
+  subCategoryId: Yup.string().required('Subcategory is required'),
+  price: Yup.number().typeError('Price must be a number').required('Selling price is required'),
+  purchasePrice: Yup.number().typeError('Purchase price must be a number').required('Purchase price is required'),
+  mrp: Yup.number().typeError('MRP must be a number').required('MRP is required'),
+  discount: Yup.number(),
+  stock: Yup.number().typeError('Stock must be a number').required('Stock is required'),
+  expiryDate: Yup.string().required('Expiry date is required'),
+  batchNumber: Yup.string().required('Batch number is required'),
+  isOTC: Yup.boolean(),
+  requiresPrescription: Yup.boolean(),
+  images: Yup.array().min(1, 'At least one image is required').max(5, 'Maximum 5 images allowed'),
+  coverImage: Yup.string().nullable(),
+  highlights: Yup.array().of(Yup.string()),
+});
