@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
     if (!mobile) {
         return NextResponse.json({ success: false, error: 'Mobile number required' }, { status: 400 });
     }
-    // Find user or create new
-    let user = await User.findOne({ mobile });
+    // Find user or create new (by mobile and countryCode)
+    let user = await User.findOne({ mobile, countryCode });
     const now = new Date();
     // Blocked user check
     if (user && user.isBlocked && user.userBlockedTime && user.userBlockedTime > now) {
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
             incorrectOtpAttempt: 0,
             otpCount: 1,
             isBlocked: 0,
-            // isActive: 0,
+            isActive: false,
         });
     } else {
         user.otp = otp;
@@ -83,9 +83,8 @@ export async function POST(request: NextRequest) {
         user.incorrectOtpAttempt = 0;
         user.otpCount = (user.otpCount || 0) + 1;
         user.isBlocked = 0;
-        // user.isActive = 0;
         await user.save();
     }
     // TODO: Integrate SMS gateway here
-    return NextResponse.json({ success: true, message: 'OTP sent', otp, userId: user._id }, { status: 200 }); // For dev, return OTP and userId
+    return NextResponse.json({ success: true, message: 'OTP sent', otp, userId: user._id, isActive: user.isActive }, { status: 200 }); // For dev, return OTP and userId
 }

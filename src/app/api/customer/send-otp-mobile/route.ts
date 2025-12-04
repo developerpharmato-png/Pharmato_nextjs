@@ -60,8 +60,8 @@ export async function POST(req: NextRequest) {
     if (!user) {
         return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
-    user.mobile = mobile;
-    user.countryCode = countryCode;
+    // user.mobile = mobile;
+    // user.countryCode = countryCode;
     const otp = generateOTP();
     user.otp = otp;
     user.otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
