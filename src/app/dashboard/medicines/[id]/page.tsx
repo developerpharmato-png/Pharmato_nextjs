@@ -77,7 +77,7 @@ export default function MedicineDetailPage() {
             <HeaderWithAction
                 title={medicine.name}
                 subtitle={medicine.manufacturer || ''}
-                showBack={true}
+                showBack={false}
                 showSearch={false}
                 rightNode={(
                     <div className="flex items-center gap-2">
