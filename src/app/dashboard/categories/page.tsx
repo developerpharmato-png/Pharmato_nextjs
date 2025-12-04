@@ -53,7 +53,7 @@ export default function CategoriesPage() {
     };
 
     return (
-        <div className="w-full min-h-screen bg-gray-50 p-0">
+        <div className="containerStyle scrollbar-hide">
             <HeaderWithAction
                 title="Categories"
                 subtitle="Manage medicine categories and OTC classification"

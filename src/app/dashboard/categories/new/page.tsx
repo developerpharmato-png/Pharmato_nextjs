@@ -156,8 +156,8 @@ export default function NewCategoryPage() {
     };
 
     return (
-        <div className="w-full min-h-screen bg-gray-50 py-8 px-2 sm:px-6">
-            <div className="max-w-3xl mx-auto">
+        <div className="containerStyle scrollbar-hide">
+           
                 <header className="mb-8 relative">
                     <button
                         type="button"
@@ -312,7 +312,7 @@ export default function NewCategoryPage() {
                         </div>
                     </form>
                 </div>
-            </div>
+           
         </div>
     );
 }

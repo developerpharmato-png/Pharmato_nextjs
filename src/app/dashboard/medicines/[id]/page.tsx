@@ -1,9 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-const EditMedicineModal = dynamic(() => import("../EditMedicineModal"), {
-  ssr: false,
-});
+
 import { useParams } from "next/navigation";
 import HeaderWithAction from "../../components/HeaderWithAction";
 import { CustomButton } from "../../components/miniComponents";
@@ -76,7 +74,7 @@ export default function MedicineDetailPage() {
   const images: string[] = medicine.images || [];
 
   return (
-    <div className="containerStyle">
+    <div className="containerStyle scrollbar-hide" >
       <HeaderWithAction
         title={medicine.name}
         subtitle={medicine.manufacturer || ""}

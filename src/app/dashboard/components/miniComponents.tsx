@@ -1,3 +1,4 @@
+import React from 'react';
 import { styled } from '@mui/material/styles';
 import Tooltip, { tooltipClasses, TooltipProps } from '@mui/material/Tooltip';
 interface ErrorMessageComProps {
@@ -96,3 +97,59 @@ export const CustomTooltip = styled(
     color: "var(--primary)",
   },
 }));
+
+
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+
+interface CustomImageProps {
+  coverImage: string;
+  images?: string[];
+  alt?: string;
+  style?: React.CSSProperties;
+}
+
+export const CustomImage: React.FC<CustomImageProps> = ({ coverImage, images = [], alt = '', style }) => {
+  const [open, setOpen] = React.useState(false);
+
+  const handleOpen = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (images.length > 0) setOpen(true);
+  };
+  const handleClose = () => setOpen(false);
+
+  return (
+    <>
+      <img
+        src={coverImage}
+        alt={alt}
+        style={style}
+        onClick={handleOpen}
+        className={images.length > 0 ? 'cursor-pointer' : ''}
+      />
+      <Dialog open={open} onClose={handleClose} maxWidth="md">
+        <IconButton
+          aria-label="close"
+          onClick={handleClose}
+          sx={{ position: 'absolute', right: 8, top: 8, color: (theme) => theme.palette.grey[500] }}
+        >
+          <CloseIcon />
+        </IconButton>
+        <DialogContent>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {images.map((img, idx) => (
+              <img
+                key={idx}
+                src={img}
+                alt={`img-${idx}`}
+                style={{ height: 120, width: 120, objectFit: 'cover', borderRadius: 8, margin: 8 }}
+              />
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};

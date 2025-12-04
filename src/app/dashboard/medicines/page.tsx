@@ -12,7 +12,7 @@ export default function MedicinesPage() {
     router.push("/dashboard/medicines/new");
   };
   return (
-    <div>
+    <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
         title="Medicines"
         subtitle="Manage your medicine inventory"
@@ -26,7 +26,7 @@ export default function MedicinesPage() {
         addShow={true}
         onSearchChange={setSearchTerm}
       />
-      <div className="w-full bg-white rounded-xl shadow-md p-8">
+      <div>
         <MedicinesTable
           searchValue={searchTerm}
           onSearchChange={setSearchTerm}
