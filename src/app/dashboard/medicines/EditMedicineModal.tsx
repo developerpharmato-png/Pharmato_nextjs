@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { CustomButton } from "../components/miniComponents";
 
 export interface EditMedicineModalProps {
     medicine: any;
@@ -82,14 +83,14 @@ export default function EditMedicineModal({ medicine, onClose, onUpdated }: Edit
             setLoading(false);
         }
     };
-
+  
     return (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-md p-8 w-[900px] max-w-full relative">
+            <div className="bg-white rounded-xl shadow-md p-8 w-[900px] max-w-full relative max-h-[80vh] overflow-y-auto">
                 <button className="absolute top-4 right-4 text-red-500 text-xl font-bold" onClick={onClose}>×</button>
                 <h2 className="text-4xl font-bold text-gray-800 mb-2">Edit Medicine 💊</h2>
                 <p className="text-gray-600 mb-6">Update medicine details below</p>
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6 ">
                     <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">Medicine Images</label>
                         <input type="file" multiple accept="image/*" onChange={handleImageChange} className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition" />
@@ -165,10 +166,22 @@ export default function EditMedicineModal({ medicine, onClose, onUpdated }: Edit
                         </div>
                     )}
                     <div className="flex gap-4 pt-4">
-                        <button type="submit" disabled={loading} className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium shadow-md hover:shadow-lg">
+                        <CustomButton
+                            type="submit"
+                            disabled={loading}
+                            width="100%"
+                            className="flex-1"
+                        >
                             {loading ? 'Saving...' : 'Save Changes'}
-                        </button>
-                        <button type="button" className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium" onClick={onClose}>Cancel</button>
+                        </CustomButton>
+                        <CustomButton
+                            type="button"
+                            onClick={onClose}
+                            width="120px"
+                            className="bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        >
+                            Cancel
+                        </CustomButton>
                     </div>
                 </form>
             </div>
