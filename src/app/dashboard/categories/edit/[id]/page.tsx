@@ -1,295 +1,632 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
+import { useFormik } from "formik"; // Import useFormik
+import {
+  Container,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  CircularProgress,
+  IconButton,
+  Card,
+  CardContent,
+  useTheme,
+} from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import CloseIcon from "@mui/icons-material/Close";
+import { MdSave } from "react-icons/md"; // For the Save Changes button icon
+
+import CategoriesSkeleton from "@/app/dashboard/components/Skelton/Categories";
+import {
+  CustomButton,
+  DeleteIcon,
+  ErrorMessageCom,
+} from "@/app/dashboard/components/miniComponents";
+
+// --- Utility Functions (You'll need these if they are not shared) ---
+// Define the initial structure for Formik
+interface EditCategoryForm {
+  name: string;
+  description: string;
+  isOTC: boolean;
+  images: string[];
+  isActive: boolean;
+}
+
+const initEditCategory: EditCategoryForm = {
+  name: "",
+  description: "",
+  isOTC: false,
+  images: [],
+  isActive: true,
+};
+
+// Define a simple validation function (adjust based on your actual `validateCategory`)
+type EditCategoryFormErrors = {
+  name?: string;
+  description?: string;
+  images?: string;
+  isOTC?: string;
+  isActive?: string;
+};
+
+const validateEditCategory = (values: EditCategoryForm): EditCategoryFormErrors => {
+  const errors: EditCategoryFormErrors = {};
+  if (!values.name) {
+    errors.name = "Category Name is required";
+  } else if (values.name.length < 3) {
+    errors.name = "Category Name must be at least 3 characters";
+  }
+
+  if (!values.description) {
+    errors.description = "Description is required";
+  } else if (values.description.length < 10) {
+    errors.description = "Description must be at least 10 characters";
+  }
+
+  if (values.images.length === 0) {
+    errors.images = "A category image is required";
+  }
+  return errors;
+};
+// -------------------------------------------------------------------
+
+const MAX_DESCRIPTION_LENGTH = 1000;
 
 export default function EditCategoryPage() {
-    const { id } = useParams();
-    const router = useRouter();
-    const [form, setForm] = useState<{ name: string; description: string; isOTC: boolean; images: string[]; isActive: boolean }>({ name: "", description: "", isOTC: false, images: [], isActive: true });
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [imageFiles, setImageFiles] = useState<File[]>([]);
-    const [uploading, setUploading] = useState(false);
+  const { id } = useParams();
+  const router = useRouter();
+  const [initialFetchLoading, setInitialFetchLoading] = useState(true);
+  const [initialCategoryData, setInitialCategoryData] =
+    useState(initEditCategory);
+  const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const theme = useTheme();
 
-    useEffect(() => {
-        async function fetchCategory() {
-            try {
-                const res = await fetch(`/api/categories/${id}`);
-                const data = await res.json();
-                if (data.success && data.data) {
-                    setForm({
-                        name: data.data.name,
-                        description: data.data.description,
-                        isOTC: data.data.isOTC,
-                        images: Array.isArray(data.data.images) ? data.data.images : [],
-                        isActive: data.data.isActive,
-                    });
-                } else {
-                    setError("Category not found");
-                }
-            } catch {
-                setError("Failed to fetch category");
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchCategory();
-    }, [id]);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value, type } = e.target;
-        const checked = (e.target as HTMLInputElement).checked;
-        if (name === "images") {
-            setForm({ ...form, images: value.split(',').map(url => url.trim()).filter(Boolean) });
+  // 1. Fetch initial data and set Formik's initial values
+  useEffect(() => {
+    async function fetchCategory() {
+      try {
+        const res = await fetch(`/api/categories/${id}`);
+        const data = await res.json();
+        if (data.success && data.data) {
+          setInitialCategoryData({
+            name: data.data.name || "",
+            description: data.data.description || "",
+            isOTC: data.data.isOTC || false,
+            images: Array.isArray(data.data.images) ? data.data.images : [],
+            isActive:
+              data.data.isActive === undefined ? true : data.data.isActive,
+          });
         } else {
-            setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+          setError("Category not found");
         }
-    };
+      } catch {
+        setError("Failed to fetch category");
+      } finally {
+        setInitialFetchLoading(false);
+      }
+    }
+    if (id) {
+      fetchCategory();
+    }
+  }, [id]);
 
-    // Handle file selection and upload
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-
-            // Validate file type - only allow images
-            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
-            if (!allowedTypes.includes(file.type)) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Invalid file type',
-                    text: 'Please upload only image files (JPEG, PNG, GIF, WebP, SVG)',
-                });
-                const fileInput = document.getElementById('edit-category-image-input') as HTMLInputElement | null;
-                if (fileInput) fileInput.value = '';
-                return;
-            }
-
-            // Validate file size (max 5MB)
-            const maxSize = 5 * 1024 * 1024; // 5MB
-            if (file.size > maxSize) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'File too large',
-                    text: 'Please upload an image smaller than 5MB',
-                });
-                const fileInput = document.getElementById('edit-category-image-input') as HTMLInputElement | null;
-                if (fileInput) fileInput.value = '';
-                return;
-            }
-
-            setUploading(true);
-            const uploadFormData = new FormData();
-            uploadFormData.append('file', file);
-            const res = await fetch('/api/cloudinary/upload-image', {
-                method: 'POST',
-                body: uploadFormData,
-            });
-            const data = await res.json();
-            if (data.success && data.url) {
-                setForm(prev => ({ ...prev, images: [data.url] }));
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: 'Image uploaded successfully',
-                    showConfirmButton: false,
-                    timer: 2000
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Image upload failed',
-                    text: data.error || 'Failed to upload image',
-                });
-            }
-            setUploading(false);
-            const fileInput = document.getElementById('edit-category-image-input') as HTMLInputElement | null;
-            if (fileInput) fileInput.value = '';
+  // 2. Formik Setup
+  const formik = useFormik({
+    initialValues: initialCategoryData,
+    enableReinitialize: true, // Crucial for updating form when initialCategoryData changes
+    validate: validateEditCategory, // Use the proper validation
+    onSubmit: async (values, { setSubmitting, setErrors }) => {
+      setSubmitting(true);
+      setError(null);
+      try {
+        // Manually check for image, as Formik might miss it on re-initialization if using custom components
+        if (values.images.length === 0) {
+          Swal.fire({
+            icon: "error",
+            title: "Image required",
+            text: "Please upload a category image before submitting",
+          });
+          setSubmitting(false);
+          return;
         }
-    };
 
-
-
-    // Delete image from Cloudinary and remove from array
-    const handleDeleteImage = async (url: string) => {
-        const res = await fetch('/api/cloudinary/delete-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageUrl: url }),
+        const res = await fetch(`/api/categories/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(values),
         });
         const data = await res.json();
         if (data.success) {
-            setForm(prev => ({ ...prev, images: prev.images.filter(img => img !== url) }));
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: 'Image deleted',
-                showConfirmButton: false,
-                timer: 2000
-            });
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "success",
+            title: "Category updated successfully",
+            showConfirmButton: false,
+            timer: 2000,
+          });
+          setTimeout(() => router.push("/dashboard/categories"), 1200);
         } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Delete failed',
-                text: data.error || 'Failed to delete image',
-            });
+          // Set Formik errors if validation/server errors are returned
+          setErrors(data.errors || {});
+          const errorMsg = data.error || "Failed to update category";
+          Swal.fire({
+            icon: "error",
+            title: "Update failed",
+            text: errorMsg,
+          });
+          setError(errorMsg);
         }
-    };
+      } catch (submitError) {
+        Swal.fire({
+          icon: "error",
+          title: "Update failed",
+          text: "Failed to connect to the server to update category.",
+        });
+        setError("Failed to connect to the server to update category.");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    validateOnChange: true,
+    validateOnBlur: true,
+  });
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+  // --- Image Handling Logic (Updated to use formik.setFieldValue) ---
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "image/svg+xml",
+      ];
+      if (!allowedTypes.includes(file.type)) {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid file type",
+          text: "Please upload only image files",
+        });
+        const fileInput = document.getElementById(
+          "edit-category-image-input"
+        ) as HTMLInputElement | null;
+        if (fileInput) fileInput.value = "";
+        return;
+      }
 
-        // Validate image is uploaded
-        if (form.images.length === 0) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Image required',
-                text: 'Please upload a category image before submitting',
-            });
-            return;
-        }
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        Swal.fire({
+          icon: "error",
+          title: "File too large",
+          text: "Please upload an image smaller than 5MB",
+        });
+        const fileInput = document.getElementById(
+          "edit-category-image-input"
+        ) as HTMLInputElement | null;
+        if (fileInput) fileInput.value = "";
+        return;
+      }
 
-        setLoading(true);
-        setError(null);
-        try {
-            const res = await fetch(`/api/categories/${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
-            });
-            const data = await res.json();
-            if (data.success) {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: 'Category updated successfully',
-                    showConfirmButton: false,
-                    timer: 2000
-                });
-                setTimeout(() => {
-                    router.push("/dashboard/categories");
-                }, 1200);
-            } else {
-                const errorMsg = Array.isArray(data.error) ? data.error.join(", ") : data.error;
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Update failed',
-                    text: errorMsg || 'Failed to update category',
-                });
-                setError(errorMsg);
-            }
-        } catch {
-            Swal.fire({
-                icon: 'error',
-                title: 'Update failed',
-                text: 'Failed to update category',
-            });
-            setError("Failed to update category");
-        } finally {
-            setLoading(false);
-        }
-    };
+      setUploading(true);
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
+      const res = await fetch("/api/cloudinary/upload-image", {
+        method: "POST",
+        body: uploadFormData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        formik.setFieldValue("images", [data.url]); // Use formik setter
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: "Image uploaded successfully",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Image upload failed",
+          text: data.error || "Failed to upload image",
+        });
+      }
+      setUploading(false);
+      const fileInput = document.getElementById(
+        "edit-category-image-input"
+      ) as HTMLInputElement | null;
+      if (fileInput) fileInput.value = "";
+    }
+  };
 
-    if (loading) return <div className="p-8">Loading...</div>;
-    if (error) return <div className="p-8 text-red-600">{error}</div>;
+  const handleDeleteImage = async (url: string) => {
+    const res = await fetch("/api/cloudinary/delete-image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageUrl: url }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      formik.setFieldValue(
+        "images",
+        formik.values.images.filter((img) => img !== url)
+      ); // Use formik setter
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: "Image deleted",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Delete failed",
+        text: data.error || "Failed to delete image",
+      });
+    }
+  };
 
+  // --- Component Rendering ---
+  if (initialFetchLoading) {
     return (
-        <div className="containerStyle scrollbar-hide">
-         
-                <header className="mb-8 relative">
-                    <button
-                        type="button"
-                        onClick={() => router.back()}
-                        className="absolute left-0 top-0 inline-flex items-center justify-center w-10 h-10 text-gray-500 bg-white border border-gray-200 rounded-full shadow hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
-                        aria-label="Go back"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-                    <div className="pl-14">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-1">Edit Category</h1>
-                        <p className="text-gray-500 text-base">Update category details, images, and status.</p>
-                    </div>
-                </header>
-                <div className="bg-white rounded-lg shadow p-6 sm:p-8">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Category Name *</label>
-                            <input name="name" value={form.name} onChange={handleChange} required className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
-                            <textarea name="description" value={form.description} onChange={handleChange} required rows={3} className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Category Image *</label>
-                            <div className="flex items-center gap-4">
-                                {form.images.length === 0 ? (
-                                    <div>
-                                        <input
-                                            id="edit-category-image-input"
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => document.getElementById('edit-category-image-input')?.click()}
-                                            className="w-16 h-16 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg hover:bg-gray-200 transition"
-                                            title="Upload photo"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-gray-500">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 12.75l2.25 3 3-4.5 4.5 6" />
-                                            </svg>
-                                        </button>
-                                        {uploading && <span className="ml-2 text-blue-600">Uploading...</span>}
-                                    </div>
-                                ) : (
-                                    <div className="relative group">
-                                        <img
-                                            src={form.images[0]}
-                                            alt="Category"
-                                            className="h-20 w-20 object-cover rounded border cursor-pointer"
-                                            title="Category image"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => handleDeleteImage(form.images[0])}
-                                            className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-80 group-hover:opacity-100"
-                                            title="Delete image"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                            {form.images.length === 0 && !uploading && (
-                                <p className="text-xs text-gray-500 mt-2">No image uploaded yet.</p>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <input type="checkbox" id="isOTC" name="isOTC" checked={form.isOTC} onChange={handleChange} className="w-5 h-5 text-green-600 rounded focus:ring-green-500" />
-                            <label htmlFor="isOTC" className="text-sm font-medium text-gray-700 cursor-pointer">OTC Category</label>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <input type="checkbox" id="isActive" name="isActive" checked={form.isActive} onChange={handleChange} className="w-5 h-5 text-green-600 rounded focus:ring-green-500" />
-                            <label htmlFor="isActive" className="text-sm font-medium text-gray-700 cursor-pointer">Active</label>
-                        </div>
-                        <div className="flex gap-4 pt-4">
-                            <button type="submit" disabled={loading} className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium">{loading ? "Saving..." : "Save Changes"}</button>
-                            <button type="button" onClick={() => router.back()} className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-          
-        </div>
+      <Box sx={{ p: 4 }}>
+        <CategoriesSkeleton />
+      </Box>
     );
+  }
+
+  if (error && !formik.isSubmitting) {
+    return (
+      <Box sx={{ p: 4, color: "error.main", textAlign: "center" }}>
+        <Typography variant="h6">{error}</Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <div className="containerStyle scrollbar-hide">
+      <Box sx={{ mb: 4, position: "relative" }}>
+        <IconButton
+          onClick={() => router.back()}
+          sx={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            bgcolor: "white",
+            border: `1px solid ${theme.palette.grey[300]}`,
+            boxShadow: 1,
+            "&:hover": { bgcolor: theme.palette.grey[50] },
+            "&:focus": {
+              boxShadow: `0 0 0 4px ${theme.palette.success.light}`,
+              outline: "none",
+            },
+          }}
+          aria-label="Go back"
+        >
+          <ArrowBackIcon />
+        </IconButton>
+        <Box sx={{ pl: 7 }}>
+          <Typography
+            variant="h4"
+            component="h1"
+            fontWeight="bold"
+            gutterBottom
+            sx={{ color: theme.palette.grey[800] }}
+          >
+            Edit Category
+          </Typography>
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            sx={{ mb: 2 }}
+          ></Typography>
+        </Box>
+      </Box>
+
+      <Card raised sx={{ borderRadius: 2 }}>
+        <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
+          <Box
+            component="form"
+            onSubmit={formik.handleSubmit}
+            sx={{ display: "flex", flexDirection: "column", gap: 3 }}
+          >
+            {/* Category Name Input (Width Limited & Custom Error) */}
+            <Box sx={{ maxWidth: { xs: "100%", sm: "75%", md: "50%" } }}>
+              <TextField
+                label="Category Name *"
+                size="medium"
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                {...formik.getFieldProps("name")}
+                error={formik.touched.name && Boolean(formik.errors.name)}
+              />
+
+              {/* Custom Error Component as requested */}
+              {formik.touched.name && formik.errors.name && (
+                <ErrorMessageCom error={formik.errors.name} />
+              )}
+            </Box>
+
+            {/* Description Textarea (Character Counter) */}
+            <TextField
+              label="Description *"
+              multiline
+              rows={4}
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ maxLength: MAX_DESCRIPTION_LENGTH }}
+              {...formik.getFieldProps("description")}
+              error={
+                formik.touched.description && Boolean(formik.errors.description)
+              }
+              helperText={
+                formik.touched.description && formik.errors.description
+                  ? formik.errors.description
+                  : `${formik.values.description.length} / ${MAX_DESCRIPTION_LENGTH} characters`
+              }
+              FormHelperTextProps={{
+                sx: { textAlign: "right", mr: 0, mt: 0.5 },
+              }}
+            />
+
+            {/* Category Image Upload */}
+            <Box>
+              <Typography
+                variant="body2"
+                fontWeight="medium"
+                color="text.primary"
+                sx={{ mb: 1 }}
+              >
+                Category Image *
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                {formik.values.images.length === 0 ? (
+                  <Box>
+                    <input
+                      id="edit-category-image-input"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      style={{ display: "none" }}
+                    />
+                    <Button
+                      variant="outlined"
+                      component="label"
+                      htmlFor="edit-category-image-input"
+                      sx={{
+                        width: 80,
+                        height: 80,
+                        minWidth: 0,
+                        borderStyle: "dashed",
+                        borderColor: theme.palette.grey[400],
+                        bgcolor: theme.palette.grey[50],
+                        "&:hover": {
+                          bgcolor: theme.palette.grey[100],
+                          borderStyle: "dashed",
+                        },
+                      }}
+                    >
+                      <CloudUploadIcon
+                        sx={{ fontSize: 32, color: theme.palette.grey[500] }}
+                      />
+                    </Button>
+                    {uploading && (
+                      <CircularProgress
+                        size={24}
+                        sx={{ ml: 2, color: theme.palette.primary.main }}
+                      />
+                    )}
+                    {!uploading && (
+                      <Typography
+                        variant="caption"
+                        color="error.main"
+                        sx={{
+                          display: { xs: "block", sm: "inline" },
+                          mt: 1,
+                          ml: 2,
+                        }}
+                      >
+                        {formik.touched.images && formik.errors.images
+                          ? formik.errors.images // Display image required error
+                          : "No image uploaded yet."}
+                      </Typography>
+                    )}
+                  </Box>
+                ) : (
+                  <Box sx={{ position: "relative", display: "inline-block" }}>
+                    <img
+                      src={formik.values.images[0]}
+                      alt="Category"
+                      onClick={() => setPreviewOpen(true)}
+                      style={{
+                        width: 80,
+                        height: 80,
+                        objectFit: "cover",
+                        borderRadius: theme.shape.borderRadius,
+                        border: `1px solid ${theme.palette.grey[300]}`,
+                        cursor: "pointer",
+                      }}
+                    />
+                    <IconButton
+                      size="small"
+                      onClick={() => handleDeleteImage(formik.values.images[0])}
+                      sx={{
+                        position: "absolute",
+                        top: 4,
+                        right: 4,
+                        bgcolor: theme.palette.error.main,
+                        color: "white",
+                        "&:hover": { bgcolor: theme.palette.error.dark },
+                        width: 20,
+                        height: 20,
+                      }}
+                    >
+                      <DeleteIcon width={14} height={14} />
+                    </IconButton>
+
+                    {/* Image Preview Modal (MUI implementation) */}
+                    {previewOpen && (
+                      <Box
+                        onClick={() => setPreviewOpen(false)}
+                        sx={{
+                          position: "fixed",
+                          inset: 0,
+                          zIndex: 1300,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backdropFilter: "blur(8px)",
+                          bgcolor: "rgba(0, 0, 0, 0.5)",
+                        }}
+                      >
+                        <Box
+                          onClick={(e) => e.stopPropagation()}
+                          sx={{
+                            bgcolor: "white",
+                            borderRadius: 2,
+                            boxShadow: 24,
+                            p: 3,
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                          }}
+                        >
+                          <img
+                            src={formik.values.images[0]}
+                            alt="Preview"
+                            style={{
+                              maxWidth: "80vw",
+                              maxHeight: "80vh",
+                              marginBottom: theme.spacing(2),
+                              borderRadius: theme.shape.borderRadius,
+                            }}
+                          />
+                          <Button
+                            onClick={() => setPreviewOpen(false)}
+                            variant="contained"
+                            startIcon={<CloseIcon />}
+                            sx={{
+                              bgcolor: theme.palette.grey[700],
+                              "&:hover": { bgcolor: theme.palette.grey[900] },
+                            }}
+                          >
+                            Close
+                          </Button>
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
+                )}
+              </Box>
+              {/* Display image required error outside of the image box if needed, or use the check inside the image box */}
+              {formik.touched.images && formik.errors.images && (
+                <ErrorMessageCom error={typeof formik.errors.images === "string" ? formik.errors.images : ""} />
+              )}
+            </Box>
+
+            {/* Checkboxes for Category Attributes */}
+            <Box
+              sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}
+            >
+              {/* OTC Checkbox */}
+              <Box
+                sx={{
+                  p: 2,
+                  bgcolor: theme.palette.success.light,
+                  border: `1px solid ${theme.palette.success.light}`,
+                  borderRadius: 1,
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      id="isOTC"
+                      checked={formik.values.isOTC}
+                      onChange={formik.handleChange} // Use Formik's handleChange
+                      name="isOTC" // Must have name for Formik
+                      color="success"
+                    />
+                  }
+                  label={
+                    <Box>
+                      <Typography
+                        variant="body2"
+                        fontWeight="medium"
+                        color="text.primary"
+                      >
+                        Over-the-Counter (OTC) Category
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Medicines in this category can be purchased without a
+                        prescription
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{ m: 0 }}
+                />
+              </Box>
+
+              {/* Active Checkbox */}
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    id="isActive"
+                    checked={formik.values.isActive}
+                    onChange={formik.handleChange} // Use Formik's handleChange
+                    name="isActive" // Must have name for Formik
+                    color="success"
+                  />
+                }
+                label="Active Category"
+                sx={{
+                  m: 0,
+                  ".MuiTypography-root": {
+                    fontSize: theme.typography.pxToRem(14),
+                    fontWeight: theme.typography.fontWeightMedium,
+                  },
+                }}
+              />
+            </Box>
+
+            {/* Action Buttons */}
+            <Box sx={{ display: "flex", gap: 2, pt: 4 }}>
+              <Box sx={{ display: "flex", gap: 2, pt: 2 }}>
+                <div className="mt-8 flex justify-center w-full">
+                  <div className="flex justify-center w-full max-w-sm">
+                    {" "}
+                    <CustomButton
+                      type="submit"
+                      disabled={formik.isSubmitting || !formik.isValid}
+                      width="100%"
+                    >
+                      {formik.isSubmitting ? (
+                        <CircularProgress size={24} color="inherit" />
+                      ) : (
+                        "Save Changes"
+                      )}
+                    </CustomButton>
+                  </div>
+                </div>
+              </Box>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

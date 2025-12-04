@@ -1,7 +1,10 @@
 "use client";
 import React, { useState } from 'react';
+import { CustomTable, Column } from "../components/CustomTable";
+import { CustomImage, CustomTooltip } from "../components/miniComponents";
 import Link from 'next/link';
 import Swal from 'sweetalert2';
+// ...existing code...
 
 export default function SubCategoriesPage() {
     return (
@@ -35,11 +38,11 @@ function SubCategoriesTable() {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterCategory, setFilterCategory] = useState<string>('all');
     const [filterOTC, setFilterOTC] = useState<string>('all');
-    const [currentPage, setCurrentPage] = useState(1);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [pendingSubcategory, setPendingSubcategory] = useState<{ id: string; isActive: boolean } | null>(null);
-    const itemsPerPage = 10;
 
     React.useEffect(() => {
         fetchData();
@@ -47,26 +50,17 @@ function SubCategoriesTable() {
 
     React.useEffect(() => {
         let filtered = subcategories;
-
-        // Filter by search term
         if (searchTerm) {
-            filtered = filtered.filter(sub =>
-                sub.name.toLowerCase().includes(searchTerm.toLowerCase())
-            );
+            filtered = filtered.filter(sub => sub.name.toLowerCase().includes(searchTerm.toLowerCase()));
         }
-
-        // Filter by category
         if (filterCategory !== 'all') {
             filtered = filtered.filter(sub => sub.categoryId?._id === filterCategory);
         }
-
-        // Filter by OTC status
         if (filterOTC !== 'all') {
             filtered = filtered.filter(sub => sub.isOTC === (filterOTC === 'true'));
         }
-
         setFilteredSubcategories(filtered);
-        setCurrentPage(1); // Reset to first page when filters change
+        setPage(0);
     }, [searchTerm, filterCategory, filterOTC, subcategories]);
 
     const fetchData = async () => {
@@ -75,10 +69,8 @@ function SubCategoriesTable() {
                 fetch('/api/subcategories'),
                 fetch('/api/categories'),
             ]);
-
             const subData = await subRes.json();
             const catData = await catRes.json();
-
             setSubcategories(subData.data || []);
             setFilteredSubcategories(subData.data || []);
             setCategories(catData.data || []);
@@ -152,11 +144,95 @@ function SubCategoriesTable() {
         );
     }
 
-    // Pagination calculations
-    const totalPages = Math.ceil(filteredSubcategories.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentSubcategories = filteredSubcategories.slice(startIndex, endIndex);
+    // Table columns
+    const columns: Column<any>[] = [
+        {
+            id: "uniqueCode",
+            label: "Id",
+            selector: (row) => (
+                <CustomTooltip title={row.uniqueCode || "—"}>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium inline-block" style={{ maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {row.uniqueCode || '—'}
+                    </span>
+                </CustomTooltip>
+            ),
+        },
+        {
+            id: "name",
+            label: "Name",
+            selector: (row) => (
+                <CustomTooltip title={row.name || "-"}>
+                    <div className="flex items-center gap-2">
+                        {Array.isArray(row.images) && row.images[0] ? (
+                            <CustomImage coverImage={row.images[0]} images={row.images} alt="Subcategory" style={{ width: 32, height: 32, borderRadius: 6 }} />
+                        ) : null}
+                        <span style={{ maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.name}</span>
+                    </div>
+                </CustomTooltip>
+            ),
+        },
+        {
+            id: "description",
+            label: "Description",
+            selector: (row) => (
+                <CustomTooltip title={row.description || "-"}>
+                    <span className="text-gray-600" style={{ maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.description}</span>
+                </CustomTooltip>
+            ),
+        },
+        {
+            id: "category",
+            label: "Category",
+            selector: (row) => (
+                <CustomTooltip title={row.categoryId?.name || "N/A"}>
+                    <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium" style={{ maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {row.categoryId?.name || 'N/A'}
+                    </span>
+                </CustomTooltip>
+            ),
+        },
+        {
+            id: "isOTC",
+            label: "OTC",
+            selector: (row) => (
+                <CustomTooltip title={row.isOTC ? "Yes" : "No"}>
+                    {row.isOTC ? (
+                        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">Yes</span>
+                    ) : (
+                        <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-bold">No</span>
+                    )}
+                </CustomTooltip>
+            ),
+        },
+        {
+            id: "isActive",
+            label: "Status",
+            selector: (row) => (
+                <CustomTooltip title={row.isActive ? "Active" : "Inactive"}>
+                    <button
+                        onClick={() => handleToggleStatus(row._id, row.isActive)}
+                        className="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                        style={{ backgroundColor: row.isActive ? '#10b981' : '#d1d5db' }}
+                        title={row.isActive ? 'Click to deactivate' : 'Click to activate'}
+                    >
+                        <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${row.isActive ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                </CustomTooltip>
+            ),
+        },
+        {
+            id: "actions",
+            label: "Actions",
+            selector: (row) => (
+                <CustomTooltip title="Edit">
+                    <Link href={`/dashboard/subcategories/edit/${row._id}`} className="text-blue-600 hover:text-blue-800 font-medium">Edit</Link>
+                </CustomTooltip>
+            ),
+        },
+    ];
+
+    // Pagination
+    const paginatedData = filteredSubcategories.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
     return (
         <div className="space-y-4">
@@ -237,130 +313,15 @@ function SubCategoriesTable() {
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto">
-                <table className="min-w-full border-collapse">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Id</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Name</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Description</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Category</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">OTC</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Status</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-200">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {currentSubcategories.map((subcategory: any) => (
-                            <tr key={subcategory._id} className="hover:bg-green-50 transition">
-                                <td className="px-4 py-3 text-sm whitespace-nowrap">
-                                    <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium inline-block">
-                                        {subcategory.uniqueCode || '—'}
-                                    </span>
-                                </td>
-                                <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                    {Array.isArray(subcategory.images) && subcategory.images[0] ? (
-                                        <img src={subcategory.images[0]} alt="Subcategory" style={{ width: 32, height: 32, display: 'inline', marginRight: 8, verticalAlign: 'middle', borderRadius: '6px' }} />
-                                    ) : null}
-                                    {subcategory.name}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-gray-600">{subcategory.description}</td>
-                                <td className="px-4 py-3 text-sm">
-                                    <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
-                                        {subcategory.categoryId?.name || 'N/A'}
-                                    </span>
-                                </td>
-                                <td className="px-4 py-3 text-sm">
-                                    {subcategory.isOTC ? (
-                                        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">Yes</span>
-                                    ) : (
-                                        <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-bold">No</span>
-                                    )}
-                                </td>
-                                <td className="px-4 py-3 text-sm">
-                                    <button
-                                        onClick={() => handleToggleStatus(subcategory._id, subcategory.isActive)}
-                                        className="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                                        style={{
-                                            backgroundColor: subcategory.isActive ? '#10b981' : '#d1d5db'
-                                        }}
-                                        title={subcategory.isActive ? 'Click to deactivate' : 'Click to activate'}
-                                    >
-                                        <span
-                                            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${subcategory.isActive ? 'translate-x-6' : 'translate-x-1'
-                                                }`}
-                                        />
-                                    </button>
-                                </td>
-                                <td className="px-4 py-3 text-sm">
-                                    <Link
-                                        href={`/dashboard/subcategories/edit/${subcategory._id}`}
-                                        className="text-blue-600 hover:text-blue-800 font-medium"
-                                    >
-                                        Edit
-                                    </Link>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-
-                {filteredSubcategories.length === 0 && (
-                    <div className="text-center py-12">
-                        <div className="flex items-center justify-center mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-12 h-12 text-gray-300">
-                                <rect x="3" y="7" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7l9 5 9-5" />
-                            </svg>
-                        </div>
-                        <p className="text-gray-500 text-lg">No subcategories found.</p>
-                        {searchTerm && (
-                            <p className="text-gray-400 text-sm mt-2">Try adjusting your search or filters</p>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                    <div className="text-sm text-gray-600">
-                        Showing {startIndex + 1} to {Math.min(endIndex, filteredSubcategories.length)} of {filteredSubcategories.length} subcategories
-                    </div>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
-                            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                        >
-                            Previous
-                        </button>
-
-                        <div className="flex gap-1">
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                <button
-                                    key={page}
-                                    onClick={() => setCurrentPage(page)}
-                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition ${currentPage === page
-                                        ? 'bg-green-600 text-white'
-                                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                                        }`}
-                                >
-                                    {page}
-                                </button>
-                            ))}
-                        </div>
-
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                            disabled={currentPage === totalPages}
-                            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                        >
-                            Next
-                        </button>
-                    </div>
-                </div>
-            )}
+            <CustomTable
+                columns={columns}
+                data={paginatedData}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                totalCount={filteredSubcategories.length}
+                onPageChange={setPage}
+                onRowsPerPageChange={setRowsPerPage}
+            />
         </div>
     );
 }

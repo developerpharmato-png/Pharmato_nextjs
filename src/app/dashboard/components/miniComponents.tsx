@@ -1,6 +1,6 @@
-import React from 'react';
-import { styled } from '@mui/material/styles';
-import Tooltip, { tooltipClasses, TooltipProps } from '@mui/material/Tooltip';
+import React from "react";
+import { styled } from "@mui/material/styles";
+import Tooltip, { tooltipClasses, TooltipProps } from "@mui/material/Tooltip";
 interface ErrorMessageComProps {
   error: string;
 }
@@ -32,7 +32,7 @@ interface CustomButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
   disabled?: boolean;
-  type?: 'button' | 'submit' | 'reset';
+  type?: "button" | "submit" | "reset";
   className?: string;
   width?: string;
   height?: string;
@@ -58,11 +58,12 @@ export const CustomButton = ({
       disabled={disabled}
       style={buttonStyle}
       className={`relative cursor-pointer overflow-hidden px-8 py-2 rounded-xl font-semibold text-white shadow-lg 
-        ${disabled
-          ? "bg-gray-400 cursor-not-allowed"
-          : "bg-[var(--primary)] hover:bg-[var(--primary)]"
+        ${
+          disabled
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-(--primary) hover:bg-(--primary)"
         } 
-        transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 group
+        transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-(--primary) focus:ring-offset-2 group
         ${className}`}
     >
       <div className="absolute inset-x-0 top-0 h-0 bg-white/20 transition-all duration-300 group-hover:h-1/2"></div>
@@ -73,19 +74,22 @@ export const CustomButton = ({
         {children}
       </span>
 
-      <div className="absolute inset-0 -top-full bg-gradient-to-b from-transparent via-white/10 to-transparent transform transition-transform duration-1000 group-hover:translate-y-full"></div>
+      <div className="absolute inset-0 -top-full bg-linear-to-b from-transparent via-white/10 to-transparent transform transition-transform duration-1000 group-hover:translate-y-full"></div>
     </button>
   );
 };
 
-
 export const CustomTooltip = styled(
-  ({ className, children, ...props }: TooltipProps & { className?: string; children: React.ReactNode }) => (
+  ({
+    className,
+    children,
+    ...props
+  }: TooltipProps & { className?: string; children: React.ReactNode }) => (
     <Tooltip {...props} arrow classes={{ popper: className }}>
       {children}
     </Tooltip>
   )
-)(({ }) => ({
+)(({}) => ({
   [`& .${tooltipClasses.tooltip}`]: {
     backgroundColor: "var(--primary)",
     color: "var(--color-white)",
@@ -98,11 +102,10 @@ export const CustomTooltip = styled(
   },
 }));
 
-
-import Dialog from '@mui/material/Dialog';
-import DialogContent from '@mui/material/DialogContent';
-import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
 
 interface CustomImageProps {
   coverImage: string;
@@ -111,7 +114,12 @@ interface CustomImageProps {
   style?: React.CSSProperties;
 }
 
-export const CustomImage: React.FC<CustomImageProps> = ({ coverImage, images = [], alt = '', style }) => {
+export const CustomImage: React.FC<CustomImageProps> = ({
+  coverImage,
+  images = [],
+  alt = "",
+  style,
+}) => {
   const [open, setOpen] = React.useState(false);
 
   const handleOpen = (e: React.MouseEvent) => {
@@ -127,24 +135,42 @@ export const CustomImage: React.FC<CustomImageProps> = ({ coverImage, images = [
         alt={alt}
         style={style}
         onClick={handleOpen}
-        className={images.length > 0 ? 'cursor-pointer' : ''}
+        className={images.length > 0 ? "cursor-pointer" : ""}
       />
       <Dialog open={open} onClose={handleClose} maxWidth="md">
         <IconButton
           aria-label="close"
           onClick={handleClose}
-          sx={{ position: 'absolute', right: 8, top: 8, color: (theme) => theme.palette.grey[500] }}
+          sx={{
+            position: "absolute",
+            right: 8,
+            top: 8,
+            color: (theme) => theme.palette.grey[500],
+          }}
         >
           <CloseIcon />
         </IconButton>
         <DialogContent>
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 16,
+              flexWrap: "wrap",
+              justifyContent: "center",
+            }}
+          >
             {images.map((img, idx) => (
               <img
                 key={idx}
                 src={img}
                 alt={`img-${idx}`}
-                style={{ height: 120, width: 120, objectFit: 'cover', borderRadius: 8, margin: 8 }}
+                style={{
+                  height: 120,
+                  width: 120,
+                  objectFit: "cover",
+                  borderRadius: 8,
+                  margin: 8,
+                }}
               />
             ))}
           </div>
@@ -153,3 +179,60 @@ export const CustomImage: React.FC<CustomImageProps> = ({ coverImage, images = [
     </>
   );
 };
+
+export const BackArrowIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2}
+    stroke="currentColor"
+    className="w-6 h-6"
+    {...props}
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+  </svg>
+);
+
+// Helper function for the image upload SVG path
+export const ImageUploadIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className="w-8 h-8 text-gray-500"
+    {...props}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z"
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M8.25 12.75l2.25 3 3-4.5 4.5 6"
+    />
+  </svg>
+);
+
+// Helper function for the image delete SVG path
+export const DeleteIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2}
+    stroke="currentColor"
+    className="w-4 h-4"
+    {...props}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M6 18L18 6M6 6l12 12"
+    />
+  </svg>
+);

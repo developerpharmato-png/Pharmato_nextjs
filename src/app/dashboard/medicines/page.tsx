@@ -17,7 +17,7 @@ export default function MedicinesPage() {
         title="Medicines"
         subtitle="Manage your medicine inventory"
         backLabel="Back"
-        addLabel="Add Medicine"
+        addLabel="Add "
         addHref="/dashboard/medicines/new"
         showBack={false}
         showSearch
