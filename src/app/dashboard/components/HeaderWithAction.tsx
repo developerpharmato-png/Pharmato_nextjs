@@ -12,6 +12,8 @@ type Props = {
   showBack?: boolean;
   showSearch?: boolean;
   searchValue?: string;
+   addShow?: boolean;
+  handleAdd?: () => void;
   onSearchChange?: (value: string) => void;
   rightNode?: React.ReactNode;
 };
