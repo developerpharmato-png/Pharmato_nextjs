@@ -28,6 +28,15 @@ export const ErrorMessageCom = ({ error }: ErrorMessageComProps) => {
 };
 
 
+interface CustomButtonProps {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
+  className?: string;
+  width?: string;
+  height?: string;
+}
 export const CustomButton = ({
   children,
   onClick,
@@ -49,10 +58,9 @@ export const CustomButton = ({
       disabled={disabled}
       style={buttonStyle}
       className={`relative cursor-pointer overflow-hidden px-8 py-2 rounded-xl font-semibold text-white shadow-lg 
-        ${
-          disabled
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-[var(--primary)] hover:bg-[var(--primary)]"
+        ${disabled
+          ? "bg-gray-400 cursor-not-allowed"
+          : "bg-[var(--primary)] hover:bg-[var(--primary)]"
         } 
         transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 group
         ${className}`}
