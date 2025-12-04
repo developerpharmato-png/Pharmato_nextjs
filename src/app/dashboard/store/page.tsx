@@ -2,8 +2,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+
 
 import { CustomTable, Column } from "../components/CustomTable";
+import { CustomTooltip } from "../components/miniComponents";
 import HeaderWithAction from "../components/HeaderWithAction";
 
 type StoreForm = {
@@ -130,19 +133,25 @@ export default function StoreDashboard() {
       id: "name",
       label: "Name",
       minWidth: 120,
-      selector: (row) => <span className="font-semibold">{row.name}</span>,
+      selector: (row) => (
+        <CustomTooltip title={row.name} placement="top">
+          <span className="font-semibold cursor-pointer hover:text-green-700 transition">{row.name}</span>
+        </CustomTooltip>
+      ),
     },
     {
       id: "servicePinCodes",
       label: "Service PinCodes",
       minWidth: 180,
       selector: (row) => (
-        <div>
+        <div className="flex flex-wrap gap-2">
           {row.servicePinCodes?.map((pin: string) => (
             <span
               key={pin}
-              className="inline-block bg-blue-100 text-blue-700 font-bold px-4 py-1 rounded-full mr-2 text-lg"
+              className="inline-flex items-center px-3 py-1 rounded-full bg-linear-to-r from-green-100 to-green-200 text-green-800 font-semibold shadow-sm border border-green-300 text-sm"
+              style={{ fontSize: "0.95rem" }}
             >
+              <svg className="w-4 h-4 mr-1 text-green-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>
               {pin}
             </span>
           ))}
@@ -167,18 +176,23 @@ export default function StoreDashboard() {
     {
       id: "actions",
       label: "Actions",
-      minWidth: 120,
+      minWidth: 60,
       selector: (row) => (
-        <Link
-          href={`/dashboard/store/edit/${row._id}`}
-          className="px-5 py-2 rounded-lg font-bold text-white bg-yellow-400 hover:bg-yellow-500 shadow"
-        >
-          Edit
-        </Link>
+        <CustomTooltip title="Edit Store" placement="top">
+          <Link
+            href={`/dashboard/store/edit/${row._id}`}
+            className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-yellow-100 text-yellow-700"
+          >
+            <EditOutlinedIcon fontSize="small" />
+          </Link>
+        </CustomTooltip>
       ),
     },
   ];
 
+
+
+  
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
@@ -191,7 +205,7 @@ export default function StoreDashboard() {
         addShow={true}
         handleAdd={openAddStore}
       />
-      <div className="w-full bg-white rounded-lg shadow-md p-4">
+     
         <CustomTable
           columns={columns}
           data={stores}
@@ -204,7 +218,7 @@ export default function StoreDashboard() {
         {error && (
           <div className="text-red-600 text-lg font-semibold mt-4">{error}</div>
         )}
-      </div>
+     
     </div>
   );
 }

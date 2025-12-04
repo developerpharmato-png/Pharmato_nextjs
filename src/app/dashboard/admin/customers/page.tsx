@@ -185,7 +185,7 @@ export default function AdminCustomerListPage() {
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
       />
-      <div className="w-full bg-white rounded-lg shadow-md p-4">
+    
         <CustomTable
           columns={columns}
           data={customers}
@@ -199,7 +199,7 @@ export default function AdminCustomerListPage() {
         {error && (
           <div className="text-red-600 text-lg font-semibold mt-4">{error}</div>
         )}
-      </div>
+
     </div>
   );
 }

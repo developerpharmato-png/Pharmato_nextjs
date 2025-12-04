@@ -312,7 +312,7 @@ function SubCategoriesTable() {
                 </div>
             </div>
 
-            {/* Table */}
+           
             <CustomTable
                 columns={columns}
                 data={paginatedData}
