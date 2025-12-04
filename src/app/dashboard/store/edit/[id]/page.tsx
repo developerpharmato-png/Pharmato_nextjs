@@ -137,8 +137,7 @@ export default function EditStorePage() {
     }
 
     return (
-        <div className="w-full min-h-screen bg-gradient-to-br from-gray-50 to-green-50 py-10 px-2 sm:px-6">
-            <HeaderWithAction
+        <div className="containerStyle scrollbar-hide">     <HeaderWithAction
                 title="Edit Store"
                 subtitle="Update store details"
                 showBack={true}

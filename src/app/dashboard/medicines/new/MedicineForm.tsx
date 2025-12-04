@@ -466,553 +466,597 @@ export default function MedicineForm() {
   const todayStr = new Date().toISOString().split("T")[0];
 
   return (
-
-
     <>
-  
-<div className="containerStyle scrollbar-hide">
-    <div className="mb-8 relative">
-        <button
+      <div className="containerStyle scrollbar-hide">
+        <div className="mb-8 relative">
+          <button
             type="button"
             onClick={() => window.history.back()}
             // Enhanced style for the back button
             className="absolute left-0 top-0 inline-flex items-center justify-center w-10 h-10 text-gray-700 bg-white border border-gray-300 rounded-full shadow-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-150"
             aria-label="Go back"
-        >
+          >
             <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="w-6 h-6"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-6 h-6"
             >
-                <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15 19l-7-7 7-7"
-                />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
-        </button>
-        <div className="pl-14">
+          </button>
+          <div className="pl-14">
             {/* HeaderWithAction component remains as is */}
             <HeaderWithAction
-                title="Add New Medicine"
-                subtitle="Enter medicine details to add to inventory"
-                showBack={false}
-                showSearch={false}
+              title="Add New Medicine"
+              subtitle="Enter medicine details to add to inventory"
+              showBack={false}
+              showSearch={false}
             />
+          </div>
         </div>
-    </div>
-    <div>
-        <form onSubmit={formik.handleSubmit} className="space-y-8"> {/* Increased vertical spacing */}
+        <div>
+          <form onSubmit={formik.handleSubmit} className="space-y-8">
+            {" "}
+            {/* Increased vertical spacing */}
             <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2"> {/* Made label font bolder for emphasis */}
-                    Medicine Images *
-                    <p className="text-xs text-gray-500 font-normal">
-                        Min 1, Max 5 images. Each ≤ 5MB.
-                    </p>
-                </label>
-                <input
-                    id="medicine-image-input"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleFileChange}
-                    style={{ display: "none" }}
-                />
-                <div className="flex items-center gap-4"> {/* Increased gap */}
-                    <button
-                        type="button"
-                        onClick={() =>
-                            document.getElementById("medicine-image-input")?.click()
-                        }
-                        // Enhanced file upload button styling
-                        className="h-28 w-28 flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-400 rounded-lg hover:bg-gray-100 transition duration-150 shadow-inner"
-                        title="Upload photos"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-9 h-9 text-gray-500"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z"
-                            />
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M8.25 12.75l2.25 3 3-4.5 4.5 6"
-                            />
-                        </svg>
-                    </button>
-                    {uploading && <span className="text-blue-600 font-medium">Uploading...</span>}
-                </div>
-                {formik.values.images.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-3 justify-start w-fit"> {/* Changed to flex wrap with more spacing */}
-                        {formik.values.images.map((img, idx) => (
-                            <div key={img} className="relative group h-24 w-24">
-                                <img
-                                    src={img}
-                                    alt={`Medicine ${idx + 1}`}
-                                    className="h-24 w-24 object-cover rounded-lg border border-gray-200 shadow-sm"
-                                />
-                                {formik.values.coverImage === img ? (
-                                    <span className="absolute top-1 left-1 bg-green-600 text-white text-[10px] px-2 py-0.5 rounded-full shadow-lg font-semibold"> {/* Primary pill enhanced */}
-                                        Primary
-                                    </span>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        onClick={() => formik.setFieldValue("coverImage", img)}
-                                        // Set Primary button style enhanced
-                                        className="absolute top-1 left-1 bg-gray-800 text-white text-[10px] px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 shadow-lg transition duration-200 font-semibold"
-                                        title="Set as primary"
-                                    >
-                                        Set Primary
-                                    </button>
-                                )}
-                                <button
-                                    type="button"
-                                    onClick={() => handleDeleteImage(img)}
-                                    // Delete button style enhanced
-                                    className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 shadow-lg transition duration-200 hover:bg-red-700"
-                                    title="Delete image"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth={2}
-                                        stroke="currentColor"
-                                        className="w-4 h-4"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M6 18L18 6M6 6l12 12"
-                                        />
-                                    </svg>
-                                </button>
-                            </div>
-                        ))}
-                    </div>
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                {" "}
+                {/* Made label font bolder for emphasis */}
+                Medicine Images *
+                <p className="text-xs text-gray-500 font-normal">
+                  Min 1, Max 5 images. Each ≤ 5MB.
+                </p>
+              </label>
+              <input
+                id="medicine-image-input"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFileChange}
+                style={{ display: "none" }}
+              />
+              <div className="flex items-center gap-4">
+                {" "}
+                {/* Increased gap */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    document.getElementById("medicine-image-input")?.click()
+                  }
+                  // Enhanced file upload button styling
+                  className="h-28 w-28 flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-400 rounded-lg hover:bg-gray-100 transition duration-150 shadow-inner"
+                  title="Upload photos"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-9 h-9 text-gray-500"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M8.25 12.75l2.25 3 3-4.5 4.5 6"
+                    />
+                  </svg>
+                </button>
+                {uploading && (
+                  <span className="text-blue-600 font-medium">
+                    Uploading...
+                  </span>
                 )}
-                <div className="mt-2 flex items-center gap-3"></div>
+              </div>
+              {formik.values.images.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-3 justify-start w-fit">
+                  {" "}
+                  {/* Changed to flex wrap with more spacing */}
+                  {formik.values.images.map((img, idx) => (
+                    <div key={img} className="relative group h-24 w-24">
+                      <img
+                        src={img}
+                        alt={`Medicine ${idx + 1}`}
+                        className="h-24 w-24 object-cover rounded-lg border border-gray-200 shadow-sm"
+                      />
+                      {formik.values.coverImage === img ? (
+                        <span className="absolute top-1 left-1 bg-green-600 text-white text-[10px] px-2 py-0.5 rounded-full shadow-lg font-semibold">
+                          {" "}
+                          {/* Primary pill enhanced */}
+                          Primary
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            formik.setFieldValue("coverImage", img)
+                          }
+                          // Set Primary button style enhanced
+                          className="absolute top-1 left-1 bg-gray-800 text-white text-[10px] px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 shadow-lg transition duration-200 font-semibold"
+                          title="Set as primary"
+                        >
+                          Set Primary
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteImage(img)}
+                        // Delete button style enhanced
+                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 shadow-lg transition duration-200 hover:bg-red-700"
+                        title="Delete image"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2}
+                          stroke="currentColor"
+                          className="w-4 h-4"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="mt-2 flex items-center gap-3"></div>
             </div>
             {/* Input field styling enhanced */}
             <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                    Medicine Name *
-                </label>
-                <input
-                    name="name"
-                    value={formik.values.name}
-                    onChange={handleChange}
-                    onBlur={formik.handleBlur}
-                    className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
-                    placeholder="Enter medicine name"
-                />
-                {formik.touched.name && formik.errors.name && (
-                    <ErrorMessageCom error={formik.errors.name} />
-                )}
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                Medicine Name *
+              </label>
+              <input
+                name="name"
+                value={formik.values.name}
+                onChange={handleChange}
+                onBlur={formik.handleBlur}
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                placeholder="Enter medicine name"
+              />
+              {formik.touched.name && formik.errors.name && (
+                <ErrorMessageCom error={formik.errors.name} />
+              )}
             </div>
             <div>
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                Description *
+              </label>
+              <textarea
+                name="description"
+                value={formik.values.description}
+                onChange={handleChange}
+                onBlur={formik.handleBlur}
+                rows={4}
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                placeholder="Enter medicine description and usage"
+              />
+              {formik.touched.description && formik.errors.description && (
+                <ErrorMessageCom error={formik.errors.description} />
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {" "}
+              {/* Increased grid gap */}
+              {/* Manufacturer */}
+              <div>
                 <label className="block text-sm font-bold text-gray-800 mb-2">
-                    Description *
+                  Manufacturer *
                 </label>
-                <textarea
-                    name="description"
-                    value={formik.values.description}
-                    onChange={handleChange}
-                    onBlur={formik.handleBlur}
-                    rows={4}
-                    className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
-                    placeholder="Enter medicine description and usage"
+                <input
+                  name="manufacturer"
+                  value={formik.values.manufacturer}
+                  onChange={handleChange}
+                  onBlur={formik.handleBlur}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                  placeholder="Manufacturer name"
                 />
-                {formik.touched.description && formik.errors.description && (
-                    <ErrorMessageCom error={formik.errors.description} />
+                {formik.touched.manufacturer && formik.errors.manufacturer && (
+                  <ErrorMessageCom error={formik.errors.manufacturer} />
                 )}
+              </div>
+              {/* Form Type */}
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Form Type *
+                </label>
+                <select
+                  name="category"
+                  value={formik.values.category}
+                  onChange={handleChange}
+                  onBlur={formik.handleBlur}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900"
+                >
+                  {[
+                    "Tablet",
+                    "Capsule",
+                    "Syrup",
+                    "Injection",
+                    "Cream",
+                    "Drops",
+                    "Other",
+                  ].map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+                {formik.touched.category && formik.errors.category && (
+                  <ErrorMessageCom error={formik.errors.category} />
+                )}
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8"> {/* Increased grid gap */}
-                {/* Manufacturer */}
-                <div>
-                    <label className="block text-sm font-bold text-gray-800 mb-2">
-                        Manufacturer *
-                    </label>
-                    <input
-                        name="manufacturer"
-                        value={formik.values.manufacturer}
-                        onChange={handleChange}
-                        onBlur={formik.handleBlur}
-                        className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
-                        placeholder="Manufacturer name"
-                    />
-                    {formik.touched.manufacturer && formik.errors.manufacturer && (
-                        <ErrorMessageCom error={formik.errors.manufacturer} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {" "}
+              {/* Increased grid gap */}
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Category
+                </label>
+                <select
+                  name="categoryId"
+                  value={formik.values.categoryId}
+                  onChange={handleChange}
+                  onBlur={formik.handleBlur}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900"
+                >
+                  <option value="">Select a category</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name} {cat.isOTC ? "(OTC)" : ""}
+                    </option>
+                  ))}
+                </select>
+                {selectedCategory && (
+                  <div className="mt-2">
+                    {/* Tags colors enhanced */}
+                    {selectedCategory.isOTC ? (
+                      <span className="text-xs px-2.5 py-1 bg-green-100 text-green-700 font-semibold rounded-full">
+                        🟢 OTC Category
+                      </span>
+                    ) : (
+                      <span className="text-xs px-2.5 py-1 bg-orange-100 text-orange-700 font-semibold rounded-full">
+                        📋 Prescription Category
+                      </span>
                     )}
-                </div>
-                {/* Form Type */}
-                <div>
-                    <label className="block text-sm font-bold text-gray-800 mb-2">
-                        Form Type *
-                    </label>
-                    <select
-                        name="category"
-                        value={formik.values.category}
-                        onChange={handleChange}
-                        onBlur={formik.handleBlur}
-                        className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900"
-                    >
-                        {[
-                            "Tablet",
-                            "Capsule",
-                            "Syrup",
-                            "Injection",
-                            "Cream",
-                            "Drops",
-                            "Other",
-                        ].map((c) => (
-                            <option key={c} value={c}>
-                                {c}
-                            </option>
-                        ))}
-                    </select>
-                    {formik.touched.category && formik.errors.category && (
-                        <ErrorMessageCom error={formik.errors.category} />
+                  </div>
+                )}
+              </div>
+              {/* Subcategory */}
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Subcategory
+                </label>
+                <select
+                  name="subCategoryId"
+                  value={formik.values.subCategoryId}
+                  onChange={handleChange}
+                  onBlur={formik.handleBlur}
+                  disabled={!formik.values.categoryId}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
+                >
+                  <option value="">Select a subcategory</option>
+                  {filteredSubcategories.map((sub) => (
+                    <option key={sub._id} value={sub._id}>
+                      {sub.name} {sub.isOTC ? "(OTC)" : ""}
+                    </option>
+                  ))}
+                </select>
+                {selectedSubcategory && (
+                  <div className="mt-2">
+                    {/* Tags colors enhanced */}
+                    {selectedSubcategory.isOTC ? (
+                      <span className="text-xs px-2.5 py-1 bg-green-100 text-green-700 font-semibold rounded-full">
+                        🟢 OTC Subcategory
+                      </span>
+                    ) : (
+                      <span className="text-xs px-2.5 py-1 bg-orange-100 text-orange-700 font-semibold rounded-full">
+                        📋 Prescription Subcategory
+                      </span>
                     )}
-                </div>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8"> {/* Increased grid gap */}
-                {/* Category */}
-                <div>
-                    <label className="block text-sm font-bold text-gray-800 mb-2">
-                        Category
-                    </label>
-                    <select
-                        name="categoryId"
-                        value={formik.values.categoryId}
-                        onChange={handleChange}
-                        onBlur={formik.handleBlur}
-                        className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900"
-                    >
-                        <option value="">Select a category</option>
-                        {categories.map((cat) => (
-                            <option key={cat._id} value={cat._id}>
-                                {cat.name} {cat.isOTC ? "(OTC)" : ""}
-                            </option>
-                        ))}
-                    </select>
-                    {selectedCategory && (
-                        <div className="mt-2">
-                            {/* Tags colors enhanced */}
-                            {selectedCategory.isOTC ? (
-                                <span className="text-xs px-2.5 py-1 bg-green-100 text-green-700 font-semibold rounded-full">
-                                    🟢 OTC Category
-                                </span>
-                            ) : (
-                                <span className="text-xs px-2.5 py-1 bg-orange-100 text-orange-700 font-semibold rounded-full">
-                                    📋 Prescription Category
-                                </span>
-                            )}
-                        </div>
-                    )}
-                </div>
-                {/* Subcategory */}
-                <div>
-                    <label className="block text-sm font-bold text-gray-800 mb-2">
-                        Subcategory
-                    </label>
-                    <select
-                        name="subCategoryId"
-                        value={formik.values.subCategoryId}
-                        onChange={handleChange}
-                        onBlur={formik.handleBlur}
-                        disabled={!formik.values.categoryId}
-                        className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
-                    >
-                        <option value="">Select a subcategory</option>
-                        {filteredSubcategories.map((sub) => (
-                            <option key={sub._id} value={sub._id}>
-                                {sub.name} {sub.isOTC ? "(OTC)" : ""}
-                            </option>
-                        ))}
-                    </select>
-                    {selectedSubcategory && (
-                        <div className="mt-2">
-                            {/* Tags colors enhanced */}
-                            {selectedSubcategory.isOTC ? (
-                                <span className="text-xs px-2.5 py-1 bg-green-100 text-green-700 font-semibold rounded-full">
-                                    🟢 OTC Subcategory
-                                </span>
-                            ) : (
-                                <span className="text-xs px-2.5 py-1 bg-orange-100 text-orange-700 font-semibold rounded-full">
-                                    📋 Prescription Subcategory
-                                </span>
-                            )}
-                        </div>
-                    )}
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {" "}
+              {/* Increased grid gap */}
+              {/* Stock Quantity */}
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Stock Quantity *
+                </label>
+                <input
+                  name="stock"
+                  type="text"
+                  value={formik.values.stock}
+                  onChange={handleChange}
+                  onBlur={formik.handleBlur}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                  placeholder="0"
+                />
+                {formik.touched.stock && formik.errors.stock && (
+                  <ErrorMessageCom error={formik.errors.stock} />
+                )}
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8"> {/* Increased grid gap */}
-                {/* Stock Quantity */}
-                <div>
-                    <label className="block text-sm font-bold text-gray-800 mb-2">
-                        Stock Quantity *
-                    </label>
-                    <input
-                        name="stock"
-                        type="text"
-                        value={formik.values.stock}
-                        onChange={handleChange}
-                        onBlur={formik.handleBlur}
-                        className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
-                        placeholder="0"
-                    />
-                    {formik.touched.stock && formik.errors.stock && (
-                        <ErrorMessageCom error={formik.errors.stock} />
-                    )}
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {" "}
+              {/* Price grid kept at 4 columns */}
+              {/* MRP */}
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  MRP (₹) *
+                </label>
+                <input
+                  name="mrp"
+                  type="text"
+                  step="0.01"
+                  value={formik.values.mrp}
+                  onChange={handleChange}
+                  onBlur={formik.handleBlur}
+                  className="w-full border bg-white text-gray-900 border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition"
+                  placeholder="MRP"
+                />
+                {formik.touched.mrp && formik.errors.mrp && (
+                  <ErrorMessageCom error={formik.errors.mrp} />
+                )}
+              </div>
+              {/* Purchase Price */}
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Purchase Price (₹) *
+                </label>
+                <input
+                  name="purchasePrice"
+                  type="text"
+                  step="0.01"
+                  value={formik.values.purchasePrice}
+                  onChange={handleChange}
+                  onBlur={formik.handleBlur}
+                  className="w-full border bg-white text-gray-900 border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-yellow-600 focus:border-yellow-600 transition"
+                  placeholder="Purchase Price"
+                />
+                {formik.touched.purchasePrice &&
+                  formik.errors.purchasePrice && (
+                    <ErrorMessageCom error={formik.errors.purchasePrice} />
+                  )}
+              </div>
+              {/* Selling Price */}
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Selling Price (₹) *
+                </label>
+                <input
+                  name="price"
+                  type="text"
+                  step="0.01"
+                  value={formik.values.price}
+                  onChange={handleChange}
+                  onBlur={formik.handleBlur}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                  placeholder="Selling Price"
+                />
+                {formik.touched.price && formik.errors.price && (
+                  <ErrorMessageCom error={formik.errors.price} />
+                )}
+              </div>
+              {/* Discount */}
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Discount (%)
+                </label>
+                <input
+                  name="discount"
+                  type="text"
+                  value={formik.values.discount}
+                  readOnly
+                  // Readonly style enhanced
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-gray-100 text-gray-700 shadow-inner"
+                  placeholder="Discount %"
+                />
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6"> {/* Price grid kept at 4 columns */}
-                {/* MRP */}
-                <div>
-                    <label className="block text-sm font-bold text-gray-800 mb-2">
-                        MRP (₹) *
-                    </label>
-                    <input
-                        name="mrp"
-                        type="text"
-                        step="0.01"
-                        value={formik.values.mrp}
-                        onChange={handleChange}
-                        onBlur={formik.handleBlur}
-                        className="w-full border bg-white text-gray-900 border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition"
-                        placeholder="MRP"
-                    />
-                    {formik.touched.mrp && formik.errors.mrp && (
-                        <ErrorMessageCom error={formik.errors.mrp} />
-                    )}
-                </div>
-                {/* Purchase Price */}
-                <div>
-                    <label className="block text-sm font-bold text-gray-800 mb-2">
-                        Purchase Price (₹) *
-                    </label>
-                    <input
-                        name="purchasePrice"
-                        type="text"
-                        step="0.01"
-                        value={formik.values.purchasePrice}
-                        onChange={handleChange}
-                        onBlur={formik.handleBlur}
-                        className="w-full border bg-white text-gray-900 border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-yellow-600 focus:border-yellow-600 transition"
-                        placeholder="Purchase Price"
-                    />
-                    {formik.touched.purchasePrice && formik.errors.purchasePrice && (
-                        <ErrorMessageCom error={formik.errors.purchasePrice} />
-                    )}
-                </div>
-                {/* Selling Price */}
-                <div>
-                    <label className="block text-sm font-bold text-gray-800 mb-2">
-                        Selling Price (₹) *
-                    </label>
-                    <input
-                        name="price"
-                        type="text"
-                        step="0.01"
-                        value={formik.values.price}
-                        onChange={handleChange}
-                        onBlur={formik.handleBlur}
-                        className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
-                        placeholder="Selling Price"
-                    />
-                    {formik.touched.price && formik.errors.price && (
-                        <ErrorMessageCom error={formik.errors.price} />
-                    )}
-                </div>
-                {/* Discount */}
-                <div>
-                    <label className="block text-sm font-bold text-gray-800 mb-2">
-                        Discount (%)
-                    </label>
-                    <input
-                        name="discount"
-                        type="text"
-                        value={formik.values.discount}
-                        readOnly
-                        // Readonly style enhanced
-                        className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-gray-100 text-gray-700 shadow-inner"
-                        placeholder="Discount %"
-                    />
-                </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8"> {/* Increased grid gap */}
-                {/* Expiry Date */}
-                <div>
-                    <label className="block text-sm font-bold text-gray-800 mb-2">
-                        Expiry Date *
-                    </label>
-                    <input
-                        name="expiryDate"
-                        type="date"
-                        value={formik.values.expiryDate}
-                        onChange={handleChange}
-                        onBlur={formik.handleBlur}
-                        min={todayStr}
-                        className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900"
-                    />
-                    {formik.touched.expiryDate && formik.errors.expiryDate && (
-                        <ErrorMessageCom error={formik.errors.expiryDate} />
-                    )}
-                </div>
-                {/* Batch Number */}
-                <div>
-                    <label className="block text-sm font-bold text-gray-800 mb-2">
-                        Batch Number *
-                    </label>
-                    <input
-                        name="batchNumber"
-                        value={formik.values.batchNumber}
-                        onChange={handleChange}
-                        onBlur={formik.handleBlur}
-                        className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
-                        placeholder="Batch number"
-                    />
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {" "}
+              {/* Increased grid gap */}
+              {/* Expiry Date */}
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Expiry Date *
+                </label>
+                <input
+                  name="expiryDate"
+                  type="date"
+                  value={formik.values.expiryDate}
+                  onChange={handleChange}
+                  onBlur={formik.handleBlur}
+                  min={todayStr}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900"
+                />
+                {formik.touched.expiryDate && formik.errors.expiryDate && (
+                  <ErrorMessageCom error={formik.errors.expiryDate} />
+                )}
+              </div>
+              {/* Batch Number */}
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Batch Number *
+                </label>
+                <input
+                  name="batchNumber"
+                  value={formik.values.batchNumber}
+                  onChange={handleChange}
+                  onBlur={formik.handleBlur}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                  placeholder="Batch number"
+                />
+              </div>
             </div>
             {/* Composition Section Styling */}
             <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                    Composition
-                </label>
-                {composition.map((c, idx) => (
-                    <div key={idx} className="flex gap-4 mb-3 items-center p-3 border border-gray-200 rounded-lg bg-gray-50 shadow-sm"> {/* Added box styling */}
-                        <input
-                            type="text"
-                            placeholder="Name"
-                            value={c.name}
-                            onChange={(e) =>
-                                handleCompositionChange(idx, "name", e.target.value)
-                            }
-                            className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-green-500 focus:border-green-500 transition"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Value"
-                            value={c.value}
-                            onChange={(e) =>
-                                handleCompositionChange(idx, "value", e.target.value)
-                            }
-                            className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-green-500 focus:border-green-500 transition"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => removeCompositionRow(idx)}
-                            className="text-red-600 hover:text-red-800 font-medium p-1 transition"
-                        >
-                            Remove
-                        </button>
-                    </div>
-                ))}
-                <button
-                    type="button"
-                    onClick={addCompositionRow}
-                    className="text-green-600 hover:text-green-700 font-semibold mt-2 inline-flex items-center gap-1 transition"
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                Composition
+              </label>
+              {composition.map((c, idx) => (
+                <div
+                  key={idx}
+                  className="flex gap-4 mb-3 items-center p-3 border border-gray-200 rounded-lg bg-gray-50 shadow-sm"
                 >
-                    <span className="text-xl">+</span> Add Composition
-                </button>
+                  {" "}
+                  {/* Added box styling */}
+                  <input
+                    type="text"
+                    placeholder="Name"
+                    value={c.name}
+                    onChange={(e) =>
+                      handleCompositionChange(idx, "name", e.target.value)
+                    }
+                    className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-green-500 focus:border-green-500 transition"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Value"
+                    value={c.value}
+                    onChange={(e) =>
+                      handleCompositionChange(idx, "value", e.target.value)
+                    }
+                    className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-green-500 focus:border-green-500 transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeCompositionRow(idx)}
+                    className="text-red-600 hover:text-red-800 font-medium p-1 transition"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addCompositionRow}
+                className="text-green-600 hover:text-green-700 font-semibold mt-2 inline-flex items-center gap-1 transition"
+              >
+                <span className="text-xl">+</span> Add Composition
+              </button>
             </div>
             {/* Highlights Section Styling */}
             <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                    Highlights
-                </label>
-                {formik.values.highlights.length === 0 && (
-                    <p className="text-xs text-gray-500 mb-2">
-                        Add short bullet points to highlight key info.
-                    </p>
-                )}
-                {formik.values.highlights.map((h, idx) => (
-                    <div key={idx} className="flex gap-4 mb-3 items-center p-3 border border-gray-200 rounded-lg bg-yellow-50 shadow-sm"> {/* Added box styling with yellow tint */}
-                        <input
-                            type="text"
-                            placeholder={`Highlight #${idx + 1}`}
-                            value={h}
-                            onChange={(e) => handleHighlightChange(idx, e.target.value)}
-                            onBlur={formik.handleBlur}
-                            className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-yellow-500 focus:border-yellow-500 transition"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => removeHighlightRow(idx)}
-                            className="text-red-600 hover:text-red-800 font-medium p-1 transition"
-                        >
-                            Remove
-                        </button>
-                    </div>
-                ))}
-                <button
-                    type="button"
-                    onClick={addHighlightRow}
-                    className="text-green-600 hover:text-green-700 font-semibold mt-2 inline-flex items-center gap-1 transition"
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                Highlights
+              </label>
+              {formik.values.highlights.length === 0 && (
+                <p className="text-xs text-gray-500 mb-2">
+                  Add short bullet points to highlight key info.
+                </p>
+              )}
+              {formik.values.highlights.map((h, idx) => (
+                <div
+                  key={idx}
+                  className="flex gap-4 mb-3 items-center p-3 border border-gray-200 rounded-lg bg-yellow-50 shadow-sm"
                 >
-                    <span className="text-xl">+</span> Add Highlight
-                </button>
-            </div>
-            <div className="space-y-4 border-t pt-8"> {/* Increased padding top */}
-                <h3 className="text-xl font-bold text-gray-800"> {/* Header bold and larger */}
-                    Medicine Classification
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-300 rounded-xl shadow-md"> {/* Enhanced checkbox styling */}
-                        <input
-                            type="checkbox"
-                            id="requiresPrescription"
-                            name="requiresPrescription"
-                            checked={formik.values.requiresPrescription}
-                            onChange={handleChange}
-                            onBlur={formik.handleBlur}
-                            className="w-6 h-6 text-orange-600 bg-white border-gray-300 rounded focus:ring-orange-500"
-                        />
-                        <label
-                            htmlFor="requiresPrescription"
-                            className="text-base font-medium text-gray-900 cursor-pointer"
-                        >
-                            <div className="flex items-center gap-2">
-                                <span>📋 Requires Prescription</span>
-                            </div>
-                            <p className="text-sm text-gray-700 mt-1 font-normal">
-                                Prescription needed for purchase
-                            </p>
-                        </label>
-                    </div>
+                  {" "}
+                  {/* Added box styling with yellow tint */}
+                  <input
+                    type="text"
+                    placeholder={`Highlight #${idx + 1}`}
+                    value={h}
+                    onChange={(e) => handleHighlightChange(idx, e.target.value)}
+                    onBlur={formik.handleBlur}
+                    className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-yellow-500 focus:border-yellow-500 transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeHighlightRow(idx)}
+                    className="text-red-600 hover:text-red-800 font-medium p-1 transition"
+                  >
+                    Remove
+                  </button>
                 </div>
+              ))}
+              <button
+                type="button"
+                onClick={addHighlightRow}
+                className="text-green-600 hover:text-green-700 font-semibold mt-2 inline-flex items-center gap-1 transition"
+              >
+                <span className="text-xl">+</span> Add Highlight
+              </button>
+            </div>
+            <div className="space-y-4 border-t pt-8">
+              {" "}
+              {/* Increased padding top */}
+              <h3 className="text-xl font-bold text-gray-800">
+                {" "}
+                {/* Header bold and larger */}
+                Medicine Classification
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-300 rounded-xl shadow-md">
+                  {" "}
+                  {/* Enhanced checkbox styling */}
+                  <input
+                    type="checkbox"
+                    id="requiresPrescription"
+                    name="requiresPrescription"
+                    checked={formik.values.requiresPrescription}
+                    onChange={handleChange}
+                    onBlur={formik.handleBlur}
+                    className="w-6 h-6 text-orange-600 bg-white border-gray-300 rounded focus:ring-orange-500"
+                  />
+                  <label
+                    htmlFor="requiresPrescription"
+                    className="text-base font-medium text-gray-900 cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>📋 Requires Prescription</span>
+                    </div>
+                    <p className="text-sm text-gray-700 mt-1 font-normal">
+                      Prescription needed for purchase
+                    </p>
+                  </label>
+                </div>
+              </div>
             </div>
             {error && (
-                <div className="bg-red-50 border border-red-300 rounded-xl p-4 shadow-sm"> {/* Error box enhanced */}
-                    <p className="text-sm font-medium text-red-800">{error}</p>
-                </div>
+              <div className="bg-red-50 border border-red-300 rounded-xl p-4 shadow-sm">
+                {" "}
+                {/* Error box enhanced */}
+                <p className="text-sm font-medium text-red-800">{error}</p>
+              </div>
             )}
-
-            <div className="mt-8 flex justify-center w-full"> {/* Centered submission area */}
-                <div className="flex justify-center w-full max-w-sm"> {/* Constrained width for button */}
-                    {/* CustomButton component styling is assumed to be handled internally but uses a green primary color for "Add Medicine" */}
-                    <CustomButton type="submit" disabled={loading} width="100%">
-                        <MdSave size={22} /> {loading ? "Saving..." : "Add Medicine"}
-                    </CustomButton>
-                </div>
+            <div className="mt-8 flex justify-center w-full">
+              {" "}
+              {/* Centered submission area */}
+              <div className="flex justify-center w-full max-w-sm">
+                {" "}
+                {/* Constrained width for button */}
+                {/* CustomButton component styling is assumed to be handled internally but uses a green primary color for "Add Medicine" */}
+                <CustomButton type="submit" disabled={loading} width="100%">
+                  <MdSave size={22} /> {loading ? "Saving..." : "Add Medicine"}
+                </CustomButton>
+              </div>
             </div>
-        </form>
-    </div>
-</div>
+          </form>
+        </div>
+      </div>
     </>
   );
 }
-  

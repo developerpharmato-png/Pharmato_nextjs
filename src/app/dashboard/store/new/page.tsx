@@ -115,8 +115,8 @@ export default function AddStorePage() {
     }
 
     return (
-        <div className="w-full min-h-screen bg-gradient-to-br from-gray-50 to-green-50 py-10 px-2 sm:px-6">
-            <HeaderWithAction
+          <div className="containerStyle scrollbar-hide">
+      <HeaderWithAction
                 title="Add Store"
                 subtitle="Create a new store location"
                 showBack={true}
