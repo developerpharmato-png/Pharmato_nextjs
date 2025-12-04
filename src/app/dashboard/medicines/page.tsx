@@ -1,33 +1,37 @@
 "use client";
-import React, { Suspense, useState } from 'react';
-import MedicinesTable from './table';
-import Link from 'next/link';
-import HeaderWithAction from '../components/HeaderWithAction';
+import React, { Suspense, useState } from "react";
+import MedicinesTable from "./table";
+import HeaderWithAction from "../components/HeaderWithAction";
+import { useRouter } from "next/navigation";
 
 export default function MedicinesPage() {
-    const [searchTerm, setSearchTerm] = useState('');
-    return (
-        <div className="w-full min-h-screen bg-gray-50 p-0">
-            <HeaderWithAction
-                title="Medicines"
-                subtitle="Manage your medicine inventory"
-                backLabel="Back"
-                addLabel="Add Medicine"
-                addHref="/dashboard/medicines/new"
-                showBack={false}
-                showSearch
-                searchValue={searchTerm}
-                onSearchChange={setSearchTerm}
-            />
-            <div className="w-full bg-white rounded-xl shadow-md p-8">
-                <Suspense fallback={
-                    <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-                    </div>
-                }>
-                    <MedicinesTable searchValue={searchTerm} onSearchChange={setSearchTerm} />
-                </Suspense>
-            </div>
-        </div>
-    );
+  const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
+
+  const handleAdd = () => {
+    router.push("/dashboard/medicines/new");
+  };
+  return (
+    <div>
+      <HeaderWithAction
+        title="Medicines"
+        subtitle="Manage your medicine inventory"
+        backLabel="Back"
+        addLabel="Add Medicine"
+        addHref="/dashboard/medicines/new"
+        showBack={false}
+        showSearch
+        searchValue={searchTerm}
+        handleAdd={handleAdd}
+        addShow={true}
+        onSearchChange={setSearchTerm}
+      />
+      <div className="w-full bg-white rounded-xl shadow-md p-8">
+        <MedicinesTable
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+        />
+      </div>
+    </div>
+  );
 }

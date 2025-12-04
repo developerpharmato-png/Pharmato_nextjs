@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
+import { CustomTooltip } from '../components/miniComponents';
 
 type Props = {
     searchValue?: string;
@@ -116,7 +117,7 @@ export default function MedicinesTable({ searchValue, onSearchChange }: Props) {
         <div className="space-y-4">
 
             {/* Desktop Table (hidden on small screens) */}
-            <div className="overflow-x-auto hidden md:block">
+            <div className="hidden md:block" style={{ maxHeight: '70vh', overflowY: 'auto', overflowX: 'auto' }}>
                 <table className="min-w-full border-collapse">
                     <thead className="bg-gray-50">
                         <tr>
@@ -137,68 +138,104 @@ export default function MedicinesTable({ searchValue, onSearchChange }: Props) {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {currentMedicines.map((medicine: any) => (
                             <tr key={medicine._id} className="hover:bg-green-50 transition">
-                                <td className="px-4 py-3 text-xs font-mono whitespace-nowrap">
-                                    <a href={`/dashboard/medicines/${medicine._id}`} className="text-green-700 underline hover:text-green-900" title={String(medicine._id)}>
-                                        {medicine.uniqueCode || '—'}
-                                    </a>
+                                <td className="px-4 py-3 text-xs font-mono whitespace-nowrap max-w-[120px]">
+                                    <CustomTooltip title={medicine.uniqueCode || '—'}>
+                                        <a href={`/dashboard/medicines/${medicine._id}`} className="text-green-700 underline hover:text-green-900 block truncate" style={{maxWidth: '110px'}}>
+                                            {medicine.uniqueCode || '—'}
+                                        </a>
+                                    </CustomTooltip>
                                 </td>
-                                <td className="px-4 py-3">
-                                    {(medicine.coverImage && medicine.coverImage.trim()) ? (
-                                        <img src={medicine.coverImage} alt={medicine.name} className="h-10 w-10 object-cover rounded" />
-                                    ) : (
-                                        <span className="inline-flex h-10 w-10 bg-gray-200 rounded-full text-gray-500 items-center justify-center" title="No image">
-                                            <span className="material-icons text-base">person</span>
+                                <td className="px-4 py-3 max-w-[60px]">
+                                    <CustomTooltip title={medicine.name}>
+                                        {(medicine.coverImage && medicine.coverImage.trim()) ? (
+                                            <img src={medicine.coverImage} alt={medicine.name} className="h-10 w-10 object-cover rounded" />
+                                        ) : (
+                                            <span className="inline-flex h-10 w-10 bg-gray-200 rounded-full text-gray-500 items-center justify-center" title="No image">
+                                                <span className="material-icons text-base">person</span>
+                                            </span>
+                                        )}
+                                    </CustomTooltip>
+                                </td>
+                                <td className="px-4 py-3 text-sm font-medium text-gray-900 max-w-[160px]">
+                                    <CustomTooltip title={medicine.name}>
+                                        <span className="block truncate" style={{maxWidth: '150px'}}>{medicine.name}</span>
+                                    </CustomTooltip>
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-600 max-w-[120px]">
+                                    <CustomTooltip title={medicine.categoryId?.name || 'N/A'}>
+                                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs block truncate" style={{maxWidth: '110px'}}>
+                                            {medicine.categoryId?.name || 'N/A'}
                                         </span>
-                                    )}
+                                    </CustomTooltip>
                                 </td>
-                                <td className="px-4 py-3 text-sm font-medium text-gray-900">{medicine.name}</td>
-                                <td className="px-4 py-3 text-sm text-gray-600">
-                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                                        {medicine.categoryId?.name || 'N/A'}
-                                    </span>
+                                <td className="px-4 py-3 text-sm text-gray-600 max-w-[120px]">
+                                    <CustomTooltip title={medicine.subCategoryId?.name || 'N/A'}>
+                                        <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs block truncate" style={{maxWidth: '110px'}}>
+                                            {medicine.subCategoryId?.name || 'N/A'}
+                                        </span>
+                                    </CustomTooltip>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-600">
-                                    <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
-                                        {medicine.subCategoryId?.name || 'N/A'}
-                                    </span>
+                                <td className="px-4 py-3 text-sm max-w-[80px]">
+                                    <CustomTooltip title={medicine.isPrescription ? 'Yes' : 'No'}>
+                                        {medicine.isPrescription ? (
+                                            <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium block truncate" style={{maxWidth: '70px'}}>Yes</span>
+                                        ) : (
+                                            <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium block truncate" style={{maxWidth: '70px'}}>No</span>
+                                        )}
+                                    </CustomTooltip>
                                 </td>
-                                <td className="px-4 py-3 text-sm">
-                                    {medicine.isPrescription ? (
-                                        <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">Yes</span>
-                                    ) : (
-                                        <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">No</span>
-                                    )}
+                                <td className="px-4 py-3 text-sm max-w-[80px]">
+                                    <CustomTooltip title={medicine.isOTC ? 'OTC' : '-'}>
+                                        {medicine.isOTC ? (
+                                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium block truncate" style={{maxWidth: '70px'}}>OTC</span>
+                                        ) : (
+                                            <span className="text-gray-400 block truncate" style={{maxWidth: '70px'}}>-</span>
+                                        )}
+                                    </CustomTooltip>
                                 </td>
-                                <td className="px-4 py-3 text-sm">
-                                    {medicine.isOTC ? (
-                                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">OTC</span>
-                                    ) : (
-                                        <span className="text-gray-400">-</span>
-                                    )}
+                                <td className="px-4 py-3 text-sm text-gray-600 max-w-[120px]">
+                                    <CustomTooltip title={medicine.manufacturer}>
+                                        <span className="block truncate" style={{maxWidth: '110px'}}>{medicine.manufacturer}</span>
+                                    </CustomTooltip>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-600">{medicine.manufacturer}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900 font-semibold">{inr.format(Number(medicine.price) || 0)}</td>
-                                <td className="px-4 py-3 text-sm">
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${medicine.stock > 50 ? 'bg-green-100 text-green-800' :
-                                        medicine.stock > 20 ? 'bg-yellow-100 text-yellow-800' :
-                                            'bg-red-100 text-red-800'
-                                        }`}>
-                                        {medicine.stock} units
-                                    </span>
+                                <td className="px-4 py-3 text-sm text-gray-900 font-semibold max-w-[100px]">
+                                    <CustomTooltip title={inr.format(Number(medicine.price) || 0)}>
+                                        <span className="block truncate" style={{maxWidth: '90px'}}>{inr.format(Number(medicine.price) || 0)}</span>
+                                    </CustomTooltip>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-600">
-                                    {new Date(medicine.expiryDate).toLocaleDateString('en-US', {
+                                <td className="px-4 py-3 text-sm max-w-[100px]">
+                                    <CustomTooltip title={`${medicine.stock} units`}>
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium block truncate ${medicine.stock > 50 ? 'bg-green-100 text-green-800' :
+                                            medicine.stock > 20 ? 'bg-yellow-100 text-yellow-800' :
+                                                'bg-red-100 text-red-800'
+                                            }`} style={{maxWidth: '90px'}}>
+                                            {medicine.stock} units
+                                        </span>
+                                    </CustomTooltip>
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-600 max-w-[110px]">
+                                    <CustomTooltip title={new Date(medicine.expiryDate).toLocaleDateString('en-US', {
                                         year: 'numeric',
                                         month: 'short',
                                         day: 'numeric'
-                                    })}
+                                    })}>
+                                        <span className="block truncate" style={{maxWidth: '100px'}}>
+                                            {new Date(medicine.expiryDate).toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric'
+                                            })}
+                                        </span>
+                                    </CustomTooltip>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-600">
-                                    {medicine.highlights && medicine.highlights.length > 0 ? (
-                                        <span>{medicine.highlights.join(', ')}</span>
-                                    ) : (
-                                        <span className="text-gray-400">-</span>
-                                    )}
+                                <td className="px-4 py-3 text-sm text-gray-600 max-w-[180px]">
+                                    <CustomTooltip title={medicine.highlights && medicine.highlights.length > 0 ? medicine.highlights.join(', ') : '-'}>
+                                        {medicine.highlights && medicine.highlights.length > 0 ? (
+                                            <span className="block truncate" style={{maxWidth: '170px'}}>{medicine.highlights.join(', ')}</span>
+                                        ) : (
+                                            <span className="text-gray-400 block truncate" style={{maxWidth: '170px'}}>-</span>
+                                        )}
+                                    </CustomTooltip>
                                 </td>
                             </tr>
                         ))}

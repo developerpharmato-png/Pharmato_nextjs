@@ -1,6 +1,9 @@
+
+
 @import "tailwindcss";
 
 :root {
+  --primary: green;
   --background: #ffffff;
   --foreground: #171717;
 }
@@ -39,4 +42,18 @@ body {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+
+.containerStyle {
+  background: #fff;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.08);
+  padding: 1rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  width: 100%;
+  overflow: auto;
+  height: 90vh;
+  padding-bottom: 5rem;
 }
