@@ -16,15 +16,18 @@ const MedicinesTable: React.FC<Props> = ({ searchValue, onSearchChange }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    setLoading(true);
     fetch(`/api/medicines?limit=${rowsPerPage}&offset=${page * rowsPerPage}&search=${encodeURIComponent(searchValue || "")}`)
       .then((res) => res.json())
       .then((res) => {
         setData(res.data || []);
         setTotalCount(res.total || 0);
-      });
+      })
+      .finally(() => setLoading(false));
   }, [page, rowsPerPage, searchValue]);
 
   const columns: Column<any>[] = [
@@ -432,6 +435,7 @@ const MedicinesTable: React.FC<Props> = ({ searchValue, onSearchChange }) => {
         totalCount={totalCount}
         onPageChange={setPage}
         onRowsPerPageChange={setRowsPerPage}
+        loading={loading}
       />
     </>
   );

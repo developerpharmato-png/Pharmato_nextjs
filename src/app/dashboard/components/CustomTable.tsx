@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Skeleton from "@mui/material/Skeleton";
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Paper
 } from "@mui/material";
@@ -20,6 +21,7 @@ type CustomTableProps<T> = {
   totalCount: number;
   onPageChange: (newPage: number) => void;
   onRowsPerPageChange?: (rows: number) => void;
+  loading?: boolean;
 };
 
 export function CustomTable<T>({
@@ -30,6 +32,7 @@ export function CustomTable<T>({
   totalCount,
   onPageChange,
   onRowsPerPageChange,
+  loading = false,
 }: CustomTableProps<T>) {
   return (
     <Paper sx={{ width: "100%", overflow: "hidden" }}>
@@ -49,15 +52,25 @@ export function CustomTable<T>({
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.map((row, idx) => (
-              <TableRow hover tabIndex={-1} key={idx}>
-                {columns.map((col) => (
-                  <TableCell key={col.id} align={col.align || "left"}>
-                    {col.selector(row)}
-                  </TableCell>
+            {loading
+              ? Array.from({ length: rowsPerPage }).map((_, idx) => (
+                  <TableRow key={idx}>
+                    {columns.map((col) => (
+                      <TableCell key={col.id} align={col.align || "left"}>
+                        <Skeleton variant="rectangular" width={col.minWidth || 80} height={32} />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              : data.map((row, idx) => (
+                  <TableRow hover tabIndex={-1} key={idx}>
+                    {columns.map((col) => (
+                      <TableCell key={col.id} align={col.align || "left"}>
+                        {col.selector(row)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
                 ))}
-              </TableRow>
-            ))}
           </TableBody>
         </Table>
       </TableContainer>

@@ -180,6 +180,7 @@ export default function CategoriesPage() {
                     onPageChange={setPage}
                     onRowsPerPageChange={setRowsPerPage}
                     onToggleStatus={handleToggleStatus}
+                    loading={loading}
                 />
             </div>
         </div>

@@ -23,6 +23,7 @@ interface CategoriesTableProps {
   onPageChange: (newPage: number) => void;
   onRowsPerPageChange?: (rows: number) => void;
   onToggleStatus?: (id: string, isActive: boolean) => void;
+  loading?: boolean;
 }
 
 const CategoriesTable: React.FC<CategoriesTableProps> = ({
@@ -33,6 +34,7 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({
   onPageChange,
   onRowsPerPageChange,
   onToggleStatus,
+  loading = false,
 }) => {
   const router = useRouter();
   const columns: Column<Category>[] = [
@@ -193,6 +195,7 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({
       totalCount={totalCount}
       onPageChange={onPageChange}
       onRowsPerPageChange={onRowsPerPageChange}
+      loading={loading}
     />
   );
 };
