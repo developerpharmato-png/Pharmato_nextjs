@@ -8,6 +8,8 @@ import { MdAdd, MdDelete, MdArrowBack, MdSave } from "react-icons/md";
 import { useParams } from "next/navigation";
 import HeaderWithAction from "../../../components/HeaderWithAction";
 import Swal from "sweetalert2";
+import SkeltonEditMedicine from "./SkeltonEditMedicine";
+import { Delete } from "lucide-react";
 
 type Medicine = any;
 
@@ -589,7 +591,12 @@ export default function EditFormClient({ id }: { id?: string }) {
       });
   };
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  if (loading)
+    return (
+      <div className="p-6">
+        <SkeltonEditMedicine />
+      </div>
+    );
   if (!medicine) {
     return (
       <div className="p-6">
@@ -615,381 +622,442 @@ export default function EditFormClient({ id }: { id?: string }) {
   }
 
   return (
-    <div className="containerStyle">
-      <HeaderWithAction
-        title="Edit Medicine"
-        subtitle="Update medicine details"
-        showBack={true}
-        showSearch={false}
-      />
-
-      <div className="">
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Medicine Images *
-            </label>
-            <p className="text-xs text-gray-500 mb-2">
-              Min 1, Max 5 images. Each ≤ 5MB.
-            </p>
-            <input
-              id="medicine-edit-image-input"
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileChange}
-              style={{ display: "none" }}
+    <>
+      <div className="containerStyle scrollbar-hide">
+        <div className="mb-8 relative">
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="absolute left-0 top-0 inline-flex items-center justify-center w-10 h-10 text-gray-700 bg-white border border-gray-300 rounded-full shadow-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-150"
+            aria-label="Go back"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+          <div className="pl-14">
+            <HeaderWithAction
+              title="Edit Medicine"
+              subtitle="Update medicine details"
+              showBack={false}
+              showSearch={false}
             />
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() =>
-                  document.getElementById("medicine-edit-image-input")?.click()
-                }
-                className="h-24 w-24 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-md hover:bg-gray-200 transition"
-                title="Upload photos"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-8 h-8 text-gray-500"
+          </div>
+        </div>
+
+        <div>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* --- Image Upload Section --- */}
+            <div>
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                Medicine Images *
+                <p className="text-xs text-gray-500 font-normal">
+                  Min 1, Max 5 images. Each ≤ 5MB.
+                </p>
+              </label>
+              <input
+                id="medicine-edit-image-input"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFileChange}
+                style={{ display: "none" }}
+              />
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() =>
+                    document
+                      .getElementById("medicine-edit-image-input")
+                      ?.click()
+                  }
+                  // Enhanced file upload button styling
+                  className="h-28 w-28 flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-400 rounded-lg hover:bg-gray-100 transition duration-150 shadow-inner"
+                  title="Upload photos"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8.25 12.75l2.25 3 3-4.5 4.5 6"
-                  />
-                </svg>
-              </button>
-              {uploading && <span className="text-blue-600">Uploading...</span>}
-            </div>
-            {form.images.length > 0 && (
-              <div className="mt-3 mb-4 grid grid-cols-2 sm:grid-cols-4 gap-2 justify-start w-fit">
-                {form.images.map((url) => (
-                  <div key={url} className="relative group h-24 w-24">
-                    <img
-                      src={url}
-                      alt="Medicine"
-                      className="h-24 w-24 object-cover rounded-md border"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-9 h-9 text-gray-500"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z"
                     />
-                    {form.coverImage === url ? (
-                      <span className="absolute top-1 left-1 bg-green-600 text-white text-[10px] px-1.5 py-0.5 rounded-md shadow-sm">
-                        Primary
-                      </span>
-                    ) : (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M8.25 12.75l2.25 3 3-4.5 4.5 6"
+                    />
+                  </svg>
+                </button>
+                {uploading && (
+                  <span className="text-blue-600 font-medium">
+                    Uploading...
+                  </span>
+                )}
+              </div>
+              {form.images.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-3 justify-start w-fit">
+                  {form.images.map((url) => (
+                    <div key={url} className="relative group h-24 w-24">
+                      <img
+                        src={url}
+                        alt="Medicine"
+                        className="h-24 w-24 object-cover rounded-lg border border-gray-200 shadow-sm"
+                      />
+                      {form.coverImage === url ? (
+                        <span className="absolute top-1 left-1 bg-green-600 text-white text-[10px] px-2 py-0.5 rounded-full shadow-lg font-semibold">
+                          Primary
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setPrimaryImage(url)}
+                          // Set Primary button style enhanced
+                          className="absolute top-1 left-1 bg-gray-800 text-white text-[10px] px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 shadow-lg transition duration-200 font-semibold"
+                        >
+                          Set Primary
+                        </button>
+                      )}
                       <button
                         type="button"
-                        onClick={() => setPrimaryImage(url)}
-                        className="absolute top-1 left-1 bg-gray-800 text-white text-[10px] px-1.5 py-0.5 rounded-md opacity-80 hover:opacity-100 shadow-sm"
+                        onClick={() => handleDeleteImage(url)}
+                        // Delete button style enhanced
+                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 shadow-lg transition duration-200 hover:bg-red-700"
+                        title="Delete image"
                       >
-                        Set Primary
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2}
+                          stroke="currentColor"
+                          className="w-4 h-4"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteImage(url)}
-                      className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-80 hover:opacity-100 shadow-sm"
-                      title="Delete image"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
-                        className="w-3.5 h-3.5"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* --- Medicine Details Section --- */}
+            <div>
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                Medicine Name *
+              </label>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                onBlur={() =>
+                  setTouched((prev: any) => ({ ...prev, name: true }))
+                }
+                // Input field styling enhanced
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                placeholder="Enter medicine name"
+              />
+              {touched.name && errors.name && (
+                <ErrorMessageCom error={errors.name} />
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                Description *
+              </label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                onBlur={() =>
+                  setTouched((prev: any) => ({ ...prev, description: true }))
+                }
+                rows={4}
+                // Textarea styling enhanced
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                placeholder="Enter medicine description and usage"
+              />
+              {touched.description && errors.description && (
+                <ErrorMessageCom error={errors.description} />
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Manufacturer *
+                </label>
+                <input
+                  name="manufacturer"
+                  value={form.manufacturer}
+                  onChange={handleChange}
+                  onBlur={() =>
+                    setTouched((prev: any) => ({ ...prev, manufacturer: true }))
+                  }
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                  placeholder="Manufacturer name"
+                />
+                {touched.manufacturer && errors.manufacturer && (
+                  <ErrorMessageCom error={errors.manufacturer} />
+                )}
               </div>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Medicine Name *
-            </label>
-            <input
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              onBlur={() =>
-                setTouched((prev: any) => ({ ...prev, name: true }))
-              }
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white text-black"
-              placeholder="Enter medicine name"
-            />
-            {touched.name && errors.name && (
-              <ErrorMessageCom error={errors.name} />
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Description *
-            </label>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              onBlur={() =>
-                setTouched((prev: any) => ({ ...prev, description: true }))
-              }
-              rows={4}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white text-black"
-              placeholder="Enter medicine description and usage"
-            />
-            {touched.description && errors.description && (
-              <ErrorMessageCom error={errors.description} />
-            )}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Manufacturer *
-              </label>
-              <input
-                name="manufacturer"
-                value={form.manufacturer}
-                onChange={handleChange}
-                onBlur={() =>
-                  setTouched((prev: any) => ({ ...prev, manufacturer: true }))
-                }
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white text-black"
-                placeholder="Manufacturer name"
-              />
-              {touched.manufacturer && errors.manufacturer && (
-                <ErrorMessageCom error={errors.manufacturer} />
-              )}
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Form Type *
+                </label>
+                <select
+                  name="category"
+                  value={form.category}
+                  onChange={handleChange}
+                  // Select styling enhanced
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900"
+                >
+                  {[
+                    "Tablet",
+                    "Capsule",
+                    "Syrup",
+                    "Injection",
+                    "Cream",
+                    "Drops",
+                    "Other",
+                  ].map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Form Type *
-              </label>
-              <select
-                name="category"
-                value={form.category}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
-              >
-                {[
-                  "Tablet",
-                  "Capsule",
-                  "Syrup",
-                  "Injection",
-                  "Cream",
-                  "Drops",
-                  "Other",
-                ].map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+
+            {/* --- Category/Subcategory Section --- */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Category
+                </label>
+                <select
+                  name="categoryId"
+                  value={form.categoryId}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900"
+                >
+                  <option value="">Select a category</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name} {cat.isOTC ? "(OTC)" : ""}
+                    </option>
+                  ))}
+                </select>
+                {/* Assuming you have logic for selectedCategory and displaying tags here */}
+                {/* Example: {selectedCategory && <TagComponent isOTC={selectedCategory.isOTC} />} */}
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Subcategory
+                </label>
+                <select
+                  name="subCategoryId"
+                  value={form.subCategoryId}
+                  onChange={handleChange}
+                  disabled={!form.categoryId}
+                  // Disabled state styling enhanced
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
+                >
+                  <option value="">Select a subcategory</option>
+                  {filteredSubcategories.map((sub) => (
+                    <option key={sub._id} value={sub._id}>
+                      {sub.name} {sub.isOTC ? "(OTC)" : ""}
+                    </option>
+                  ))}
+                </select>
+                {/* Assuming you have logic for selectedSubcategory and displaying tags here */}
+                {/* Example: {selectedSubcategory && <TagComponent isOTC={selectedSubcategory.isOTC} />} */}
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Category
-              </label>
-              <select
-                name="categoryId"
-                value={form.categoryId}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
-              >
-                <option value="">Select a category</option>
-                {categories.map((cat) => (
-                  <option key={cat._id} value={cat._id}>
-                    {cat.name} {cat.isOTC ? "(OTC)" : ""}
-                  </option>
-                ))}
-              </select>
+
+            {/* --- Stock/Batch/Expiry Section --- */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Stock Quantity *
+                </label>
+                <input
+                  name="stock"
+                  type="text"
+                  value={form.stock}
+                  onChange={handleChange}
+                  onBlur={() =>
+                    setTouched((prev: any) => ({ ...prev, stock: true }))
+                  }
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                  placeholder="0"
+                />
+                {touched.stock && errors.stock && (
+                  <ErrorMessageCom error={errors.stock} />
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Batch Number *
+                </label>
+                <input
+                  name="batchNumber"
+                  value={form.batchNumber}
+                  onChange={handleChange}
+                  onBlur={() =>
+                    setTouched((prev: any) => ({ ...prev, batchNumber: true }))
+                  }
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                  placeholder="Batch number"
+                />
+                {touched.batchNumber && errors.batchNumber && (
+                  <ErrorMessageCom error={errors.batchNumber} />
+                )}
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Subcategory
-              </label>
-              <select
-                name="subCategoryId"
-                value={form.subCategoryId}
-                onChange={handleChange}
-                disabled={!form.categoryId}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition disabled:bg-gray-100"
-              >
-                <option value="">Select a subcategory</option>
-                {filteredSubcategories.map((sub) => (
-                  <option key={sub._id} value={sub._id}>
-                    {sub.name} {sub.isOTC ? "(OTC)" : ""}
-                  </option>
-                ))}
-              </select>
+
+            {/* Expiry Date moved into its own section for separation/style consistency, assuming a 4-column layout is not needed here */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Expiry Date *
+                </label>
+                <input
+                  name="expiryDate"
+                  type="date"
+                  value={form.expiryDate}
+                  onChange={handleChange}
+                  onBlur={() =>
+                    setTouched((prev: any) => ({ ...prev, expiryDate: true }))
+                  }
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900"
+                  min={(() => {
+                    const d = new Date();
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, "0");
+                    const day = String(d.getDate()).padStart(2, "0");
+                    return `${y}-${m}-${day}`;
+                  })()}
+                />
+                {touched.expiryDate && errors.expiryDate && (
+                  <ErrorMessageCom error={errors.expiryDate} />
+                )}
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Stock Quantity *
-              </label>
-              <input
-                name="stock"
-                type="text"
-                value={form.stock}
-                onChange={handleChange}
-                onBlur={() =>
-                  setTouched((prev: any) => ({ ...prev, stock: true }))
-                }
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white text-black"
-                placeholder="0"
-              />
-              {touched.stock && errors.stock && (
-                <ErrorMessageCom error={errors.stock} />
-              )}
+
+            {/* --- Price Section (4 columns) --- */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  MRP (₹) *
+                </label>
+                <input
+                  name="mrp"
+                  type="text"
+                  step="0.01"
+                  value={form.mrp}
+                  onChange={handleChange}
+                  onBlur={() =>
+                    setTouched((prev: any) => ({ ...prev, mrp: true }))
+                  }
+                  className="w-full border bg-white text-gray-900 border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition"
+                  placeholder="MRP"
+                />
+                {touched.mrp && errors.mrp && (
+                  <ErrorMessageCom error={errors.mrp} />
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Purchase Price (₹) *
+                </label>
+                <input
+                  name="purchasePrice"
+                  type="text"
+                  step="0.01"
+                  value={form.purchasePrice}
+                  onChange={handleChange}
+                  onBlur={() =>
+                    setTouched((prev: any) => ({
+                      ...prev,
+                      purchasePrice: true,
+                    }))
+                  }
+                  className="w-full border bg-white text-gray-900 border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-yellow-600 focus:border-yellow-600 transition"
+                  placeholder="Purchase Price"
+                />
+                {touched.purchasePrice && errors.purchasePrice && (
+                  <ErrorMessageCom error={errors.purchasePrice} />
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Selling Price (₹) *
+                </label>
+                <input
+                  name="price"
+                  type="text"
+                  step="0.01"
+                  value={form.price}
+                  onChange={handleChange}
+                  onBlur={() =>
+                    setTouched((prev: any) => ({ ...prev, price: true }))
+                  }
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                  placeholder="Selling Price"
+                />
+                {touched.price && errors.price && (
+                  <ErrorMessageCom error={errors.price} />
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-2">
+                  Discount (%)
+                </label>
+                <input
+                  name="discount"
+                  type="text"
+                  value={form.discount}
+                  readOnly
+                  // Readonly style enhanced
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-gray-100 text-gray-700 shadow-inner"
+                  placeholder="Discount %"
+                />
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            {/* --- Composition Section --- */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                MRP (₹) *
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                Composition
               </label>
-              <input
-                name="mrp"
-                type="text"
-                step="0.01"
-                value={form.mrp}
-                onChange={handleChange}
-                onBlur={() =>
-                  setTouched((prev: any) => ({ ...prev, mrp: true }))
-                }
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white text-black"
-                placeholder="MRP"
-              />
-              {touched.mrp && errors.mrp && (
-                <ErrorMessageCom error={errors.mrp} />
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Purchase Price (₹) *
-              </label>
-              <input
-                name="purchasePrice"
-                type="text"
-                step="0.01"
-                value={form.purchasePrice}
-                onChange={handleChange}
-                onBlur={() =>
-                  setTouched((prev: any) => ({ ...prev, purchasePrice: true }))
-                }
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition bg-white text-black"
-                placeholder="Purchase Price"
-              />
-              {touched.purchasePrice && errors.purchasePrice && (
-                <ErrorMessageCom error={errors.purchasePrice} />
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Selling Price (₹) *
-              </label>
-              <input
-                name="price"
-                type="text"
-                step="0.01"
-                value={form.price}
-                onChange={handleChange}
-                onBlur={() =>
-                  setTouched((prev: any) => ({ ...prev, price: true }))
-                }
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white text-black"
-                placeholder="Selling Price"
-              />
-              {touched.price && errors.price && (
-                <ErrorMessageCom error={errors.price} />
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Discount (%)
-              </label>
-              <input
-                name="discount"
-                type="text"
-                value={form.discount}
-                readOnly
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-gray-100 text-gray-700"
-                placeholder="Discount %"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Expiry Date *
-              </label>
-              <input
-                name="expiryDate"
-                type="date"
-                value={form.expiryDate}
-                onChange={handleChange}
-                onBlur={() =>
-                  setTouched((prev: any) => ({ ...prev, expiryDate: true }))
-                }
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white text-black"
-                min={(() => {
-                  const d = new Date();
-                  const y = d.getFullYear();
-                  const m = String(d.getMonth() + 1).padStart(2, "0");
-                  const day = String(d.getDate()).padStart(2, "0");
-                  return `${y}-${m}-${day}`;
-                })()}
-              />
-              {touched.expiryDate && errors.expiryDate && (
-                <ErrorMessageCom error={errors.expiryDate} />
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Batch Number *
-              </label>
-              <input
-                name="batchNumber"
-                value={form.batchNumber}
-                onChange={handleChange}
-                onBlur={() =>
-                  setTouched((prev: any) => ({ ...prev, batchNumber: true }))
-                }
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white text-black"
-                placeholder="Batch number"
-              />
-              {touched.batchNumber && errors.batchNumber && (
-                <ErrorMessageCom error={errors.batchNumber} />
-              )}
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Composition
-            </label>
-            <div className="flex flex-col gap-2">
               {composition.map((c, idx) => (
                 <div
                   key={idx}
-                  className="flex flex-col sm:flex-row gap-2 items-center w-full"
+                  className="flex gap-4 mb-3 items-center p-3 border border-gray-200 rounded-lg bg-gray-50 shadow-sm"
                 >
                   <input
                     type="text"
@@ -998,7 +1066,7 @@ export default function EditFormClient({ id }: { id?: string }) {
                     onChange={(e) =>
                       handleCompositionChange(idx, "name", e.target.value)
                     }
-                    className="border rounded px-2 py-2 flex-1 w-full sm:w-auto"
+                    className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-green-500 focus:border-green-500 transition"
                   />
                   <input
                     type="text"
@@ -1007,104 +1075,109 @@ export default function EditFormClient({ id }: { id?: string }) {
                     onChange={(e) =>
                       handleCompositionChange(idx, "value", e.target.value)
                     }
-                    className="border rounded px-2 py-2 flex-1 w-full sm:w-auto"
+                    className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-green-500 focus:border-green-500 transition"
                   />
                   <button
                     type="button"
                     onClick={() => removeCompositionRow(idx)}
-                    className="text-red-500 hover:text-red-700 p-2 rounded-full flex items-center justify-center"
+                    className="text-red-600 hover:text-red-800 font-medium p-1 transition"
                     aria-label="Remove composition"
                   >
-                    <MdDelete size={20} />
+                    <Delete />
                   </button>
                 </div>
               ))}
+              <button
+                type="button"
+                onClick={addCompositionRow}
+                className="text-green-600 hover:text-green-700 font-semibold mt-2 inline-flex items-center gap-1 transition"
+              >
+                <span className="text-xl">+</span> Add Composition
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={addCompositionRow}
-              className="text-green-600 mt-2 flex items-center gap-2 font-semibold"
-            >
-              <MdAdd size={20} /> Add Composition
-            </button>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Highlights
-            </label>
-            {form.highlights.length === 0 && (
-              <p className="text-xs text-gray-500 mb-2">
-                Add short bullet points to highlight key info.
-              </p>
-            )}
-            <div className="flex flex-col gap-2">
+
+            {/* --- Highlights Section --- */}
+            <div>
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                Highlights
+              </label>
+              {form.highlights.length === 0 && (
+                <p className="text-xs text-gray-500 mb-2">
+                  Add short bullet points to highlight key info.
+                </p>
+              )}
               {form.highlights.map((h, idx) => (
                 <div
                   key={idx}
-                  className="flex flex-col sm:flex-row gap-2 items-center w-full"
+                  className="flex gap-4 mb-3 items-center p-3 border border-gray-200 rounded-lg bg-yellow-50 shadow-sm"
                 >
                   <input
                     type="text"
                     placeholder={`Highlight #${idx + 1}`}
                     value={h}
                     onChange={(e) => handleHighlightChange(idx, e.target.value)}
-                    className="border rounded px-2 py-2 flex-1 w-full sm:w-auto"
+                    className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-yellow-500 focus:border-yellow-500 transition"
                   />
                   <button
                     type="button"
                     onClick={() => removeHighlightRow(idx)}
-                    className="text-red-500 hover:text-red-700 p-2 rounded-full flex items-center justify-center"
+                    className="text-red-600 hover:text-red-800 font-medium p-1 transition"
                     aria-label="Remove highlight"
                   >
-                    <MdDelete size={20} />
+                    <Delete />
                   </button>
                 </div>
               ))}
+              <button
+                type="button"
+                onClick={addHighlightRow}
+                className="text-green-600 hover:text-green-700 font-semibold mt-2 inline-flex items-center gap-1 transition"
+              >
+                <span className="text-xl">+</span> Add Highlight
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={addHighlightRow}
-              className="text-green-600 mt-2 flex items-center gap-2 font-semibold"
-            >
-              <MdAdd size={20} /> Add Highlight
-            </button>
-          </div>
-          <div className="space-y-4 border-t pt-6">
-            <h3 className="text-lg font-semibold text-gray-800">
-              Medicine Classification
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                <input
-                  type="checkbox"
-                  id="requiresPrescription"
-                  name="requiresPrescription"
-                  checked={form.requiresPrescription}
-                  onChange={handleChange}
-                  className="w-5 h-5 text-orange-600 rounded focus:ring-orange-500"
-                />
-                <label
-                  htmlFor="requiresPrescription"
-                  className="text-sm font-medium text-gray-700 cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <span>📋 Requires Prescription</span>
-                  </div>
-                  <p className="text-xs text-gray-600 mt-1">
-                    Prescription needed for purchase
-                  </p>
-                </label>
+
+            {/* --- Classification Section --- */}
+            <div className="space-y-4 border-t pt-8">
+              <h3 className="text-xl font-bold text-gray-800">
+                Medicine Classification
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-300 rounded-xl shadow-md">
+                  <input
+                    type="checkbox"
+                    id="requiresPrescription"
+                    name="requiresPrescription"
+                    checked={form.requiresPrescription}
+                    onChange={handleChange}
+                    className="w-6 h-6 text-orange-600 bg-white border-gray-300 rounded focus:ring-orange-500"
+                  />
+                  <label
+                    htmlFor="requiresPrescription"
+                    className="text-base font-medium text-gray-900 cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>📋 Requires Prescription</span>
+                    </div>
+                    <p className="text-sm text-gray-700 mt-1 font-normal">
+                      Prescription needed for purchase
+                    </p>
+                  </label>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="mt-3 flex w-[400px] justify-center">
-            <CustomButton type="submit" disabled={loading} width="300px">
-              <MdSave size={22} /> {loading ? "Saving..." : "Save Medicine"}
-            </CustomButton>
-          </div>
-        </form>
+            {/* --- Submission Button --- */}
+            <div className="mt-8 flex justify-center w-full">
+              <div className="flex justify-center w-full max-w-sm">
+                <CustomButton type="submit" disabled={loading} width="100%">
+                  <MdSave size={22} /> {loading ? "Saving..." : "Save Medicine"}
+                </CustomButton>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
