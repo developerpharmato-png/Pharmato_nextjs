@@ -93,9 +93,9 @@ export default function AdminCustomerDetailTabs({ id }: { id?: string }) {
                             <div className="rounded-full h-8 w-8 border-2 border-gray-300 border-t-green-600 animate-spin" aria-label="Loading" />
                         </div>
                     ) : customer ? (
-                        <div className="bg-white rounded-xl shadow-md p-8 max-w-3xl mx-auto">
+                        <div className="bg-white rounded-xl shadow-md p-8 w-full">
                             <div className="flex items-center justify-between mb-6">
-                                <div className="text-2xl font-bold text-gray-800 truncate">{customer.name || '-'}</div>
+                                <div className="text-2xl font-bold text-gray-800 truncate">{customer.name || 'Dear User'}</div>
                             </div>
                             <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-gray-700">
                                 <div><span className="font-semibold">Email:</span> {customer.email || <span className="text-gray-400">-</span>}</div>
