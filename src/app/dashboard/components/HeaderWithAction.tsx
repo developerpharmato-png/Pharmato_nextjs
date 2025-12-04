@@ -4,18 +4,18 @@ import Link from "next/link";
 import { CustomButton } from "./miniComponents";
 
 type Props = {
-    title: string;
-    subtitle?: string;
-    backLabel?: string;
-    addLabel?: string;
-    addHref?: string;
-    showBack?: boolean;
-    showSearch?: boolean;
-    searchValue?: string;
-    onSearchChange?: (value: string) => void;
-    rightNode?: React.ReactNode;
-    addShow?: boolean;
-    handleAdd?: () => void;
+  title: string;
+  subtitle?: string;
+  backLabel?: string;
+  addLabel?: string;
+  addHref?: string;
+  showBack?: boolean;
+  showSearch?: boolean;
+  searchValue?: string;
+   addShow?: boolean;
+  handleAdd?: () => void;
+  onSearchChange?: (value: string) => void;
+  rightNode?: React.ReactNode;
 };
 
 export default function HeaderWithAction({

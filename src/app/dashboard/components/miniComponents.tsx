@@ -1,5 +1,5 @@
 import { styled } from '@mui/material/styles';
-import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
+import Tooltip, { tooltipClasses, TooltipProps } from '@mui/material/Tooltip';
 interface ErrorMessageComProps {
   error: string;
 }
@@ -26,7 +26,6 @@ export const ErrorMessageCom = ({ error }: ErrorMessageComProps) => {
     </>
   );
 };
-
 
 interface CustomButtonProps {
   children: React.ReactNode;
@@ -79,11 +78,13 @@ export const CustomButton = ({
 };
 
 
-export const CustomTooltip = styled(({ className, children, ...props }) => (
-  <Tooltip {...props} arrow classes={{ popper: className }}>
-    {children}
-  </Tooltip>
-))(() => ({
+export const CustomTooltip = styled(
+  ({ className, children, ...props }: TooltipProps & { className?: string; children: React.ReactNode }) => (
+    <Tooltip {...props} arrow classes={{ popper: className }}>
+      {children}
+    </Tooltip>
+  )
+)(({ }) => ({
   [`& .${tooltipClasses.tooltip}`]: {
     backgroundColor: "var(--primary)",
     color: "var(--color-white)",
