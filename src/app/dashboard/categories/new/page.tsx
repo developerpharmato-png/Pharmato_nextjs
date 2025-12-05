@@ -27,8 +27,8 @@ import {
   ErrorMessageCom, // This component is now used for the Name field
 } from "../../components/miniComponents";
 
-import { initCategory } from "../utils/initCategory";
-import { validateCategory } from "../utils/validateCategory";
+import { initCategory } from "../../../../utils/initCategory";
+import { validateCategory } from "../../../../utils/validateCategory";
 import { MdSave } from "react-icons/md";
 
 const MAX_DESCRIPTION_LENGTH = 1000;

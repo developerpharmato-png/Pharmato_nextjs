@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
-import Toast from "@/util/Toast";
+import Toast from "@/utils/Toast";
 
 
 export default function LoginPage() {

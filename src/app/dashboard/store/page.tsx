@@ -4,10 +4,11 @@ import axios from "axios";
 import Link from "next/link";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 
-
 import { CustomTable, Column } from "../components/CustomTable";
 import { CustomTooltip } from "../components/miniComponents";
 import HeaderWithAction from "../components/HeaderWithAction";
+import { EditIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type StoreForm = {
   name: string;
@@ -24,6 +25,7 @@ type StoreForm = {
 };
 
 export default function StoreDashboard() {
+  const router = useRouter();
   const [stores, setStores] = useState<any[]>([]);
   const [pincodes, setPincodes] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
@@ -135,7 +137,9 @@ export default function StoreDashboard() {
       minWidth: 120,
       selector: (row) => (
         <CustomTooltip title={row.name} placement="top">
-          <span className="font-semibold cursor-pointer hover:text-green-700 transition">{row.name}</span>
+          <span className="font-semibold cursor-pointer hover:text-green-700 transition">
+            {row.name}
+          </span>
         </CustomTooltip>
       ),
     },
@@ -151,7 +155,15 @@ export default function StoreDashboard() {
               className="inline-flex items-center px-3 py-1 rounded-full bg-linear-to-r from-green-100 to-green-200 text-green-800 font-semibold shadow-sm border border-green-300 text-sm"
               style={{ fontSize: "0.95rem" }}
             >
-              <svg className="w-4 h-4 mr-1 text-green-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>
+              <svg
+                className="w-4 h-4 mr-1 text-green-400"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="12" cy="12" r="10" />
+              </svg>
               {pin}
             </span>
           ))}
@@ -179,20 +191,23 @@ export default function StoreDashboard() {
       minWidth: 60,
       selector: (row) => (
         <CustomTooltip title="Edit Store" placement="top">
-          <Link
-            href={`/dashboard/store/edit/${row._id}`}
-            className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-yellow-100 text-yellow-700"
+          <span
+            style={{
+              cursor: "pointer",
+              color: "var(--primary)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onClick={() => router.push(`/dashboard/store/edit/${row._id}`)}
           >
-            <EditOutlinedIcon fontSize="small" />
-          </Link>
+            <EditIcon fontSize="small" />
+          </span>
         </CustomTooltip>
       ),
     },
   ];
 
-
-
-  
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
@@ -205,20 +220,19 @@ export default function StoreDashboard() {
         addShow={true}
         handleAdd={openAddStore}
       />
-     
-        <CustomTable
-          columns={columns}
-          data={stores}
-          page={0}
-          rowsPerPage={100}
-          totalCount={stores.length}
-          onPageChange={() => {}}
-          loading={loading}
-        />
-        {error && (
-          <div className="text-red-600 text-lg font-semibold mt-4">{error}</div>
-        )}
-     
+
+      <CustomTable
+        columns={columns}
+        data={stores}
+        page={0}
+        rowsPerPage={100}
+        totalCount={stores.length}
+        onPageChange={() => {}}
+        loading={loading}
+      />
+      {error && (
+        <div className="text-red-600 text-lg font-semibold mt-4">{error}</div>
+      )}
     </div>
   );
 }
