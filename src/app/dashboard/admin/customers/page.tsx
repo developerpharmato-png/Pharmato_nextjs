@@ -187,7 +187,7 @@ export default function AdminCustomerListPage() {
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
-        title="Admin Customers"
+        title=" Customers"
         subtitle="Manage your customer records"
         showBack={false}
         showSearch={true}

@@ -111,7 +111,7 @@ export default function DashboardLayout({
     },
     { name: "Admins", path: "/dashboard/admins", icon: "admin_panel_settings" },
     {
-      name: "Admin Customers",
+      name: " Customers",
       path: "/dashboard/admin/customers",
       icon: "person",
     },
