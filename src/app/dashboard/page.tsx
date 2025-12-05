@@ -60,7 +60,7 @@ export default function DashboardPage() {
                             <span className="material-icons">add</span>
                         </div>
                         <div className="ml-4">
-                            <p className="font-semibold text-gray-800">Add Medicine</p>
+                            <p className="font-semibold text-gray-800">Adsd Medicine</p>
                             <p className="text-xs text-gray-600">Add new medicine to inventory</p>
                         </div>
                     </Link>

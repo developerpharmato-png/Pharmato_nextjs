@@ -11,6 +11,7 @@ import DialogActions from "@mui/material/DialogActions";
 import { Box, Switch, TextField, Button } from "@mui/material";
 import { ImageUploadField } from "../components/ImageUploadField";
 import { CustomButton, ErrorMessageCom } from "../components/miniComponents";
+import Swal from "sweetalert2";
 
 interface BannerImageModalProps {
   open: boolean;
@@ -71,6 +72,105 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
       images: formik.values.url ? [formik.values.url] : [],
     },
   };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "image/svg+xml",
+      ];
+      if (!allowedTypes.includes(file.type)) {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid file type",
+          text: "Please upload only image files",
+        });
+        const fileInput = document.getElementById(
+          "category-image-input"
+        ) as HTMLInputElement | null;
+        if (fileInput) fileInput.value = "";
+        return;
+      }
+
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        Swal.fire({
+          icon: "error",
+          title: "File too large",
+          text: "Please upload an image smaller than 5MB",
+        });
+        const fileInput = document.getElementById(
+          "category-image-input"
+        ) as HTMLInputElement | null;
+        if (fileInput) fileInput.value = "";
+        return;
+      }
+
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
+      const res = await fetch("/api/cloudinary/upload-image", {
+        method: "POST",
+        body: uploadFormData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        formik.setFieldValue("images", [data.url]);
+        formik.setFieldValue("url", data.url); // Sync url for validation
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: "Image uploaded successfully",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Image upload failed",
+          text: data.error || "Failed to upload image",
+        });
+      }
+
+      const fileInput = document.getElementById(
+        "category-image-input"
+      ) as HTMLInputElement | null;
+      if (fileInput) fileInput.value = "";
+    }
+  };
+
+  const handleDeleteImage = async (url: string) => {
+    const res = await fetch("/api/cloudinary/delete-image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageUrl: url }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      formik.setFieldValue("images", []);
+      formik.setFieldValue("url", ""); // Sync url for validation
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: "Image deleted",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Delete failed",
+        text: data.error || "Failed to delete image",
+      });
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -102,12 +202,8 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
           <Box mb={2}>
             <ImageUploadField
               formik={formikWithImages}
-              handleFileChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                formik.setFieldValue("url", URL.createObjectURL(file));
-              }}
-              handleDeleteImage={() => formik.setFieldValue("url", "")}
+              handleFileChange={handleFileChange}
+              handleDeleteImage={handleDeleteImage}
               previewOpen={false}
               setPreviewOpen={() => {}}
               uploading={false}
@@ -196,10 +292,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
           </Box>
         </DialogContent>
         <DialogActions>
-          <CustomButton
-            type="submit"
-            disabled={loading}
-          >
+          <CustomButton type="submit" disabled={loading}>
             {initial?._edit ? "Edit" : "Add "}
           </CustomButton>
         </DialogActions>

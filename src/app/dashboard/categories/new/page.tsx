@@ -88,7 +88,7 @@ export default function NewCategoryPage() {
     validateOnBlur: true,
   });
 
-  // --- Image Handling Logic (Unchanged) ---
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -186,7 +186,6 @@ export default function NewCategoryPage() {
     }
   };
 
-  // --- Component Rendering (MUI Conversion) ---
   return (
     <div className="containerStyle scrollbar-hide">
       <Box sx={{ mb: 4, position: "relative" }}>

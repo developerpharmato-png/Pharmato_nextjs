@@ -24,6 +24,7 @@ export default function SubCategoriesPage() {
         showBack={false}
         showSearch={false}
         addLabel="Add "
+      
         addShow={true}
         handleAdd={handleAdd}
       />
@@ -34,6 +35,7 @@ export default function SubCategoriesPage() {
 }
 
 function SubCategoriesTable() {
+    
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [filteredSubcategories, setFilteredSubcategories] = useState<any[]>([]);
@@ -203,13 +205,6 @@ function SubCategoriesTable() {
     setPendingSubcategory(null);
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-      </div>
-    );
-  }
 
   // Table columns
   const columns: Column<any>[] = [

@@ -131,18 +131,35 @@ export default function PincodeDashboard() {
     },
     {
       id: "actions",
-      label: "Delete",
-      minWidth: 60,
+      label: "Actions",
+      minWidth: 100,
       selector: (row) => (
-        <CustomTooltip title="Delete Pincode" placement="top">
-          <button
-            className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-red-100 text-red-700"
-            onClick={() => handleDelete(row._id)}
-            disabled={loading}
-          >
-            <DeleteOutlineIcon fontSize="small" />
-          </button>
-        </CustomTooltip>
+        <div className="flex gap-2">
+          <CustomTooltip title="Edit Pincode" placement="top">
+            <button
+              style={{
+                cursor: "pointer",
+                color: "var(--primary)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+              onClick={() => handleEdit(row)}
+              disabled={loading}
+            >
+              <EditIcon fontSize="small" />
+            </button>
+          </CustomTooltip>
+          <CustomTooltip title="Delete Pincode" placement="top">
+            <button
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-red-100 text-red-700"
+              onClick={() => handleDelete(row._id)}
+              disabled={loading}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </button>
+          </CustomTooltip>
+        </div>
       ),
     },
   ];
