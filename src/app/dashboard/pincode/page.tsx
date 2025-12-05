@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { showConfirmStatusAlert } from "../components/ConfirmStatusAlert";
 import { CustomTable, Column } from "../components/CustomTable";
 import HeaderWithAction from "../components/HeaderWithAction";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -57,36 +57,25 @@ export default function PincodeDashboard() {
   };
 
   const handleDelete = async (id: string) => {
-    const result = await Swal.fire({
+    showConfirmStatusAlert({
+      isActive: false,
       title: "Delete Pincode?",
       text: "Are you sure you want to delete this pincode?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Delete",
-      cancelButtonText: "Cancel",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      onConfirm: async () => {
+        setLoading(true);
+        setError("");
+        try {
+          await axios.delete("/api/admin/pincode", { data: { id } });
+          // Optionally show a toast/notification here
+          fetchPincodes();
+        } catch (err: any) {
+          setError(err?.response?.data?.message || "Error deleting pincode");
+        }
+        setLoading(false);
+      },
     });
-    if (!result.isConfirmed) return;
-    setLoading(true);
-    setError("");
-    try {
-      await axios.delete("/api/admin/pincode", { data: { id } });
-      Swal.fire({
-        toast: true,
-        position: "top-end",
-        icon: "success",
-        title: "Pincode deleted",
-        showConfirmButton: false,
-        timer: 2000,
-      });
-      fetchPincodes();
-    } catch (err: any) {
-      Swal.fire({
-        icon: "error",
-        title: "Delete failed",
-        text: err?.response?.data?.message || "Error deleting pincode",
-      });
-    }
-    setLoading(false);
   };
 
   // CustomTable columns definition
@@ -101,49 +90,59 @@ export default function PincodeDashboard() {
     },
     {
       id: "isActive",
-      label: "Active",
+      label: "Status",
       minWidth: 80,
-      selector: (row) =>
-        row.isActive ? (
-          <span className="inline-block px-4 py-1 rounded-full bg-green-100 text-green-800 font-semibold text-sm shadow">
-            Yes
-          </span>
-        ) : (
-          <span className="inline-block px-4 py-1 rounded-full bg-red-100 text-red-800 font-semibold text-sm shadow">
-            No
-          </span>
-        ),
+      selector: (row) => (
+        <button
+          onClick={() => {
+            showConfirmStatusAlert({
+              isActive: !!row.isActive,
+              title: row.isActive ? "Deactivate Pincode?" : "Activate Pincode?",
+              text: row.isActive
+                ? "Are you sure you want to deactivate this pincode?"
+                : "Are you sure you want to activate this pincode?",
+              confirmText: row.isActive ? "Deactivate" : "Activate",
+              cancelText: "Cancel",
+              onConfirm: async () => {
+                try {
+                  await axios.put("/api/admin/pincode", {
+                    id: row._id,
+                    pincode: row.pincode,
+                    isActive: !row.isActive,
+                  });
+                  fetchPincodes();
+                } catch {
+                  // Optionally show error toast
+                }
+              },
+            });
+          }}
+          className="relative cursor-pointer inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
+          title={row.isActive ? "Click to deactivate" : "Click to activate"}
+        >
+          <span
+            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
+              row.isActive ? "translate-x-6" : "translate-x-1"
+            }`}
+          />
+        </button>
+      ),
     },
     {
       id: "actions",
-      label: "Actions",
-      minWidth: 80,
+      label: "Delete",
+      minWidth: 60,
       selector: (row) => (
-        <div className="flex gap-2">
-          <CustomTooltip title="Edit Pincode" placement="top">
-            <span
-              style={{
-                cursor: "pointer",
-                color: "var(--primary)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-              onClick={() => handleEdit(row)}
-            >
-              <EditIcon fontSize="small" />
-            </span>
-          </CustomTooltip>
-          <CustomTooltip title="Delete Pincode" placement="top">
-            <button
-              className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-red-100 text-red-700"
-              onClick={() => handleDelete(row._id)}
-              disabled={loading}
-            >
-              <DeleteOutlineIcon fontSize="small" />
-            </button>
-          </CustomTooltip>
-        </div>
+        <CustomTooltip title="Delete Pincode" placement="top">
+          <button
+            className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-red-100 text-red-700"
+            onClick={() => handleDelete(row._id)}
+            disabled={loading}
+          >
+            <DeleteOutlineIcon fontSize="small" />
+          </button>
+        </CustomTooltip>
       ),
     },
   ];

@@ -6,6 +6,7 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 
 import { CustomTable, Column } from "../components/CustomTable";
 import { CustomTooltip } from "../components/miniComponents";
+import { showConfirmStatusAlert } from "../components/ConfirmStatusAlert";
 import HeaderWithAction from "../components/HeaderWithAction";
 import { EditIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -45,6 +46,7 @@ export default function StoreDashboard() {
   const [editId, setEditId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+console.log(loading,"loadingloading");
 
   useEffect(() => {
     fetchStores();
@@ -174,16 +176,41 @@ export default function StoreDashboard() {
       id: "status",
       label: "Status",
       minWidth: 100,
-      selector: (row) =>
-        row.status === 1 ? (
-          <span className="inline-block bg-green-100 text-green-700 font-bold px-4 py-1 rounded-full text-lg">
-            Active
-          </span>
-        ) : (
-          <span className="inline-block bg-gray-200 text-gray-600 font-bold px-4 py-1 rounded-full text-lg">
-            Inactive
-          </span>
-        ),
+      selector: (row) => (
+        <button
+          onClick={() => {
+            showConfirmStatusAlert({
+              isActive: row.status === 1,
+              title: row.status === 1 ? "Deactivate Store?" : "Activate Store?",
+              text: row.status === 1
+                ? "Are you sure you want to deactivate this store?"
+                : "Are you sure you want to activate this store?",
+              confirmText: row.status === 1 ? "Deactivate" : "Activate",
+              cancelText: "Cancel",
+              onConfirm: async () => {
+                try {
+                  await axios.put(`/api/admin/store?id=${row._id}`, {
+                    ...row,
+                    status: row.status === 1 ? 0 : 1,
+                  });
+                  fetchStores();
+                } catch {
+                  // Optionally show error toast
+                }
+              },
+            });
+          }}
+          className="relative cursor-pointer inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          style={{ backgroundColor: row.status === 1 ? "#10b981" : "#d1d5db" }}
+          title={row.status === 1 ? "Click to deactivate" : "Click to activate"}
+        >
+          <span
+            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
+              row.status === 1 ? "translate-x-6" : "translate-x-1"
+            }`}
+          />
+        </button>
+      ),
     },
     {
       id: "actions",

@@ -182,7 +182,7 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
       ),
     },
     {
-      id: "actions",
+      id: "actions",  
       label: "Edit",
       minWidth: 60,
       selector: (row: Category) => (

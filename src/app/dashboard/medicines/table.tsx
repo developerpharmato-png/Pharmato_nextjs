@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { CustomTable, Column } from "../components/CustomTable";
 import { CustomTooltip, CustomImage } from "../components/miniComponents";
+import { showConfirmStatusAlert } from "../components/ConfirmStatusAlert";
+import axios from "axios";
 import Avatar from "@mui/material/Avatar";
 import { useRouter } from "next/navigation";
 import { EditIcon } from "lucide-react";
@@ -30,10 +32,45 @@ const MedicinesTable: React.FC<Props> = ({ searchValue, onSearchChange }) => {
       .finally(() => setLoading(false));
   }, [page, rowsPerPage, searchValue]);
 
+  const fetchMedicines = () => {
+    setLoading(true);
+    fetch(`/api/medicines?limit=${rowsPerPage}&offset=${page * rowsPerPage}&search=${encodeURIComponent(searchValue || "")}`)
+      .then((res) => res.json())
+      .then((res) => {
+        setData(res.data || []);
+        setTotalCount(res.total || 0);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  const handleToggleStatus = async (row: any) => {
+    showConfirmStatusAlert({
+      isActive: !!row.isActive,
+      title: row.isActive ? "Deactivate Medicine?" : "Activate Medicine?",
+      text: row.isActive
+        ? "Are you sure you want to deactivate this medicine?"
+        : "Are you sure you want to activate this medicine?",
+      confirmText: row.isActive ? "Deactivate" : "Activate",
+      cancelText: "Cancel",
+      onConfirm: async () => {
+        try {
+          await axios.put(`/api/medicines/${row._id}/update`, {
+            ...row,
+            isActive: !row.isActive,
+          });
+          fetchMedicines();
+        } catch {
+          // Optionally show error toast
+        }
+      },
+    });
+  };
+
   const columns: Column<any>[] = [
+      
     {
       id: "uniqueCode",
-      label: "Unique Code",
+      label: "ID",
       minWidth: 120,
       selector: (row) => (
         <CustomTooltip title={row.uniqueCode || "-"}>
@@ -409,7 +446,25 @@ const MedicinesTable: React.FC<Props> = ({ searchValue, onSearchChange }) => {
         </CustomTooltip>
       ),
     },
-   
+     {
+          id: "isActive",
+          label: "Status",
+          minWidth: 80,
+          selector: (row) => (
+            <button
+              onClick={() => handleToggleStatus(row)}
+              className="relative cursor-pointer inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
+              title={row.isActive ? "Click to deactivate" : "Click to activate"}
+            >
+              <span
+                className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
+                  row.isActive ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          ),
+        },
     {
       id: "actions",
       label: "Edit",
