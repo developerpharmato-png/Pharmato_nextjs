@@ -7,7 +7,8 @@ import { CustomTable, Column } from "../components/CustomTable";
 import HeaderWithAction from "../components/HeaderWithAction";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import { CustomTooltip } from "../components/miniComponents";
+import { CustomButton, CustomTooltip } from "../components/miniComponents";
+import { EditIcon } from "lucide-react";
 
 export default function PincodeDashboard() {
   const [pincodes, setPincodes] = useState([]);
@@ -120,13 +121,18 @@ export default function PincodeDashboard() {
       selector: (row) => (
         <div className="flex gap-2">
           <CustomTooltip title="Edit Pincode" placement="top">
-            <button
-              className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-yellow-100 text-yellow-700"
+            <span
+              style={{
+                cursor: "pointer",
+                color: "var(--primary)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
               onClick={() => handleEdit(row)}
-              disabled={loading}
             >
-              <EditOutlinedIcon fontSize="small" />
-            </button>
+              <EditIcon fontSize="small" />
+            </span>
           </CustomTooltip>
           <CustomTooltip title="Delete Pincode" placement="top">
             <button
@@ -172,7 +178,7 @@ export default function PincodeDashboard() {
           />
           <span className="text-green-700 font-bold">Active</span>
         </label>
-        <button
+        <CustomButton
           type="submit"
           className={`px-8 py-3 rounded-lg font-semibold text-white transition shadow-md ${
             editId
@@ -182,9 +188,9 @@ export default function PincodeDashboard() {
           disabled={loading}
         >
           {editId ? "Update" : "Add"}
-        </button>
+        </CustomButton>
         {editId && (
-          <button
+          <CustomButton
             type="button"
             className="px-8 py-3 rounded-lg bg-gray-300 hover:bg-gray-400 font-semibold text-gray-700 shadow-md"
             onClick={() => {
@@ -193,7 +199,7 @@ export default function PincodeDashboard() {
             }}
           >
             Cancel
-          </button>
+          </CustomButton>
         )}
       </form>
       {error && (

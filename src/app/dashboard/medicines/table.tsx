@@ -4,7 +4,7 @@ import { CustomTable, Column } from "../components/CustomTable";
 import { CustomTooltip, CustomImage } from "../components/miniComponents";
 import Avatar from "@mui/material/Avatar";
 import { useRouter } from "next/navigation";
-import EditIcon from "@mui/icons-material/Edit";
+import { EditIcon } from "lucide-react";
 
 type Props = {
   searchValue?: string;

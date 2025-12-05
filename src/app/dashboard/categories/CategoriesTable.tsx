@@ -2,8 +2,9 @@ import React from "react";
 import { CustomTable, Column } from "../components/CustomTable";
 import { CustomTooltip, CustomImage } from "../components/miniComponents";
 import Avatar from "@mui/material/Avatar";
-import EditIcon from "@mui/icons-material/Edit";
+
 import { useRouter } from "next/navigation";
+import { EditIcon } from "lucide-react";
 
 interface Category {
   _id: string;
@@ -170,18 +171,20 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({
       label: "Edit",
       minWidth: 60,
       selector: (row) => (
-        <span
-          style={{
-            cursor: "pointer",
-            color: "var(--primary)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-          onClick={() => router.push(`/dashboard/categories/edit/${row._id}`)}
-        >
-          <EditIcon fontSize="small" />
-        </span>
+        <CustomTooltip title="Edit">
+          <span
+            style={{
+              cursor: "pointer",
+              color: "var(--primary)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onClick={() => router.push(`/dashboard/categories/edit/${row._id}`)}
+          >
+            <EditIcon fontSize="small" />
+          </span>
+        </CustomTooltip>
       ),
     },
   ];
