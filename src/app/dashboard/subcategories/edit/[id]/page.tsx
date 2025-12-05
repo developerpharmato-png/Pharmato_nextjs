@@ -12,6 +12,11 @@ import {
 } from "@/app/dashboard/components/miniComponents";
 import HeaderWithAction from "@/app/dashboard/components/HeaderWithAction";
 import { CircularProgress } from "@mui/material";
+import { ImageUploadField } from "@/app/dashboard/components/ImageUploadField";
+import {
+  StandardFormCheckbox,
+  StyledCheckboxWithDescription,
+} from "@/app/dashboard/components/StyledCheckboxWithDescription";
 
 export default function EditSubCategoryPage() {
   const { id } = useParams();
@@ -271,90 +276,18 @@ export default function EditSubCategoryPage() {
               <ErrorMessageCom error={formik.errors.description} />
             )}
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Subcategory Image *
-            </label>
-            <div className="flex items-center gap-4">
-              {formik.values.images.length === 0 ? (
-                <div>
-                  <input
-                    id="edit-subcategory-image-input"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    style={{ display: "none" }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      document
-                        .getElementById("edit-subcategory-image-input")
-                        ?.click()
-                    }
-                    className="w-16 h-16 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg hover:bg-gray-200 transition"
-                    title="Upload photo"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-8 h-8 text-gray-500"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M8.25 12.75l2.25 3 3-4.5 4.5 6"
-                      />
-                    </svg>
-                  </button>
-                  {uploading && (
-                    <span className="ml-2 text-blue-600">Uploading...</span>
-                  )}
-                </div>
-              ) : (
-                <div className="relative group">
-                  <img
-                    src={formik.values.images[0]}
-                    alt="Subcategory"
-                    className="h-20 w-20 object-cover rounded border cursor-pointer"
-                    title="Subcategory image"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteImage(formik.values.images[0])}
-                    className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-80 group-hover:opacity-100"
-                    title="Delete image"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                      className="w-4 h-4"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              )}
-            </div>
-            {formik.touched.images && formik.errors.images && (
-              <ErrorMessageCom error={formik.errors.images as string} />
-            )}
-          </div>
+          <ImageUploadField
+            formik={formik}
+            handleFileChange={handleFileChange}
+            handleDeleteImage={handleDeleteImage}
+            previewOpen={!!(formik.touched.images && formik.errors.images)}
+            setPreviewOpen={() => {}}
+            uploading={uploading}
+            deleting={false}
+            label="Subcategory Image *"
+            id="category-image-input"
+          />
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Parent Category *
@@ -378,38 +311,22 @@ export default function EditSubCategoryPage() {
               <ErrorMessageCom error={formik.errors.categoryId} />
             )}
           </div>
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="isOTC"
-              name="isOTC"
-              checked={formik.values.isOTC}
-              onChange={formik.handleChange}
-              className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
-            />
-            <label
-              htmlFor="isOTC"
-              className="text-sm font-medium text-gray-700 cursor-pointer"
-            >
-              OTC Subcategory
-            </label>
-          </div>
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="isActive"
-              name="isActive"
-              checked={formik.values.isActive}
-              onChange={formik.handleChange}
-              className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
-            />
-            <label
-              htmlFor="isActive"
-              className="text-sm font-medium text-gray-700 cursor-pointer"
-            >
-              Active
-            </label>
-          </div>
+
+          <StyledCheckboxWithDescription
+            id="isOTC"
+            checked={formik.values.isOTC}
+            onChange={formik.handleChange}
+            title="Over-the-Counter (OTC) Subcategory"
+            description="Medicines in this subcategory can be purchased without a prescription"
+          />
+
+          <StandardFormCheckbox
+            id="isActive"
+            checked={formik.values.isActive}
+            onChange={formik.handleChange}
+            label="Active Subcategory"
+          />
+
           <div className="w-[200px] pt-4">
             <CustomButton
               type="submit"

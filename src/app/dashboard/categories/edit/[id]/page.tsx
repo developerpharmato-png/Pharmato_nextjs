@@ -28,6 +28,11 @@ import {
   DeleteIcon,
   ErrorMessageCom,
 } from "@/app/dashboard/components/miniComponents";
+import { ImageUploadField } from "@/app/dashboard/components/ImageUploadField";
+import {
+  StandardFormCheckbox,
+  StyledCheckboxWithDescription,
+} from "@/app/dashboard/components/StyledCheckboxWithDescription";
 
 // --- Utility Functions (You'll need these if they are not shared) ---
 // Define the initial structure for Formik
@@ -56,7 +61,9 @@ type EditCategoryFormErrors = {
   isActive?: string;
 };
 
-const validateEditCategory = (values: EditCategoryForm): EditCategoryFormErrors => {
+const validateEditCategory = (
+  values: EditCategoryForm
+): EditCategoryFormErrors => {
   const errors: EditCategoryFormErrors = {};
   if (!values.name) {
     errors.name = "Category Name is required";
@@ -384,226 +391,33 @@ export default function EditCategoryPage() {
               }}
             />
 
-            {/* Category Image Upload */}
-            <Box>
-              <Typography
-                variant="body2"
-                fontWeight="medium"
-                color="text.primary"
-                sx={{ mb: 1 }}
-              >
-                Category Image *
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                {formik.values.images.length === 0 ? (
-                  <Box>
-                    <input
-                      id="edit-category-image-input"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      style={{ display: "none" }}
-                    />
-                    <Button
-                      variant="outlined"
-                      component="label"
-                      htmlFor="edit-category-image-input"
-                      sx={{
-                        width: 80,
-                        height: 80,
-                        minWidth: 0,
-                        borderStyle: "dashed",
-                        borderColor: theme.palette.grey[400],
-                        bgcolor: theme.palette.grey[50],
-                        "&:hover": {
-                          bgcolor: theme.palette.grey[100],
-                          borderStyle: "dashed",
-                        },
-                      }}
-                    >
-                      <CloudUploadIcon
-                        sx={{ fontSize: 32, color: theme.palette.grey[500] }}
-                      />
-                    </Button>
-                    {uploading && (
-                      <CircularProgress
-                        size={24}
-                        sx={{ ml: 2, color: theme.palette.primary.main }}
-                      />
-                    )}
-                    {!uploading && (
-                      <Typography
-                        variant="caption"
-                        color="error.main"
-                        sx={{
-                          display: { xs: "block", sm: "inline" },
-                          mt: 1,
-                          ml: 2,
-                        }}
-                      >
-                        {formik.touched.images && formik.errors.images
-                          ? formik.errors.images // Display image required error
-                          : "No image uploaded yet."}
-                      </Typography>
-                    )}
-                  </Box>
-                ) : (
-                  <Box sx={{ position: "relative", display: "inline-block" }}>
-                    <img
-                      src={formik.values.images[0]}
-                      alt="Category"
-                      onClick={() => setPreviewOpen(true)}
-                      style={{
-                        width: 80,
-                        height: 80,
-                        objectFit: "cover",
-                        borderRadius: theme.shape.borderRadius,
-                        border: `1px solid ${theme.palette.grey[300]}`,
-                        cursor: "pointer",
-                      }}
-                    />
-                    <IconButton
-                      size="small"
-                      onClick={() => handleDeleteImage(formik.values.images[0])}
-                      sx={{
-                        position: "absolute",
-                        top: 4,
-                        right: 4,
-                        bgcolor: theme.palette.error.main,
-                        color: "white",
-                        "&:hover": { bgcolor: theme.palette.error.dark },
-                        width: 20,
-                        height: 20,
-                      }}
-                    >
-                      <DeleteIcon width={14} height={14} />
-                    </IconButton>
+            <ImageUploadField
+              formik={formik}
+              handleFileChange={handleFileChange}
+              handleDeleteImage={handleDeleteImage}
+              previewOpen={previewOpen}
+              setPreviewOpen={setPreviewOpen}
+              uploading={uploading}
+              deleting={false}
+              label="Category Image"
+              id="category-image-input"
+            />
 
-                    {/* Image Preview Modal (MUI implementation) */}
-                    {previewOpen && (
-                      <Box
-                        onClick={() => setPreviewOpen(false)}
-                        sx={{
-                          position: "fixed",
-                          inset: 0,
-                          zIndex: 1300,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backdropFilter: "blur(8px)",
-                          bgcolor: "rgba(0, 0, 0, 0.5)",
-                        }}
-                      >
-                        <Box
-                          onClick={(e) => e.stopPropagation()}
-                          sx={{
-                            bgcolor: "white",
-                            borderRadius: 2,
-                            boxShadow: 24,
-                            p: 3,
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                          }}
-                        >
-                          <img
-                            src={formik.values.images[0]}
-                            alt="Preview"
-                            style={{
-                              maxWidth: "80vw",
-                              maxHeight: "80vh",
-                              marginBottom: theme.spacing(2),
-                              borderRadius: theme.shape.borderRadius,
-                            }}
-                          />
-                          <Button
-                            onClick={() => setPreviewOpen(false)}
-                            variant="contained"
-                            startIcon={<CloseIcon />}
-                            sx={{
-                              bgcolor: theme.palette.grey[700],
-                              "&:hover": { bgcolor: theme.palette.grey[900] },
-                            }}
-                          >
-                            Close
-                          </Button>
-                        </Box>
-                      </Box>
-                    )}
-                  </Box>
-                )}
-              </Box>
-              {/* Display image required error outside of the image box if needed, or use the check inside the image box */}
-              {formik.touched.images && formik.errors.images && (
-                <ErrorMessageCom error={typeof formik.errors.images === "string" ? formik.errors.images : ""} />
-              )}
-            </Box>
+            <StyledCheckboxWithDescription
+              id="isOTC"
+              checked={formik.values.isOTC}
+              onChange={formik.handleChange}
+              title="Over-the-Counter (OTC) Subcategory"
+              description="Medicines in this subcategory can be purchased without a prescription"
+            />
 
-            {/* Checkboxes for Category Attributes */}
-            <Box
-              sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}
-            >
-              {/* OTC Checkbox */}
-              <Box
-                sx={{
-                  p: 2,
-                  bgcolor: theme.palette.success.light,
-                  border: `1px solid ${theme.palette.success.light}`,
-                  borderRadius: 1,
-                }}
-              >
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      id="isOTC"
-                      checked={formik.values.isOTC}
-                      onChange={formik.handleChange} // Use Formik's handleChange
-                      name="isOTC" // Must have name for Formik
-                      color="success"
-                    />
-                  }
-                  label={
-                    <Box>
-                      <Typography
-                        variant="body2"
-                        fontWeight="medium"
-                        color="text.primary"
-                      >
-                        Over-the-Counter (OTC) Category
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Medicines in this category can be purchased without a
-                        prescription
-                      </Typography>
-                    </Box>
-                  }
-                  sx={{ m: 0 }}
-                />
-              </Box>
+            <StandardFormCheckbox
+              id="isActive"
+              checked={formik.values.isActive}
+              onChange={formik.handleChange}
+              label="Active Subcategory"
+            />
 
-              {/* Active Checkbox */}
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    id="isActive"
-                    checked={formik.values.isActive}
-                    onChange={formik.handleChange} // Use Formik's handleChange
-                    name="isActive" // Must have name for Formik
-                    color="success"
-                  />
-                }
-                label="Active Category"
-                sx={{
-                  m: 0,
-                  ".MuiTypography-root": {
-                    fontSize: theme.typography.pxToRem(14),
-                    fontWeight: theme.typography.fontWeightMedium,
-                  },
-                }}
-              />
-            </Box>
-
-            {/* Action Buttons */}
             <Box sx={{ display: "flex", gap: 2, pt: 4 }}>
               <Box sx={{ display: "flex", gap: 2, pt: 2 }}>
                 <div className="mt-8 flex justify-center w-full">

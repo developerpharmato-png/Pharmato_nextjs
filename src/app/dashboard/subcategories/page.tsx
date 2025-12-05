@@ -14,7 +14,7 @@ export default function SubCategoriesPage() {
   const router = useRouter();
 
   const handleAdd = () => {
-    router.push("/dashboard/categories/new");
+    router.push("/dashboard/subcategories/new");
   };
   return (
     <div className="containerStyle scrollbar-hide">
@@ -24,7 +24,6 @@ export default function SubCategoriesPage() {
         showBack={false}
         showSearch={false}
         addLabel="Add "
-        addHref="/dashboard/categories/new"
         addShow={true}
         handleAdd={handleAdd}
       />
@@ -35,7 +34,6 @@ export default function SubCategoriesPage() {
 }
 
 function SubCategoriesTable() {
-    
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [filteredSubcategories, setFilteredSubcategories] = useState<any[]>([]);
