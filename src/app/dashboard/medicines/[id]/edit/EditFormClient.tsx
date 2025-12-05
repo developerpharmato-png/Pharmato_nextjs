@@ -47,6 +47,8 @@ export default function EditFormClient({ id }: { id?: string }) {
     images: [] as string[],
     coverImage: "" as string,
     highlights: [] as string[],
+    unitInput: "",
+    unit: "",
   });
   const [uploading, setUploading] = useState(false);
   const [composition, setComposition] = useState([{ name: "", value: "" }]);
@@ -84,6 +86,39 @@ export default function EditFormClient({ id }: { id?: string }) {
         if (json?.success) {
           const data = json.data;
           setMedicine(data);
+          // Prefill unitInput and unit from data.unit
+          let unitInput = "";
+          let unit = "";
+          if (data.unit) {
+            // Try to split suffix based on category
+            let suffix = "";
+            switch (data.category) {
+              case "Tablet":
+                suffix = " Tablets";
+                break;
+              case "Capsule":
+                suffix = " Capsules";
+                break;
+              case "Syrup":
+              case "Drops":
+              case "Injection":
+                suffix = " ml";
+                break;
+              case "Cream":
+                suffix = " g";
+                break;
+              case "Other":
+                suffix = "";
+                break;
+            }
+            if (data.unit.endsWith(suffix)) {
+              unitInput = data.unit.slice(0, -suffix.length);
+              unit = data.unit;
+            } else {
+              unitInput = data.unit;
+              unit = data.unit;
+            }
+          }
           setForm({
             name: data.name ?? "",
             description: data.description ?? "",
@@ -109,6 +144,8 @@ export default function EditFormClient({ id }: { id?: string }) {
                 ? data.images[0]
                 : ""),
             highlights: Array.isArray(data.highlights) ? data.highlights : [],
+            unitInput,
+            unit,
           });
           setComposition(
             Array.isArray(data.composition)
@@ -843,7 +880,7 @@ export default function EditFormClient({ id }: { id?: string }) {
                   <ErrorMessageCom error={errors.manufacturer} />
                 )}
               </div>
-              <div>
+              <div className="flex gap-4 items-end">
                 <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
                   <InputLabel id="form-type-label">Form Type *</InputLabel>
                   <Select
@@ -858,6 +895,8 @@ export default function EditFormClient({ id }: { id?: string }) {
                           type: "select-one",
                         },
                       } as React.ChangeEvent<HTMLSelectElement>);
+                      // Reset unit when category changes
+                      setForm((prev) => ({ ...prev, unitInput: "", unit: "" }));
                     }}
                     label="Form Type *"
                   >
@@ -868,6 +907,71 @@ export default function EditFormClient({ id }: { id?: string }) {
                     ))}
                   </Select>
                 </FormControl>
+                {/* Editable unit input with suffix */}
+                {form.category && (
+                  <div style={{ minWidth: 180 }}>
+                    <TextField
+                      name="unitInput"
+                      label="Unit"
+                      value={form.unitInput || ""}
+                      onChange={(e) => {
+                        let val = e.target.value;
+                        let suffix = "";
+                        switch (form.category) {
+                          case "Tablet":
+                            suffix = " Tablets";
+                            break;
+                          case "Capsule":
+                            suffix = " Capsules";
+                            break;
+                          case "Syrup":
+                          case "Drops":
+                          case "Injection":
+                            suffix = " ml";
+                            break;
+                          case "Cream":
+                            suffix = " g";
+                            break;
+                          case "Other":
+                            suffix = "";
+                            break;
+                        }
+                        // Remove suffix if user types it
+                        if (val.endsWith(suffix)) val = val.slice(0, -suffix.length);
+                        setForm((prev) => ({ ...prev, unitInput: val, unit: val + suffix }));
+                      }}
+                      variant="outlined"
+                      placeholder={(() => {
+                        switch (form.category) {
+                          case "Tablet": return "e.g. 10";
+                          case "Capsule": return "e.g. 10";
+                          case "Syrup": return "e.g. 250";
+                          case "Cream": return "e.g. 15";
+                          case "Drops": return "e.g. 10";
+                          case "Injection": return "e.g. 5";
+                          default: return "e.g. 1 Unit";
+                        }
+                      })()}
+                      InputProps={{
+                        endAdornment: (() => {
+                          switch (form.category) {
+                            case "Tablet": return <span style={{ marginLeft: 8 }}>Tablets</span>;
+                            case "Capsule": return <span style={{ marginLeft: 8 }}>Capsules</span>;
+                            case "Syrup": return <span style={{ marginLeft: 8 }}>ml</span>;
+                            case "Cream": return <span style={{ marginLeft: 8 }}>g</span>;
+                            case "Drops": return <span style={{ marginLeft: 8 }}>ml</span>;
+                            case "Injection": return <span style={{ marginLeft: 8 }}>ml</span>;
+                            default: return null;
+                          }
+                        })(),
+                        style: {
+                          borderRadius: "0.75rem",
+                          background: "#fff",
+                        },
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 

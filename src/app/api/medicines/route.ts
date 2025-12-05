@@ -113,9 +113,11 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'Related products must be an array' }, { status: 400 });
         }
 
+        // Always set unit from body (if present)
         const payloadBase: any = {
             ...body,
             isOTC,
+            unit: body.unit || ""
         };
 
         // helper to build a safe uniqueIdentity (max 100 chars)

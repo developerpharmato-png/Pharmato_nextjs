@@ -20,6 +20,8 @@ export const initialMedicineFormValues = {
   images: [],
   coverImage: undefined,
   highlights: [] as string[],
+  unitInput: '',
+  unit: '',
 };
 
 export const medicineFormValidationSchema = Yup.object().shape({

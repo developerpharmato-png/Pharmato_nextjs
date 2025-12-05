@@ -33,41 +33,105 @@ export default function MedicineForm() {
           !Number.isNaN(mrpNum) &&
           priceNum > mrpNum
         ) {
-          Swal.fire({
-            icon: "error",
-            title: "Invalid price",
-            text: "Selling price cannot be greater than MRP",
-          });
-          setLoading(false);
-          setSubmitting(false);
-          return;
-        }
-        // UI validation: Expiry date must not be in the past
-        if (values.expiryDate) {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const exp = new Date(values.expiryDate);
-          exp.setHours(0, 0, 0, 0);
-          if (exp < today) {
-            Swal.fire({
-              icon: "error",
-              title: "Invalid expiry date",
-              text: "Expiry Date cannot be a past date",
-            });
-            setLoading(false);
-            setSubmitting(false);
-            return;
-          }
-        }
-        if (!values.images || values.images.length === 0) {
-          Swal.fire({
-            icon: "error",
-            title: "Image required",
-            text: "Please upload a medicine image before submitting",
-          });
-          setLoading(false);
-          setSubmitting(false);
-          return;
+          <div className="flex gap-4 items-end">
+            <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+              <InputLabel id="form-type-label">Form Type *</InputLabel>
+              <Select
+                labelId="form-type-label"
+                name="category"
+                value={formik.values.category}
+                onChange={(event) => {
+                  handleChange({
+                    target: {
+                      name: "category",
+                      value: event.target.value,
+                      type: "select-one",
+                    },
+                  } as React.ChangeEvent<HTMLSelectElement>);
+                  // Reset unit when category changes
+                  formik.setFieldValue("unit", "");
+                }}
+                onBlur={formik.handleBlur}
+                label="Form Type *"
+              >
+                {["Tablet", "Capsule", "Syrup", "Injection", "Cream", "Drops", "Other"].map((c) => (
+                  <MenuItem key={c} value={c}>
+                    {c}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            {/* Editable unit input with suffix */}
+            {formik.values.category && (
+              <div style={{ minWidth: 180 }}>
+                <TextField
+                  name="unitInput"
+                  label="Unit"
+                  value={formik.values.unitInput || ""}
+                  onChange={(e) => {
+                    let val = e.target.value;
+                    let suffix = "";
+                    switch (formik.values.category) {
+                      case "Tablet":
+                        suffix = " Tablets";
+                        break;
+                      case "Capsule":
+                        suffix = " Capsules";
+                        break;
+                      case "Syrup":
+                      case "Drops":
+                      case "Injection":
+                        suffix = " ml";
+                        break;
+                      case "Cream":
+                        suffix = " g";
+                        break;
+                      case "Other":
+                        suffix = "";
+                        break;
+                    }
+                    // Remove suffix if user types it
+                    if (val.endsWith(suffix)) val = val.slice(0, -suffix.length);
+                    formik.setFieldValue("unitInput", val);
+                    formik.setFieldValue("unit", val + suffix);
+                  }}
+                  onBlur={formik.handleBlur}
+                  variant="outlined"
+                  placeholder={(() => {
+                    switch (formik.values.category) {
+                      case "Tablet": return "e.g. 10";
+                      case "Capsule": return "e.g. 10";
+                      case "Syrup": return "e.g. 250";
+                      case "Cream": return "e.g. 15";
+                      case "Drops": return "e.g. 10";
+                      case "Injection": return "e.g. 5";
+                      default: return "e.g. 1 Unit";
+                    }
+                  })()}
+                  InputProps={{
+                    endAdornment: (() => {
+                      switch (formik.values.category) {
+                        case "Tablet": return <span style={{ marginLeft: 8 }}>Tablets</span>;
+                        case "Capsule": return <span style={{ marginLeft: 8 }}>Capsules</span>;
+                        case "Syrup": return <span style={{ marginLeft: 8 }}>ml</span>;
+                        case "Cream": return <span style={{ marginLeft: 8 }}>g</span>;
+                        case "Drops": return <span style={{ marginLeft: 8 }}>ml</span>;
+                        case "Injection": return <span style={{ marginLeft: 8 }}>ml</span>;
+                        default: return null;
+                      }
+                    })(),
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
+                />
+              </div>
+            )}
+            {formik.touched.category && formik.errors.category && (
+              <ErrorMessageCom error={formik.errors.category} />
+            )}
+          </div>
         }
         if (values.images.length > 5) {
           Swal.fire({
@@ -187,7 +251,7 @@ export default function MedicineForm() {
         });
         const data = await res.json();
         if (data.success && data.url) uploadedUrls.push(data.url);
-      } catch {}
+      } catch { }
     }
     setUploading(false);
 
@@ -587,28 +651,28 @@ export default function MedicineForm() {
               <div className="mt-2 flex items-center gap-3"></div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-             <div className="">
-               <TextField
-                name="name"
-                label="Medicine Name *"
-                value={formik.values.name}
-                onChange={handleChange}
-                onBlur={formik.handleBlur}
-                fullWidth
-                variant="outlined"
-                placeholder="Enter medicine name"
-                error={formik.touched.name && Boolean(formik.errors.name)}
-                InputProps={{
-                  style: {
-                    borderRadius: "0.75rem",
-                    background: "#fff",
-                  },
-                }}
-              />
-              {formik.touched.name && formik.errors.name && (
-                <ErrorMessageCom error={formik.errors.name} />
-              )}
-             </div>
+              <div className="">
+                <TextField
+                  name="name"
+                  label="Medicine Name *"
+                  value={formik.values.name}
+                  onChange={handleChange}
+                  onBlur={formik.handleBlur}
+                  fullWidth
+                  variant="outlined"
+                  placeholder="Enter medicine name"
+                  error={formik.touched.name && Boolean(formik.errors.name)}
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
+                />
+                {formik.touched.name && formik.errors.name && (
+                  <ErrorMessageCom error={formik.errors.name} />
+                )}
+              </div>
             </div>
             <div>
               <TextField
@@ -658,7 +722,7 @@ export default function MedicineForm() {
                 )}
               </div>
               {/* Form Type */}
-              <div>
+              <div className="flex gap-4 items-end">
                 <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
                   <InputLabel id="form-type-label">Form Type *</InputLabel>
                   <Select
@@ -673,6 +737,9 @@ export default function MedicineForm() {
                           type: "select-one",
                         },
                       } as React.ChangeEvent<HTMLSelectElement>);
+                      // Reset unit when category changes
+                      formik.setFieldValue("unitInput", "");
+                      formik.setFieldValue("unit", "");
                     }}
                     onBlur={formik.handleBlur}
                     label="Form Type *"
@@ -684,6 +751,73 @@ export default function MedicineForm() {
                     ))}
                   </Select>
                 </FormControl>
+                {/* Editable unit input with suffix */}
+                {formik.values.category && (
+                  <div style={{ minWidth: 180 }}>
+                    <TextField
+                      name="unitInput"
+                      label="Unit"
+                      value={formik.values.unitInput || ""}
+                      onChange={(e) => {
+                        let val = e.target.value;
+                        let suffix = "";
+                        switch (formik.values.category) {
+                          case "Tablet":
+                            suffix = " Tablets";
+                            break;
+                          case "Capsule":
+                            suffix = " Capsules";
+                            break;
+                          case "Syrup":
+                          case "Drops":
+                          case "Injection":
+                            suffix = " ml";
+                            break;
+                          case "Cream":
+                            suffix = " g";
+                            break;
+                          case "Other":
+                            suffix = "";
+                            break;
+                        }
+                        // Remove suffix if user types it
+                        if (val.endsWith(suffix)) val = val.slice(0, -suffix.length);
+                        formik.setFieldValue("unitInput", val);
+                        formik.setFieldValue("unit", val + suffix);
+                      }}
+                      onBlur={formik.handleBlur}
+                      variant="outlined"
+                      placeholder={(() => {
+                        switch (formik.values.category) {
+                          case "Tablet": return "e.g. 10";
+                          case "Capsule": return "e.g. 10";
+                          case "Syrup": return "e.g. 250";
+                          case "Cream": return "e.g. 15";
+                          case "Drops": return "e.g. 10";
+                          case "Injection": return "e.g. 5";
+                          default: return "e.g. 1 Unit";
+                        }
+                      })()}
+                      InputProps={{
+                        endAdornment: (() => {
+                          switch (formik.values.category) {
+                            case "Tablet": return <span style={{ marginLeft: 8 }}>Tablets</span>;
+                            case "Capsule": return <span style={{ marginLeft: 8 }}>Capsules</span>;
+                            case "Syrup": return <span style={{ marginLeft: 8 }}>ml</span>;
+                            case "Cream": return <span style={{ marginLeft: 8 }}>g</span>;
+                            case "Drops": return <span style={{ marginLeft: 8 }}>ml</span>;
+                            case "Injection": return <span style={{ marginLeft: 8 }}>ml</span>;
+                            default: return null;
+                          }
+                        })(),
+                        style: {
+                          borderRadius: "0.75rem",
+                          background: "#fff",
+                        },
+                      }}
+                    />
+                  </div>
+                )}
                 {formik.touched.category && formik.errors.category && (
                   <ErrorMessageCom error={formik.errors.category} />
                 )}

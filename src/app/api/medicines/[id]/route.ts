@@ -133,7 +133,8 @@ export async function PUT(
             );
         }
         const body = await request.json();
-        const update = { ...body };
+        // Always set unit from body (if present)
+        const update = { ...body, unit: body.unit || "" };
         delete update._id;
         delete update.createdAt;
         delete update.updatedAt;

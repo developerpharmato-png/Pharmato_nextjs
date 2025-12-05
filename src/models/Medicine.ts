@@ -6,6 +6,8 @@ export interface IMedicine {
     name: string;
     description: string;
     manufacturer: string;
+    medicineType?: string;
+    unit?: string;
     category: string;
     categoryId?: mongoose.Types.ObjectId;
     subCategoryId?: mongoose.Types.ObjectId;
@@ -61,6 +63,14 @@ const MedicineSchema = new Schema<IMedicine>({
         type: String,
         default: 'Unknown',
         maxlength: [100, 'Manufacturer cannot be more than 100 characters'],
+    },
+    medicineType: {
+        type: String,
+        default: ''
+    },
+    unit: {
+        type: String,
+        default: ''
     },
     category: {
         type: String,
