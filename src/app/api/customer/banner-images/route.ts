@@ -42,7 +42,7 @@ export async function GET() {
                     categoryActive = true;
                     const subcategoryDoc = await (await import('@/models/SubCategory')).default.findOne({ categoryId: categoryDoc._id, isActive: true }).lean();
                     if (subcategoryDoc && !Array.isArray(subcategoryDoc) && subcategoryDoc._id) {
-                        subcategoryAvailable = true;
+                        subcategoryAvailable = true; 
                         // Count active medicines for this category and subcategory
                         medicineCount = await (await import('@/models/Medicine')).default.countDocuments({
                             categoryId: categoryDoc._id,
