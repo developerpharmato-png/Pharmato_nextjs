@@ -21,6 +21,7 @@ import dbConnect from '@/lib/mongodb';
  *               - name
  *               - phone
  *               - address
+ *             # email is optional
  *             properties:
  *               userId:
  *                 type: string
@@ -34,7 +35,10 @@ import dbConnect from '@/lib/mongodb';
  *               name:
  *                 type: string
  *                 example: "John Doe"
- *               # email removed
+ *               email:
+ *                 type: string
+ *                 example: "john@example.com"
+ *                 required: false
  *               phone:
  *                 type: string
  *                 example: "9876543210"
@@ -65,7 +69,7 @@ import dbConnect from '@/lib/mongodb';
 export async function POST(req: NextRequest) {
     await dbConnect();
     const body = await req.json();
-    const { userId, addressType, is_primary, name, phone, address } = body;
+    const { userId, addressType, is_primary, name, email = "", phone, address } = body;
     if (!userId || !addressType || !name || !phone || !address) {
         return NextResponse.json({ success: false, message: 'Missing required fields', data: null }, { status: 400 });
     }
@@ -76,12 +80,13 @@ export async function POST(req: NextRequest) {
                 { $set: { is_primary: 0 } }
             );
         }
-        const billing = { name, phone, address };
+        const billing = { name, email, phone, address };
         const createUser = await UserAddress.create({
             userId,
             addressType,
             is_primary: is_primary || 0,
             name,
+            email,
             phone,
             address,
             billing

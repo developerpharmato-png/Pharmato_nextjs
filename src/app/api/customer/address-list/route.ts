@@ -37,6 +37,11 @@ import dbConnect from '@/lib/mongodb';
  *                   type: array
  *                   items:
  *                     type: object
+ *                     properties:
+ *                       email:
+ *                         type: string
+ *                         example: "john@example.com"
+ *                         required: false
  *       400:
  *         description: Error fetching address list
  */

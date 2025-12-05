@@ -2,17 +2,19 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
 // Simple modal for editing image metadata
-function EditImageModal({ open, image, onSave, onClose }: { open: boolean, image: any, onSave: (img: any) => void, onClose: () => void }) {
+function EditImageModal({ open, image, onSave, onClose, categories }: { open: boolean, image: any, onSave: (img: any) => void, onClose: () => void, categories: any[] }) {
     const [alt, setAlt] = useState(image?.alt || "");
     const [targetScreen, setTargetScreen] = useState(image?.targetScreen || "");
+    const [targetId, setTargetId] = useState(image?.targetId || "");
     useEffect(() => {
         setAlt(image?.alt || "");
         setTargetScreen(image?.targetScreen || "");
+        setTargetId(image?.targetId || "");
     }, [image]);
     if (!open) return null;
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-xl shadow-xl p-6 w-80 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backdropFilter: 'blur(8px)', background: 'rgba(0,0,0,0.15)' }}>
+            <div className="bg-white/70 rounded-xl shadow-xl p-6 w-80 relative" style={{ backdropFilter: 'blur(2px)' }}>
                 <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-700" onClick={onClose}>&times;</button>
                 <h3 className="text-lg font-bold mb-4">Edit Banner Image</h3>
                 <div className="mb-3">
@@ -23,7 +25,16 @@ function EditImageModal({ open, image, onSave, onClose }: { open: boolean, image
                     <label className="block text-sm font-medium mb-1">Target Screen/URL</label>
                     <input type="text" className="w-full border rounded px-2 py-1" value={targetScreen} onChange={e => setTargetScreen(e.target.value)} />
                 </div>
-                <button className="bg-blue-600 text-white px-4 py-2 rounded font-semibold w-full" onClick={() => onSave({ ...image, alt, targetScreen })}>Save</button>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Active Category</label>
+                    <select className="w-full border rounded px-2 py-1" value={targetId} onChange={e => setTargetId(e.target.value)}>
+                        <option value="">Select Category</option>
+                        {categories.map(cat => (
+                            <option key={cat._id} value={cat._id}>{cat.name}</option>
+                        ))}
+                    </select>
+                </div>
+                <button className="bg-blue-600 text-white px-4 py-2 rounded font-semibold w-full" onClick={() => onSave({ ...image, alt, targetScreen, targetId })}>Save</button>
             </div>
         </div>
     );
@@ -36,6 +47,7 @@ export default function BannerImagesDashboard() {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     // images: { url, targetScreen, alt, ... }
     const [images, setImages] = useState<any[]>([]);
+    const [categories, setCategories] = useState<any[]>([]);
     const [editModal, setEditModal] = useState<{ open: boolean, idx: number | null }>({ open: false, idx: null });
     const [inputImages, setInputImages] = useState<string>("");
     const [loading, setLoading] = useState(false);
@@ -142,6 +154,15 @@ export default function BannerImagesDashboard() {
 
     useEffect(() => {
         fetchImages();
+        // Fetch active categories
+        (async () => {
+            try {
+                const res = await axios.get('/api/categories?isActive=true');
+                setCategories(res.data.data || []);
+            } catch {
+                setCategories([]);
+            }
+        })();
     }, []);
 
 
@@ -237,8 +258,10 @@ export default function BannerImagesDashboard() {
     };
 
     return (
-        <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-8 px-2 sm:px-6">
-            <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl p-8 sm:p-10 relative">
+        <div className="w-full min-h-screen bg-gradient-to-br from-blue-50/60 to-gray-100/60 py-8 px-2 sm:px-6" style={{ position: 'relative', zIndex: 0 }}>
+            {/* Transparent overlay for background */}
+            <div className="absolute inset-0 z-0" style={{ background: 'rgba(255,255,255,0.25)' }} />
+            <div className="relative max-w-3xl mx-auto bg-white/80 rounded-2xl shadow-xl p-8 sm:p-10" style={{ zIndex: 1 }}>
                 <h2 className="text-3xl font-extrabold text-gray-900 mb-8 tracking-tight flex items-center gap-2">
                     <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="2" fill="none" /><path strokeLinecap="round" strokeLinejoin="round" d="M3 7l9 5 9-5" /></svg>
                     Banner Images
@@ -362,6 +385,7 @@ export default function BannerImagesDashboard() {
                 <EditImageModal
                     open={editModal.open}
                     image={editModal.idx !== null ? images[editModal.idx] : null}
+                    categories={categories}
                     onSave={async (updatedImg) => {
                         if (editModal.idx === null) return;
                         const newImages = images.map((img, i) => i === editModal.idx ? updatedImg : img);
