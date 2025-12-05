@@ -31,23 +31,40 @@ export async function POST(req: NextRequest) {
                 subcategoryFilter.name = { $regex: search, $options: "i" };
             }
             const subcategories = await SubCategory.find(subcategoryFilter).lean();
-            const subcategoriesWithImages = subcategories.map(sub => ({
-                ...sub,
-                images: Array.isArray(sub.images) ? sub.images : [],
+            const subcategoriesWithCounts = await Promise.all(subcategories.map(async sub => {
+                const count = await (await import('@/models/Medicine')).default.countDocuments({
+                    categoryId: cat._id,
+                    subCategoryId: sub._id,
+                    isActive: true
+                });
+                return {
+                    ...sub,
+                    images: Array.isArray(sub.images) ? sub.images : [],
+                    medicineCount: count
+                };
             }));
+            // Only include subcategories with medicineCount > 0
+            const filteredSubcategories = subcategoriesWithCounts.filter(sub => sub.medicineCount > 0);
+            // Count active medicines for this category
+            const medicineCount = await (await import('@/models/Medicine')).default.countDocuments({
+                categoryId: cat._id,
+                isActive: true
+            });
             return {
                 ...cat,
-                subcategories: subcategoriesWithImages,
+                subcategories: filteredSubcategories,
+                medicineCount
             };
         })
     );
 
     // ...existing code...
+    const filteredCategoryList = categoryList.filter(cat => cat.medicineCount > 0);
     return NextResponse.json({
         success: true,
         message: 'Categories fetched successfully',
-        categories: categoryList,
-        total: totalCategories,
+        categories: filteredCategoryList,
+        total: filteredCategoryList.length,
         limit,
         offset,
         search,
