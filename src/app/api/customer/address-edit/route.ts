@@ -20,7 +20,7 @@ import dbConnect from '@/lib/mongodb';
  *               - userId
  *               - addressType
  *               - name
- *               - email
+ *               # email is optional
  *               - phone
  *               - address
  *             properties:
@@ -42,6 +42,7 @@ import dbConnect from '@/lib/mongodb';
  *               email:
  *                 type: string
  *                 example: "john@example.com"
+ *                 required: false
  *               phone:
  *                 type: string
  *                 example: "9876543210"
@@ -72,8 +73,8 @@ import dbConnect from '@/lib/mongodb';
 export async function PUT(req: NextRequest) {
     await dbConnect();
     const body = await req.json();
-    const { addressId, userId, addressType, is_primary, name, email, phone, address } = body;
-    if (!addressId || !userId || !addressType || !name || !email || !phone || !address) {
+    const { addressId, userId, addressType, is_primary, name, email = "", phone, address } = body;
+    if (!addressId || !userId || !addressType || !name || !phone || !address) {
         return NextResponse.json({ success: false, message: 'Missing required fields', data: null }, { status: 400 });
     }
     try {

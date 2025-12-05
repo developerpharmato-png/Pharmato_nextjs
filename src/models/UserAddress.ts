@@ -5,6 +5,7 @@ export interface IUserAddress extends Document {
     addressType?: string;
     name?: string;
     phone?: string;
+    email?: string;
     address?: Record<string, any>;
     billing?: Record<string, any>;
     is_primary?: number;
@@ -17,6 +18,7 @@ const UserAddressSchema = new Schema<IUserAddress>({
     addressType: { type: String, trim: true, default: '' },
     name: { type: String, trim: true, default: '' },
     phone: { type: String, trim: true, default: '' },
+    email: { type: String, trim: true, default: '', required: false },
     address: { type: Object, default: {} },
     billing: { type: Object, default: {} },
     is_primary: { type: Number, default: 0 },
