@@ -37,22 +37,22 @@ export async function GET() {
             let subcategoryAvailable = false;
             let medicineCount = 0;
             if (img.targetId) {
-                const category = await (await import('@/models/Category')).default.findOne({ _id: img.targetId, isActive: true }).lean();
-                if (category) {
+                const categoryDoc = await (await import('@/models/Category')).default.findOne({ _id: img.targetId, isActive: true }).lean();
+                if (categoryDoc && !Array.isArray(categoryDoc) && categoryDoc._id) {
                     categoryActive = true;
-                    const subcategory = await (await import('@/models/SubCategory')).default.findOne({ categoryId: category._id, isActive: true }).lean();
-                    if (subcategory) {
+                    const subcategoryDoc = await (await import('@/models/SubCategory')).default.findOne({ categoryId: categoryDoc._id, isActive: true }).lean();
+                    if (subcategoryDoc && !Array.isArray(subcategoryDoc) && subcategoryDoc._id) {
                         subcategoryAvailable = true;
                         // Count active medicines for this category and subcategory
                         medicineCount = await (await import('@/models/Medicine')).default.countDocuments({
-                            categoryId: category._id,
-                            subCategoryId: subcategory._id,
+                            categoryId: categoryDoc._id,
+                            subCategoryId: subcategoryDoc._id,
                             isActive: true
                         });
                     } else {
                         // No active subcategory, count medicines by category only
                         medicineCount = await (await import('@/models/Medicine')).default.countDocuments({
-                            categoryId: category._id,
+                            categoryId: categoryDoc._id,
                             isActive: true
                         });
                     }
