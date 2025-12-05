@@ -850,7 +850,15 @@ export default function EditFormClient({ id }: { id?: string }) {
                     labelId="form-type-label"
                     name="category"
                     value={form.category}
-                    onChange={handleChange}
+                    onChange={(event) => {
+                      handleChange({
+                        target: {
+                          name: "category",
+                          value: event.target.value,
+                          type: "select-one",
+                        },
+                      } as React.ChangeEvent<HTMLSelectElement>);
+                    }}
                     label="Form Type *"
                   >
                     {["Tablet", "Capsule", "Syrup", "Injection", "Cream", "Drops", "Other"].map((c) => (
@@ -872,7 +880,15 @@ export default function EditFormClient({ id }: { id?: string }) {
                     labelId="category-label"
                     name="categoryId"
                     value={form.categoryId}
-                    onChange={handleChange}
+                    onChange={(event) => {
+                      handleChange({
+                        target: {
+                          name: "categoryId",
+                          value: event.target.value,
+                          type: "select-one",
+                        },
+                      } as React.ChangeEvent<HTMLSelectElement>);
+                    }}
                     label="Category"
                   >
                     <MenuItem value="">Select a category</MenuItem>
@@ -891,7 +907,15 @@ export default function EditFormClient({ id }: { id?: string }) {
                     labelId="subcategory-label"
                     name="subCategoryId"
                     value={form.subCategoryId}
-                    onChange={handleChange}
+                    onChange={(event) => {
+                      handleChange({
+                        target: {
+                          name: "subCategoryId",
+                          value: event.target.value,
+                          type: "select-one",
+                        },
+                      } as React.ChangeEvent<HTMLSelectElement>);
+                    }}
                     label="Subcategory"
                     disabled={!form.categoryId}
                   >

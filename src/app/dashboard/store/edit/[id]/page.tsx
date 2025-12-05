@@ -4,6 +4,8 @@ import { useRouter, useParams } from "next/navigation";
 import axios from "axios";
 import HeaderWithAction from "../../../components/HeaderWithAction";
 import CircularProgress from "@mui/material/CircularProgress";
+import { CustomButton, ErrorMessageCom } from "../../../components/miniComponents";
+import { FormControl, InputLabel, MenuItem, Select, TextField } from "@mui/material";
 import Swal from "sweetalert2";
 import PincodeSelect from "../../PincodeSelect";
 import AddressFields from "../../AddressFields";
@@ -137,28 +139,34 @@ export default function EditStorePage() {
     }
 
     return (
-        <div className="containerStyle scrollbar-hide">     <HeaderWithAction
+        <div className="containerStyle scrollbar-hide">
+            <HeaderWithAction
                 title="Edit Store"
                 subtitle="Update store details"
                 showBack={true}
                 showSearch={false}
             />
-            <div className="w-full bg-white rounded-2xl shadow-lg p-0 mt-8 border border-gray-200">
-                <div className="border-b px-8 pt-8 pb-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-t-2xl">
-                    <h2 className="text-2xl font-bold text-green-700 mb-1">Edit Store</h2>
-                    <p className="text-gray-500 text-base">Update the details below to edit the store location.</p>
-                </div>
+          
                 <form onSubmit={handleSubmit} className="flex flex-col gap-8 px-8 py-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
-                            <label className="block mb-2 font-semibold text-base text-gray-700">Store Name <span className="text-red-500">*</span></label>
-                            <input
-                                type="text"
+                            <TextField
+                                name="name"
+                                label="Store Name *"
                                 value={form.name}
                                 onChange={e => setForm({ ...form, name: e.target.value })}
-                                className={`border px-4 py-3 rounded-xl w-full text-base transition-all duration-200 shadow-sm bg-green-50 ${fieldErrors.name ? 'border-red-400 focus:border-red-500' : 'border-green-400 focus:border-blue-500'}`}
+                                fullWidth
+                                variant="outlined"
+                                placeholder="Enter store name"
+                                error={Boolean(fieldErrors.name)}
+                                InputProps={{
+                                    style: {
+                                        borderRadius: "0.75rem",
+                                        background: "#f0fdf4",
+                                    },
+                                }}
                             />
-                            {fieldErrors.name && <div className="text-red-500 text-sm mt-1">{fieldErrors.name}</div>}
+                            {fieldErrors.name && <ErrorMessageCom error={fieldErrors.name} />}
                         </div>
                         <div>
                             <PincodeSelect
@@ -174,32 +182,35 @@ export default function EditStorePage() {
                         errors={fieldErrors}
                         onChange={(field, value) => setForm({ ...form, address: { ...form.address, [field]: value } })}
                     />
-                    <div className="border-t pt-8 flex flex-col md:flex-row gap-8 items-center">
+                    <div className=" pt-8 flex flex-col md:flex-row gap-8 items-center">
                         <div className="w-full md:w-1/2">
-                            <label className="block mb-2 font-semibold text-base text-gray-700">Status <span className="text-red-500">*</span></label>
-                            <select
-                                value={form.status}
-                                onChange={e => setForm({ ...form, status: Number(e.target.value) })}
-                                className={`border px-4 py-3 rounded-xl w-full text-base transition-all duration-200 shadow-sm bg-gray-50 ${fieldErrors.status ? 'border-red-400 focus:border-red-500' : 'border-gray-300 focus:border-blue-400'}`}
-                            >
-                                <option value={1}>Active</option>
-                                <option value={0}>Inactive</option>
-                            </select>
-                            {fieldErrors.status && <div className="text-red-500 text-sm mt-1">{fieldErrors.status}</div>}
+                            <FormControl fullWidth variant="outlined">
+                                <InputLabel id="status-label">Status *</InputLabel>
+                                <Select
+                                    labelId="status-label"
+                                    name="status"
+                                    value={form.status}
+                                    onChange={e => setForm({ ...form, status: Number(e.target.value) })}
+                                    label="Status *"
+                                    error={Boolean(fieldErrors.status)}
+                                    sx={{ borderRadius: 3, background: "#f3f4f6" }}
+                                >
+                                    <MenuItem value={1}>Active</MenuItem>
+                                    <MenuItem value={0}>Inactive</MenuItem>
+                                </Select>
+                            </FormControl>
+                            {fieldErrors.status && <ErrorMessageCom error={fieldErrors.status} />}
                         </div>
                         <div className="w-full md:w-1/2 flex justify-end items-end mt-4 md:mt-0">
-                            <button
+                            <CustomButton
                                 type="submit"
-                                className="px-8 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 shadow-lg text-lg transition-all duration-200 flex items-center justify-center"
                                 disabled={loading}
-                                style={{ minWidth: 140 }}
-                            >
-                                {loading ? <CircularProgress size={24} color="inherit" /> : "Update Store"}
-                            </button>
+                                width="140px"
+                            >Update</CustomButton>
                         </div>
                     </div>
                 </form>
-            </div>
+           
         </div>
     );
 }

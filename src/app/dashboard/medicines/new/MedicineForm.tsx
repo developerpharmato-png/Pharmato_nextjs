@@ -665,7 +665,15 @@ export default function MedicineForm() {
                     labelId="form-type-label"
                     name="category"
                     value={formik.values.category}
-                    onChange={handleChange}
+                    onChange={(event) => {
+                      handleChange({
+                        target: {
+                          name: "category",
+                          value: event.target.value,
+                          type: "select-one",
+                        },
+                      } as React.ChangeEvent<HTMLSelectElement>);
+                    }}
                     onBlur={formik.handleBlur}
                     label="Form Type *"
                   >
@@ -692,7 +700,15 @@ export default function MedicineForm() {
                     labelId="category-label"
                     name="categoryId"
                     value={formik.values.categoryId}
-                    onChange={handleChange}
+                    onChange={(event) => {
+                      handleChange({
+                        target: {
+                          name: "categoryId",
+                          value: event.target.value,
+                          type: "select-one",
+                        },
+                      } as React.ChangeEvent<HTMLSelectElement>);
+                    }}
                     onBlur={formik.handleBlur}
                     label="Category"
                   >
@@ -727,7 +743,15 @@ export default function MedicineForm() {
                     labelId="subcategory-label"
                     name="subCategoryId"
                     value={formik.values.subCategoryId}
-                    onChange={handleChange}
+                    onChange={(event) => {
+                      handleChange({
+                        target: {
+                          name: "subCategoryId",
+                          value: event.target.value,
+                          type: "select-one",
+                        },
+                      } as React.ChangeEvent<HTMLSelectElement>);
+                    }}
                     onBlur={formik.handleBlur}
                     label="Subcategory"
                     disabled={!formik.values.categoryId}
