@@ -4,7 +4,7 @@ export interface IBannerImage extends Document {
   images: any[];
 }
 
-const AnyObjectSchema = new Schema(
+const AnyObjectSchema = new Schema( 
   {},
   {
     _id: true,      // <-- force mongoose to generate _id for each object
