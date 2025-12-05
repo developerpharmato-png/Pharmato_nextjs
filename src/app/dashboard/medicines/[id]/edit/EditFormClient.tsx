@@ -4,6 +4,8 @@ import {
   CustomButton,
   ErrorMessageCom,
 } from "../../../components/miniComponents";
+import { Select, MenuItem, InputLabel, FormControl } from "@mui/material";
+import { TextField } from "@mui/material";
 import { MdAdd, MdDelete, MdArrowBack, MdSave } from "react-icons/md";
 import { useParams } from "next/navigation";
 import HeaderWithAction from "../../../components/HeaderWithAction";
@@ -765,19 +767,24 @@ export default function EditFormClient({ id }: { id?: string }) {
 
             {/* --- Medicine Details Section --- */}
             <div>
-              <label className="block text-sm font-bold text-gray-800 mb-2">
-                Medicine Name *
-              </label>
-              <input
+              <TextField
                 name="name"
+                label="Medicine Name *"
                 value={form.name}
                 onChange={handleChange}
                 onBlur={() =>
                   setTouched((prev: any) => ({ ...prev, name: true }))
                 }
-                // Input field styling enhanced
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                fullWidth
+                variant="outlined"
                 placeholder="Enter medicine name"
+                error={touched.name && Boolean(errors.name)}
+                InputProps={{
+                  style: {
+                    borderRadius: "0.75rem",
+                    background: "#fff",
+                  },
+                }}
               />
               {touched.name && errors.name && (
                 <ErrorMessageCom error={errors.name} />
@@ -785,20 +792,26 @@ export default function EditFormClient({ id }: { id?: string }) {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-800 mb-2">
-                Description *
-              </label>
-              <textarea
+              <TextField
                 name="description"
+                label="Description *"
                 value={form.description}
                 onChange={handleChange}
                 onBlur={() =>
                   setTouched((prev: any) => ({ ...prev, description: true }))
                 }
+                multiline
                 rows={4}
-                // Textarea styling enhanced
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                fullWidth
+                variant="outlined"
                 placeholder="Enter medicine description and usage"
+                error={touched.description && Boolean(errors.description)}
+                InputProps={{
+                  style: {
+                    borderRadius: "0.75rem",
+                    background: "#fff",
+                  },
+                }}
               />
               {touched.description && errors.description && (
                 <ErrorMessageCom error={errors.description} />
@@ -807,131 +820,138 @@ export default function EditFormClient({ id }: { id?: string }) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Manufacturer *
-                </label>
-                <input
+                <TextField
                   name="manufacturer"
+                  label="Manufacturer *"
                   value={form.manufacturer}
                   onChange={handleChange}
                   onBlur={() =>
                     setTouched((prev: any) => ({ ...prev, manufacturer: true }))
                   }
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                  fullWidth
+                  variant="outlined"
                   placeholder="Manufacturer name"
+                  error={touched.manufacturer && Boolean(errors.manufacturer)}
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
                 />
                 {touched.manufacturer && errors.manufacturer && (
                   <ErrorMessageCom error={errors.manufacturer} />
                 )}
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Form Type *
-                </label>
-                <select
-                  name="category"
-                  value={form.category}
-                  onChange={handleChange}
-                  // Select styling enhanced
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900"
-                >
-                  {[
-                    "Tablet",
-                    "Capsule",
-                    "Syrup",
-                    "Injection",
-                    "Cream",
-                    "Drops",
-                    "Other",
-                  ].map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+                <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                  <InputLabel id="form-type-label">Form Type *</InputLabel>
+                  <Select
+                    labelId="form-type-label"
+                    name="category"
+                    value={form.category}
+                    onChange={handleChange}
+                    label="Form Type *"
+                  >
+                    {["Tablet", "Capsule", "Syrup", "Injection", "Cream", "Drops", "Other"].map((c) => (
+                      <MenuItem key={c} value={c}>
+                        {c}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </div>
             </div>
 
             {/* --- Category/Subcategory Section --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Category
-                </label>
-                <select
-                  name="categoryId"
-                  value={form.categoryId}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900"
-                >
-                  <option value="">Select a category</option>
-                  {categories.map((cat) => (
-                    <option key={cat._id} value={cat._id}>
-                      {cat.name} {cat.isOTC ? "(OTC)" : ""}
-                    </option>
-                  ))}
-                </select>
-                {/* Assuming you have logic for selectedCategory and displaying tags here */}
-                {/* Example: {selectedCategory && <TagComponent isOTC={selectedCategory.isOTC} />} */}
+                <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                  <InputLabel id="category-label">Category</InputLabel>
+                  <Select
+                    labelId="category-label"
+                    name="categoryId"
+                    value={form.categoryId}
+                    onChange={handleChange}
+                    label="Category"
+                  >
+                    <MenuItem value="">Select a category</MenuItem>
+                    {categories.map((cat) => (
+                      <MenuItem key={cat._id} value={cat._id}>
+                        {cat.name} {cat.isOTC ? "(OTC)" : ""}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Subcategory
-                </label>
-                <select
-                  name="subCategoryId"
-                  value={form.subCategoryId}
-                  onChange={handleChange}
-                  disabled={!form.categoryId}
-                  // Disabled state styling enhanced
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
-                >
-                  <option value="">Select a subcategory</option>
-                  {filteredSubcategories.map((sub) => (
-                    <option key={sub._id} value={sub._id}>
-                      {sub.name} {sub.isOTC ? "(OTC)" : ""}
-                    </option>
-                  ))}
-                </select>
-                {/* Assuming you have logic for selectedSubcategory and displaying tags here */}
-                {/* Example: {selectedSubcategory && <TagComponent isOTC={selectedSubcategory.isOTC} />} */}
+                <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                  <InputLabel id="subcategory-label">Subcategory</InputLabel>
+                  <Select
+                    labelId="subcategory-label"
+                    name="subCategoryId"
+                    value={form.subCategoryId}
+                    onChange={handleChange}
+                    label="Subcategory"
+                    disabled={!form.categoryId}
+                  >
+                    <MenuItem value="">Select a subcategory</MenuItem>
+                    {filteredSubcategories.map((sub) => (
+                      <MenuItem key={sub._id} value={sub._id}>
+                        {sub.name} {sub.isOTC ? "(OTC)" : ""}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </div>
             </div>
 
             {/* --- Stock/Batch/Expiry Section --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Stock Quantity *
-                </label>
-                <input
+                <TextField
                   name="stock"
+                  label="Stock Quantity *"
                   type="text"
                   value={form.stock}
                   onChange={handleChange}
                   onBlur={() =>
                     setTouched((prev: any) => ({ ...prev, stock: true }))
                   }
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                  fullWidth
+                  variant="outlined"
                   placeholder="0"
+                  error={touched.stock && Boolean(errors.stock)}
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
                 />
                 {touched.stock && errors.stock && (
                   <ErrorMessageCom error={errors.stock} />
                 )}
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Batch Number *
-                </label>
-                <input
+                <TextField
                   name="batchNumber"
+                  label="Batch Number *"
                   value={form.batchNumber}
                   onChange={handleChange}
                   onBlur={() =>
                     setTouched((prev: any) => ({ ...prev, batchNumber: true }))
                   }
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                  fullWidth
+                  variant="outlined"
                   placeholder="Batch number"
+                  error={touched.batchNumber && Boolean(errors.batchNumber)}
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
                 />
                 {touched.batchNumber && errors.batchNumber && (
                   <ErrorMessageCom error={errors.batchNumber} />
@@ -942,25 +962,33 @@ export default function EditFormClient({ id }: { id?: string }) {
             {/* Expiry Date moved into its own section for separation/style consistency, assuming a 4-column layout is not needed here */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Expiry Date *
-                </label>
-                <input
+                <TextField
                   name="expiryDate"
+                  label="Expiry Date *"
                   type="date"
                   value={form.expiryDate}
                   onChange={handleChange}
                   onBlur={() =>
                     setTouched((prev: any) => ({ ...prev, expiryDate: true }))
                   }
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900"
-                  min={(() => {
-                    const d = new Date();
-                    const y = d.getFullYear();
-                    const m = String(d.getMonth() + 1).padStart(2, "0");
-                    const day = String(d.getDate()).padStart(2, "0");
-                    return `${y}-${m}-${day}`;
-                  })()}
+                  inputProps={{
+                    min: (() => {
+                      const d = new Date();
+                      const y = d.getFullYear();
+                      const m = String(d.getMonth() + 1).padStart(2, "0");
+                      const day = String(d.getDate()).padStart(2, "0");
+                      return `${y}-${m}-${day}`;
+                    })(),
+                  }}
+                  fullWidth
+                  variant="outlined"
+                  error={touched.expiryDate && Boolean(errors.expiryDate)}
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
                 />
                 {touched.expiryDate && errors.expiryDate && (
                   <ErrorMessageCom error={errors.expiryDate} />
@@ -971,33 +999,35 @@ export default function EditFormClient({ id }: { id?: string }) {
             {/* --- Price Section (4 columns) --- */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  MRP (₹) *
-                </label>
-                <input
+                <TextField
                   name="mrp"
+                  label="MRP (₹) *"
                   type="text"
-                  step="0.01"
                   value={form.mrp}
                   onChange={handleChange}
                   onBlur={() =>
                     setTouched((prev: any) => ({ ...prev, mrp: true }))
                   }
-                  className="w-full border bg-white text-gray-900 border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition"
+                  fullWidth
+                  variant="outlined"
                   placeholder="MRP"
+                  error={touched.mrp && Boolean(errors.mrp)}
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
                 />
                 {touched.mrp && errors.mrp && (
                   <ErrorMessageCom error={errors.mrp} />
                 )}
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Purchase Price (₹) *
-                </label>
-                <input
+                <TextField
                   name="purchasePrice"
+                  label="Purchase Price (₹) *"
                   type="text"
-                  step="0.01"
                   value={form.purchasePrice}
                   onChange={handleChange}
                   onBlur={() =>
@@ -1006,44 +1036,63 @@ export default function EditFormClient({ id }: { id?: string }) {
                       purchasePrice: true,
                     }))
                   }
-                  className="w-full border bg-white text-gray-900 border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-yellow-600 focus:border-yellow-600 transition"
+                  fullWidth
+                  variant="outlined"
                   placeholder="Purchase Price"
+                  error={touched.purchasePrice && Boolean(errors.purchasePrice)}
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
                 />
                 {touched.purchasePrice && errors.purchasePrice && (
                   <ErrorMessageCom error={errors.purchasePrice} />
                 )}
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Selling Price (₹) *
-                </label>
-                <input
+                <TextField
                   name="price"
+                  label="Selling Price (₹) *"
                   type="text"
-                  step="0.01"
                   value={form.price}
                   onChange={handleChange}
                   onBlur={() =>
                     setTouched((prev: any) => ({ ...prev, price: true }))
                   }
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                  fullWidth
+                  variant="outlined"
                   placeholder="Selling Price"
+                  error={touched.price && Boolean(errors.price)}
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
                 />
                 {touched.price && errors.price && (
                   <ErrorMessageCom error={errors.price} />
                 )}
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Discount (%)
-                </label>
-                <input
+                <TextField
                   name="discount"
+                  label="Discount (%)"
                   type="text"
                   value={form.discount}
-                  readOnly
-                  // Readonly style enhanced
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-gray-100 text-gray-700 shadow-inner"
+                  InputProps={{
+                    readOnly: true,
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#f3f4f6",
+                      color: "#374151",
+                      boxShadow: "inset 0 1px 2px rgba(0,0,0,0.03)",
+                    },
+                  }}
+                  fullWidth
+                  variant="outlined"
                   placeholder="Discount %"
                 />
               </div>

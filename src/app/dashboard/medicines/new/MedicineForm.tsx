@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import { CustomButton, ErrorMessageCom } from "../../components/miniComponents";
+import { TextField, Select, MenuItem, InputLabel, FormControl } from "@mui/material";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { MdArrowBack, MdSave } from "react-icons/md";
@@ -11,6 +12,8 @@ import {
   initialMedicineFormValues,
   medicineFormValidationSchema,
 } from "./medicineFormUtil";
+import { Delete } from "lucide-react";
+
 
 export default function MedicineForm() {
   const router = useRouter();
@@ -478,11 +481,9 @@ export default function MedicineForm() {
         <div>
           <form onSubmit={formik.handleSubmit} className="space-y-8">
             {" "}
-            {/* Increased vertical spacing */}
             <div>
               <label className="block text-sm font-bold text-gray-800 mb-2">
                 {" "}
-                {/* Made label font bolder for emphasis */}
                 Medicine Images *
                 <p className="text-xs text-gray-500 font-normal">
                   Min 1, Max 5 images. Each ≤ 5MB.
@@ -498,13 +499,11 @@ export default function MedicineForm() {
               />
               <div className="flex items-center gap-4">
                 {" "}
-                {/* Increased gap */}
                 <button
                   type="button"
                   onClick={() =>
                     document.getElementById("medicine-image-input")?.click()
                   }
-                  // Enhanced file upload button styling
                   className="h-28 w-28 flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-400 rounded-lg hover:bg-gray-100 transition duration-150 shadow-inner"
                   title="Upload photos"
                 >
@@ -536,8 +535,6 @@ export default function MedicineForm() {
               </div>
               {formik.values.images.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-3 justify-start w-fit">
-                  {" "}
-                  {/* Changed to flex wrap with more spacing */}
                   {formik.values.images.map((img, idx) => (
                     <div key={img} className="relative group h-24 w-24">
                       <img
@@ -547,8 +544,6 @@ export default function MedicineForm() {
                       />
                       {formik.values.coverImage === img ? (
                         <span className="absolute top-1 left-1 bg-green-600 text-white text-[10px] px-2 py-0.5 rounded-full shadow-lg font-semibold">
-                          {" "}
-                          {/* Primary pill enhanced */}
                           Primary
                         </span>
                       ) : (
@@ -557,7 +552,6 @@ export default function MedicineForm() {
                           onClick={() =>
                             formik.setFieldValue("coverImage", img)
                           }
-                          // Set Primary button style enhanced
                           className="absolute top-1 left-1 bg-gray-800 text-white text-[10px] px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 shadow-lg transition duration-200 font-semibold"
                           title="Set as primary"
                         >
@@ -592,55 +586,72 @@ export default function MedicineForm() {
               )}
               <div className="mt-2 flex items-center gap-3"></div>
             </div>
-            {/* Input field styling enhanced */}
-            <div>
-              <label className="block text-sm font-bold text-gray-800 mb-2">
-                Medicine Name *
-              </label>
-              <input
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+             <div className="">
+               <TextField
                 name="name"
+                label="Medicine Name *"
                 value={formik.values.name}
                 onChange={handleChange}
                 onBlur={formik.handleBlur}
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                fullWidth
+                variant="outlined"
                 placeholder="Enter medicine name"
+                error={formik.touched.name && Boolean(formik.errors.name)}
+                InputProps={{
+                  style: {
+                    borderRadius: "0.75rem",
+                    background: "#fff",
+                  },
+                }}
               />
               {formik.touched.name && formik.errors.name && (
                 <ErrorMessageCom error={formik.errors.name} />
               )}
+             </div>
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-800 mb-2">
-                Description *
-              </label>
-              <textarea
+              <TextField
                 name="description"
+                label="Description *"
                 value={formik.values.description}
                 onChange={handleChange}
                 onBlur={formik.handleBlur}
+                multiline
                 rows={4}
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                fullWidth
+                variant="outlined"
                 placeholder="Enter medicine description and usage"
+                error={formik.touched.description && Boolean(formik.errors.description)}
+                InputProps={{
+                  style: {
+                    borderRadius: "0.75rem",
+                    background: "#fff",
+                  },
+                }}
               />
               {formik.touched.description && formik.errors.description && (
                 <ErrorMessageCom error={formik.errors.description} />
               )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {" "}
-              {/* Increased grid gap */}
-              {/* Manufacturer */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Manufacturer *
-                </label>
-                <input
+                <TextField
                   name="manufacturer"
+                  label="Manufacturer *"
                   value={formik.values.manufacturer}
                   onChange={handleChange}
                   onBlur={formik.handleBlur}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                  fullWidth
+                  variant="outlined"
                   placeholder="Manufacturer name"
+                  error={formik.touched.manufacturer && Boolean(formik.errors.manufacturer)}
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
                 />
                 {formik.touched.manufacturer && formik.errors.manufacturer && (
                   <ErrorMessageCom error={formik.errors.manufacturer} />
@@ -648,30 +659,23 @@ export default function MedicineForm() {
               </div>
               {/* Form Type */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Form Type *
-                </label>
-                <select
-                  name="category"
-                  value={formik.values.category}
-                  onChange={handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900"
-                >
-                  {[
-                    "Tablet",
-                    "Capsule",
-                    "Syrup",
-                    "Injection",
-                    "Cream",
-                    "Drops",
-                    "Other",
-                  ].map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+                <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                  <InputLabel id="form-type-label">Form Type *</InputLabel>
+                  <Select
+                    labelId="form-type-label"
+                    name="category"
+                    value={formik.values.category}
+                    onChange={handleChange}
+                    onBlur={formik.handleBlur}
+                    label="Form Type *"
+                  >
+                    {["Tablet", "Capsule", "Syrup", "Injection", "Cream", "Drops", "Other"].map((c) => (
+                      <MenuItem key={c} value={c}>
+                        {c}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
                 {formik.touched.category && formik.errors.category && (
                   <ErrorMessageCom error={formik.errors.category} />
                 )}
@@ -682,23 +686,24 @@ export default function MedicineForm() {
               {/* Increased grid gap */}
               {/* Category */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Category
-                </label>
-                <select
-                  name="categoryId"
-                  value={formik.values.categoryId}
-                  onChange={handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900"
-                >
-                  <option value="">Select a category</option>
-                  {categories.map((cat) => (
-                    <option key={cat._id} value={cat._id}>
-                      {cat.name} {cat.isOTC ? "(OTC)" : ""}
-                    </option>
-                  ))}
-                </select>
+                <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                  <InputLabel id="category-label">Category</InputLabel>
+                  <Select
+                    labelId="category-label"
+                    name="categoryId"
+                    value={formik.values.categoryId}
+                    onChange={handleChange}
+                    onBlur={formik.handleBlur}
+                    label="Category"
+                  >
+                    <MenuItem value="">Select a category</MenuItem>
+                    {categories.map((cat) => (
+                      <MenuItem key={cat._id} value={cat._id}>
+                        {cat.name} {cat.isOTC ? "(OTC)" : ""}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
                 {selectedCategory && (
                   <div className="mt-2">
                     {/* Tags colors enhanced */}
@@ -716,24 +721,25 @@ export default function MedicineForm() {
               </div>
               {/* Subcategory */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Subcategory
-                </label>
-                <select
-                  name="subCategoryId"
-                  value={formik.values.subCategoryId}
-                  onChange={handleChange}
-                  onBlur={formik.handleBlur}
-                  disabled={!formik.values.categoryId}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
-                >
-                  <option value="">Select a subcategory</option>
-                  {filteredSubcategories.map((sub) => (
-                    <option key={sub._id} value={sub._id}>
-                      {sub.name} {sub.isOTC ? "(OTC)" : ""}
-                    </option>
-                  ))}
-                </select>
+                <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                  <InputLabel id="subcategory-label">Subcategory</InputLabel>
+                  <Select
+                    labelId="subcategory-label"
+                    name="subCategoryId"
+                    value={formik.values.subCategoryId}
+                    onChange={handleChange}
+                    onBlur={formik.handleBlur}
+                    label="Subcategory"
+                    disabled={!formik.values.categoryId}
+                  >
+                    <MenuItem value="">Select a subcategory</MenuItem>
+                    {filteredSubcategories.map((sub) => (
+                      <MenuItem key={sub._id} value={sub._id}>
+                        {sub.name} {sub.isOTC ? "(OTC)" : ""}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
                 {selectedSubcategory && (
                   <div className="mt-2">
                     {/* Tags colors enhanced */}
@@ -755,17 +761,23 @@ export default function MedicineForm() {
               {/* Increased grid gap */}
               {/* Stock Quantity */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Stock Quantity *
-                </label>
-                <input
+                <TextField
                   name="stock"
+                  label="Stock Quantity *"
                   type="text"
                   value={formik.values.stock}
                   onChange={handleChange}
                   onBlur={formik.handleBlur}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                  fullWidth
+                  variant="outlined"
                   placeholder="0"
+                  error={formik.touched.stock && Boolean(formik.errors.stock)}
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
                 />
                 {formik.touched.stock && formik.errors.stock && (
                   <ErrorMessageCom error={formik.errors.stock} />
@@ -777,18 +789,23 @@ export default function MedicineForm() {
               {/* Price grid kept at 4 columns */}
               {/* MRP */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  MRP (₹) *
-                </label>
-                <input
+                <TextField
                   name="mrp"
+                  label="MRP (₹) *"
                   type="text"
-                  step="0.01"
                   value={formik.values.mrp}
                   onChange={handleChange}
                   onBlur={formik.handleBlur}
-                  className="w-full border bg-white text-gray-900 border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition"
+                  fullWidth
+                  variant="outlined"
                   placeholder="MRP"
+                  error={formik.touched.mrp && Boolean(formik.errors.mrp)}
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
                 />
                 {formik.touched.mrp && formik.errors.mrp && (
                   <ErrorMessageCom error={formik.errors.mrp} />
@@ -796,38 +813,47 @@ export default function MedicineForm() {
               </div>
               {/* Purchase Price */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Purchase Price (₹) *
-                </label>
-                <input
+                <TextField
                   name="purchasePrice"
+                  label="Purchase Price (₹) *"
                   type="text"
-                  step="0.01"
                   value={formik.values.purchasePrice}
                   onChange={handleChange}
                   onBlur={formik.handleBlur}
-                  className="w-full border bg-white text-gray-900 border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-yellow-600 focus:border-yellow-600 transition"
+                  fullWidth
+                  variant="outlined"
                   placeholder="Purchase Price"
+                  error={formik.touched.purchasePrice && Boolean(formik.errors.purchasePrice)}
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
                 />
-                {formik.touched.purchasePrice &&
-                  formik.errors.purchasePrice && (
-                    <ErrorMessageCom error={formik.errors.purchasePrice} />
-                  )}
+                {formik.touched.purchasePrice && formik.errors.purchasePrice && (
+                  <ErrorMessageCom error={formik.errors.purchasePrice} />
+                )}
               </div>
               {/* Selling Price */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Selling Price (₹) *
-                </label>
-                <input
+                <TextField
                   name="price"
+                  label="Selling Price (₹) *"
                   type="text"
-                  step="0.01"
                   value={formik.values.price}
                   onChange={handleChange}
                   onBlur={formik.handleBlur}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                  fullWidth
+                  variant="outlined"
                   placeholder="Selling Price"
+                  error={formik.touched.price && Boolean(formik.errors.price)}
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
                 />
                 {formik.touched.price && formik.errors.price && (
                   <ErrorMessageCom error={formik.errors.price} />
@@ -835,16 +861,22 @@ export default function MedicineForm() {
               </div>
               {/* Discount */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Discount (%)
-                </label>
-                <input
+                <TextField
                   name="discount"
+                  label="Discount (%)"
                   type="text"
                   value={formik.values.discount}
-                  readOnly
-                  // Readonly style enhanced
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-gray-100 text-gray-700 shadow-inner"
+                  InputProps={{
+                    readOnly: true,
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#f3f4f6",
+                      color: "#374151",
+                      boxShadow: "inset 0 1px 2px rgba(0,0,0,0.03)",
+                    },
+                  }}
+                  fullWidth
+                  variant="outlined"
                   placeholder="Discount %"
                 />
               </div>
@@ -854,17 +886,23 @@ export default function MedicineForm() {
               {/* Increased grid gap */}
               {/* Expiry Date */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Expiry Date *
-                </label>
-                <input
+                <TextField
                   name="expiryDate"
+                  label="Expiry Date *"
                   type="date"
                   value={formik.values.expiryDate}
                   onChange={handleChange}
                   onBlur={formik.handleBlur}
-                  min={todayStr}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900"
+                  inputProps={{ min: todayStr }}
+                  fullWidth
+                  variant="outlined"
+                  error={formik.touched.expiryDate && Boolean(formik.errors.expiryDate)}
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
                 />
                 {formik.touched.expiryDate && formik.errors.expiryDate && (
                   <ErrorMessageCom error={formik.errors.expiryDate} />
@@ -872,16 +910,21 @@ export default function MedicineForm() {
               </div>
               {/* Batch Number */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">
-                  Batch Number *
-                </label>
-                <input
+                <TextField
                   name="batchNumber"
+                  label="Batch Number *"
                   value={formik.values.batchNumber}
                   onChange={handleChange}
                   onBlur={formik.handleBlur}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 shadow-sm focus:ring-2 focus:ring-green-600 focus:border-green-600 transition bg-white text-gray-900 placeholder-gray-400"
+                  fullWidth
+                  variant="outlined"
                   placeholder="Batch number"
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
                 />
               </div>
             </div>
@@ -920,7 +963,7 @@ export default function MedicineForm() {
                     onClick={() => removeCompositionRow(idx)}
                     className="text-red-600 hover:text-red-800 font-medium p-1 transition"
                   >
-                    Remove
+                    <Delete />
                   </button>
                 </div>
               ))}
@@ -962,7 +1005,7 @@ export default function MedicineForm() {
                     onClick={() => removeHighlightRow(idx)}
                     className="text-red-600 hover:text-red-800 font-medium p-1 transition"
                   >
-                    Remove
+                    <Delete />
                   </button>
                 </div>
               ))}
