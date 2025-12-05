@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const { otcOnly = false, limit = 10, offset = 0, search = "" } = await req.json();
 
     // Category filter
-    let categoryFilter: any = {};
+    let categoryFilter: any = { isActive: true };
     if (typeof otcOnly === 'boolean') {
         categoryFilter.isOTC = otcOnly;
     }
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     // Fetch subcategories for each category with search and pagination
     const categoryList = await Promise.all(
         categories.map(async (cat: any) => {
-            const subcategoryFilter: any = { categoryId: cat._id };
+            const subcategoryFilter: any = { categoryId: cat._id, isActive: true };
             if (search) {
                 subcategoryFilter.name = { $regex: search, $options: "i" };
             }
