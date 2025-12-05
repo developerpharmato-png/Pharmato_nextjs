@@ -1,10 +1,94 @@
 
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import Swal from 'sweetalert2';
 
 export default function BannerImagesDashboard() {
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    // Image upload handler (max 3 images, show size, cancel/delete button)
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files ? Array.from(e.target.files) : [];
+        if (files.length === 0) return;
+
+        // Validate count (max 3)
+        if (images.length + files.length > 3) {
+            Swal.fire({
+                icon: "error",
+                title: "Too many images",
+                text: `You can upload up to 3 images. Currently ${images.length} uploaded.`,
+            });
+            if (fileInputRef.current) fileInputRef.current.value = "";
+            return;
+        }
+
+        const allowedTypes = [
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/gif",
+            "image/webp",
+            "image/svg+xml",
+        ];
+        const maxSize = 5 * 1024 * 1024;
+
+        setLoading(true);
+        let uploadedUrls: string[] = [];
+        for (const file of files) {
+            if (!allowedTypes.includes(file.type)) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Invalid file type",
+                    text: "Please upload only image files (JPEG, PNG, GIF, WebP, SVG)",
+                });
+                continue;
+            }
+            if (file.size > maxSize) {
+                Swal.fire({
+                    icon: "error",
+                    title: "File too large",
+                    text: "Please upload an image smaller than 5MB",
+                });
+                continue;
+            }
+            const uploadFormData = new FormData();
+            uploadFormData.append("file", file);
+            try {
+                const res = await fetch("/api/cloudinary/upload-image", {
+                    method: "POST",
+                    body: uploadFormData,
+                });
+                const data = await res.json();
+                if (data.success && data.url) uploadedUrls.push(data.url);
+            } catch { }
+        }
+        setLoading(false);
+
+        if (uploadedUrls.length > 0) {
+            // Update images array and backend
+            const newImages = [...images, ...uploadedUrls];
+            setImages(newImages);
+            try {
+                await axios.post("/api/admin/banner-images", { images: newImages });
+                Swal.fire({
+                    toast: true,
+                    position: "top-end",
+                    icon: "success",
+                    title: `Uploaded ${uploadedUrls.length} image(s)`,
+                    showConfirmButton: false,
+                    timer: 2000,
+                });
+            } catch {
+                Swal.fire({
+                    icon: "error",
+                    title: "Failed to update images",
+                    text: "Could not update images on server.",
+                });
+            }
+        }
+        // Reset file input
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
     const [images, setImages] = useState<string[]>([]);
     const [inputImages, setInputImages] = useState<string>("");
     const [loading, setLoading] = useState(false);
@@ -35,6 +119,8 @@ export default function BannerImagesDashboard() {
             .split("\n")
             .map((url) => url.trim())
             .filter((url) => url);
+        // Debug: log payload
+        console.log("Submitting banner images:", urls);
         try {
             const res = await axios.post("/api/admin/banner-images", { images: urls });
             setImages(res.data.data?.images || []);
@@ -49,11 +135,12 @@ export default function BannerImagesDashboard() {
                 timer: 2000
             });
         } catch (err: any) {
-            setError(err?.response?.data?.message || "Error updating banner images");
+            const apiMsg = err?.response?.data?.message || err?.response?.data?.error;
+            setError(apiMsg || "Error updating banner images");
             Swal.fire({
                 icon: 'error',
                 title: 'Failed to update images',
-                text: err?.response?.data?.message || 'Unknown error',
+                text: apiMsg || 'Unknown error',
             });
         }
         setLoading(false);
@@ -71,24 +158,34 @@ export default function BannerImagesDashboard() {
         if (!result.isConfirmed) return;
         setLoading(true);
         try {
-            const res = await axios.delete(`/api/admin/banner-images`, { data: { image: imageUrl } });
-            if (res.data.success) {
-                setImages(prev => prev.filter(img => img !== imageUrl));
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: 'Image deleted',
-                    showConfirmButton: false,
-                    timer: 2000
-                });
-            } else {
+            // Delete from Cloudinary
+            const resCloud = await fetch("/api/cloudinary/delete-image", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ imageUrl }),
+            });
+            const dataCloud = await resCloud.json();
+            if (!dataCloud.success) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Failed to delete image',
-                    text: res.data.error || 'Unknown error',
+                    title: 'Failed to delete image from Cloudinary',
+                    text: dataCloud.error || 'Unknown error',
                 });
+                setLoading(false);
+                return;
             }
+            // Remove from images array and update backend
+            const newImages = images.filter(img => img !== imageUrl);
+            setImages(newImages);
+            await axios.post("/api/admin/banner-images", { images: newImages });
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Image deleted',
+                showConfirmButton: false,
+                timer: 2000
+            });
         } catch (err) {
             Swal.fire({
                 icon: 'error',
@@ -100,34 +197,75 @@ export default function BannerImagesDashboard() {
     };
 
     return (
-        <div className="w-full min-h-screen bg-gray-50 py-8 px-2 sm:px-6">
-            <div className="max-w-3xl mx-auto bg-white rounded-lg shadow p-6 sm:p-8">
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Banner Images</h2>
+        <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-8 px-2 sm:px-6">
+            <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl p-8 sm:p-10 relative">
+                <h2 className="text-3xl font-extrabold text-gray-900 mb-8 tracking-tight flex items-center gap-2">
+                    <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="2" fill="none" /><path strokeLinecap="round" strokeLinejoin="round" d="M3 7l9 5 9-5" /></svg>
+                    Banner Images
+                </h2>
                 <form
-                    onSubmit={handleUpdate}
-                    className="mb-8 flex flex-col gap-4"
+                    onSubmit={e => e.preventDefault()}
+                    className="mb-8 flex flex-col gap-6 relative bg-gray-50 rounded-xl shadow p-6"
                 >
-                    <label className="font-semibold text-base sm:text-lg mb-1">Enter image URLs (one per line):</label>
-                    <textarea
-                        value={inputImages}
-                        onChange={(e) => setInputImages(e.target.value)}
-                        rows={5}
-                        className="border border-gray-300 px-3 py-2 rounded w-full focus:outline-none focus:border-blue-500 text-base font-mono"
-                        placeholder="https://example.com/image1.jpg\nhttps://example.com/image2.jpg"
-                    />
                     <button
-                        type="submit"
-                        className="px-5 py-2 rounded font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors self-end"
+                        type="button"
+                        className="px-5 py-2 rounded-full font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors absolute top-0 right-0 mt-4 mr-4 z-10 shadow-lg flex items-center gap-2"
                         disabled={loading}
+                        aria-label="Update Banner Images"
+                        onClick={async () => {
+                            setLoading(true);
+                            setError("");
+                            setSuccess("");
+                            try {
+                                await axios.post("/api/admin/banner-images", { images });
+                                setSuccess("Banner images updated successfully");
+                                Swal.fire({
+                                    toast: true,
+                                    position: 'top-end',
+                                    icon: 'success',
+                                    title: 'Banner images updated',
+                                    showConfirmButton: false,
+                                    timer: 2000
+                                });
+                            } catch (err) {
+                                setError("Error updating banner images");
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Failed to update images',
+                                    text: 'Unknown error',
+                                });
+                            }
+                            setLoading(false);
+                        }}
                     >
+                        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                         Update Banner Images
                     </button>
-                    {error && <div className="text-red-600 font-medium">{error}</div>}
-                    {success && <div className="text-green-600 font-medium">{success}</div>}
+                    <div className="flex items-center gap-4 mb-2 mt-10">
+                        <input
+                            ref={fileInputRef}
+                            id="banner-image-input"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            style={{ display: "none" }}
+                            onChange={handleFileChange}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="h-12 w-44 flex items-center justify-center bg-blue-50 border-2 border-dashed border-blue-400 rounded-xl hover:bg-blue-100 transition duration-150 shadow font-semibold text-blue-700 gap-2"
+                            aria-label="Upload Images"
+                        >
+                            <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z" /><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 12.75l2.25 3 3-4.5 4.5 6" /></svg>
+                            Upload Images
+                        </button>
+                        {loading && <span className="ml-2"><svg className="animate-spin h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg></span>}
+                    </div>
                 </form>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-7">
                     {images.length === 0 ? (
-                        <div className="col-span-2 text-gray-400 text-base font-semibold text-center">
+                        <div className="col-span-3 text-gray-400 text-base font-semibold text-center">
                             <div className="text-center py-10">
                                 <div className="flex items-center justify-center mb-3">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-10 h-10 text-gray-300">
@@ -142,33 +280,32 @@ export default function BannerImagesDashboard() {
                         images.map((url, idx) => (
                             <div
                                 key={idx}
-                                className="rounded-lg overflow-hidden shadow bg-white flex flex-col items-center justify-center p-3 border border-gray-100 relative"
+                                className="relative group h-44 w-full flex flex-col items-center justify-center bg-white rounded-xl border border-gray-200 shadow-md overflow-hidden"
                             >
                                 <img
                                     src={url}
                                     alt={`Banner ${idx + 1}`}
-                                    className="w-full h-40 object-cover rounded mb-2 border cursor-pointer"
-                                    style={{ background: "#f0f0f0" }}
+                                    className="h-36 w-full object-cover rounded-xl border border-gray-100 shadow-sm transition-transform duration-200 group-hover:scale-105"
                                 />
+                                <span className="absolute bottom-2 left-2 bg-blue-700 text-white text-xs px-2 py-0.5 rounded-full shadow font-semibold opacity-90">
+                                    {`Image ${idx + 1}`}
+                                </span>
                                 <button
-                                    className="absolute top-2 right-2 bg-white border border-gray-300 text-gray-500 rounded-full p-1 shadow hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-400"
-                                    title="Delete image"
+                                    type="button"
                                     onClick={() => handleDeleteImage(url)}
                                     disabled={loading}
+                                    className="absolute top-2 right-2 bg-white border border-red-400 text-red-600 rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 shadow-lg transition duration-200 hover:bg-red-600 hover:text-white"
+                                    title="Delete image"
                                     aria-label="Delete image"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
-                                <div className="font-mono text-xs text-blue-700 break-all text-center">
-                                    {url}
-                                </div>
                             </div>
                         ))
                     )}
                 </div>
-                {loading && <div className="mt-6 text-gray-500 text-base font-semibold">Loading...</div>}
             </div>
         </div>
     );

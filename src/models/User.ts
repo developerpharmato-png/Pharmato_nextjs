@@ -18,6 +18,12 @@ export interface IUser extends Document {
     uniqueCode: string;
     createdAt: Date;
     updatedAt: Date;
+    // Added for OTP and block logic
+    incorrectOtpAttempt?: number;
+    otpCount?: number;
+    otpGenerateTime?: Date;
+    isBlocked?: boolean;
+    userBlockedTime?: Date;
 }
 
 const UserSchema = new Schema<IUser>({
@@ -36,6 +42,12 @@ const UserSchema = new Schema<IUser>({
     isActive: { type: Boolean, default: true },
     isDelete: { type: Boolean, default: false },
     uniqueCode: { type: String },
+    // Added for OTP and block logic
+    incorrectOtpAttempt: { type: Number, default: 0 },
+    otpCount: { type: Number, default: 0 },
+    otpGenerateTime: { type: Date },
+    isBlocked: { type: Boolean, default: false },
+    userBlockedTime: { type: Date },
 }, { timestamps: true });
 
 // Auto-generate sequential uniqueCode on new user creation (reference: Category model)

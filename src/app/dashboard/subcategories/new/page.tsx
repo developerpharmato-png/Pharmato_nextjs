@@ -194,13 +194,13 @@ export default function NewSubCategoryPage() {
   return (
     <div className="w-full min-h-screen bg-gray-50 py-8 px-2 sm:px-6">
       <div className="max-w-3xl mx-auto">
-          <HeaderWithAction
-                  title="Add New Subcategory"
-                  subtitle="Create a new medicine subcategory for your inventory"
-                  showBack={true}
-                  showSearch={false}
-                />
-        
+        <HeaderWithAction
+          title="Add New Subcategory"
+          subtitle="Create a new medicine subcategory for your inventory"
+          showBack={true}
+          showSearch={false}
+        />
+
         <header className="mb-8 relative">
           <button
             type="button"
