@@ -1,15 +1,23 @@
-import mongoose, { Schema, Document } from 'mongoose';
-
-
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface IBannerImage extends Document {
-    images: Record<string, any>[];
+  images: any[];
 }
 
+const AnyObjectSchema = new Schema(
+  {},
+  {
+    _id: true,      // <-- force mongoose to generate _id for each object
+    strict: false   // <-- allow ANY key/value inside object
+  }
+);
 
+const BannerImageSchema = new Schema(
+  {
+    images: { type: [AnyObjectSchema], default: [] }
+  },
+  { timestamps: true }
+);
 
-const BannerImageSchema: Schema = new Schema({
-    images: [{ type: Schema.Types.Mixed, default: {} }],
-}, { timestamps: true });
-
-export default mongoose.models.BannerImage || mongoose.model<IBannerImage>('BannerImage', BannerImageSchema);
+export default mongoose.models.BannerImage ||
+  mongoose.model<IBannerImage>("BannerImage", BannerImageSchema);
