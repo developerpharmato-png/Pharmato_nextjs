@@ -1,10 +1,10 @@
-import React from "react";
+
 import { CustomTable, Column } from "../components/CustomTable";
 import { CustomTooltip, CustomImage } from "../components/miniComponents";
 import Avatar from "@mui/material/Avatar";
-
 import { useRouter } from "next/navigation";
 import { EditIcon } from "lucide-react";
+import { showConfirmStatusAlert } from "../components/ConfirmStatusAlert";
 
 interface Category {
   _id: string;
@@ -25,25 +25,33 @@ interface CategoriesTableProps {
   onRowsPerPageChange?: (rows: number) => void;
   onToggleStatus?: (id: string, isActive: boolean) => void;
   loading?: boolean;
+  confirmStatusMsg?: {
+    title?: string;
+    text?: string;
+    confirmText?: string;
+    cancelText?: string;
+  };
 }
 
-const CategoriesTable: React.FC<CategoriesTableProps> = ({
-  data,
-  page,
-  rowsPerPage,
-  totalCount,
-  onPageChange,
-  onRowsPerPageChange,
-  onToggleStatus,
-  loading = false,
-}) => {
+const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
+  const {
+    data,
+    page,
+    rowsPerPage,
+    totalCount,
+    onPageChange,
+    onRowsPerPageChange,
+    onToggleStatus,
+    loading = false,
+    confirmStatusMsg,
+  } = props;
   const router = useRouter();
   const columns: Column<Category>[] = [
     {
       id: "uniqueCode",
       label: "ID",
       minWidth: 120,
-      selector: (row) => (
+      selector: (row: Category) => (
         <CustomTooltip title={row.uniqueCode || "-"}>
           <span
             style={{
@@ -66,7 +74,7 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({
       id: "image",
       label: "Image",
       minWidth: 80,
-      selector: (row) =>
+      selector: (row: Category) =>
         row.images && row.images.length > 0 && row.images[0] ? (
           <CustomImage
             coverImage={row.images[0]}
@@ -89,7 +97,7 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({
       id: "name",
       label: "Name",
       minWidth: 120,
-      selector: (row) => (
+      selector: (row: Category) => (
         <CustomTooltip title={row.name || "-"}>
           <span
             style={{
@@ -109,7 +117,7 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({
       id: "description",
       label: "Description",
       minWidth: 180,
-      selector: (row) => (
+      selector: (row: Category) => (
         <CustomTooltip title={row.description || "-"}>
           <span
             style={{
@@ -129,7 +137,7 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({
       id: "isOTC",
       label: "OTC",
       minWidth: 60,
-      selector: (row) => (
+      selector: (row: Category) => (
         <CustomTooltip title={row.isOTC ? "Yes" : "No"}>
           <span
             style={{
@@ -149,12 +157,19 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({
       id: "isActive",
       label: "Status",
       minWidth: 80,
-      selector: (row) => (
+      selector: (row: Category) => (
         <button
-          onClick={() =>
-            onToggleStatus && onToggleStatus(row._id, !!row.isActive)
-          }
-          className="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          onClick={() => {
+            showConfirmStatusAlert({
+              isActive: !!row.isActive,
+              title: confirmStatusMsg?.title || (row.isActive ? "Deactivate Status?" : "Activate Status?"),
+              text: confirmStatusMsg?.text || (row.isActive ? "Are you sure you want to deactivate this item?" : "Are you sure you want to activate this item?"),
+              confirmText: confirmStatusMsg?.confirmText || (row.isActive ? "Deactivate" : "Activate"),
+              cancelText: confirmStatusMsg?.cancelText || "Cancel",
+              onConfirm: () => onToggleStatus && onToggleStatus(row._id, !row.isActive),
+            });
+          }}
+          className="relative  cursor-pointer inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
           style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
           title={row.isActive ? "Click to deactivate" : "Click to activate"}
         >
@@ -170,7 +185,7 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({
       id: "actions",
       label: "Edit",
       minWidth: 60,
-      selector: (row) => (
+      selector: (row: Category) => (
         <CustomTooltip title="Edit">
           <span
             style={{

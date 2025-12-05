@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import Swal from "sweetalert2";
+import { showConfirmStatusAlert } from "./components/ConfirmStatusAlert";
 
 export default function DashboardLayout({
   children,
@@ -37,13 +39,22 @@ export default function DashboardLayout({
   }, []);
 
   const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      localStorage.removeItem("admin");
-      router.push("/login");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+    showConfirmStatusAlert({
+      isActive: true,
+      title: "Logout Confirmation",
+      text: "Are you sure you want to logout?",
+      confirmText: "Logout",
+      cancelText: "Cancel",
+      onConfirm: async () => {
+        try {
+          await fetch("/api/auth/logout", { method: "POST" });
+          localStorage.removeItem("admin");
+          router.push("/login");
+        } catch (error) {
+          console.error("Logout failed:", error);
+        }
+      },
+    });
   };
 
   const menuItems = [

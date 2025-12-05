@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import HeaderWithAction from "../../components/HeaderWithAction";
 import Swal from "sweetalert2";
+import { showConfirmStatusAlert } from "../../components/ConfirmStatusAlert";
 
 type Customer = {
   _id: string;
@@ -120,63 +121,59 @@ export default function AdminCustomerListPage() {
       label: "Status",
       minWidth: 80,
       selector: (row) => (
-        <>
-          <button
-            onClick={async () => {
-              const actionText = row.isActive ? "deactivate" : "activate";
-              const confirm = await Swal.fire({
-                icon: "question",
-                title: `Confirm ${actionText}`,
-                text: `Are you sure you want to ${actionText} this customer?`,
-                showCancelButton: true,
-                confirmButtonColor: "#16a34a",
-                cancelButtonColor: "#6b7280",
-                confirmButtonText: "Yes",
-              });
-              if (!confirm.isConfirmed) return;
-              const res = await fetch(
-                `/api/admin/customers/active/${row._id}`,
-                {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ isActive: !row.isActive }),
-                }
-              );
-              if (res.ok) {
-                setCustomers((prev) =>
-                  prev.map((u) =>
-                    u._id === row._id ? { ...u, isActive: !row.isActive } : u
-                  )
+        <button
+          onClick={async () => {
+            showConfirmStatusAlert({
+              isActive: row.isActive,
+              title: row.isActive ? "Deactivate Customer?" : "Activate Customer?",
+              text: row.isActive
+                ? "Are you sure you want to deactivate this customer?"
+                : "Are you sure you want to activate this customer?",
+              confirmText: row.isActive ? "Deactivate" : "Activate",
+              cancelText: "Cancel",
+              onConfirm: async () => {
+                const res = await fetch(
+                  `/api/admin/customers/active/${row._id}`,
+                  {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ isActive: !row.isActive }),
+                  }
                 );
-                Swal.fire({
-                  toast: true,
-                  position: "top-end",
-                  icon: "success",
-                  title: `Customer ${
-                    row.isActive ? "deactivated" : "activated"
-                  }`,
-                  showConfirmButton: false,
-                  timer: 2000,
-                });
-              } else {
-                Swal.fire({
-                  icon: "error",
-                  title: "Update failed",
-                  text: "Unable to change status",
-                });
-              }
-            }}
-            className="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-            style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
-            title={row.isActive ? "Click to deactivate" : "Click to activate"}
-          >
-            <span
-              className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
-                row.isActive ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
-          </button>
-        </>
+                if (res.ok) {
+                  setCustomers((prev) =>
+                    prev.map((u) =>
+                      u._id === row._id ? { ...u, isActive: !row.isActive } : u
+                    )
+                  );
+                  Swal.fire({
+                    toast: true,
+                    position: "top-end",
+                    icon: "success",
+                    title: `Customer ${row.isActive ? "deactivated" : "activated"}`,
+                    showConfirmButton: false,
+                    timer: 2000,
+                  });
+                } else {
+                  Swal.fire({
+                    icon: "error",
+                    title: "Update failed",
+                    text: "Unable to change status",
+                  });
+                }
+              },
+            });
+          }}
+          className="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
+          title={row.isActive ? "Click to deactivate" : "Click to activate"}
+        >
+          <span
+            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
+              row.isActive ? "translate-x-6" : "translate-x-1"
+            }`}
+          />
+        </button>
       ),
     },
     {

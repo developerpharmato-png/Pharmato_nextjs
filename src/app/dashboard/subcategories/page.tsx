@@ -4,6 +4,7 @@ import { CustomTable, Column } from "../components/CustomTable";
 import { CustomImage, CustomTooltip } from "../components/miniComponents";
 import Link from "next/link";
 import Swal from "sweetalert2";
+import { showConfirmStatusAlert } from "../components/ConfirmStatusAlert";
 import HeaderWithAction from "../components/HeaderWithAction";
 import { useRouter } from "next/navigation";
 import { EditIcon } from "lucide-react";
@@ -34,6 +35,7 @@ export default function SubCategoriesPage() {
 }
 
 function SubCategoriesTable() {
+    
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [filteredSubcategories, setFilteredSubcategories] = useState<any[]>([]);
@@ -92,8 +94,58 @@ function SubCategoriesTable() {
   };
 
   const handleToggleStatus = (id: string, isActive: boolean) => {
-    setPendingSubcategory({ id, isActive });
-    setDialogOpen(true);
+    showConfirmStatusAlert({
+      isActive,
+      title: isActive ? "Inactivate Subcategory?" : "Activate Subcategory?",
+      text: isActive
+        ? "Are you sure you want to inactivate this subcategory?"
+        : "Are you sure you want to activate this subcategory?",
+      confirmText: isActive ? "Inactivate" : "Activate",
+      cancelText: "Cancel",
+      onConfirm: () => confirmToggleStatusDirect(id, isActive),
+    });
+  };
+
+  // Direct status toggle for SweetAlert2
+  const confirmToggleStatusDirect = async (id: string, isActive: boolean) => {
+    try {
+      const res = await fetch(`/api/subcategories/${id}/toggle-status`, {
+        method: "PATCH",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSubcategories((prev) =>
+          prev.map((sub) =>
+            sub._id === id ? { ...sub, isActive: !sub.isActive } : sub
+          )
+        );
+        setFilteredSubcategories((prev) =>
+          prev.map((sub) =>
+            sub._id === id ? { ...sub, isActive: !sub.isActive } : sub
+          )
+        );
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: "Status updated",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed to toggle status",
+          text: data.error || "Failed to toggle subcategory status",
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Failed to toggle status",
+        text: "Network error",
+      });
+    }
   };
 
   const confirmToggleStatus = async () => {
@@ -317,36 +369,6 @@ function SubCategoriesTable() {
 
   return (
     <div className="space-y-4">
-      {/* Dialog for status toggle confirmation */}
-      {dialogOpen && pendingSubcategory && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ backdropFilter: "blur(6px)" }}
-        >
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
-            <h2 className="text-lg font-bold mb-2">Confirm Status Change</h2>
-            <p className="mb-6 text-gray-700">
-              Are you sure you want to{" "}
-              {pendingSubcategory.isActive ? "inactivate" : "activate"} this
-              subcategory?
-            </p>
-            <div className="flex gap-4 justify-end">
-              <button
-                onClick={cancelToggleStatus}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmToggleStatus}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
-              >
-                Yes, {pendingSubcategory.isActive ? "Inactivate" : "Activate"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       {/* Filters */}
       <div className="flex items-center gap-4 flex-wrap">
         <div className="flex-1 min-w-[200px] relative">
@@ -427,6 +449,7 @@ function SubCategoriesTable() {
         totalCount={filteredSubcategories.length}
         onPageChange={setPage}
         onRowsPerPageChange={setRowsPerPage}
+        loading={loading}
       />
     </div>
   );
