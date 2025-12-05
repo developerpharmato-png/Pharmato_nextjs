@@ -8,6 +8,7 @@ import {
   CustomButton,
   CustomImage,
   ErrorMessageCom,
+  CustomTooltip,
 } from "../components/miniComponents";
 import { Switch, TextField, Box } from "@mui/material";
 import { showConfirmStatusAlert } from "../components/ConfirmStatusAlert";
@@ -278,29 +279,43 @@ export default function BannerImagesDashboard() {
               label: "Image",
               minWidth: 100,
               selector: (row: any) => (
-                <CustomImage
-                  coverImage={row.url}
-                  alt={row.alt || "Banner"}
-                  style={{
-                    height: 48,
-                    width: 120,
-                    objectFit: "cover",
-                    borderRadius: 6,
-                  }}
-                />
+                <CustomTooltip title={row.alt || "Banner image"}>
+                  <span>
+                    <CustomImage
+                      coverImage={row.url}
+                      images={[row.url]}
+                      alt={row.alt || "Banner"}
+                      style={{
+                        height: 48,
+                        width: 120,
+                        objectFit: "cover",
+                        borderRadius: 6,
+                        cursor: "pointer",
+                      }}
+                    />
+                  </span>
+                </CustomTooltip>
               ),
             },
             {
               id: "alt",
               label: "Alt Text",
               minWidth: 120,
-              selector: (row: any) => row.alt || "-",
+              selector: (row: any) => (
+                <CustomTooltip title={row.alt || "-"}>
+                  <span style={{ display: 'inline-block', width: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.alt || "-"}</span>
+                </CustomTooltip>
+              ),
             },
             {
               id: "targetScreen",
               label: "Target Screen/URL",
               minWidth: 120,
-              selector: (row: any) => row.targetScreen || "-",
+              selector: (row: any) => (
+                <CustomTooltip title={row.targetScreen || "-"}>
+                  <span style={{ display: 'inline-block', width: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.targetScreen || "-"}</span>
+                </CustomTooltip>
+              ),
             },
             {
               id: "targetId",
@@ -308,7 +323,11 @@ export default function BannerImagesDashboard() {
               minWidth: 120,
               selector: (row: any) => {
                 const cat = categories.find((c) => c._id === row.targetId);
-                return cat ? cat.name : "-";
+                return (
+                  <CustomTooltip title={cat ? cat.name : "-"}>
+                    <span style={{ display: 'inline-block', width: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cat ? cat.name : "-"}</span>
+                  </CustomTooltip>
+                );
               },
             },
             {

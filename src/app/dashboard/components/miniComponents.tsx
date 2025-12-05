@@ -106,6 +106,9 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
+import MobileStepper from "@mui/material/MobileStepper";
+import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
+import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 
 interface CustomImageProps {
   coverImage: string;
@@ -114,6 +117,7 @@ interface CustomImageProps {
   style?: React.CSSProperties;
 }
 
+
 export const CustomImage: React.FC<CustomImageProps> = ({
   coverImage,
   images = [],
@@ -121,12 +125,16 @@ export const CustomImage: React.FC<CustomImageProps> = ({
   style,
 }) => {
   const [open, setOpen] = React.useState(false);
+  const [current, setCurrent] = React.useState(0);
 
   const handleOpen = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (images.length > 0) setOpen(true);
+    setCurrent(0);
   };
   const handleClose = () => setOpen(false);
+
+  const handleStep = (step: number) => setCurrent(step);
 
   return (
     <>
@@ -154,25 +162,68 @@ export const CustomImage: React.FC<CustomImageProps> = ({
           <div
             style={{
               display: "flex",
-              gap: 16,
-              flexWrap: "wrap",
+              alignItems: "center",
               justifyContent: "center",
+              minHeight: 180,
+              minWidth: 180,
+              position: "relative",
+              flexDirection: "column",
             }}
           >
-            {images.map((img, idx) => (
+            {images.length > 1 ? (
+              <>
+                <img
+                  src={images[current]}
+                  alt={`img-${current}`}
+                  style={{
+                    height: 240,
+                    width: 240,
+                    objectFit: "cover",
+                    borderRadius: 8,
+                    margin: 8,
+                  }}
+                />
+                <MobileStepper
+                  steps={images.length}
+                  position="static"
+                  activeStep={current}
+                  nextButton={
+                    <IconButton
+                      size="small"
+                      onClick={() => handleStep((current + 1) % images.length)}
+                      disabled={images.length <= 1}
+                    >
+                      <KeyboardArrowRight />
+                    </IconButton>
+                  }
+                  backButton={
+                    <IconButton
+                      size="small"
+                      onClick={() => handleStep((current - 1 + images.length) % images.length)}
+                      disabled={images.length <= 1}
+                    >
+                      <KeyboardArrowLeft />
+                    </IconButton>
+                  }
+                  sx={{
+                    background: "transparent",
+                    marginTop: 2,
+                  }}
+                />
+              </>
+            ) : (
               <img
-                key={idx}
-                src={img}
-                alt={`img-${idx}`}
+                src={images[0] || coverImage}
+                alt={alt}
                 style={{
-                  height: 120,
-                  width: 120,
+                  height: 240,
+                  width: 240,
                   objectFit: "cover",
                   borderRadius: 8,
                   margin: 8,
                 }}
               />
-            ))}
+            )}
           </div>
         </DialogContent>
       </Dialog>

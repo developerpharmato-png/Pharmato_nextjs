@@ -2,7 +2,15 @@
 import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import { CustomButton, ErrorMessageCom } from "../../components/miniComponents";
-import { TextField, Select, MenuItem, InputLabel, FormControl } from "@mui/material";
+import {
+  TextField,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+} from "@mui/material";
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { MdArrowBack, MdSave } from "react-icons/md";
@@ -13,7 +21,6 @@ import {
   medicineFormValidationSchema,
 } from "./medicineFormUtil";
 import { Delete } from "lucide-react";
-
 
 export default function MedicineForm() {
   const router = useRouter();
@@ -54,7 +61,15 @@ export default function MedicineForm() {
                 onBlur={formik.handleBlur}
                 label="Form Type *"
               >
-                {["Tablet", "Capsule", "Syrup", "Injection", "Cream", "Drops", "Other"].map((c) => (
+                {[
+                  "Tablet",
+                  "Capsule",
+                  "Syrup",
+                  "Injection",
+                  "Cream",
+                  "Drops",
+                  "Other",
+                ].map((c) => (
                   <MenuItem key={c} value={c}>
                     {c}
                   </MenuItem>
@@ -91,7 +106,8 @@ export default function MedicineForm() {
                         break;
                     }
                     // Remove suffix if user types it
-                    if (val.endsWith(suffix)) val = val.slice(0, -suffix.length);
+                    if (val.endsWith(suffix))
+                      val = val.slice(0, -suffix.length);
                     formik.setFieldValue("unitInput", val);
                     formik.setFieldValue("unit", val + suffix);
                   }}
@@ -99,25 +115,41 @@ export default function MedicineForm() {
                   variant="outlined"
                   placeholder={(() => {
                     switch (formik.values.category) {
-                      case "Tablet": return "e.g. 10";
-                      case "Capsule": return "e.g. 10";
-                      case "Syrup": return "e.g. 250";
-                      case "Cream": return "e.g. 15";
-                      case "Drops": return "e.g. 10";
-                      case "Injection": return "e.g. 5";
-                      default: return "e.g. 1 Unit";
+                      case "Tablet":
+                        return "e.g. 10";
+                      case "Capsule":
+                        return "e.g. 10";
+                      case "Syrup":
+                        return "e.g. 250";
+                      case "Cream":
+                        return "e.g. 15";
+                      case "Drops":
+                        return "e.g. 10";
+                      case "Injection":
+                        return "e.g. 5";
+                      default:
+                        return "e.g. 1 Unit";
                     }
                   })()}
                   InputProps={{
                     endAdornment: (() => {
                       switch (formik.values.category) {
-                        case "Tablet": return <span style={{ marginLeft: 8 }}>Tablets</span>;
-                        case "Capsule": return <span style={{ marginLeft: 8 }}>Capsules</span>;
-                        case "Syrup": return <span style={{ marginLeft: 8 }}>ml</span>;
-                        case "Cream": return <span style={{ marginLeft: 8 }}>g</span>;
-                        case "Drops": return <span style={{ marginLeft: 8 }}>ml</span>;
-                        case "Injection": return <span style={{ marginLeft: 8 }}>ml</span>;
-                        default: return null;
+                        case "Tablet":
+                          return <span style={{ marginLeft: 8 }}>Tablets</span>;
+                        case "Capsule":
+                          return (
+                            <span style={{ marginLeft: 8 }}>Capsules</span>
+                          );
+                        case "Syrup":
+                          return <span style={{ marginLeft: 8 }}>ml</span>;
+                        case "Cream":
+                          return <span style={{ marginLeft: 8 }}>g</span>;
+                        case "Drops":
+                          return <span style={{ marginLeft: 8 }}>ml</span>;
+                        case "Injection":
+                          return <span style={{ marginLeft: 8 }}>ml</span>;
+                        default:
+                          return null;
                       }
                     })(),
                     style: {
@@ -131,7 +163,7 @@ export default function MedicineForm() {
             {formik.touched.category && formik.errors.category && (
               <ErrorMessageCom error={formik.errors.category} />
             )}
-          </div>
+          </div>;
         }
         if (values.images.length > 5) {
           Swal.fire({
@@ -251,7 +283,7 @@ export default function MedicineForm() {
         });
         const data = await res.json();
         if (data.success && data.url) uploadedUrls.push(data.url);
-      } catch { }
+      } catch {}
     }
     setUploading(false);
 
@@ -686,7 +718,10 @@ export default function MedicineForm() {
                 fullWidth
                 variant="outlined"
                 placeholder="Enter medicine description and usage"
-                error={formik.touched.description && Boolean(formik.errors.description)}
+                error={
+                  formik.touched.description &&
+                  Boolean(formik.errors.description)
+                }
                 InputProps={{
                   style: {
                     borderRadius: "0.75rem",
@@ -709,7 +744,10 @@ export default function MedicineForm() {
                   fullWidth
                   variant="outlined"
                   placeholder="Manufacturer name"
-                  error={formik.touched.manufacturer && Boolean(formik.errors.manufacturer)}
+                  error={
+                    formik.touched.manufacturer &&
+                    Boolean(formik.errors.manufacturer)
+                  }
                   InputProps={{
                     style: {
                       borderRadius: "0.75rem",
@@ -744,82 +782,130 @@ export default function MedicineForm() {
                     onBlur={formik.handleBlur}
                     label="Form Type *"
                   >
-                    {["Tablet", "Capsule", "Syrup", "Injection", "Cream", "Drops", "Other"].map((c) => (
+                    {[
+                      "Tablet",
+                      "Capsule",
+                      "Syrup",
+                      "Injection",
+                      "Cream",
+                      "Drops",
+                      "Other",
+                    ].map((c) => (
                       <MenuItem key={c} value={c}>
                         {c}
                       </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
-                {/* Editable unit input with suffix */}
-                {formik.values.category && (
-                  <div style={{ minWidth: 180 }}>
-                    <TextField
-                      name="unitInput"
-                      label="Unit"
-                      value={formik.values.unitInput || ""}
-                      onChange={(e) => {
-                        let val = e.target.value;
-                        let suffix = "";
-                        switch (formik.values.category) {
-                          case "Tablet":
-                            suffix = " Tablets";
-                            break;
-                          case "Capsule":
-                            suffix = " Capsules";
-                            break;
-                          case "Syrup":
-                          case "Drops":
-                          case "Injection":
-                            suffix = " ml";
-                            break;
-                          case "Cream":
-                            suffix = " g";
-                            break;
-                          case "Other":
-                            suffix = "";
-                            break;
-                        }
-                        // Remove suffix if user types it
-                        if (val.endsWith(suffix)) val = val.slice(0, -suffix.length);
-                        formik.setFieldValue("unitInput", val);
-                        formik.setFieldValue("unit", val + suffix);
-                      }}
-                      onBlur={formik.handleBlur}
-                      variant="outlined"
-                      placeholder={(() => {
-                        switch (formik.values.category) {
-                          case "Tablet": return "e.g. 10";
-                          case "Capsule": return "e.g. 10";
-                          case "Syrup": return "e.g. 250";
-                          case "Cream": return "e.g. 15";
-                          case "Drops": return "e.g. 10";
-                          case "Injection": return "e.g. 5";
-                          default: return "e.g. 1 Unit";
-                        }
-                      })()}
-                      InputProps={{
-                        endAdornment: (() => {
-                          switch (formik.values.category) {
-                            case "Tablet": return <span style={{ marginLeft: 8 }}>Tablets</span>;
-                            case "Capsule": return <span style={{ marginLeft: 8 }}>Capsules</span>;
-                            case "Syrup": return <span style={{ marginLeft: 8 }}>ml</span>;
-                            case "Cream": return <span style={{ marginLeft: 8 }}>g</span>;
-                            case "Drops": return <span style={{ marginLeft: 8 }}>ml</span>;
-                            case "Injection": return <span style={{ marginLeft: 8 }}>ml</span>;
-                            default: return null;
-                          }
-                        })(),
-                        style: {
-                          borderRadius: "0.75rem",
-                          background: "#fff",
-                        },
-                      }}
-                    />
-                  </div>
-                )}
+
                 {formik.touched.category && formik.errors.category && (
                   <ErrorMessageCom error={formik.errors.category} />
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {formik.values.category && (
+                <TextField
+                  name="unitInput"
+                  label="Unit"
+                  value={formik.values.unitInput || ""}
+                  onChange={(e) => {
+                    let val = e.target.value;
+                    let suffix = "";
+                    switch (formik.values.category) {
+                      case "Tablet":
+                        suffix = " Tablets";
+                        break;
+                      case "Capsule":
+                        suffix = " Capsules";
+                        break;
+                      case "Syrup":
+                      case "Drops":
+                      case "Injection":
+                        suffix = " ml";
+                        break;
+                      case "Cream":
+                        suffix = " g";
+                        break;
+                      case "Other":
+                        suffix = "";
+                        break;
+                    }
+                    // Remove suffix if user types it
+                    if (val.endsWith(suffix))
+                      val = val.slice(0, -suffix.length);
+                    formik.setFieldValue("unitInput", val);
+                    formik.setFieldValue("unit", val + suffix);
+                  }}
+                  onBlur={formik.handleBlur}
+                  variant="outlined"
+                  placeholder={(() => {
+                    switch (formik.values.category) {
+                      case "Tablet":
+                        return "e.g. 10";
+                      case "Capsule":
+                        return "e.g. 10";
+                      case "Syrup":
+                        return "e.g. 250";
+                      case "Cream":
+                        return "e.g. 15";
+                      case "Drops":
+                        return "e.g. 10";
+                      case "Injection":
+                        return "e.g. 5";
+                      default:
+                        return "e.g. 1 Unit";
+                    }
+                  })()}
+                  InputProps={{
+                    endAdornment: (() => {
+                      switch (formik.values.category) {
+                        case "Tablet":
+                          return <span style={{ marginLeft: 8 }}>Tablets</span>;
+                        case "Capsule":
+                          return (
+                            <span style={{ marginLeft: 8 }}>Capsules</span>
+                          );
+                        case "Syrup":
+                          return <span style={{ marginLeft: 8 }}>ml</span>;
+                        case "Cream":
+                          return <span style={{ marginLeft: 8 }}>g</span>;
+                        case "Drops":
+                          return <span style={{ marginLeft: 8 }}>ml</span>;
+                        case "Injection":
+                          return <span style={{ marginLeft: 8 }}>ml</span>;
+                        default:
+                          return null;
+                      }
+                    })(),
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
+                />
+              )}
+              <div>
+                <TextField
+                  name="stock"
+                  label="Stock Quantity *"
+                  type="text"
+                  value={formik.values.stock}
+                  onChange={handleChange}
+                  onBlur={formik.handleBlur}
+                  fullWidth
+                  variant="outlined"
+                  placeholder="0"
+                  error={formik.touched.stock && Boolean(formik.errors.stock)}
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
+                />
+                {formik.touched.stock && formik.errors.stock && (
+                  <ErrorMessageCom error={formik.errors.stock} />
                 )}
               </div>
             </div>
@@ -914,38 +1000,9 @@ export default function MedicineForm() {
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {" "}
-              {/* Increased grid gap */}
-              {/* Stock Quantity */}
-              <div>
-                <TextField
-                  name="stock"
-                  label="Stock Quantity *"
-                  type="text"
-                  value={formik.values.stock}
-                  onChange={handleChange}
-                  onBlur={formik.handleBlur}
-                  fullWidth
-                  variant="outlined"
-                  placeholder="0"
-                  error={formik.touched.stock && Boolean(formik.errors.stock)}
-                  InputProps={{
-                    style: {
-                      borderRadius: "0.75rem",
-                      background: "#fff",
-                    },
-                  }}
-                />
-                {formik.touched.stock && formik.errors.stock && (
-                  <ErrorMessageCom error={formik.errors.stock} />
-                )}
-              </div>
-            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {" "}
-              {/* Price grid kept at 4 columns */}
-              {/* MRP */}
               <div>
                 <TextField
                   name="mrp"
@@ -981,7 +1038,10 @@ export default function MedicineForm() {
                   fullWidth
                   variant="outlined"
                   placeholder="Purchase Price"
-                  error={formik.touched.purchasePrice && Boolean(formik.errors.purchasePrice)}
+                  error={
+                    formik.touched.purchasePrice &&
+                    Boolean(formik.errors.purchasePrice)
+                  }
                   InputProps={{
                     style: {
                       borderRadius: "0.75rem",
@@ -989,9 +1049,10 @@ export default function MedicineForm() {
                     },
                   }}
                 />
-                {formik.touched.purchasePrice && formik.errors.purchasePrice && (
-                  <ErrorMessageCom error={formik.errors.purchasePrice} />
-                )}
+                {formik.touched.purchasePrice &&
+                  formik.errors.purchasePrice && (
+                    <ErrorMessageCom error={formik.errors.purchasePrice} />
+                  )}
               </div>
               {/* Selling Price */}
               <div>
@@ -1040,33 +1101,45 @@ export default function MedicineForm() {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {" "}
-              {/* Increased grid gap */}
-              {/* Expiry Date */}
-              <div>
-                <TextField
-                  name="expiryDate"
-                  label="Expiry Date *"
-                  type="date"
-                  value={formik.values.expiryDate}
-                  onChange={handleChange}
-                  onBlur={formik.handleBlur}
-                  inputProps={{ min: todayStr }}
-                  fullWidth
-                  variant="outlined"
-                  error={formik.touched.expiryDate && Boolean(formik.errors.expiryDate)}
-                  InputProps={{
-                    style: {
-                      borderRadius: "0.75rem",
-                      background: "#fff",
-                    },
-                  }}
-                />
-                {formik.touched.expiryDate && formik.errors.expiryDate && (
-                  <ErrorMessageCom error={formik.errors.expiryDate} />
-                )}
+              <div className="w-full">
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <DatePicker
+                    label="Expiry Date *"
+                    value={formik.values.expiryDate || null}
+                    onChange={(date) => {
+                      formik.setFieldValue("expiryDate", date);
+                    }}
+                    onBlur={formik.handleBlur}
+                    minDate={new Date()}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        name="expiryDate"
+                        fullWidth
+                        variant="outlined"
+                        error={
+                          formik.touched.expiryDate &&
+                          Boolean(formik.errors.expiryDate)
+                        }
+                        helperText={
+                          formik.touched.expiryDate && formik.errors.expiryDate
+                        }
+                        InputProps={{
+                          ...params.InputProps,
+                          style: {
+                            borderRadius: "0.75rem",
+                            background: "#fff",
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                  {formik.touched.expiryDate && formik.errors.expiryDate && (
+                    <ErrorMessageCom error={formik.errors.expiryDate} />
+                  )}
+                </LocalizationProvider>
               </div>
-              {/* Batch Number */}
+            
               <div>
                 <TextField
                   name="batchNumber"

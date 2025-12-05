@@ -1,4 +1,5 @@
 import React from 'react';
+import { Pill, FileText, ShieldCheck, Plus, Eye, User, MapPin } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DashboardPage() {
@@ -21,7 +22,7 @@ export default function DashboardPage() {
                         <p className="text-xs text-green-600 mt-2">↑ 12% from last month</p>
                     </div>
                     <div className="w-14 h-14 bg-green-50 rounded-lg flex items-center justify-center">
-                        <span className="material-icons text-3xl text-green-600">medication</span>
+                        <Pill className="text-3xl text-green-600" />
                     </div>
                 </div>
 
@@ -32,7 +33,7 @@ export default function DashboardPage() {
                         <p className="text-xs text-blue-600 mt-2">↑ 8% from last month</p>
                     </div>
                     <div className="w-14 h-14 bg-blue-50 rounded-lg flex items-center justify-center">
-                        <span className="material-icons text-3xl text-blue-600">receipt_long</span>
+                        <FileText className="text-3xl text-blue-600" />
                     </div>
                 </div>
 
@@ -43,7 +44,7 @@ export default function DashboardPage() {
                         <p className="text-xs text-purple-600 mt-2">↑ 2 new this week</p>
                     </div>
                     <div className="w-14 h-14 bg-purple-50 rounded-lg flex items-center justify-center">
-                        <span className="material-icons text-3xl text-purple-600">admin_panel_settings</span>
+                        <ShieldCheck className="text-3xl text-purple-600" />
                     </div>
                 </div>
             </div>
@@ -57,7 +58,7 @@ export default function DashboardPage() {
                         className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition group"
                     >
                         <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center text-white text-xl group-hover:scale-110 transition">
-                            <span className="material-icons">add</span>
+                            <Plus />
                         </div>
                         <div className="ml-4">
                             <p className="font-semibold text-gray-800">Adsd Medicine</p>
@@ -70,7 +71,7 @@ export default function DashboardPage() {
                         className="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition group"
                     >
                         <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xl group-hover:scale-110 transition">
-                            <span className="material-icons">preview</span>
+                            <Eye />
                         </div>
                         <div className="ml-4">
                             <p className="font-semibold text-gray-800">View Prescriptions</p>
@@ -83,7 +84,7 @@ export default function DashboardPage() {
                         className="flex items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition group"
                     >
                         <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center text-white text-xl group-hover:scale-110 transition">
-                            <span className="material-icons">person</span>
+                            <User />
                         </div>
                         <div className="ml-4">
                             <p className="font-semibold text-gray-800">Manage Admins</p>
@@ -96,7 +97,7 @@ export default function DashboardPage() {
                         className="flex items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition group"
                     >
                         <div className="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center text-white text-xl group-hover:scale-110 transition">
-                            <span className="material-icons">place</span>
+                            <MapPin />
                         </div>
                         <div className="ml-4">
                             <p className="font-semibold text-gray-800">Manage Pincodes</p>

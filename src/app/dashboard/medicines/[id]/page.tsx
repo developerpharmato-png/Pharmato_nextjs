@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import HeaderWithAction from "../../components/HeaderWithAction";
 import { CustomButton } from "../../components/miniComponents";
+import MedicineDetailSkeleton from "../skeleton/MedicineDetailSkeleton";
 
 type TabKey = "overview" | "pricing" | "inventory" | "composition" | "related";
 
@@ -67,14 +68,19 @@ export default function MedicineDetailPage() {
     }
   };
 
-  if (loading) return <div className="p-6 text-gray-700">Loading...</div>;
+  if (loading)
+    return (
+      <div className="containerStyle scrollbar-hide">
+        <MedicineDetailSkeleton />
+      </div>
+    );
   if (!medicine)
     return <div className="p-6 text-red-600">Medicine not found.</div>;
 
   const images: string[] = medicine.images || [];
 
   return (
-    <div className="containerStyle scrollbar-hide" >
+    <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
         title={medicine.name}
         subtitle={medicine.manufacturer || ""}
@@ -635,10 +641,7 @@ function RelatedProductsPopup({
           >
             Cancel
           </button>
-          <CustomButton
-          width="200px"
-             onClick={() => onUpdate(checked)}
-          >
+          <CustomButton width="200px" onClick={() => onUpdate(checked)}>
             Save Changes
           </CustomButton>
         </div>
