@@ -30,9 +30,44 @@ import BannerImage from '@/models/BannerImage';
 export async function GET() {
     await dbConnect();
     const doc = await BannerImage.findOne().lean();
-    let images: string[] = [];
+    let images: any[] = [];
     if (doc && !Array.isArray(doc) && 'images' in doc && Array.isArray(doc.images)) {
-        images = doc.images;
+        images = await Promise.all(doc.images.map(async (img: any) => {
+            let categoryActive = false;
+            let subcategoryAvailable = false;
+            let medicineCount = 0;
+            if (img.targetId) {
+                const category = await (await import('@/models/Category')).default.findOne({ _id: img.targetId, isActive: true }).lean();
+                if (category) {
+                    categoryActive = true;
+                    const subcategory = await (await import('@/models/SubCategory')).default.findOne({ categoryId: category._id, isActive: true }).lean();
+                    if (subcategory) {
+                        subcategoryAvailable = true;
+                        // Count active medicines for this category and subcategory
+                        medicineCount = await (await import('@/models/Medicine')).default.countDocuments({
+                            categoryId: category._id,
+                            subCategoryId: subcategory._id,
+                            isActive: true
+                        });
+                    } else {
+                        // No active subcategory, count medicines by category only
+                        medicineCount = await (await import('@/models/Medicine')).default.countDocuments({
+                            categoryId: category._id,
+                            isActive: true
+                        });
+                    }
+                }
+            }
+            return {
+                url: img.url,
+                alt: img.alt || '',
+                targetScreen: img.targetScreen || '',
+                targetId: img.targetId || '',
+                categoryActive,
+                subcategoryAvailable,
+                medicineCount
+            };
+        }));
     }
     return NextResponse.json({
         success: true,
