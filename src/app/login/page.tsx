@@ -71,7 +71,7 @@ export default function LoginPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg mb-1">Lightning Performance</h3>
+                  <h3 className="font-bold text-lg mb-1">Lightning performance</h3>
                   <p className="text-green-100 text-sm">Optimized infrastructure ensures instant response times</p>
                 </div>
               </div>
