@@ -6,24 +6,24 @@ import Notification from '@/models/Notification';
 /**
  * @swagger
  * /api/notifications/unread-count:
- *   get:
+ *   post:
  *     summary: Get unread notification count for a user
  *     tags:
  *       - Notifications
- *     parameters:
- *       - in: query
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *         description: The user's ID
- *       - in: query
- *         name: role
- *         required: true
- *         schema:
- *           type: string
- *           enum: [admin, customer]
- *         description: The user's role
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: The user's ID
+ *               role:
+ *                 type: string
+ *                 enum: [admin, customer]
+ *                 description: The user's role
  *     responses:
  *       200:
  *         description: Unread notification count
@@ -41,12 +41,12 @@ import Notification from '@/models/Notification';
  *         description: Missing userId or role
  */
 
-// GET /api/notifications/unread-count?userId=...&role=...
-export async function GET(request: NextRequest) {
+// POST /api/notifications/unread-count
+export async function POST(request: NextRequest) {
     await connectDB();
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-    const role = searchParams.get('role');
+    const body = await request.json();
+    const userId = body.userId;
+    const role = body.role;
     if (!userId || !role) {
         return NextResponse.json({ success: false, error: 'userId and role required' }, { status: 400 });
     }

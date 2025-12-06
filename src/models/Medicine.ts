@@ -11,6 +11,7 @@ export interface IMedicine {
     category: string;
     categoryId?: mongoose.Types.ObjectId;
     subCategoryId?: mongoose.Types.ObjectId;
+    storeId?: mongoose.Types.ObjectId;
     price: number; // selling price
     purchasePrice: number; // purchase price
     mrp: number; // mrp
@@ -86,6 +87,11 @@ const MedicineSchema = new Schema<IMedicine>({
         type: Schema.Types.ObjectId,
         ref: 'SubCategory',
         default: null,
+    },
+    storeId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Store',
+        default: () => new mongoose.Types.ObjectId('6926e27d3ea929638e7d091c'),
     },
     isOTC: {
         type: Boolean,

@@ -37,7 +37,7 @@ export const medicineFormValidationSchema = Yup.object().shape({
   discount: Yup.number(),
   stock: Yup.number().typeError('Stock must be a number').required('Stock is required'),
   expiryDate: Yup.string().required('Expiry date is required'),
-  batchNumber: Yup.string().required('Batch number is required'),
+  // batchNumber: Yup.string().required('Batch number is required'),
   isOTC: Yup.boolean(),
   requiresPrescription: Yup.boolean(),
   images: Yup.array().min(1, 'At least one image is required').max(5, 'Maximum 5 images allowed'),
