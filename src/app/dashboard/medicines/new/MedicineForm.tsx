@@ -283,7 +283,7 @@ export default function MedicineForm() {
         });
         const data = await res.json();
         if (data.success && data.url) uploadedUrls.push(data.url);
-      } catch {}
+      } catch { }
     }
     setUploading(false);
 
@@ -779,7 +779,7 @@ export default function MedicineForm() {
                       formik.setFieldValue("unitInput", "");
                       formik.setFieldValue("unit", "");
                     }}
-                    onBlur={formik.handleBlur}
+                    // onBlur removed from DatePicker (should be on TextField only)
                     label="Form Type *"
                   >
                     {[
@@ -929,7 +929,6 @@ export default function MedicineForm() {
                         },
                       } as React.ChangeEvent<HTMLSelectElement>);
                     }}
-                    onBlur={formik.handleBlur}
                     label="Category"
                   >
                     <MenuItem value="">Select a category</MenuItem>
@@ -1000,7 +999,7 @@ export default function MedicineForm() {
                 )}
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {" "}
               <div>
@@ -1105,58 +1104,29 @@ export default function MedicineForm() {
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                   <DatePicker
                     label="Expiry Date *"
-                    value={formik.values.expiryDate || null}
-                    onChange={(date) => {
-                      formik.setFieldValue("expiryDate", date);
+                    value={formik.values.expiryDate ? new Date(formik.values.expiryDate) : null}
+                    onChange={(date: Date | null) => {
+                      formik.setFieldValue("expiryDate", date ? date.toISOString().slice(0, 10) : "");
                     }}
-                    onBlur={formik.handleBlur}
                     minDate={new Date()}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        name="expiryDate"
-                        fullWidth
-                        variant="outlined"
-                        error={
-                          formik.touched.expiryDate &&
-                          Boolean(formik.errors.expiryDate)
-                        }
-                        helperText={
-                          formik.touched.expiryDate && formik.errors.expiryDate
-                        }
-                        InputProps={{
-                          ...params.InputProps,
+                    slotProps={{
+                      textField: {
+                        name: "expiryDate",
+                        fullWidth: true,
+                        variant: "outlined",
+                        onBlur: formik.handleBlur,
+                        error: formik.touched.expiryDate && Boolean(formik.errors.expiryDate),
+                        helperText: formik.touched.expiryDate && formik.errors.expiryDate,
+                        InputProps: {
                           style: {
                             borderRadius: "0.75rem",
                             background: "#fff",
                           },
-                        }}
-                      />
-                    )}
+                        },
+                      },
+                    }}
                   />
-                  {formik.touched.expiryDate && formik.errors.expiryDate && (
-                    <ErrorMessageCom error={formik.errors.expiryDate} />
-                  )}
                 </LocalizationProvider>
-              </div>
-            
-              <div>
-                <TextField
-                  name="batchNumber"
-                  label="Batch Number *"
-                  value={formik.values.batchNumber}
-                  onChange={handleChange}
-                  onBlur={formik.handleBlur}
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Batch number"
-                  InputProps={{
-                    style: {
-                      borderRadius: "0.75rem",
-                      background: "#fff",
-                    },
-                  }}
-                />
               </div>
             </div>
             {/* Composition Section Styling */}

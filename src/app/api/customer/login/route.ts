@@ -75,7 +75,6 @@ export async function POST(request: NextRequest) {
             incorrectOtpAttempt: 0,
             otpCount: 1,
             isBlocked: 0,
-            isActive: false,
         });
         isNewUser = true;
     } else {
