@@ -1,4 +1,3 @@
-
 import { CustomTable, Column } from "../components/CustomTable";
 import { CustomTooltip, CustomImage } from "../components/miniComponents";
 import Avatar from "@mui/material/Avatar";
@@ -50,20 +49,12 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
     {
       id: "uniqueCode",
       label: "ID",
-      minWidth: 120,
-    
+      minWidth: 80,
+
       selector: (row: Category) => (
         <CustomTooltip title={row.uniqueCode || "-"}>
           <span
-            style={{
-              display: "inline-block",
-              width: 120,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              cursor: "pointer",
-              color: "var(--primary)",
-            }}
+            className="ID-List"
             onClick={() => router.push(`/dashboard/categories/edit/${row._id}`)}
           >
             {row.uniqueCode || "-"}
@@ -137,20 +128,13 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
     {
       id: "isOTC",
       label: "OTC",
-      minWidth: 60,
-      selector: (row: Category) => (
+      selector: (row) => (
         <CustomTooltip title={row.isOTC ? "Yes" : "No"}>
-          <span
-            style={{
-              display: "inline-block",
-              width: 60,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {row.isOTC ? "Yes" : "No"}
-          </span>
+          {row.isOTC ? (
+            <span className="OTCYes">Yes</span>
+          ) : (
+            <span className="OTCNo">No</span>
+          )}
         </CustomTooltip>
       ),
     },
@@ -163,11 +147,20 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
           onClick={() => {
             showConfirmStatusAlert({
               isActive: !!row.isActive,
-              title: confirmStatusMsg?.title || (row.isActive ? "Deactivate Status?" : "Activate Status?"),
-              text: confirmStatusMsg?.text || (row.isActive ? "Are you sure you want to deactivate this item?" : "Are you sure you want to activate this item?"),
-              confirmText: confirmStatusMsg?.confirmText || (row.isActive ? "Deactivate" : "Activate"),
+              title:
+                confirmStatusMsg?.title ||
+                (row.isActive ? "Deactivate Status?" : "Activate Status?"),
+              text:
+                confirmStatusMsg?.text ||
+                (row.isActive
+                  ? "Are you sure you want to deactivate this item?"
+                  : "Are you sure you want to activate this item?"),
+              confirmText:
+                confirmStatusMsg?.confirmText ||
+                (row.isActive ? "Deactivate" : "Activate"),
               cancelText: confirmStatusMsg?.cancelText || "Cancel",
-              onConfirm: () => onToggleStatus && onToggleStatus(row._id, !row.isActive),
+              onConfirm: () =>
+                onToggleStatus && onToggleStatus(row._id, !row.isActive),
             });
           }}
           className="relative  cursor-pointer inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
@@ -183,10 +176,10 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
       ),
     },
     {
-      id: "actions",  
+      id: "actions",
       label: "Edit",
       minWidth: 60,
- 
+
       selector: (row: Category) => (
         <CustomTooltip title="Edit">
           <span

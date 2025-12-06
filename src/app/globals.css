@@ -34,7 +34,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-}
+}  
 
 /* Admin module image fitting */
 .admin-module img {
@@ -65,3 +65,66 @@ body {
   height: 84vh;
   padding-bottom: 5rem;
 } 
+
+
+
+
+.ID-List {
+  display: inline-block;
+  width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.Category {
+  display: inline-block;
+  width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: #f3e8ff;
+  color: #7c3aed;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border: 1px solid #e9d5ff;
+}
+.sub-category {
+ display: inline-block;
+  width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: #1abcac;
+  color: black;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border: 1px solid #e9d5ff;
+}
+
+.OTCYes {
+  padding: 4px 12px;
+  background: #d1fae5;
+  color: #065f46;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.OTCNo {
+  padding: 4px 12px;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  display: inline-block;
+}

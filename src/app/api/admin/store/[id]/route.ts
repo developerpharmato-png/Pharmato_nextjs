@@ -15,3 +15,4 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     }
     return NextResponse.json({ success: true, data: store });
 }
+  

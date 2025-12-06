@@ -27,12 +27,12 @@ export default function PincodeSelect({
             label="Service Pincodes * (multi select)
 "
             variant="outlined"
-            error={!!error}
-            helperText={error || ""}
+           
           />
         )}
         sx={{ background: "#e3f2fd", borderRadius: 2 }}
       />
+      
     </div>
   );
 }

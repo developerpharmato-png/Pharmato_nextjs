@@ -24,7 +24,6 @@ export default function SubCategoriesPage() {
         showBack={false}
         showSearch={false}
         addLabel="Add "
-      
         addShow={true}
         handleAdd={handleAdd}
       />
@@ -35,7 +34,6 @@ export default function SubCategoriesPage() {
 }
 
 function SubCategoriesTable() {
-    
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [filteredSubcategories, setFilteredSubcategories] = useState<any[]>([]);
@@ -205,7 +203,6 @@ function SubCategoriesTable() {
     setPendingSubcategory(null);
   };
 
-
   // Table columns
   const columns: Column<any>[] = [
     {
@@ -213,17 +210,7 @@ function SubCategoriesTable() {
       label: "Id",
       selector: (row) => (
         <CustomTooltip title={row.uniqueCode || "—"}>
-          <span
-            className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium inline-block"
-            style={{
-              maxWidth: 120,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {row.uniqueCode || "—"}
-          </span>
+          <span className="ID-List">{row.uniqueCode || "—"}</span>
         </CustomTooltip>
       ),
     },
@@ -279,17 +266,7 @@ function SubCategoriesTable() {
       label: "Category",
       selector: (row) => (
         <CustomTooltip title={row.categoryId?.name || "N/A"}>
-          <span
-            className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium"
-            style={{
-              maxWidth: 120,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {row.categoryId?.name || "N/A"}
-          </span>
+          <span className="Category">{row.categoryId?.name || "N/A"}</span>
         </CustomTooltip>
       ),
     },
@@ -299,13 +276,9 @@ function SubCategoriesTable() {
       selector: (row) => (
         <CustomTooltip title={row.isOTC ? "Yes" : "No"}>
           {row.isOTC ? (
-            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">
-              Yes
-            </span>
+            <span className="OTCYes">Yes</span>
           ) : (
-            <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-bold">
-              No
-            </span>
+            <span className="OTCNo">No</span>
           )}
         </CustomTooltip>
       ),

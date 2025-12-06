@@ -120,7 +120,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
       const data = await res.json();
       if (data.success && data.url) {
         formik.setFieldValue("images", [data.url]);
-        formik.setFieldValue("url", data.url); // Sync url for validation
+        formik.setFieldValue("url", data.url);
         Swal.fire({
           toast: true,
           position: "top-end",

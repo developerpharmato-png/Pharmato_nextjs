@@ -145,30 +145,7 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <div className="flex items-start bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
-                <div className="bg-white/20 rounded-lg p-2 mr-4">
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg mb-1">Quick Setup</h3>
-                  <p className="text-green-100 text-sm">
-                    Get started in minutes with our streamlined onboarding
-                    process
-                  </p>
-                </div>
-              </div>
+             
             </div>
           </div>
         </div>

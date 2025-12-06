@@ -31,7 +31,11 @@ import { initCategory } from "../../../../utils/initCategory";
 import { validateCategory } from "../../../../utils/validateCategory";
 import { MdSave } from "react-icons/md";
 import { ImageUploadField } from "../../components/ImageUploadField";
-import { StandardFormCheckbox, StyledCheckboxWithDescription } from "../../components/StyledCheckboxWithDescription";
+import {
+  StandardFormCheckbox,
+  StyledCheckboxWithDescription,
+} from "../../components/StyledCheckboxWithDescription";
+import Toast from "@/utils/Toast";
 
 const MAX_DESCRIPTION_LENGTH = 1000;
 
@@ -41,7 +45,10 @@ export default function NewCategoryPage() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const theme = useTheme();
-
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
   // --- Formik Setup (Logic Unchanged) ---
   const formik = useFormik({
     initialValues: initCategory,
@@ -56,28 +63,23 @@ export default function NewCategoryPage() {
         });
         const data = await res.json();
         if (data.success) {
-          Swal.fire({
-            toast: true,
-            position: "top-end",
-            icon: "success",
-            title: "Category created successfully",
-            showConfirmButton: false,
-            timer: 2000,
+          setToast({
+            message: "Category created successfully",
+            type: "success",
           });
           setTimeout(() => router.push("/dashboard/categories"), 1200);
         } else {
           setErrors(data.error || {});
-          Swal.fire({
-            icon: "error",
-            title: "Create failed",
-            text: data.error || "Failed to create category",
+
+          setToast({
+            message: "Failed to create category",
+            type: "error",
           });
         }
       } catch (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Create failed",
-          text: "Failed to create category",
+        setToast({
+          message: "Failed to create category",
+          type: "error",
         });
       } finally {
         setLoading(false);
@@ -87,7 +89,6 @@ export default function NewCategoryPage() {
     validateOnChange: true,
     validateOnBlur: true,
   });
-
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -137,19 +138,15 @@ export default function NewCategoryPage() {
       const data = await res.json();
       if (data.success && data.url) {
         formik.setFieldValue("images", [data.url]);
-        Swal.fire({
-          toast: true,
-          position: "top-end",
-          icon: "success",
-          title: "Image uploaded successfully",
-          showConfirmButton: false,
-          timer: 2000,
+
+        setToast({
+          message: "Image uploaded successfully",
+          type: "success",
         });
       } else {
-        Swal.fire({
-          icon: "error",
-          title: "Image upload failed",
-          text: data.error || "Failed to upload image",
+        setToast({
+          message: "Image upload failed",
+          type: "error",
         });
       }
       setUploading(false);
@@ -188,6 +185,8 @@ export default function NewCategoryPage() {
 
   return (
     <div className="containerStyle scrollbar-hide">
+      {toast && <Toast message={toast.message} type={toast.type} />}
+
       <Box sx={{ mb: 4, position: "relative" }}>
         <IconButton
           onClick={() => router.back()}
@@ -279,22 +278,20 @@ export default function NewCategoryPage() {
               id="category-image-input"
             />
 
-             <StyledCheckboxWithDescription
-                        id="isOTC"
-                        checked={formik.values.isOTC}
-                        onChange={formik.handleChange}
-                        title="Over-the-Counter (OTC) Subcategory"
-                        description="Medicines in this subcategory can be purchased without a prescription"
-                      />
-            
-                      <StandardFormCheckbox
-                        id="isActive"
-                        checked={formik.values.isActive}
-                        onChange={formik.handleChange}
-                        label="Active Subcategory"
-                      />
+            <StyledCheckboxWithDescription
+              id="isOTC"
+              checked={formik.values.isOTC}
+              onChange={formik.handleChange}
+              title="Over-the-Counter (OTC) Subcategory"
+              description="Medicines in this subcategory can be purchased without a prescription"
+            />
 
-          
+            <StandardFormCheckbox
+              id="isActive"
+              checked={formik.values.isActive}
+              onChange={formik.handleChange}
+              label="Active Subcategory"
+            />
 
             <Box sx={{ display: "flex", gap: 2, pt: 2 }}>
               <div className="mt-8 flex justify-center w-full">

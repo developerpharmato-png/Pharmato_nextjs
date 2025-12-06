@@ -1,3 +1,15 @@
+export async function DELETE(req: NextRequest) {
+	await dbConnect();
+	const { id } = await req.json();
+	if (!id) {
+		return NextResponse.json({ success: false, message: 'id is required' }, { status: 400 });
+	}
+	const pin = await Pincode.findByIdAndDelete(id);
+	if (!pin) {
+		return NextResponse.json({ success: false, message: 'Pincode not found' }, { status: 404 });
+	}
+	return NextResponse.json({ success: true, message: 'Pincode deleted' });
+}
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Pincode from '@/models/Pincode';

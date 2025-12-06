@@ -17,13 +17,20 @@ import { MdAdd, MdDelete, MdArrowBack, MdSave } from "react-icons/md";
 import { useParams } from "next/navigation";
 import HeaderWithAction from "../../../components/HeaderWithAction";
 import Swal from "sweetalert2";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import SkeltonEditMedicine from "./SkeltonEditMedicine";
 import { Delete } from "lucide-react";
+import Toast from "@/utils/Toast";
 
 type Medicine = any;
 
 export default function EditFormClient({ id }: { id?: string }) {
   const params = useParams();
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
   const clientIdFromParams = (params as any)?.id;
   const effectiveId = id && id !== "undefined" ? id : clientIdFromParams;
   const [loading, setLoading] = useState(true);
@@ -603,7 +610,7 @@ export default function EditFormClient({ id }: { id?: string }) {
       coverImage: cover,
       finalUpdate: true,
     };
-    fetch(`/api/medicines/${effectiveId}`, {
+    const res = fetch(`/api/medicines/${effectiveId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -612,26 +619,20 @@ export default function EditFormClient({ id }: { id?: string }) {
     })
       .then(async (res) => {
         const json = await res.json();
-        if (json.success) {
-          Swal.fire({
-            toast: true,
-            position: "top-end",
-            icon: "success",
-            title: "Medicine updated successfully",
-            showConfirmButton: false,
-            timer: 2000,
+
+        if (json?.success == true) {
+          setToast({
+            message: "Medicine updated successfully",
+            type: "success",
           });
         } else {
-          Swal.fire({
-            icon: "error",
-            title: "Update failed",
-            text: json.error || "Unknown error",
+          setToast({
+            message: "Update failed: " + (json.error || "Unknown error"),
+            type: "error",
           });
         }
       })
-      .catch((err) => {
-        Swal.fire({ icon: "error", title: "Update failed", text: String(err) });
-      })
+      .catch((err) => {})
       .finally(() => {
         setLoading(false);
       });
@@ -669,6 +670,8 @@ export default function EditFormClient({ id }: { id?: string }) {
 
   return (
     <>
+      {toast && <Toast message={toast.message} type={toast.type} />}
+
       <div className="containerStyle scrollbar-hide">
         <div className="mb-8 relative">
           <button
@@ -925,7 +928,6 @@ export default function EditFormClient({ id }: { id?: string }) {
               </div>
             </div>
 
-
             {/* Unit and Expiry Date in one row, like MedicineForm */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {form.category && (
@@ -955,31 +957,52 @@ export default function EditFormClient({ id }: { id?: string }) {
                         suffix = "";
                         break;
                     }
-                    if (val.endsWith(suffix)) val = val.slice(0, -suffix.length);
-                    setForm((prev) => ({ ...prev, unitInput: val, unit: val + suffix }));
+                    if (val.endsWith(suffix))
+                      val = val.slice(0, -suffix.length);
+                    setForm((prev) => ({
+                      ...prev,
+                      unitInput: val,
+                      unit: val + suffix,
+                    }));
                   }}
                   variant="outlined"
                   placeholder={(() => {
                     switch (form.category) {
-                      case "Tablet": return "e.g. 10";
-                      case "Capsule": return "e.g. 10";
-                      case "Syrup": return "e.g. 250";
-                      case "Cream": return "e.g. 15";
-                      case "Drops": return "e.g. 10";
-                      case "Injection": return "e.g. 5";
-                      default: return "e.g. 1 Unit";
+                      case "Tablet":
+                        return "e.g. 10";
+                      case "Capsule":
+                        return "e.g. 10";
+                      case "Syrup":
+                        return "e.g. 250";
+                      case "Cream":
+                        return "e.g. 15";
+                      case "Drops":
+                        return "e.g. 10";
+                      case "Injection":
+                        return "e.g. 5";
+                      default:
+                        return "e.g. 1 Unit";
                     }
                   })()}
                   InputProps={{
                     endAdornment: (() => {
                       switch (form.category) {
-                        case "Tablet": return <span style={{ marginLeft: 8 }}>Tablets</span>;
-                        case "Capsule": return <span style={{ marginLeft: 8 }}>Capsules</span>;
-                        case "Syrup": return <span style={{ marginLeft: 8 }}>ml</span>;
-                        case "Cream": return <span style={{ marginLeft: 8 }}>g</span>;
-                        case "Drops": return <span style={{ marginLeft: 8 }}>ml</span>;
-                        case "Injection": return <span style={{ marginLeft: 8 }}>ml</span>;
-                        default: return null;
+                        case "Tablet":
+                          return <span style={{ marginLeft: 8 }}>Tablets</span>;
+                        case "Capsule":
+                          return (
+                            <span style={{ marginLeft: 8 }}>Capsules</span>
+                          );
+                        case "Syrup":
+                          return <span style={{ marginLeft: 8 }}>ml</span>;
+                        case "Cream":
+                          return <span style={{ marginLeft: 8 }}>g</span>;
+                        case "Drops":
+                          return <span style={{ marginLeft: 8 }}>ml</span>;
+                        case "Injection":
+                          return <span style={{ marginLeft: 8 }}>ml</span>;
+                        default:
+                          return null;
                       }
                     })(),
                     style: {
@@ -996,7 +1019,9 @@ export default function EditFormClient({ id }: { id?: string }) {
                   onChange={(date) => {
                     setForm((prev) => ({
                       ...prev,
-                      expiryDate: date ? new Date(date).toISOString().slice(0, 10) : "",
+                      expiryDate: date
+                        ? new Date(date).toISOString().slice(0, 10)
+                        : "",
                     }));
                     setTouched((prev: any) => ({ ...prev, expiryDate: true }));
                   }}
@@ -1028,7 +1053,9 @@ export default function EditFormClient({ id }: { id?: string }) {
                 type="text"
                 value={form.stock}
                 onChange={handleChange}
-                onBlur={() => setTouched((prev: any) => ({ ...prev, stock: true }))}
+                onBlur={() =>
+                  setTouched((prev: any) => ({ ...prev, stock: true }))
+                }
                 fullWidth
                 variant="outlined"
                 placeholder="0"
@@ -1045,7 +1072,9 @@ export default function EditFormClient({ id }: { id?: string }) {
                 label="Batch Number *"
                 value={form.batchNumber}
                 onChange={handleChange}
-                onBlur={() => setTouched((prev: any) => ({ ...prev, batchNumber: true }))}
+                onBlur={() =>
+                  setTouched((prev: any) => ({ ...prev, batchNumber: true }))
+                }
                 fullWidth
                 variant="outlined"
                 placeholder="Batch number"
