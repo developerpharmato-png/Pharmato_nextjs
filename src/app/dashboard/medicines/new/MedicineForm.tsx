@@ -1110,7 +1110,7 @@ export default function MedicineForm() {
                     }}
                     minDate={new Date()}
                     slotProps={{
-                      textField: {
+                      textField: { 
                         name: "expiryDate",
                         fullWidth: true,
                         variant: "outlined",
