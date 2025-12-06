@@ -32,7 +32,8 @@ export async function GET() {
     const doc = await BannerImage.findOne().lean();
     let images: any[] = [];
     if (doc && !Array.isArray(doc) && 'images' in doc && Array.isArray(doc.images)) {
-        images = await Promise.all(doc.images.map(async (img: any) => {
+        const activeImages = doc.images.filter((img: any) => img.isActive === true);
+        images = await Promise.all(activeImages.map(async (img: any) => {
             let categoryActive = false;
             let subcategoryAvailable = false;
             let medicineCount = 0;
@@ -42,7 +43,7 @@ export async function GET() {
                     categoryActive = true;
                     const subcategoryDoc = await (await import('@/models/SubCategory')).default.findOne({ categoryId: categoryDoc._id, isActive: true }).lean();
                     if (subcategoryDoc && !Array.isArray(subcategoryDoc) && subcategoryDoc._id) {
-                        subcategoryAvailable = true; 
+                        subcategoryAvailable = true;
                         // Count active medicines for this category and subcategory
                         medicineCount = await (await import('@/models/Medicine')).default.countDocuments({
                             categoryId: categoryDoc._id,

@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     if (!categoryId) {
         return NextResponse.json({ success: false, error: 'categoryId is required' }, { status: 400 });
     }
-    const filter: Record<string, any> = { categoryId };
+    const filter: Record<string, any> = { categoryId, isActive: true };
     if (search) {
         filter["name"] = { $regex: search, $options: "i" };
     }
@@ -62,17 +62,24 @@ export async function POST(req: NextRequest) {
         .skip(offset)
         .limit(limit)
         .lean();
-    const subcategoriesWithImages = subcategories.map(sub => ({
+    const Medicine = (await import('@/models/Medicine')).default;
+    const subcategoriesWithImages = await Promise.all(subcategories.map(async sub => ({
         ...sub,
         images: Array.isArray(sub.images) ? sub.images : [],
-    }));
+        medicineCount: await Medicine.countDocuments({
+            categoryId: sub.categoryId,
+            subCategoryId: sub._id,
+            isActive: true
+        })
+    })));
 
     // ...existing code...
+    const filteredSubcategories = subcategoriesWithImages.filter(sub => sub.medicineCount > 0);
     return NextResponse.json({
         success: true,
         message: 'Subcategories fetched successfully',
-        subcategories: subcategoriesWithImages,
-        total,
+        subcategories: filteredSubcategories,
+        total: filteredSubcategories.length,
         limit,
         offset,
         search,
