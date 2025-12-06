@@ -5,3 +5,15 @@ export const initCategory = {
   images: [],
   isActive: true,
 };
+
+
+ export  const RegisterinitialValues = {
+        name: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        phone: '',
+        role: 'admin',
+    };
+
+   

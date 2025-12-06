@@ -51,6 +51,7 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
       id: "uniqueCode",
       label: "ID",
       minWidth: 120,
+    
       selector: (row: Category) => (
         <CustomTooltip title={row.uniqueCode || "-"}>
           <span
@@ -185,6 +186,7 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
       id: "actions",  
       label: "Edit",
       minWidth: 60,
+ 
       selector: (row: Category) => (
         <CustomTooltip title="Edit">
           <span

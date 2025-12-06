@@ -1,26 +1,27 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { ToastContainer, toast, ToastOptions, TypeOptions } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface ToastProps {
   message: string;
-  type?: "success" | "error";
+  type?: TypeOptions;
   duration?: number;
 }
 
 export default function Toast({ message, type = "success", duration = 3000 }: ToastProps) {
-  const [visible, setVisible] = useState(true);
+  React.useEffect(() => {
+    toast(message, {
+      type,
+      autoClose: duration,
+      position: "top-right",
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  }, [message, type, duration]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setVisible(false), duration);
-    return () => clearTimeout(timer);
-  }, [duration]);
-
-  if (!visible) return null;
-
-  return (
-    <div className={`fixed top-5 right-5 z-50 px-4 py-2 rounded-md shadow-lg text-white 
-      ${type === "success" ? "bg-emerald-600" : "bg-red-600"}`}>
-      {message}
-    </div>
-  );
+  return <ToastContainer />;
 }

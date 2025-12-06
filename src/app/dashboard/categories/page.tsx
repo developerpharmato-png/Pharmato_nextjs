@@ -60,10 +60,12 @@ export default function CategoriesPage() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<'ASC' | 'DESC'>('ASC');
+  const [columnName, setColumnName] = useState<string>('');
 
   useEffect(() => {
     fetchCategories();
-  }, [page, rowsPerPage, filterOTC, searchTerm]);
+  }, [page, rowsPerPage, filterOTC, searchTerm, sortBy, columnName]);
 
   const fetchCategories = async () => {
     setLoading(true);
@@ -73,6 +75,8 @@ export default function CategoriesPage() {
       params.append("offset", (page * rowsPerPage).toString());
       if (searchTerm) params.append("name", searchTerm);
       if (filterOTC !== "all") params.append("isOTC", filterOTC);
+      if (columnName) params.append("columnName", columnName);
+      if (sortBy) params.append("sortBy", sortBy);
       const res = await fetch(`/api/categories?${params.toString()}`);
       const data = await res.json();
       setCategories(data.data || []);
@@ -148,6 +152,26 @@ export default function CategoriesPage() {
           <option value="all">All</option>
           <option value="true">OTC Only</option>
           <option value="false">Non-OTC Only</option>
+        </select>
+        {/* Sort By Dropdowns */}
+        <select
+          value={columnName}
+          onChange={e => setColumnName(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          style={{ minWidth: 120 }}
+        >
+          <option value="">Sort By</option>
+          <option value="name">Name</option>
+          <option value="uniqueCode">ID</option>
+        </select>
+        <select
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value as 'ASC' | 'DESC')}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          style={{ minWidth: 100 }}
+        >
+          <option value="ASC">Ascending</option>
+          <option value="DESC">Descending</option>
         </select>
         <button
           onClick={handleSeedData}
