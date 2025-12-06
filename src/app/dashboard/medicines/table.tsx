@@ -130,26 +130,7 @@ const MedicinesTable: React.FC<Props> = ({ searchValue, onSearchChange }) => {
         </CustomTooltip>
       ),
     },
-    {
-      id: "description",
-      label: "Description",
-      minWidth: 180,
-      selector: (row) => (
-        <CustomTooltip title={row.description || "-"}>
-          <span
-            style={{
-              display: "inline-block",
-              width: 180,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {row.description || "-"}
-          </span>
-        </CustomTooltip>
-      ),
-    },
+  
     {
       id: "categoryId",
       label: "Category",
@@ -338,88 +319,9 @@ const MedicinesTable: React.FC<Props> = ({ searchValue, onSearchChange }) => {
         </CustomTooltip>
       ),
     },
-    {
-        id: "isOTC",
-        label: "OTC",
-        selector: (row) => (
-          <CustomTooltip title={row.isOTC ? "Yes" : "No"}>
-            {row.isOTC ? (
-              <span className="OTCYes">Yes</span>
-            ) : (
-              <span className="OTCNo">No</span>
-            )}
-          </CustomTooltip>
-        ),
-      },
-    {
-      id: "isPrescription",
-      label: "Prescription",
-      minWidth: 80,
-      selector: (row) => (
-        <CustomTooltip title={row.isPrescription ? "Yes" : "No"}>
-          <span
-            style={{
-              display: "inline-block",
-              width: 80,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {row.isPrescription ? "Yes" : "No"}
-          </span>
-        </CustomTooltip>
-      ),
-    },
-    
-    {
-      id: "highlights",
-      label: "Highlights",
-      minWidth: 180,
-      selector: (row) => (
-        <CustomTooltip title={Array.isArray(row.highlights) ? row.highlights.join(", ") : "-"}>
-          <span
-            style={{
-              display: "inline-block",
-              width: 180,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {Array.isArray(row.highlights) ? row.highlights.join(", ") : "-"}
-          </span>
-        </CustomTooltip>
-      ),
-    },
-    {
-      id: "composition",
-      label: "Composition",
-      minWidth: 180,
-      selector: (row) => (
-        <CustomTooltip title={Array.isArray(row.composition) ? row.composition.map((c: any) => `${c.name}: ${c.value}`).join(", ") : "-"}
-        >
-          <span
-            style={{
-              display: "inline-block",
-              width: 180,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {Array.isArray(row.composition)
-              ? row.composition.map((c: any, idx: number) => (
-                  <span key={idx}>
-                    {c.name}: {c.value}
-                    {idx < row.composition.length - 1 ? ", " : ""}
-                  </span>
-                ))
-              : "-"}
-          </span>
-        </CustomTooltip>
-      ),
-    },
+  
+   
+  
      {
           id: "isActive",
           label: "Status",
