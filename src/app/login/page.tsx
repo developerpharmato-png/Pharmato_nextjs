@@ -44,7 +44,7 @@ export default function LoginPage() {
             </div>
             
             <h1 className="text-5xl font-bold mb-8 leading-tight">
-              Welcome Back to Your Admin Portal
+              Welcome Back to Your Admin PortaL
             </h1>
             
             <p className="text-xl text-green-50 mb-12 leading-relaxed">
