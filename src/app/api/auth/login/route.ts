@@ -40,6 +40,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Admin from '@/models/Admin';
+import Role from '@/models/Role';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
@@ -81,9 +82,21 @@ export async function POST(request: NextRequest) {
         const adminObj = populated.toObject ? populated.toObject() : (populated as any);
         delete (adminObj as any).password;
 
-        const role = adminObj.roleId || null;
+        let role = adminObj.roleId || null;
         const roleId = role && role._id ? String(role._id) : (role ? String(role) : null);
-        const roleName = role && role.name ? role.name : null;
+        let roleName = role && role.name ? role.name : null;
+
+        // Fallback: if populate didn't return role name, try direct lookup
+        if (!roleName && roleId) {
+            try {
+                const roleDoc = await Role.findById(roleId).select('name').lean();
+                if (roleDoc && roleDoc.name) {
+                    roleName = roleDoc.name;
+                }
+            } catch (e) {
+                // ignore lookup errors and keep roleName null
+            }
+        }
 
         // Ensure top-level roleId/roleName for client convenience
         adminObj.roleId = roleId;
