@@ -4,6 +4,7 @@ import {
   CustomButton,
   ErrorMessageCom,
 } from "../../../components/miniComponents";
+import DeleteIcon from '@mui/icons-material/Delete';
 import {
   Select,
   MenuItem,
@@ -14,7 +15,7 @@ import {
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { MdAdd, MdDelete, MdArrowBack, MdSave } from "react-icons/md";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import HeaderWithAction from "../../../components/HeaderWithAction";
 import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
@@ -27,6 +28,7 @@ type Medicine = any;
 
 export default function EditFormClient({ id }: { id?: string }) {
   const params = useParams();
+  const router = useRouter();
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error";
@@ -625,6 +627,15 @@ export default function EditFormClient({ id }: { id?: string }) {
             message: "Medicine updated successfully",
             type: "success",
           });
+
+          setTimeout(() => {
+            try {
+              router.back();
+            } catch (e) {
+              // fallback to history.back if router not available
+              if (typeof window !== "undefined") window.history.back();
+            }
+          }, 1000);
         } else {
           setToast({
             message: "Update failed: " + (json.error || "Unknown error"),
@@ -761,6 +772,10 @@ export default function EditFormClient({ id }: { id?: string }) {
                   </span>
                 )}
               </div>
+
+                 {touched.images && errors.images && (
+                              <ErrorMessageCom error={errors.images} />
+                            )}
               {form.images.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-3 justify-start w-fit">
                   {form.images.map((url) => (
@@ -1338,7 +1353,7 @@ export default function EditFormClient({ id }: { id?: string }) {
                     className="text-red-600 hover:text-red-800 font-medium p-1 transition"
                     aria-label="Remove composition"
                   >
-                    <Delete />
+                  <DeleteIcon />
                   </button>
                 </div>
               ))}
@@ -1378,8 +1393,8 @@ export default function EditFormClient({ id }: { id?: string }) {
                     onClick={() => removeHighlightRow(idx)}
                     className="text-red-600 hover:text-red-800 font-medium p-1 transition"
                     aria-label="Remove highlight"
-                  >
-                    <Delete />
+                    >
+                       <DeleteIcon />
                   </button>
                 </div>
               ))}

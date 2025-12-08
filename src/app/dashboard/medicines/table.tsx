@@ -135,29 +135,27 @@ const MedicinesTable: React.FC<Props> = ({ searchValue, onSearchChange }) => {
       id: "categoryId",
       label: "Category",
       minWidth: 120,
-      selector: (row) => (
-        <CustomTooltip title={row.categoryId?.name || row.category || "-"}>
-          <span
-           className="Category"
-          >
-            {row.categoryId?.name || row.category || "-"}
-          </span>
-        </CustomTooltip>
-      ),
+      selector: (row) => {
+        const text = row.categoryId?.name || row.category || "-";
+        return (
+          <CustomTooltip title={text}>
+            <span className={text !== "-" ? "Category" : undefined}>{text}</span>
+          </CustomTooltip>
+        );
+      },
     },
     {
       id: "subCategoryId",
       label: "Subcategory",
       minWidth: 120,
-      selector: (row) => (
-        <CustomTooltip title={row.subCategoryId?.name || "-"}>
-          <span
-          className="sub-category"
-          >
-            {row.subCategoryId?.name || "-"}
-          </span>
-        </CustomTooltip>
-      ),
+      selector: (row) => {
+        const text = row.subCategoryId?.name || "-";
+        return (
+          <CustomTooltip title={text}>
+            <span className={text !== "-" ? "Category" : undefined}>{text}</span>
+          </CustomTooltip>
+        );
+      },
     },
     {
       id: "manufacturer",

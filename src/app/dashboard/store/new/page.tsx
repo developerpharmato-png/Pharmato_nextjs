@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { CustomButton, ErrorMessageCom } from "../../components/miniComponents";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import HeaderWithAction from "../../components/HeaderWithAction";
@@ -26,6 +27,7 @@ type StoreForm = {
 };
 
 export default function AddStorePage() {
+  const router = useRouter();
   const [form, setForm] = useState<StoreForm>({
     name: "",
     servicePinCodes: [],
@@ -33,7 +35,7 @@ export default function AddStorePage() {
       street: "",
       city: "",
       state: "",
-      country: "",
+      country: "India",
       pincode: "",
       gps: "",
     },
@@ -93,6 +95,13 @@ export default function AddStorePage() {
         showConfirmButton: false,
         timer: 2000,
       });
+      setTimeout(() => {
+        try {
+          router.push("/dashboard/store");
+        } catch (e) {
+          if (typeof window !== "undefined") window.location.href = "/dashboard/store";
+        }
+      }, 1000);
       setForm({
         name: "",
         servicePinCodes: [],
@@ -100,7 +109,7 @@ export default function AddStorePage() {
           street: "",
           city: "",
           state: "",
-          country: "",
+          country: "India",
           pincode: "",
           gps: "",
         },
@@ -139,12 +148,7 @@ export default function AddStorePage() {
               variant="outlined"
               placeholder="Enter store name"
               error={Boolean(fieldErrors.name)}
-              InputProps={{
-                style: {
-                  borderRadius: "0.75rem",
-                  background: "#f0fdf4",
-                },
-              }}
+            
             />
             {fieldErrors.name && <ErrorMessageCom error={fieldErrors.name} />}
           </div>
@@ -168,38 +172,14 @@ export default function AddStorePage() {
           }
         />
         <div className=" flex flex-col md:flex-row gap-8 items-center">
-          <div className="w-full md:w-1/2">
-            <FormControl fullWidth variant="outlined">
-              <InputLabel id="status-label">Status *</InputLabel>
-              <Select
-                labelId="status-label"
-                name="status"
-                value={form.status}
-                onChange={(e) =>
-                  setForm({ ...form, status: Number(e.target.value) })
-                }
-                label="Status *"
-                error={Boolean(fieldErrors.status)}
-                sx={{ borderRadius: 3, background: "#f3f4f6" }}
-              >
-                <MenuItem value={1}>Active</MenuItem>
-                <MenuItem value={0}>Inactive</MenuItem>
-              </Select>
-            </FormControl>
-            {fieldErrors.status && (
-              <ErrorMessageCom error={fieldErrors.status} />
-            )}
-          </div>
+      
           <div className="w-full md:w-1/2 flex justify-end items-end mt-4 md:mt-0">
-            <CustomButton
-              type="submit"
-              disabled={loading}
-              width="140px"
-            >
+            <CustomButton type="submit" disabled={loading} width="140px">
               Add
             </CustomButton>
           </div>
         </div>
+
         {error && <ErrorMessageCom error={error} />}
       </form>
     </div>

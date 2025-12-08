@@ -31,13 +31,23 @@ export const medicineFormValidationSchema = Yup.object().shape({
   category: Yup.string().required('Form type is required'),
   categoryId: Yup.string().required('Category is required'),
   // subCategoryId: Yup.string().required('Subcategory is required'),
-  price: Yup.number().typeError('Price must be a number').required('Selling price is required'),
+  price: Yup.number()
+    .typeError('Price must be a number')
+    .required('Selling price is required')
+    .test('price-lte-mrp', 'Selling price cannot be greater than MRP', function (value) {
+      const mrp = (this.parent as any)?.mrp;
+      if (value === undefined || value === null || mrp === undefined || mrp === null) return true;
+      const priceNum = Number(value);
+      const mrpNum = Number(mrp);
+      if (Number.isNaN(priceNum) || Number.isNaN(mrpNum)) return true;
+      return priceNum <= mrpNum;
+    }),
   purchasePrice: Yup.number().typeError('Purchase price must be a number').required('Purchase price is required'),
   mrp: Yup.number().typeError('MRP must be a number').required('MRP is required'),
   discount: Yup.number(),
   stock: Yup.number().typeError('Stock must be a number').required('Stock is required'),
   expiryDate: Yup.string().required('Expiry date is required'),
-  // batchNumber: Yup.string().required('Batch number is required'),
+  batchNumber: Yup.string().required('Batch number is required'),
   isOTC: Yup.boolean(),
   requiresPrescription: Yup.boolean(),
   images: Yup.array().min(1, 'At least one image is required').max(5, 'Maximum 5 images allowed'),

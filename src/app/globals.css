@@ -100,13 +100,13 @@ body {
 }
 
 .sub-category {
-  display: inline-block;
+display: inline-block;
   width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  background: #1abcac;
-  color: black;
+  background: #f3e8ff;
+  color: #7c3aed;
   border-radius: 9999px;
   font-size: 0.85rem;
   font-weight: 500;
