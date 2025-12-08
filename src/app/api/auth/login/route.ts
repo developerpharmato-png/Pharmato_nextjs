@@ -74,9 +74,20 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Return user data without password
-        const adminObj = admin.toObject();
+        // populate role info (workaround strictPopulate if needed)
+        const populated = await admin.populate({ path: 'roleId', strictPopulate: false } as any).catch(() => admin);
+
+        // Return user data without password and include roleId & roleName
+        const adminObj = populated.toObject ? populated.toObject() : (populated as any);
         delete (adminObj as any).password;
+
+        const role = adminObj.roleId || null;
+        const roleId = role && role._id ? String(role._id) : (role ? String(role) : null);
+        const roleName = role && role.name ? role.name : null;
+
+        // Ensure top-level roleId/roleName for client convenience
+        adminObj.roleId = roleId;
+        adminObj.roleName = roleName;
 
         return NextResponse.json({
             success: true,

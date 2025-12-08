@@ -102,6 +102,25 @@ export const CustomTooltip = styled(
   },
 }));
 
+// A consistent close button used across dialogs and modals
+export const CustomCloseButton: React.FC<{
+  onClick?: () => void;
+  size?: 'small' | 'medium';
+  ariaLabel?: string;
+  sx?: any;
+}> = ({ onClick, size = 'medium', ariaLabel = 'close', sx }) => {
+  return (
+    <IconButton
+      onClick={onClick}
+      size={size}
+      aria-label={ariaLabel}
+      sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' }, ...sx }}
+    >
+      <CloseIcon />
+    </IconButton>
+  );
+};
+
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import IconButton from "@mui/material/IconButton";

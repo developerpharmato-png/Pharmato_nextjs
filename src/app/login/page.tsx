@@ -166,6 +166,22 @@ export default function LoginPage() {
                       });
                     } else {
                       localStorage.setItem("admin", JSON.stringify(data.data));
+                      // fetch role permissions and store them locally for the UI
+                      try {
+                        const roleId = data.data?.roleId;
+                        if (roleId) {
+                          const permRes = await fetch(`/api/admin/role-permission/${roleId}`);
+                          const permJson = await permRes.json();
+                          const perms = permJson?.data?.permissions ?? permJson?.data ?? {};
+                          localStorage.setItem('adminPermissions', JSON.stringify(perms));
+                        } else {
+                          // clear any previous permissions
+                          localStorage.removeItem('adminPermissions');
+                        }
+                      } catch (e) {
+                        // ignore permission fetch errors; UI will default
+                        console.error('Failed to load role permissions', e);
+                      }
                       setToast({
                         message: "Login successful!",
                         type: "success",
@@ -239,14 +255,7 @@ export default function LoginPage() {
                         className="text-red-600 text-xs mt-2 font-medium"
                       />
 
-                      <div className="mt-3 text-right">
-                        <Link
-                          href="/forgot-password"
-                          className="text-sm text-green-600 hover:text-green-700 font-medium transition"
-                        >
-                          Forgot Password?
-                        </Link>
-                      </div>
+                    
                     </div>
 
                     {/* Submit Button */}
@@ -283,15 +292,7 @@ export default function LoginPage() {
                       )}
                     </button>
 
-                    <p className="text-center text-gray-600 text-sm mt-6">
-                      Don't have an account?{" "}
-                      <Link
-                        href="/register"
-                        className="text-green-600 hover:text-green-700 font-semibold transition"
-                      >
-                        Register here
-                      </Link>
-                    </p>
+                 
                   </Form>
                 )}
               </Formik>

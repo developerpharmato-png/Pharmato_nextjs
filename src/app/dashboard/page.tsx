@@ -79,18 +79,7 @@ export default function DashboardPage() {
                         </div>
                     </Link>
 
-                    <Link
-                        href="/dashboard/admins"
-                        className="flex items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition group"
-                    >
-                        <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center text-white text-xl group-hover:scale-110 transition">
-                            <User />
-                        </div>
-                        <div className="ml-4">
-                            <p className="font-semibold text-gray-800">Manage Admins</p>
-                            <p className="text-xs text-gray-600">View and edit admin accounts</p>
-                        </div>
-                    </Link>
+                    {/* Admin quick action removed per request */}
 
                     <Link
                         href="/dashboard/pincode"
