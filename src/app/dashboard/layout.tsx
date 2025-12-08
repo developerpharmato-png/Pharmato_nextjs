@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Swal from "sweetalert2";
 import { showConfirmStatusAlert } from "./components/ConfirmStatusAlert";
 import { CustomTooltip } from "./components/miniComponents";
-import logo from "./Images/Image 1.png";
+import logo from "./Images/logo1.svg";
 
 // 1. IMPORT NECESSARY LUCIDE ICONS
 import {
@@ -181,7 +181,7 @@ export default function DashboardLayout({
     },
   
     { name: "Pincodes", path: "/dashboard/pincode", icon: "place" },
-    { name: "Stores", path: "/dashboard/store", icon: "store" },
+    // { name: "Stores", path: "/dashboard/store", icon: "store" },
     { name: "Banner Images", path: "/dashboard/banner-images", icon: "image" },
   ];
 

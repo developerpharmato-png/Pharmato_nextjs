@@ -271,7 +271,7 @@ export default function PincodeDashboard() {
         <div>
           <input
             type="text"
-            placeholder="Enter pincode(s), separated by comma or space (e.g. 123456, 654321)"
+            placeholder="Enter pincode"
             className="border border-gray-300 px-4 py-3 rounded-lg w-64 focus:outline-none focus:border-green-500 text-base shadow-sm"
             id="pincode"
             name="pincode"
