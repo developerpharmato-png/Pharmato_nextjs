@@ -149,28 +149,45 @@ console.log(loading,"loadingloading");
       id: "servicePinCodes",
       label: "Service PinCodes",
       minWidth: 180,
-      selector: (row) => (
-        <div className="flex flex-wrap gap-2">
-          {row.servicePinCodes?.map((pin: string) => (
-            <span
-              key={pin}
-              className="inline-flex items-center px-3 py-1 rounded-full bg-linear-to-r from-green-100 to-green-200 text-green-800 font-semibold shadow-sm border border-green-300 text-sm"
-              style={{ fontSize: "0.95rem" }}
-            >
-              <svg
-                className="w-4 h-4 mr-1 text-green-400"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
+      selector: (row) => {
+        const pins: string[] = row.servicePinCodes || [];
+        const visible = pins.slice(0, 3);
+        const extraCount = pins.length - visible.length;
+        return (
+          <div className="flex flex-wrap gap-2 items-center">
+            {visible.map((pin) => (
+              <span
+                key={pin}
+                className="inline-flex items-center px-3 py-1 rounded-full bg-linear-to-r from-green-100 to-green-200 text-green-800 font-semibold shadow-sm border border-green-300 text-sm"
+                style={{ fontSize: "0.95rem" }}
               >
-                <circle cx="12" cy="12" r="10" />
-              </svg>
-              {pin}
-            </span>
-          ))}
-        </div>
-      ),
+                {pin}
+              </span>
+            ))}
+            {extraCount > 0 && (
+              <CustomTooltip
+                title={
+                  <div className="flex flex-col">
+                    {pins.map((p) => (
+                      <span key={p} className="text-sm py-0.5">
+                        {p}
+                      </span>
+                    ))}
+                  </div>
+                }
+                placement="top"
+              >
+                <span
+                  className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-700 font-semibold shadow-sm border border-gray-200 text-sm cursor-pointer"
+                  style={{ fontSize: "0.95rem" }}
+                >
+                  +{extraCount}
+                </span>
+              </CustomTooltip>
+            )}
+          </div>
+        );
+      },
     },
     {
       id: "status",

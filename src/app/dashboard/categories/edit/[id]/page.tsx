@@ -175,7 +175,8 @@ export default function EditCategoryPage() {
         }
       } catch (submitError) {
         setToast({
-          message: "Update failed: Failed to connect to the server to update category.",
+          message:
+            "Update failed: Failed to connect to the server to update category.",
           type: "error",
         });
         setError("Failed to connect to the server to update category.");
@@ -306,9 +307,8 @@ export default function EditCategoryPage() {
   }
 
   return (
-   
     <div className="containerStyle scrollbar-hide">
-        {toast && <Toast message={toast.message} type={toast.type} />}
+      {toast && <Toast message={toast.message} type={toast.type} />}
       <Box sx={{ mb: 4, position: "relative" }}>
         <IconButton
           onClick={() => router.back()}
@@ -403,6 +403,15 @@ export default function EditCategoryPage() {
               label="Category Image"
               id="category-image-input"
             />
+            {formik.touched.images && formik.errors.images && (
+              <ErrorMessageCom
+                error={
+                  Array.isArray(formik.errors.images)
+                    ? formik.errors.images.join(", ")
+                    : (formik.errors.images as string)
+                }
+              />
+            )}
 
             <StyledCheckboxWithDescription
               id="isOTC"
@@ -426,7 +435,7 @@ export default function EditCategoryPage() {
                     {" "}
                     <CustomButton
                       type="submit"
-                      disabled={formik.isSubmitting || !formik.isValid}
+                      // disabled={formik.isSubmitting || !formik.isValid}
                       width="100%"
                     >
                       {formik.isSubmitting ? (

@@ -30,7 +30,7 @@ export default function PincodeSelect({
            
           />
         )}
-        sx={{ background: "#e3f2fd", borderRadius: 2 }}
+       
       />
       
     </div>

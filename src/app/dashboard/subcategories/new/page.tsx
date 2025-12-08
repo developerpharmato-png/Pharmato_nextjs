@@ -18,6 +18,7 @@ export default function NewSubCategoryPage() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -278,14 +279,22 @@ export default function NewSubCategoryPage() {
             formik={formik}
             handleFileChange={handleFileChange}
             handleDeleteImage={handleDeleteImage}
-            previewOpen={!!(formik.touched.images && formik.errors.images)}
-            setPreviewOpen={() => {}}
+            previewOpen={previewOpen && (formik.values.images?.length ?? 0) > 0}
+            setPreviewOpen={setPreviewOpen}
             uploading={uploading}
             deleting={false}
             label="Subcategory Image *"
-            id="category-image-input"
+            id="subcategory-image-input"
           />
-
+            {formik.touched.images && formik.errors.images && (
+              <ErrorMessageCom
+                error={
+                  Array.isArray(formik.errors.images)
+                    ? formik.errors.images.join(", ")
+                    : (formik.errors.images as string)
+                }
+              />
+            )}
           <StyledCheckboxWithDescription
             id="isOTC"
             checked={formik.values.isOTC}

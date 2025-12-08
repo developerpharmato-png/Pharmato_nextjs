@@ -277,6 +277,16 @@ export default function NewCategoryPage() {
               label="Category Image"
               id="category-image-input"
             />
+            
+              {formik.touched.images && formik.errors.images && (
+                <ErrorMessageCom
+                  error={
+                    Array.isArray(formik.errors.images)
+                      ? formik.errors.images.join(", ")
+                      : (formik.errors.images as string)
+                  }
+                />
+              )}
 
             <StyledCheckboxWithDescription
               id="isOTC"
