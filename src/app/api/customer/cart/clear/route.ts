@@ -45,5 +45,5 @@ export async function POST(request: NextRequest) {
     }
     cart.items = [];
     await cart.save();
-    return NextResponse.json({ success: true, cart });
+    return NextResponse.json({ success: true,message: 'Cart cleared', cart });
 }
