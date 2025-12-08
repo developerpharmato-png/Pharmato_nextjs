@@ -6,26 +6,29 @@ import { useRouter, usePathname } from "next/navigation";
 import Swal from "sweetalert2";
 import { showConfirmStatusAlert } from "./components/ConfirmStatusAlert";
 import { CustomTooltip } from "./components/miniComponents";
+import logo from "./Images/Image 1.png";
 
 // 1. IMPORT NECESSARY LUCIDE ICONS
-import { 
-  LayoutDashboard, 
-  Pill, 
-  Tag, 
-  Folder, 
-  FileText, 
-  Users, 
-  User, 
-  MapPin, 
-  Store, 
-  Image, 
-  X, 
+import {
+  LayoutDashboard,
+  Pill,
+  Tag,
+  Folder,
+  FileText,
+  Users,
+  User,
+  MapPin,
+  Store,
+  Image,
+  X,
   Menu,
   ChevronLeft,
   ChevronRight,
   LogOut,
-  Hospital
-} from 'lucide-react';
+  Hospital,
+  Icon,
+} from "lucide-react";
+import { IconBase } from "react-icons/lib";
 
 // 2. CREATE A MAPPING FOR ICONS
 const iconMap = {
@@ -47,16 +50,19 @@ const iconMap = {
 };
 
 // Function to render the correct Lucide icon component
-const renderIcon = (iconName: keyof typeof iconMap, size: number | string, className?: string) => {
+const renderIcon = (
+  iconName: keyof typeof iconMap,
+  size: number | string,
+  className?: string
+) => {
   const IconComponent = iconMap[iconName];
   if (IconComponent) {
     // Render the Lucide React component
     return <IconComponent size={size} className={className} />;
   }
   // Fallback for missing icon or if the name doesn't match
-  return <span>{iconName}</span>; 
+  return <span>{iconName}</span>;
 };
-
 
 export default function DashboardLayout({
   children,
@@ -68,7 +74,10 @@ export default function DashboardLayout({
   const [admin, setAdmin] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [adminPermOpen, setAdminPermOpen] = useState(false);
-  const [permissions, setPermissions] = useState<Record<string, { view: boolean; edit: boolean }> | null>(null);
+  const [permissions, setPermissions] = useState<Record<
+    string,
+    { view: boolean; edit: boolean }
+  > | null>(null);
 
   useEffect(() => {
     const adminData = localStorage.getItem("admin");
@@ -82,7 +91,7 @@ export default function DashboardLayout({
   // load permissions from localStorage (populated at login) or fetch if missing
   useEffect(() => {
     if (!admin) return;
-    const p = localStorage.getItem('adminPermissions');
+    const p = localStorage.getItem("adminPermissions");
     if (p) {
       try {
         setPermissions(JSON.parse(p));
@@ -100,9 +109,13 @@ export default function DashboardLayout({
           const json = await res.json();
           const perms = json?.data?.permissions ?? json?.data ?? {};
           setPermissions(perms);
-          try { localStorage.setItem('adminPermissions', JSON.stringify(perms)); } catch (e) { /* ignore */ }
+          try {
+            localStorage.setItem("adminPermissions", JSON.stringify(perms));
+          } catch (e) {
+            /* ignore */
+          }
         } catch (err) {
-          console.error('Failed to fetch role permissions', err);
+          console.error("Failed to fetch role permissions", err);
         }
       })();
     }
@@ -110,12 +123,23 @@ export default function DashboardLayout({
 
   // keep admin permissions group open if current pathname is one of its children
   useEffect(() => {
-    const childrenPaths = ['/dashboard/role', '/dashboard/permission', '/dashboard/management'];
-    const isAnyActive = childrenPaths.some(p => pathname === p || pathname.startsWith(p));
+    const childrenPaths = [
+      "/dashboard/role",
+      "/dashboard/permission",
+      "/dashboard/management",
+    ];
+    const isAnyActive = childrenPaths.some(
+      (p) => pathname === p || pathname.startsWith(p)
+    );
     setAdminPermOpen(isAnyActive);
   }, [pathname]);
 
-  const isCurrentSuperAdmin = admin?.roleName === 'SuperAdmin' || (admin?.roleId && (permissions && (permissions['Admins']?.view === true && permissions['Admin Permissions']?.view === true)));
+  const isCurrentSuperAdmin =
+    admin?.roleName === "SuperAdmin" ||
+    (admin?.roleId &&
+      permissions &&
+      permissions["Admins"]?.view === true &&
+      permissions["Admin Permissions"]?.view === true);
 
   // NOTE: Material Icons Loader useEffect has been removed as per the previous interaction,
   // and is no longer needed with Lucide Icons.
@@ -144,37 +168,38 @@ export default function DashboardLayout({
     { name: "Medicines", path: "/dashboard/medicines", icon: "medication" },
     { name: "Categories", path: "/dashboard/categories", icon: "category" },
     { name: "Subcategories", path: "/dashboard/subcategories", icon: "folder" },
-    {
-      name: "Prescriptions",
-      path: "/dashboard/prescriptions",
-      icon: "receipt_long",
-    },
-    // Admin list removed from main menu per request
+    // {
+    //   name: "Prescriptions",
+    //   path: "/dashboard/prescriptions",
+    //   icon: "receipt_long",
+    // },
+   
     {
       name: " Customers",
       path: "/dashboard/admin/customers",
       icon: "person",
     },
-    // Admin Permissions group will be rendered separately below
+  
     { name: "Pincodes", path: "/dashboard/pincode", icon: "place" },
     { name: "Stores", path: "/dashboard/store", icon: "store" },
     { name: "Banner Images", path: "/dashboard/banner-images", icon: "image" },
   ];
 
-  // filter menu items based on permissions if available
-  // attach `ispermission` flag to each menu item and determine visible items
-  const menuItemsWithPermission = menuItems.map(item => {
+ 
+  const menuItemsWithPermission = menuItems.map((item) => {
     const key = item.name.trim();
     let ispermission = true;
     if (permissions) {
       const perm = (permissions as any)[key];
-      // default to true when permission key missing (matches previous behavior)
+   
       ispermission = perm ? Boolean(perm.view) : true;
     }
     return { ...(item as any), ispermission };
   });
 
-  const visibleMenuItems = menuItemsWithPermission.filter((item: any) => item.ispermission);
+  const visibleMenuItems = menuItemsWithPermission.filter(
+    (item: any) => item.ispermission
+  );
 
   return (
     <div className="flex h-screen w-full">
@@ -186,26 +211,21 @@ export default function DashboardLayout({
       >
         <div className="flex flex-col h-full">
           {/* Logo/Brand */}
-          <div className="p-6 border-b border-gray-200">
+          <div className=" border-b border-gray-200">
             <div
               className={`flex items-center ${
                 sidebarOpen ? "justify-between" : "justify-center"
               }`}
             >
               <div className="flex items-center gap-3">
-                {/* LOGO ICON (local_pharmacy -> Hospital) */}
-                {renderIcon("local_pharmacy", sidebarOpen ? 28 : 24, "text-green-600")}
-                
-                {sidebarOpen && (
-                  <div>
-                    <h1 className="text-2xl font-bold text-green-600 whitespace-nowrap">
-                      Pharmato
-                    </h1>
-                    <p className="text-xs text-gray-500 whitespace-nowrap">
-                      Medicine Management
-                    </p>
-                  </div>
+               
+                {renderIcon(
+                  "local_pharmacy",
+                  sidebarOpen ? 28 : 24,
+                  "text-green-600"
                 )}
+
+                {sidebarOpen && <img src={logo.src} alt="Pharmato Logo" />}
               </div>
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -249,8 +269,12 @@ export default function DashboardLayout({
                   } ${!sidebarOpen ? "justify-center" : ""}`}
                 >
                   {/* DYNAMIC LUCIDE ICON RENDERING */}
-                  {renderIcon(item.icon as keyof typeof iconMap, sidebarOpen ? 20 : 24, sidebarOpen ? "text-xl" : "text-2xl")}
-                  
+                  {renderIcon(
+                    item.icon as keyof typeof iconMap,
+                    sidebarOpen ? 20 : 24,
+                    sidebarOpen ? "text-xl" : "text-2xl"
+                  )}
+
                   {sidebarOpen && (
                     <span className="ml-3 font-medium whitespace-nowrap">
                       {item.name}
@@ -272,20 +296,41 @@ export default function DashboardLayout({
             <div>
               {/** compute active for any child route */}
               {(() => {
-                const childrenPaths = ['/dashboard/role', '/dashboard/permission', '/dashboard/management'];
-                const isAnyActive = childrenPaths.some(p => pathname === p || pathname.startsWith(p));
+                const childrenPaths = [
+                  "/dashboard/role",
+                  "/dashboard/permission",
+                  "/dashboard/management",
+                ];
+                const isAnyActive = childrenPaths.some(
+                  (p) => pathname === p || pathname.startsWith(p)
+                );
                 return (
                   <div>
                     {isCurrentSuperAdmin && (
                       <button
-                        onClick={() => setAdminPermOpen(prev => !prev)}
-                        className={`flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200 ${isAnyActive ? 'bg-green-600 text-white shadow-md' : 'text-gray-700 hover:bg-green-100 hover:text-green-700'} ${!sidebarOpen ? 'justify-center' : ''}`}
+                        onClick={() => setAdminPermOpen((prev) => !prev)}
+                        className={`flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200 ${
+                          isAnyActive
+                            ? "bg-green-600 text-white shadow-md"
+                            : "text-gray-700 hover:bg-green-100 hover:text-green-700"
+                        } ${!sidebarOpen ? "justify-center" : ""}`}
                       >
-                        {renderIcon('admin_panel_settings', sidebarOpen ? 20 : 24)}
-                        {sidebarOpen && <span className="ml-3 font-medium flex-1 text-left">Admin Permissions</span>}
+                        {renderIcon(
+                          "admin_panel_settings",
+                          sidebarOpen ? 20 : 24
+                        )}
                         {sidebarOpen && (
-                          <span className={`transform transition-transform ${adminPermOpen || isAnyActive ? 'rotate-90' : ''}`}>
-                            {renderIcon('chevron_right', 18)}
+                          <span className="ml-3 font-medium flex-1 text-left">
+                            Admin Permissions
+                          </span>
+                        )}
+                        {sidebarOpen && (
+                          <span
+                            className={`transform transition-transform ${
+                              adminPermOpen || isAnyActive ? "rotate-90" : ""
+                            }`}
+                          >
+                            {renderIcon("chevron_right", 18)}
                           </span>
                         )}
                       </button>
@@ -294,13 +339,35 @@ export default function DashboardLayout({
                     {/* Children links */}
                     {sidebarOpen && (adminPermOpen || isAnyActive) && (
                       <div className="mt-2 space-y-1 pl-10 pr-2">
-                        <Link href="/dashboard/role" className={`block px-3 py-2 rounded ${pathname.startsWith('/dashboard/role') ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-green-100'}`}>
+                        <Link
+                          href="/dashboard/role"
+                          className={`block px-3 py-2 rounded ${
+                            pathname.startsWith("/dashboard/role")
+                              ? "bg-green-600 text-white"
+                              : "text-gray-700 hover:bg-green-100"
+                          }`}
+                        >
+                          
                           Role
                         </Link>
-                        <Link href="/dashboard/permission" className={`block px-3 py-2 rounded ${pathname.startsWith('/dashboard/permission') ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-green-100'}`}>
+                        <Link
+                          href="/dashboard/permission"
+                          className={`block px-3 py-2 rounded ${
+                            pathname.startsWith("/dashboard/permission")
+                              ? "bg-green-600 text-white"
+                              : "text-gray-700 hover:bg-green-100"
+                          }`}
+                        >
                           Permission
                         </Link>
-                        <Link href="/dashboard/management" className={`block px-3 py-2 rounded ${pathname.startsWith('/dashboard/management') ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-green-100'}`}>
+                        <Link
+                          href="/dashboard/management"
+                          className={`block px-3 py-2 rounded ${
+                            pathname.startsWith("/dashboard/management")
+                              ? "bg-green-600 text-white"
+                              : "text-gray-700 hover:bg-green-100"
+                          }`}
+                        >
                           Management
                         </Link>
                       </div>
@@ -308,8 +375,11 @@ export default function DashboardLayout({
                     {!sidebarOpen && (
                       <div className="flex flex-col items-center mt-2 gap-2">
                         <CustomTooltip title="Admin Permissions">
-                          <button onClick={() => setAdminPermOpen(prev => !prev)} className="p-1">
-                            {renderIcon('chevron_right', 18)}
+                          <button
+                            onClick={() => setAdminPermOpen((prev) => !prev)}
+                            className="p-1"
+                          >
+                            {renderIcon("chevron_right", 18)}
                           </button>
                         </CustomTooltip>
                       </div>

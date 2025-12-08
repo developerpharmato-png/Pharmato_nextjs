@@ -58,7 +58,12 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(url.searchParams.get("limit") || "10", 10);
     const offset = parseInt(url.searchParams.get("offset") || "0", 10);
 
-    const filter: any = { isActive: true };
+    // By default return both active and inactive medicines. Use `status` query
+    // param to restrict results: ?status=active | inactive | all
+    const status = (url.searchParams.get("status") || "all").toLowerCase();
+    const filter: any = {};
+    if (status === "active") filter.isActive = true;
+    else if (status === "inactive") filter.isActive = false;
     if (search) {
       const regex = { $regex: search, $options: "i" };
 

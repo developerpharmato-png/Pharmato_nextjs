@@ -54,8 +54,9 @@ const MedicinesTable: React.FC<Props> = ({ searchValue, onSearchChange }) => {
       cancelText: "Cancel",
       onConfirm: async () => {
         try {
-          await axios.put(`/api/medicines/${row._id}/update`, {
-            ...row,
+          // Use dedicated status endpoint to avoid sending full row payload
+          await axios.patch(`/api/medicines/status`, {
+            id: row._id,
             isActive: !row.isActive,
           });
           fetchMedicines();
