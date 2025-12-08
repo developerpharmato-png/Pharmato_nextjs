@@ -1,9 +1,13 @@
 .scrollbar-hide {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE 10+ */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE 10+ */
 }
+
 .scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
+  /* Chrome, Safari, Opera */
 }
 
 
@@ -34,7 +38,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-}  
+}
 
 /* Admin module image fitting */
 .admin-module img {
@@ -56,7 +60,7 @@ body {
 .containerStyle {
   background: #fff;
   border-radius: 0.75rem;
-  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
   padding: 1rem;
   padding-left: 2rem;
   padding-right: 2rem;
@@ -64,7 +68,7 @@ body {
   overflow: auto;
   height: 84vh;
   padding-bottom: 5rem;
-} 
+}
 
 
 
@@ -94,8 +98,9 @@ body {
   padding: 2px 8px;
   border: 1px solid #e9d5ff;
 }
+
 .sub-category {
- display: inline-block;
+  display: inline-block;
   width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -127,4 +132,13 @@ body {
   font-size: 0.8rem;
   font-weight: bold;
   display: inline-block;
+}
+
+.EditListStyle {
+  cursor:pointer;
+    color: var(--primary);
+    display: flex;
+    justify-Content: center;
+    align-Items: center;
+    cursor: pointer;
 }

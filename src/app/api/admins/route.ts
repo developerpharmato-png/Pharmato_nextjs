@@ -48,14 +48,41 @@ import bcrypt from 'bcryptjs';
  *                   $ref: '#/components/schemas/Admin'
  */
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
         await connectDB();
-        const admins = await Admin.find().sort({ createdAt: -1 }).select('-password');
-        return NextResponse.json({ success: true, data: admins });
-    } catch (error) {
+        const url = new URL(request.url);
+        const page = parseInt(url.searchParams.get('page') || '1', 10) || 1;
+        const limit = parseInt(url.searchParams.get('limit') || '0', 10) || 0;
+
+        const query = Admin.find().sort({ createdAt: -1 }).select('-password').populate({ path: 'roleId', select: 'name', strictPopulate: false });
+        if (limit > 0) {
+            query.skip((page - 1) * limit).limit(limit);
+        }
+        const admins = await query.exec();
+
+        // Normalize admins to always include roleId (string|null) and roleName (string|null)
+        const normalized = (admins || []).map((a: any) => {
+            const plain = a && a.toObject ? a.toObject() : a;
+            const roleObj = plain.roleId;
+            return {
+                ...plain,
+                roleId: roleObj ? String(roleObj._id || roleObj) : null,
+                roleName: roleObj && roleObj.name ? roleObj.name : null,
+            };
+        });
+
+        // If pagination requested, also return totalCount
+        if (limit > 0) {
+            const totalCount = await Admin.countDocuments();
+            return NextResponse.json({ success: true, data: normalized, totalCount });
+        }
+
+        return NextResponse.json({ success: true, data: normalized });
+    } catch (error: any) {
+        console.error('GET /api/admins error:', error);
         return NextResponse.json(
-            { success: false, error: 'Failed to fetch admins' },
+            { success: false, error: error?.message || 'Failed to fetch admins' },
             { status: 500 }
         );
     }
