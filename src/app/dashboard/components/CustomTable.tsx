@@ -34,6 +34,9 @@ export function CustomTable<T>({
   onRowsPerPageChange,
   loading = false,
 }: CustomTableProps<T>) {
+
+  console.log(data,"datadata");
+  
   return (
     <Paper sx={{ width: "100%", overflow: "hidden" }}>
       <TableContainer sx={{ maxHeight: 600 }}>
@@ -52,25 +55,33 @@ export function CustomTable<T>({
             </TableRow>
           </TableHead>
           <TableBody>
-            {loading
-              ? Array.from({ length: rowsPerPage }).map((_, idx) => (
-                  <TableRow key={idx}>
-                    {columns.map((col) => (
-                      <TableCell key={col.id} align={col.align || "left"}>
-                        <Skeleton variant="rectangular" width={col.minWidth || 80} height={32} />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : data.map((row, idx) => (
-                  <TableRow hover tabIndex={-1} key={idx}>
-                    {columns.map((col) => (
-                      <TableCell key={col.id} align={col.align || "left"}>
-                        {col.selector(row)}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
+            {loading ? (
+              Array.from({ length: rowsPerPage }).map((_, idx) => (
+                <TableRow key={idx}>
+                  {columns.map((col) => (
+                    <TableCell key={col.id} align={col.align || "left"}>
+                      <Skeleton variant="rectangular" width={col.minWidth || 80} height={32} />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : !data || data.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} align="center">
+                  No data found
+                </TableCell>
+              </TableRow>
+            ) : (
+              data.map((row, idx) => (
+                <TableRow hover tabIndex={-1} key={idx}>
+                  {columns.map((col) => (
+                    <TableCell key={col.id} align={col.align || "left"}>
+                      {col.selector(row)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>
