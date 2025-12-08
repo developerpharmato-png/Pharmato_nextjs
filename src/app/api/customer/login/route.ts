@@ -47,24 +47,67 @@ function generateOTP() {
 
 export async function POST(request: NextRequest) {
     await connectDB();
+
     const { mobile, countryCode } = await request.json();
+
     if (!mobile) {
         return NextResponse.json({ success: false, error: 'Mobile number required' }, { status: 400 });
     }
-    // Find user or create new (by mobile and countryCode)
+
+    // Find user or create new
     let user = await User.findOne({ mobile, countryCode });
     const now = new Date();
-    // Blocked user check
+
+    // ===========================
+    // 1️⃣ Blocked User Check
+    // ===========================
     if (user && user.isBlocked && user.userBlockedTime && user.userBlockedTime > now) {
-        return NextResponse.json({ success: false, error: 'User is blocked. Try later.' }, { status: 403 });
+
+        const timeLeftMs = user.userBlockedTime.getTime() - now.getTime();
+        const minutesLeft = Math.floor(timeLeftMs / 60000);
+        const secondsLeft = Math.floor((timeLeftMs % 60000) / 1000);
+
+        return NextResponse.json(
+            {
+                success: false,
+                error: `User is blocked. Try again after ${minutesLeft}m ${secondsLeft}s.`
+            },
+            { status: 403 }
+        );
     }
-    // OTP request limit (example: max 5 per hour)
-    if (user && user.otpCount && user.otpCount >= 5 && user.otpGenerateTime && (now.getTime() - new Date(user.otpGenerateTime).getTime()) < 60 * 60 * 1000) {
-        return NextResponse.json({ success: false, error: 'Too many OTP requests. Try again later.' }, { status: 429 });
+
+
+    // ======================================================
+    // 2️⃣ OTP Limit Check → If >=5 OTP in 1 hour → Block 15 min
+    // ======================================================
+    if (
+        user &&
+        user.otpCount &&
+        user.otpCount >= 5 &&
+        user.otpGenerateTime &&
+        (now.getTime() - new Date(user.otpGenerateTime).getTime()) < 60 * 60 * 1000
+    ) {
+        // Block for 15 minutes
+        user.isBlocked = true;
+        user.userBlockedTime = new Date(now.getTime() + 15 * 60 * 1000);
+        user.otpCount = 0; // reset otp count after blocking
+        await user.save();
+
+        return NextResponse.json(
+            { success: false, error: 'Too many OTP requests. You are blocked for 15 minutes.' },
+            { status: 429 }
+        );
     }
+
+    // Generate OTP
     const otp = generateOTP();
-    const otpExpires = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes from now
+    const otpExpires = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes
+
     let isNewUser = false;
+
+    // ===========================
+    // 3️⃣ New user
+    // ===========================
     if (!user) {
         user = await User.create({
             mobile,
@@ -74,19 +117,33 @@ export async function POST(request: NextRequest) {
             otpExpires,
             incorrectOtpAttempt: 0,
             otpCount: 1,
-            isBlocked: 0,
+            isBlocked: false,
         });
+
         isNewUser = true;
+
     } else {
+        // ===========================
+        // 4️⃣ Existing user update
+        // ===========================
+
+        // If 1 hour passed since last OTP → reset otpCount
+        if (user.otpGenerateTime && (now.getTime() - new Date(user.otpGenerateTime).getTime()) >= 60 * 60 * 1000) {
+            user.otpCount = 0;
+        }
+
         user.otp = otp;
         user.otpGenerateTime = now;
         user.otpExpires = otpExpires;
         user.incorrectOtpAttempt = 0;
         user.otpCount = (user.otpCount || 0) + 1;
-        user.isBlocked = 0;
+        user.isBlocked = false; // ensure not blocked (only when block time expired)
         await user.save();
     }
-    // Create notification for new user registration
+
+    // =====================================
+    // 5️⃣ New User → Create Welcome Notification
+    // =====================================
     if (isNewUser) {
         try {
             const Notification = (await import('@/models/Notification')).default;
@@ -100,10 +157,21 @@ export async function POST(request: NextRequest) {
                 createdAt: new Date(),
             });
         } catch (err) {
-            // Log error but don't block registration
             console.error('Failed to create welcome notification:', err);
         }
     }
-    // TODO: Integrate SMS gateway here
-    return NextResponse.json({ success: true, message: 'OTP sent', otp, userId: user._id, isActive: user.isActive }, { status: 200 }); // For dev, return OTP and userId
+
+    // ===========================
+    // 6️⃣ Return Response
+    // ===========================
+    return NextResponse.json(
+        {
+            success: true,
+            message: 'OTP sent',
+            otp, // remove in production
+            userId: user._id,
+            isActive: user.isActive
+        },
+        { status: 200 }
+    );
 }
