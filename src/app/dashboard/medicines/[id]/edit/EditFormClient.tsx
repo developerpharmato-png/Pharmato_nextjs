@@ -4,7 +4,7 @@ import {
   CustomButton,
   ErrorMessageCom,
 } from "../../../components/miniComponents";
-import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteIcon from "@mui/icons-material/Delete";
 import {
   Select,
   MenuItem,
@@ -773,9 +773,9 @@ export default function EditFormClient({ id }: { id?: string }) {
                 )}
               </div>
 
-                 {touched.images && errors.images && (
-                              <ErrorMessageCom error={errors.images} />
-                            )}
+              {touched.images && errors.images && (
+                <ErrorMessageCom error={errors.images} />
+              )}
               {form.images.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-3 justify-start w-fit">
                   {form.images.map((url) => (
@@ -1067,6 +1067,7 @@ export default function EditFormClient({ id }: { id?: string }) {
                 label="Stock Quantity *"
                 type="text"
                 value={form.stock}
+                disabled
                 onChange={handleChange}
                 onBlur={() =>
                   setTouched((prev: any) => ({ ...prev, stock: true }))
@@ -1353,7 +1354,7 @@ export default function EditFormClient({ id }: { id?: string }) {
                     className="text-red-600 hover:text-red-800 font-medium p-1 transition"
                     aria-label="Remove composition"
                   >
-                  <DeleteIcon />
+                    <DeleteIcon />
                   </button>
                 </div>
               ))}
@@ -1393,8 +1394,8 @@ export default function EditFormClient({ id }: { id?: string }) {
                     onClick={() => removeHighlightRow(idx)}
                     className="text-red-600 hover:text-red-800 font-medium p-1 transition"
                     aria-label="Remove highlight"
-                    >
-                       <DeleteIcon />
+                  >
+                    <DeleteIcon />
                   </button>
                 </div>
               ))}
