@@ -4,9 +4,18 @@ import Store from '@/models/Store';
 import Pincode from '@/models/Pincode';
 
 // GET: List all stores
-export async function GET() {
+export async function GET(req: NextRequest) {
     await dbConnect();
-    const stores = await Store.find().lean();
+    const url = new URL(req.url);
+    const search = (url.searchParams.get('search') || '').trim();
+
+    let query: any = {};
+    if (search) {
+        const regex = { $regex: search, $options: 'i' };
+        query = { $or: [{ name: regex }, { servicePinCodes: regex }] };
+    }
+
+    const stores = await Store.find(query).lean();
     return NextResponse.json({ success: true, message: 'Stores fetched successfully', data: stores });
 }
 

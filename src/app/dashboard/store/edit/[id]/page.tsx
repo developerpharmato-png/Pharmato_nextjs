@@ -170,12 +170,7 @@ export default function EditStorePage() {
               variant="outlined"
               placeholder="Enter store name"
               error={Boolean(fieldErrors.name)}
-              InputProps={{
-                style: {
-                  borderRadius: "0.75rem",
-                  background: "#f0fdf4",
-                },
-              }}
+             
             />
             {fieldErrors.name && <ErrorMessageCom error={fieldErrors.name} />}
           </div>

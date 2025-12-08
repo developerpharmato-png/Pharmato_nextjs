@@ -29,6 +29,7 @@ export default function StoreDashboard() {
   const router = useRouter();
   const [stores, setStores] = useState<any[]>([]);
   const [pincodes, setPincodes] = useState<any[]>([]);
+  const [search, setSearch] = useState<string>("");
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState<StoreForm>({
     name: "",
@@ -53,11 +54,13 @@ console.log(loading,"loadingloading");
     fetchPincodes();
   }, []);
 
-  async function fetchStores() {
+  async function fetchStores(q?: string) {
     setLoading(true);
     setError("");
     try {
-      const res = await axios.get("/api/admin/store");
+      const query = q ?? search;
+      const url = query ? `/api/admin/store?search=${encodeURIComponent(query)}` : "/api/admin/store";
+      const res = await axios.get(url);
       setStores(res.data.data || []);
     } catch {
       setError("Failed to fetch stores");
@@ -258,12 +261,17 @@ console.log(loading,"loadingloading");
         title="Stores"
         subtitle="Manage your store locations and service pincodes"
         showBack={false}
-        showSearch={false}
+        showSearch={true}
+        searchValue={search}
+        onSearchChange={(v: string) => {
+          setSearch(v);
+          fetchStores(v);
+        }}
         addLabel="Add "
         addHref="/dashboard/store/new"
         addShow={true}
         handleAdd={openAddStore}
-      />
+      />  
 
       <CustomTable
         columns={columns}
