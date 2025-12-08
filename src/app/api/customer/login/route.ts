@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     // 2️⃣ OTP Limit Check → If >=5 OTP in 1 hour → Block 15 min
     // ======================================================
     if (
-        user &&
+        user && 
         user.otpCount &&
         user.otpCount >= 50 &&
         user.otpGenerateTime &&
