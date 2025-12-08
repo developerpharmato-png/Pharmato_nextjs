@@ -105,7 +105,7 @@ export default function AddStorePage() {
           gps: "",
         },
         status: 1,
-      });
+      });  
       setFieldErrors({});
     } catch (err: any) {
       setError(err?.response?.data?.message || "Error adding store");
@@ -157,6 +157,7 @@ export default function AddStorePage() {
                 setForm({ ...form, servicePinCodes: selected })
               }
             />
+            {fieldErrors.servicePinCodes && <ErrorMessageCom error={fieldErrors.servicePinCodes} />}
           </div>
         </div>
         <AddressFields

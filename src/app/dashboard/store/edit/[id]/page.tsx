@@ -164,7 +164,7 @@ export default function EditStorePage() {
                                         borderRadius: "0.75rem",
                                         background: "#f0fdf4",
                                     },
-                                }}
+                                }}  
                             />
                             {fieldErrors.name && <ErrorMessageCom error={fieldErrors.name} />}
                         </div>
@@ -175,9 +175,10 @@ export default function EditStorePage() {
                                 error={fieldErrors.servicePinCodes}
                                 onChange={selected => setForm({ ...form, servicePinCodes: selected })}
                             />
+                            {fieldErrors.servicePinCodes && <ErrorMessageCom error={fieldErrors.servicePinCodes} />}
                         </div>
                     </div>
-                    <AddressFields
+                    <AddressFields  
                         address={form.address}
                         errors={fieldErrors}
                         onChange={(field, value) => setForm({ ...form, address: { ...form.address, [field]: value } })}

@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
+import Toast from "@/utils/Toast";
+
 import { useFormik } from "formik"; // Import useFormik
 import {
   Container,
@@ -96,7 +98,10 @@ export default function EditCategoryPage() {
   const [uploading, setUploading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const theme = useTheme();
-
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
   // 1. Fetch initial data and set Formik's initial values
   useEffect(() => {
     async function fetchCategory() {
@@ -136,11 +141,11 @@ export default function EditCategoryPage() {
       setError(null);
       try {
         // Manually check for image, as Formik might miss it on re-initialization if using custom components
+
         if (values.images.length === 0) {
-          Swal.fire({
-            icon: "error",
-            title: "Image required",
-            text: "Please upload a category image before submitting",
+          setToast({
+            message: "Please upload a category image before submitting",
+            type: "error",
           });
           setSubmitting(false);
           return;
@@ -153,31 +158,25 @@ export default function EditCategoryPage() {
         });
         const data = await res.json();
         if (data.success) {
-          Swal.fire({
-            toast: true,
-            position: "top-end",
-            icon: "success",
-            title: "Category updated successfully",
-            showConfirmButton: false,
-            timer: 2000,
+          setToast({
+            message: "Category updated successfully",
+            type: "success",
           });
           setTimeout(() => router.push("/dashboard/categories"), 1200);
         } else {
           // Set Formik errors if validation/server errors are returned
           setErrors(data.errors || {});
           const errorMsg = data.error || "Failed to update category";
-          Swal.fire({
-            icon: "error",
-            title: "Update failed",
-            text: errorMsg,
+          setToast({
+            message: "Update failed: " + errorMsg,
+            type: "error",
           });
           setError(errorMsg);
         }
       } catch (submitError) {
-        Swal.fire({
-          icon: "error",
-          title: "Update failed",
-          text: "Failed to connect to the server to update category.",
+        setToast({
+          message: "Update failed: Failed to connect to the server to update category.",
+          type: "error",
         });
         setError("Failed to connect to the server to update category.");
       } finally {
@@ -307,7 +306,9 @@ export default function EditCategoryPage() {
   }
 
   return (
+   
     <div className="containerStyle scrollbar-hide">
+        {toast && <Toast message={toast.message} type={toast.type} />}
       <Box sx={{ mb: 4, position: "relative" }}>
         <IconButton
           onClick={() => router.back()}
