@@ -80,6 +80,12 @@ export async function POST(request: NextRequest) {
         }
         await cart.save();
     }
+    let message = 'Item added to cart';
+    if (typeof quantity === 'number' && quantity < 0) {
+        message = 'Item removed from cart';
+    } else if (typeof quantity === 'number' && quantity > 0) {
+        message = 'Item added to cart';
+    }
     if (cart) {
         const updatedItem = cart.items.find((item: any) => item.medicineId.toString() === medicineId);
         if (updatedItem) {
@@ -98,6 +104,6 @@ export async function POST(request: NextRequest) {
         success: true,
         cart,
         medicineInCart,
-        message: 'Cart added successfully'
+        message
     });
 }

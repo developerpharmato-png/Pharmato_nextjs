@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, message: 'Missing userId' }, { status: 400 });
     }
     try {
-        const addressList = await UserAddress.find({ userId }).lean();
+        const addressList = await UserAddress.find({ userId }).sort({ createdAt: -1 }).lean();
         // For each address, find stores with matching servicePinCodes
         for (const address of addressList) {
             const pinCode = address?.address?.pinCode || address?.address?.pincode;
