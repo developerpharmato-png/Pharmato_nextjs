@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     if (
         user &&
         user.otpCount &&
-        user.otpCount >= 5 &&
+        user.otpCount >= 50 &&
         user.otpGenerateTime &&
         (now.getTime() - new Date(user.otpGenerateTime).getTime()) < 60 * 60 * 1000
     ) {
