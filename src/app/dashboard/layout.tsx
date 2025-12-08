@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Swal from "sweetalert2";
 import { showConfirmStatusAlert } from "./components/ConfirmStatusAlert";
 import { CustomTooltip } from "./components/miniComponents";
-import logo from "./Images/logo1.svg";
+import logo from "./Images/Image 1.png";
 
 // 1. IMPORT NECESSARY LUCIDE ICONS
 import {
