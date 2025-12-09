@@ -26,5 +26,9 @@ function generateGuestId() {
 
 export async function GET(req: NextRequest) {
     const guestId = generateGuestId();
-    return NextResponse.json({ guestId });
+    return NextResponse.json({
+        success: true,
+        message: 'Guest ID generated successfully',
+        guestId
+    });
 }
