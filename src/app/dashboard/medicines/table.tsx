@@ -32,7 +32,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     props: {
       initialData: data.data || [],
       initialTotalCount: data.total || 0,
-    },
+    },  
   };
 };
 

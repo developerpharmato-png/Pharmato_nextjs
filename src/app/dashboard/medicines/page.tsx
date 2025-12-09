@@ -27,7 +27,7 @@ export default function MedicinesPage() {
         handleAdd={handleAdd}
         addShow={true}
       />
-
+  
       <div className="mt-4">
         <FilterSearch
           onChange={(f) => {
@@ -48,6 +48,8 @@ export default function MedicinesPage() {
           onSearchChange={setSearchTerm}
           categoryId={categoryId}
           subCategoryId={subCategoryId}
+          initialData={[]} // Added default empty array for initial data
+          initialTotalCount={0} // Added default total count as 0
         />
       </div>
     </div>

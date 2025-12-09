@@ -151,7 +151,7 @@ export default function CategoriesPage() {
         }}
         placeholder="Search medicines..."
         isSearchShow={true}
-        isShowCategory={false}
+        isShowCategory={true} // Corrected to true to match the expected prop
         isShowSub={false}
         isShowOTC={true}
       />
