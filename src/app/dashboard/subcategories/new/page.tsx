@@ -311,7 +311,7 @@ export default function NewSubCategoryPage() {
           /> */}
           <div className="w-[200px] pt-4">
             <CustomButton
-              type="submit"
+              type="submit"  
               disabled={loading || uploading || formik.isSubmitting}
               width="100%"
             >

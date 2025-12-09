@@ -36,6 +36,7 @@ import {
   StyledCheckboxWithDescription,
 } from "../../components/StyledCheckboxWithDescription";
 import Toast from "@/utils/Toast";
+import HeaderWithAction from "../../components/HeaderWithAction";
 
 const MAX_DESCRIPTION_LENGTH = 1000;
 
@@ -187,42 +188,14 @@ export default function NewCategoryPage() {
     <div className="containerStyle scrollbar-hide">
       {toast && <Toast message={toast.message} type={toast.type} />}
 
-      <Box sx={{ mb: 4, position: "relative" }}>
-        <IconButton
-          onClick={() => router.back()}
-          sx={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            bgcolor: "white",
-            border: `1px solid ${theme.palette.grey[300]}`,
-            boxShadow: 1,
-            "&:hover": { bgcolor: theme.palette.grey[50] },
-            "&:focus": {
-              boxShadow: `0 0 0 4px ${theme.palette.success.light}`,
-              outline: "none",
-            },
-          }}
-          aria-label="Go back"
-        >
-          <ArrowBackIcon />
-        </IconButton>
-        <Box sx={{ pl: 7 }}>
-          <Typography
-            variant="h4"
-            component="h1"
-            fontWeight="bold"
-            gutterBottom
-            sx={{ color: theme.palette.grey[800] }}
-          >
-            Add New Category
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-            Create a new medicine category for your inventory
-          </Typography>
-        </Box>
-      </Box>
-
+      <HeaderWithAction
+        title=" Add New Category"
+        subtitle=" Create a new medicine category for your inventory"
+        showBack={true}
+        showSearch={false}
+        addLabel="Add "
+        addShow={false}
+      />
       {/* Form Card */}
       <Card raised sx={{ borderRadius: 2 }}>
         <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
@@ -277,16 +250,16 @@ export default function NewCategoryPage() {
               label="Category Image"
               id="category-image-input"
             />
-            
-              {formik.touched.images && formik.errors.images && (
-                <ErrorMessageCom
-                  error={
-                    Array.isArray(formik.errors.images)
-                      ? formik.errors.images.join(", ")
-                      : (formik.errors.images as string)
-                  }
-                />
-              )}
+
+            {formik.touched.images && formik.errors.images && (
+              <ErrorMessageCom
+                error={
+                  Array.isArray(formik.errors.images)
+                    ? formik.errors.images.join(", ")
+                    : (formik.errors.images as string)
+                }
+              />
+            )}
 
             <StyledCheckboxWithDescription
               id="isOTC"

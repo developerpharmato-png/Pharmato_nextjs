@@ -138,7 +138,7 @@ export default function CategoriesPage() {
         showSearch={false}
         onSearchChange={setSearchTerm}
         addLabel="Add "
-        addHref="/dashboard/categories/new"
+        
         addShow={true}
         handleAdd={handleAdd}
       />
