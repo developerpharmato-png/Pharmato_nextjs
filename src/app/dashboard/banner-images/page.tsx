@@ -233,7 +233,7 @@ export default function BannerImagesDashboard() {
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
-      showBack={false}
+        showBack={false}
         title="Banner Images"
         subtitle="Manage homepage banner images"
         addLabel="Add"
@@ -303,20 +303,21 @@ export default function BannerImagesDashboard() {
               minWidth: 120,
               selector: (row: any) => (
                 <CustomTooltip title={row.alt || "-"}>
-                  <span style={{ display: 'inline-block', width: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.alt || "-"}</span>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      width: 140,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {row.alt || "-"}
+                  </span>
                 </CustomTooltip>
               ),
             },
-            {
-              id: "targetScreen",
-              label: "Target Screen/URL",
-              minWidth: 120,
-              selector: (row: any) => (
-                <CustomTooltip title={row.targetScreen || "-"}>
-                  <span style={{ display: 'inline-block', width: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.targetScreen || "-"}</span>
-                </CustomTooltip>
-              ),
-            },
+
             {
               id: "targetId",
               label: "Category",
@@ -325,7 +326,17 @@ export default function BannerImagesDashboard() {
                 const cat = categories.find((c) => c._id === row.targetId);
                 return (
                   <CustomTooltip title={cat ? cat.name : "-"}>
-                    <span style={{ display: 'inline-block', width: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cat ? cat.name : "-"}</span>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        width: 120,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {cat ? cat.name : "-"}
+                    </span>
                   </CustomTooltip>
                 );
               },

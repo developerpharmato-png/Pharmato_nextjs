@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import HeaderWithAction from "../../components/HeaderWithAction";
 import { CustomButton } from "../../components/miniComponents";
 import MedicineDetailSkeleton from "../skeleton/MedicineDetailSkeleton";
+import ProductImageSlider from "../../components/ProductImageSlider";
 
 type TabKey = "overview" | "pricing" | "inventory" | "composition" | "related";
 
@@ -133,56 +134,11 @@ export default function MedicineDetailPage() {
 
       <div>
         <div className="bg-white rounded-xl  p-6 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {" "}
-          {/* Enhanced shadow and padding */}
-          <div className="lg:col-span-1">
-            <div className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 shadow-inner">
-              {images.length > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => setLightboxIndex(0)}
-                  className="w-full block transition-opacity hover:opacity-90"
-                >
-                  <img
-                    src={images[0]}
-                    alt={medicine.name}
-                    className="w-full h-72 lg:h-96 object-cover"
-                  />
-                </button>
-              ) : (
-                <div className="w-full h-72 lg:h-96 flex flex-col items-center justify-center text-8xl text-green-500 bg-gray-100">
-                  <span className="material-icons text-8xl">medication</span>
-                  {/* <span className="text-base text-gray-500 mt-2">No Image Available</span> // REMOVED: Preserving original no-image state */}
-                </div>
-              )}
-            </div>
-            <div className="mt-4 overflow-x-auto">
-              <div className="flex gap-3 items-center">
-                {images.length > 0 ? (
-                  images.map((img, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setLightboxIndex(idx)}
-                      className="w-20 h-20 rounded-md overflow-hidden border-2 transition-all duration-200 ease-in-out hover:border-green-500 focus:border-green-600 flex-shrink-0"
-                    >
-                      <img
-                        src={img}
-                        alt={`thumb-${idx}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))
-                ) : (
-                  <div className="flex items-center gap-2 text-sm text-gray-500 p-2">
-                    <span className="material-icons text-base">
-                      photo_camera
-                    </span>
-                    <span>No images</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          <ProductImageSlider
+            images={images}
+            productName="Bandhani Style Kurta Set"
+          />
+
           {/* Right: info + tabs */}
           <div className="lg:col-span-2 space-y-6">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">

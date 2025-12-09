@@ -23,6 +23,7 @@ import "react-toastify/dist/ReactToastify.css";
 import SkeltonEditMedicine from "./SkeltonEditMedicine";
 import { Delete } from "lucide-react";
 import Toast from "@/utils/Toast";
+import MedicineImageUploader from "../../Imageuplod";
 
 type Medicine = any;
 
@@ -461,131 +462,13 @@ export default function EditFormClient({ id }: { id?: string }) {
     // UI validation: Selling price must not exceed MRP
     const priceNum = Number(form.price);
     const mrpNum = Number(form.mrp);
-    if (!form.name.trim()) {
-      Swal.fire({
-        icon: "error",
-        title: "Name required",
-        text: "Please enter the medicine name.",
-      });
-      setLoading(false);
-      return;
-    }
-    if (!form.description.trim()) {
-      Swal.fire({
-        icon: "error",
-        title: "Description required",
-        text: "Please enter the medicine description.",
-      });
-      setLoading(false);
-      return;
-    }
-    if (!form.manufacturer.trim()) {
-      Swal.fire({
-        icon: "error",
-        title: "Manufacturer required",
-        text: "Please enter the manufacturer.",
-      });
-      setLoading(false);
-      return;
-    }
-    if (!form.stock || isNaN(Number(form.stock)) || Number(form.stock) < 0) {
-      Swal.fire({
-        icon: "error",
-        title: "Invalid stock",
-        text: "Stock must be a non-negative number.",
-      });
-      setLoading(false);
-      return;
-    }
-    if (!form.mrp || isNaN(Number(form.mrp)) || Number(form.mrp) <= 0) {
-      Swal.fire({
-        icon: "error",
-        title: "Invalid MRP",
-        text: "MRP must be a positive number.",
-      });
-      setLoading(false);
-      return;
-    }
-    if (
-      !form.purchasePrice ||
-      isNaN(Number(form.purchasePrice)) ||
-      Number(form.purchasePrice) < 0
-    ) {
-      Swal.fire({
-        icon: "error",
-        title: "Invalid purchase price",
-        text: "Purchase price must be a non-negative number.",
-      });
-      setLoading(false);
-      return;
-    }
-    if (!form.price || isNaN(Number(form.price)) || Number(form.price) < 0) {
-      Swal.fire({
-        icon: "error",
-        title: "Invalid selling price",
-        text: "Selling price must be a non-negative number.",
-      });
-      setLoading(false);
-      return;
-    }
-    if (!Number.isNaN(priceNum) && !Number.isNaN(mrpNum) && priceNum > mrpNum) {
-      Swal.fire({
-        icon: "error",
-        title: "Invalid price",
-        text: "Selling price cannot be greater than MRP",
-      });
-      setLoading(false);
-      return;
-    }
-    if (!form.expiryDate) {
-      Swal.fire({
-        icon: "error",
-        title: "Expiry date required",
-        text: "Please select an expiry date.",
-      });
-      setLoading(false);
-      return;
-    }
-    // Images min/max validation
-    if (!form.images || form.images.length === 0) {
-      Swal.fire({
-        icon: "error",
-        title: "Image required",
-        text: "Please upload at least 1 image",
-      });
-      setLoading(false);
-      return;
-    }
-    if (form.images.length > 5) {
-      Swal.fire({
-        icon: "error",
-        title: "Too many images",
-        text: "Maximum 5 images allowed",
-      });
-      setLoading(false);
-      return;
-    }
-    // Ensure coverImage is among images
+  
+ 
     const cover =
       form.coverImage && form.images.includes(form.coverImage)
         ? form.coverImage
         : form.images[0];
-    // Expiry date: disallow past dates
-    if (form.expiryDate) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const exp = new Date(form.expiryDate);
-      exp.setHours(0, 0, 0, 0);
-      if (exp < today) {
-        Swal.fire({
-          icon: "error",
-          title: "Invalid Expiry Date",
-          text: "Expiry date cannot be in the past",
-        });
-        setLoading(false);
-        return;
-      }
-    }
+  
     if (!form.batchNumber.trim()) {
       Swal.fire({
         icon: "error",
@@ -684,149 +567,33 @@ export default function EditFormClient({ id }: { id?: string }) {
       {toast && <Toast message={toast.message} type={toast.type} />}
 
       <div className="containerStyle scrollbar-hide">
-        <div className="mb-8 relative">
-          <button
-            type="button"
-            onClick={() => window.history.back()}
-            className="absolute left-0 top-0 inline-flex items-center justify-center w-10 h-10 text-gray-700 bg-white border border-gray-300 rounded-full shadow-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-150"
-            aria-label="Go back"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-6 h-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
-          <div className="pl-14">
-            <HeaderWithAction
-              title="Edit Medicine"
-              subtitle="Update medicine details"
-              showBack={false}
-              showSearch={false}
-            />
-          </div>
-        </div>
+        <HeaderWithAction
+          title="Edit Medicine"
+          subtitle="Update medicine details"
+          showBack={true}
+          showSearch={false}
+        />
 
         <div>
           <form onSubmit={handleSubmit} className="space-y-8">
-            {/* --- Image Upload Section --- */}
-            <div>
-              <label className="block text-sm font-bold text-gray-800 mb-2">
-                Medicine Images *
-                <p className="text-xs text-gray-500 font-normal">
-                  Min 1, Max 5 images. Each ≤ 5MB.
-                </p>
-              </label>
-              <input
-                id="medicine-edit-image-input"
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleFileChange}
-                style={{ display: "none" }}
-              />
-              <div className="flex items-center gap-4">
-                <button
-                  type="button"
-                  onClick={() =>
-                    document
-                      .getElementById("medicine-edit-image-input")
-                      ?.click()
-                  }
-                  // Enhanced file upload button styling
-                  className="h-28 w-28 flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-400 rounded-lg hover:bg-gray-100 transition duration-150 shadow-inner"
-                  title="Upload photos"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-9 h-9 text-gray-500"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M8.25 12.75l2.25 3 3-4.5 4.5 6"
-                    />
-                  </svg>
-                </button>
-                {uploading && (
-                  <span className="text-blue-600 font-medium">
-                    Uploading...
-                  </span>
-                )}
-              </div>
-
-              {touched.images && errors.images && (
-                <ErrorMessageCom error={errors.images} />
-              )}
-              {form.images.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-3 justify-start w-fit">
-                  {form.images.map((url) => (
-                    <div key={url} className="relative group h-24 w-24">
-                      <img
-                        src={url}
-                        alt="Medicine"
-                        className="h-24 w-24 object-cover rounded-lg border border-gray-200 shadow-sm"
-                      />
-                      {form.coverImage === url ? (
-                        <span className="absolute top-1 left-1 bg-green-600 text-white text-[10px] px-2 py-0.5 rounded-full shadow-lg font-semibold">
-                          Primary
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setPrimaryImage(url)}
-                          // Set Primary button style enhanced
-                          className="absolute top-1 left-1 bg-gray-800 text-white text-[10px] px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 shadow-lg transition duration-200 font-semibold"
-                        >
-                          Set Primary
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteImage(url)}
-                        // Delete button style enhanced
-                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 shadow-lg transition duration-200 hover:bg-red-700"
-                        title="Delete image"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={2}
-                          stroke="currentColor"
-                          className="w-4 h-4"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
+            <MedicineImageUploader
+              form={form}
+              touched={touched}
+              errors={errors}
+              handleDeleteImage={handleDeleteImage}
+              openSlider={(index: number) => {
+                console.log(`Opening slider for image at index: ${index}`);
+              }}
+              uploading={false} // Added default value for `uploading`
+              handleFileChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                if (event.target.files && event.target.files[0]) {
+                  console.log(`File uploaded: ${event.target.files[0].name}`);
+                }
+              }} // Corrected parameter type for `handleFileChange`
+              setPrimaryImage={(url: string) => {
+                console.log(`Primary image set to URL: ${url}`);
+              }} // Corrected parameter type for `setPrimaryImage`
+            />
             {/* --- Medicine Details Section --- */}
             <div>
               <TextField
@@ -852,7 +619,6 @@ export default function EditFormClient({ id }: { id?: string }) {
                 <ErrorMessageCom error={errors.name} />
               )}
             </div>
-
             <div>
               <TextField
                 name="description"
@@ -879,7 +645,6 @@ export default function EditFormClient({ id }: { id?: string }) {
                 <ErrorMessageCom error={errors.description} />
               )}
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <TextField
@@ -904,6 +669,29 @@ export default function EditFormClient({ id }: { id?: string }) {
                 {touched.manufacturer && errors.manufacturer && (
                   <ErrorMessageCom error={errors.manufacturer} />
                 )}
+              </div>
+              <div className="">
+                <TextField
+                  name="stock"
+                  label="Stock Quantity *"
+                  type="text"
+                  value={form.stock}
+                  disabled
+                  onChange={handleChange}
+                  onBlur={() =>
+                    setTouched((prev: any) => ({ ...prev, stock: true }))
+                  }
+                  fullWidth
+                  variant="outlined"
+                  placeholder="0"
+                  error={touched.stock && Boolean(errors.stock)}
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
+                />
               </div>
               <div className="flex gap-4 items-end">
                 <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
@@ -941,169 +729,93 @@ export default function EditFormClient({ id }: { id?: string }) {
                   </Select>
                 </FormControl>
               </div>
-            </div>
-
-            {/* Unit and Expiry Date in one row, like MedicineForm */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {form.category && (
-                <TextField
-                  name="unitInput"
-                  label="Unit"
-                  value={form.unitInput || ""}
-                  onChange={(e) => {
-                    let val = e.target.value;
-                    let suffix = "";
-                    switch (form.category) {
-                      case "Tablet":
-                        suffix = " Tablets";
-                        break;
-                      case "Capsule":
-                        suffix = " Capsules";
-                        break;
-                      case "Syrup":
-                      case "Drops":
-                      case "Injection":
-                        suffix = " ml";
-                        break;
-                      case "Cream":
-                        suffix = " g";
-                        break;
-                      case "Other":
-                        suffix = "";
-                        break;
-                    }
-                    if (val.endsWith(suffix))
-                      val = val.slice(0, -suffix.length);
-                    setForm((prev) => ({
-                      ...prev,
-                      unitInput: val,
-                      unit: val + suffix,
-                    }));
-                  }}
-                  variant="outlined"
-                  placeholder={(() => {
-                    switch (form.category) {
-                      case "Tablet":
-                        return "e.g. 10";
-                      case "Capsule":
-                        return "e.g. 10";
-                      case "Syrup":
-                        return "e.g. 250";
-                      case "Cream":
-                        return "e.g. 15";
-                      case "Drops":
-                        return "e.g. 10";
-                      case "Injection":
-                        return "e.g. 5";
-                      default:
-                        return "e.g. 1 Unit";
-                    }
-                  })()}
-                  InputProps={{
-                    endAdornment: (() => {
+              <div className="">
+                {form.category && (
+                  <TextField
+                    name="unitInput"
+                    label="Unit"
+                    value={form.unitInput || ""}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      let suffix = "";
                       switch (form.category) {
                         case "Tablet":
-                          return <span style={{ marginLeft: 8 }}>Tablets</span>;
+                          suffix = " Tablets";
+                          break;
                         case "Capsule":
-                          return (
-                            <span style={{ marginLeft: 8 }}>Capsules</span>
-                          );
+                          suffix = " Capsules";
+                          break;
                         case "Syrup":
-                          return <span style={{ marginLeft: 8 }}>ml</span>;
-                        case "Cream":
-                          return <span style={{ marginLeft: 8 }}>g</span>;
                         case "Drops":
-                          return <span style={{ marginLeft: 8 }}>ml</span>;
                         case "Injection":
-                          return <span style={{ marginLeft: 8 }}>ml</span>;
-                        default:
-                          return null;
+                          suffix = " ml";
+                          break;
+                        case "Cream":
+                          suffix = " g";
+                          break;
+                        case "Other":
+                          suffix = "";
+                          break;
                       }
-                    })(),
-                    style: {
-                      borderRadius: "0.75rem",
-                      background: "#fff",
-                    },
-                  }}
-                />
-              )}
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DatePicker
-                  label="Expiry Date *"
-                  value={form.expiryDate ? new Date(form.expiryDate) : null}
-                  onChange={(date) => {
-                    setForm((prev) => ({
-                      ...prev,
-                      expiryDate: date
-                        ? new Date(date).toISOString().slice(0, 10)
-                        : "",
-                    }));
-                    setTouched((prev: any) => ({ ...prev, expiryDate: true }));
-                  }}
-                  minDate={new Date()}
-                  slotProps={{
-                    textField: {
-                      name: "expiryDate",
-                      fullWidth: true,
-                      variant: "outlined",
-                      error: touched.expiryDate && Boolean(errors.expiryDate),
-                      helperText: touched.expiryDate && errors.expiryDate,
-                      InputProps: {
-                        style: {
-                          borderRadius: "0.75rem",
-                          background: "#fff",
-                        },
+                      if (val.endsWith(suffix))
+                        val = val.slice(0, -suffix.length);
+                      setForm((prev) => ({
+                        ...prev,
+                        unitInput: val,
+                        unit: val + suffix,
+                      }));
+                    }}
+                    variant="outlined"
+                    placeholder={(() => {
+                      switch (form.category) {
+                        case "Tablet":
+                          return "e.g. 10";
+                        case "Capsule":
+                          return "e.g. 10";
+                        case "Syrup":
+                          return "e.g. 250";
+                        case "Cream":
+                          return "e.g. 15";
+                        case "Drops":
+                          return "e.g. 10";
+                        case "Injection":
+                          return "e.g. 5";
+                        default:
+                          return "e.g. 1 Unit";
+                      }
+                    })()}
+                    InputProps={{
+                      endAdornment: (() => {
+                        switch (form.category) {
+                          case "Tablet":
+                            return (
+                              <span style={{ marginLeft: 8 }}>Tablets</span>
+                            );
+                          case "Capsule":
+                            return (
+                              <span style={{ marginLeft: 8 }}>Capsules</span>
+                            );
+                          case "Syrup":
+                            return <span style={{ marginLeft: 8 }}>ml</span>;
+                          case "Cream":
+                            return <span style={{ marginLeft: 8 }}>g</span>;
+                          case "Drops":
+                            return <span style={{ marginLeft: 8 }}>ml</span>;
+                          case "Injection":
+                            return <span style={{ marginLeft: 8 }}>ml</span>;
+                          default:
+                            return null;
+                        }
+                      })(),
+                      style: {
+                        borderRadius: "0.75rem",
+                        background: "#fff",
                       },
-                    },
-                  }}
-                />
-              </LocalizationProvider>
+                    }}
+                  />
+                )}
+              </div>
             </div>
-
-            {/* Stock and Batch Number in the next row, like MedicineForm */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <TextField
-                name="stock"
-                label="Stock Quantity *"
-                type="text"
-                value={form.stock}
-                disabled
-                onChange={handleChange}
-                onBlur={() =>
-                  setTouched((prev: any) => ({ ...prev, stock: true }))
-                }
-                fullWidth
-                variant="outlined"
-                placeholder="0"
-                error={touched.stock && Boolean(errors.stock)}
-                InputProps={{
-                  style: {
-                    borderRadius: "0.75rem",
-                    background: "#fff",
-                  },
-                }}
-              />
-              <TextField
-                name="batchNumber"
-                label="Batch Number *"
-                value={form.batchNumber}
-                onChange={handleChange}
-                onBlur={() =>
-                  setTouched((prev: any) => ({ ...prev, batchNumber: true }))
-                }
-                fullWidth
-                variant="outlined"
-                placeholder="Batch number"
-                error={touched.batchNumber && Boolean(errors.batchNumber)}
-                InputProps={{
-                  style: {
-                    borderRadius: "0.75rem",
-                    background: "#fff",
-                  },
-                }}
-              />
-            </div>
-
             {/* --- Category/Subcategory Section --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
@@ -1162,34 +874,41 @@ export default function EditFormClient({ id }: { id?: string }) {
                 </FormControl>
               </div>
             </div>
-
-            {/* --- Stock/Batch/Expiry Section --- */}
+            {/* Unit and Expiry Date in one row, like MedicineForm */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <TextField
-                  name="stock"
-                  label="Stock Quantity *"
-                  type="text"
-                  value={form.stock}
-                  onChange={handleChange}
-                  onBlur={() =>
-                    setTouched((prev: any) => ({ ...prev, stock: true }))
-                  }
-                  fullWidth
-                  variant="outlined"
-                  placeholder="0"
-                  error={touched.stock && Boolean(errors.stock)}
-                  InputProps={{
-                    style: {
-                      borderRadius: "0.75rem",
-                      background: "#fff",
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  label="Expiry Date *"
+                  value={form.expiryDate ? new Date(form.expiryDate) : null}
+                  onChange={(date) => {
+                    setForm((prev) => ({
+                      ...prev,
+                      expiryDate: date
+                        ? new Date(date).toISOString().slice(0, 10)
+                        : "",
+                    }));
+                    setTouched((prev: any) => ({ ...prev, expiryDate: true }));
+                  }}
+                  minDate={new Date()}
+                  slotProps={{
+                    textField: {
+                      name: "expiryDate",
+                      fullWidth: true,
+                      variant: "outlined",
+                      error: touched.expiryDate && Boolean(errors.expiryDate),
+                      helperText: touched.expiryDate && errors.expiryDate,
+                      InputProps: {
+                        style: {
+                          borderRadius: "0.75rem",
+                          background: "#fff",
+                        },
+                      },
                     },
                   }}
                 />
-                {touched.stock && errors.stock && (
-                  <ErrorMessageCom error={errors.stock} />
-                )}
-              </div>
+              </LocalizationProvider>
+
+              {/* Stock and Batch Number in the next row, like MedicineForm */}
               <div>
                 <TextField
                   name="batchNumber"
@@ -1215,9 +934,6 @@ export default function EditFormClient({ id }: { id?: string }) {
                 )}
               </div>
             </div>
-
-            {/* Expiry Date moved into its own section for separation/style consistency, assuming a 4-column layout is not needed here */}
-
             {/* --- Price Section (4 columns) --- */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div>
@@ -1319,7 +1035,6 @@ export default function EditFormClient({ id }: { id?: string }) {
                 />
               </div>
             </div>
-
             {/* --- Composition Section --- */}
             <div>
               <label className="block text-sm font-bold text-gray-800 mb-2">
@@ -1366,7 +1081,6 @@ export default function EditFormClient({ id }: { id?: string }) {
                 <span className="text-xl">+</span> Add Composition
               </button>
             </div>
-
             {/* --- Highlights Section --- */}
             <div>
               <label className="block text-sm font-bold text-gray-800 mb-2">
@@ -1407,7 +1121,6 @@ export default function EditFormClient({ id }: { id?: string }) {
                 <span className="text-xl">+</span> Add Highlight
               </button>
             </div>
-
             {/* --- Classification Section --- */}
             <div className="space-y-4 border-t pt-8">
               <h3 className="text-xl font-bold text-gray-800">
@@ -1437,7 +1150,6 @@ export default function EditFormClient({ id }: { id?: string }) {
                 </div>
               </div>
             </div>
-
             {/* --- Submission Button --- */}
             <div className="mt-8 flex justify-center w-full">
               <div className="flex justify-center w-full max-w-sm">

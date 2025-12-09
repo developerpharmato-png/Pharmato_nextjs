@@ -302,13 +302,13 @@ export default function NewSubCategoryPage() {
             title="Over-the-Counter (OTC) Subcategory"
             description="Medicines in this subcategory can be purchased without a prescription"
           />
-
+{/* 
           <StandardFormCheckbox
             id="isActive"
             checked={formik.values.isActive}
             onChange={formik.handleChange}
             label="Active Subcategory"
-          />
+          /> */}
           <div className="w-[200px] pt-4">
             <CustomButton
               type="submit"

@@ -274,7 +274,7 @@ export default function HeaderWithAction({
   );
 
   return (
-    <div className="relative mb-8">
+    <div className="relative mb-4">
       {backButton}
 
       <div className="flex items-center justify-between">
