@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
     const skip = Number(offset);
     const lim = Number(limit);
 
-    const medicines = await Medicine.aggregate([
+    const pipeline: any[] = [
         { $match: matchStage },
         {
             $project: {
@@ -162,9 +162,12 @@ export async function POST(req: NextRequest) {
             }
         },
         { $sort: { [sortField]: sortOrder } },
-        { $skip: skip },
-        { $limit: lim }
-    ]);
+        { $skip: skip }
+    ];
+    if (lim > 0) {
+        pipeline.push({ $limit: lim });
+    }
+    const medicines = await Medicine.aggregate(pipeline);
 
     // Get user's cart only if userId is not empty
     let cartItems: any[] = [];

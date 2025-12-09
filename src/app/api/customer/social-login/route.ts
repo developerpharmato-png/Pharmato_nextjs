@@ -62,6 +62,38 @@ export async function POST(request: NextRequest) {
     let user = await User.findOne({ socialProvider: provider, socialId });
     if (!user) {
         user = await User.create({ socialProvider: provider, socialId, name, email, isVerified: true, deviceToken });
+
+        // Send welcome notification
+        try {
+            const Notification = (await import('@/models/Notification')).default;
+            await Notification.create({
+                userId: user._id.toString(),
+                role: 'customer',
+                title: 'Welcome to Pharmato!',
+                message: 'Thank you for registering. Enjoy your experience!',
+                type: 'welcome',
+                isRead: false,
+                createdAt: new Date(),
+            });
+        } catch (err) {
+            console.error('Failed to create welcome notification:', err);
+        }
+
+        // Send welcome email if user has email
+        if (user.email) {
+            try {
+                const { sendEmail } = await import('@/utils/sendEmail');
+                const { WELCOME_EMAIL_SUBJECT } = await import('@/utils/emailSubjects');
+                await sendEmail({
+                    to: user.email,
+                    subject: WELCOME_EMAIL_SUBJECT,
+                    html: `<h1>Welcome to Pharmato!</h1><p>Thank you for registering. Enjoy your experience!</p>`
+                });
+            } catch (err) {
+                console.error('Failed to send welcome email:', err);
+            }
+        }
+        
     } else {
         if (deviceToken) {
             user.deviceToken = deviceToken;

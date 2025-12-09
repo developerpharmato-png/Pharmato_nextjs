@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     // 2️⃣ OTP Limit Check → If >=5 OTP in 1 hour → Block 15 min
     // ======================================================
     if (
-        user && 
+        user &&
         user.otpCount &&
         user.otpCount >= 50 &&
         user.otpGenerateTime &&
@@ -158,6 +158,21 @@ export async function POST(request: NextRequest) {
             });
         } catch (err) {
             console.error('Failed to create welcome notification:', err);
+        }
+
+        // Send welcome email if user has email
+        if (user.email) {
+            try {
+                const { sendEmail } = await import('@/utils/sendEmail');
+                const { WELCOME_EMAIL_SUBJECT } = await import('@/utils/emailSubjects');
+                await sendEmail({
+                    to: user.email,
+                    subject: WELCOME_EMAIL_SUBJECT,
+                    html: `<h1>Welcome to Pharmato!</h1><p>Thank you for registering. Enjoy your experience!</p>`
+                });
+            } catch (err) {
+                console.error('Failed to send welcome email:', err);
+            }
         }
     }
 
