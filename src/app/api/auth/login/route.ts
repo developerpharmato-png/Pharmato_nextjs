@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
         // Fallback: if populate didn't return role name, try direct lookup
         if (!roleName && roleId) {
             try {
-                const roleDoc = await Role.findById(roleId).select('name').lean();
+                const roleDoc: any = await Role.findById(roleId).select('name').lean();
                 if (roleDoc && roleDoc.name) {
                     roleName = roleDoc.name;
                 }
