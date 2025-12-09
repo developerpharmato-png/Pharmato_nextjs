@@ -3,6 +3,7 @@ import Medicine from '@/models/Medicine';
 import dbConnect from '@/lib/mongodb';
 import mongoose from 'mongoose';
 import Cart from '@/models/Cart';
+import GuestCart from '@/models/GuestCart';
 
 /**
  * @swagger
@@ -42,7 +43,10 @@ import Cart from '@/models/Cart';
  *                 type: string
  *               userId:
  *                 type: string
- *                 description: User's ObjectId (can be empty)
+ *                 description: User's ObjectId (for logged-in users)
+ *               guestId:
+ *                 type: string
+ *                 description: Guest ID (for guest users)
  *     responses:
  *       200:
  *         description: Medicines list with cart info
@@ -111,7 +115,8 @@ export async function POST(req: NextRequest) {
         search,
         sortBy,
         columnName,
-        userId = ""
+        userId = "",
+        guestId = ""
     } = await req.json();
 
     // Set defaults if empty or invalid
@@ -169,11 +174,14 @@ export async function POST(req: NextRequest) {
     }
     const medicines = await Medicine.aggregate(pipeline);
 
-    // Get user's cart only if userId is not empty
+    // Get user's cart or guest cart
     let cartItems: any[] = [];
     if (userId && typeof userId === 'string' && userId.trim() !== "") {
         const cart = await Cart.findOne({ userId }).lean();
         cartItems = cart && typeof cart === 'object' && 'items' in cart && Array.isArray((cart as any).items) ? (cart as any).items : [];
+    } else if (guestId && typeof guestId === 'string' && guestId.trim() !== "") {
+        const guestCart = await GuestCart.findOne({ guestId }).lean();
+        cartItems = guestCart && typeof guestCart === 'object' && 'items' in guestCart && Array.isArray((guestCart as any).items) ? (guestCart as any).items : [];
     }
 
     // Add isInCart and cartQuantity to each medicine
