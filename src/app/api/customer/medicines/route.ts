@@ -23,9 +23,10 @@
  *                 default: ""
  *               userId:
  *                 type: string
- *                 description: User's ObjectId
- *             required:
- *               - userId
+ *                 description: User's ObjectId (for logged-in users)
+ *               guestId:
+ *                 type: string
+ *                 description: Guest ID (for guest users)
  *     responses:
  *       200:
  *         description: Medicines list with cart info
@@ -70,12 +71,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Medicine from '@/models/Medicine';
 import Cart from '@/models/Cart';
+import GuestCart from '@/models/GuestCart';
 import { allowedOrigins } from '@/lib/allowedOrigins';
 import dbConnect from '@/lib/mongodb';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { limit = 10, offset = 0, search = "", userId } = await req.json();
+    const { limit = 10, offset = 0, search = "", userId, guestId } = await req.json();
     // userId can be empty string, do not return error
 
     // Build filter for search
@@ -90,11 +92,14 @@ export async function POST(req: NextRequest) {
         .limit(limit)
         .lean();
 
-    // Get user's cart only if userId is not empty
+    // Get user's cart or guest cart
     let cartItems: any[] = [];
     if (userId && typeof userId === 'string' && userId.trim() !== "") {
         const cart = await Cart.findOne({ userId }).lean();
         cartItems = cart && typeof cart === 'object' && 'items' in cart && Array.isArray((cart as any).items) ? (cart as any).items : [];
+    } else if (guestId && typeof guestId === 'string' && guestId.trim() !== "") {
+        const guestCart = await GuestCart.findOne({ guestId }).lean();
+        cartItems = guestCart && typeof guestCart === 'object' && 'items' in guestCart && Array.isArray((guestCart as any).items) ? (guestCart as any).items : [];
     }
 
     // Loop and populate category, subcategory, and cart info

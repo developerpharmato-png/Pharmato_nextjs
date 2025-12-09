@@ -1,3 +1,5 @@
+import { OTP_EMAIL_SUBJECT } from '@/utils/emailSubjects';
+import { sendEmail } from '@/utils/sendEmail';
 import { NextRequest, NextResponse } from 'next/server';
 import User from '@/models/User';
 import dbConnect from '@/lib/mongodb';
@@ -61,6 +63,10 @@ export async function POST(req: NextRequest) {
     user.otp = otp;
     user.otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
     await user.save();
-    // TODO: Integrate email gateway here to send OTP to new email
-    return NextResponse.json({ success: true, message: 'OTP sent', otp }); // For dev, return OTP
+    await sendEmail({
+        to: email,
+        subject: OTP_EMAIL_SUBJECT,
+        html: `<p>Your OTP is <b>${otp}</b>. It is valid for 5 minutes.</p>`
+    });
+    return NextResponse.json({ success: true, message: 'OTP sent to email' });
 }

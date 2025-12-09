@@ -4,13 +4,14 @@ import Medicine from '@/models/Medicine';
 import Category from '@/models/Category';
 import SubCategory from '@/models/SubCategory';
 import Cart from '@/models/Cart';
+import GuestCart from '@/models/GuestCart';
 import dbConnect from '@/lib/mongodb';
 
 export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
     await dbConnect();
     const { id } = await context.params;
     const body = await req.json();
-    const { userId } = body;
+    const { userId, guestId } = body;
     if (!id) {
         return NextResponse.json({ success: false, message: 'Medicine id is required', data: null }, { status: 400 });
     }
@@ -37,25 +38,24 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
         subcategory = await SubCategory.findById(medicine.subCategoryId).lean();
     }
 
-    // Cart info
+    // Cart/GuestCart info
     let isInCart = false;
     let cartQuantity = 0;
+    let cartItems: any[] = [];
     if (userId && typeof userId === 'string' && userId.trim() !== "") {
         const cart = await Cart.findOne({ userId }).lean();
-        const cartItems = cart && typeof cart === 'object' && 'items' in cart && Array.isArray((cart as any).items) ? (cart as any).items : [];
-        const cartItem = cartItems.find((item: any) => item.medicineId?.toString() === medicine._id?.toString());
-        isInCart = !!cartItem;
-        cartQuantity = cartItem ? cartItem.quantity : 0;
+        cartItems = cart && typeof cart === 'object' && 'items' in cart && Array.isArray((cart as any).items) ? (cart as any).items : [];
+    } else if (guestId && typeof guestId === 'string' && guestId.trim() !== "") {
+        const guestCart = await GuestCart.findOne({ guestId }).lean();
+        cartItems = guestCart && typeof guestCart === 'object' && 'items' in guestCart && Array.isArray((guestCart as any).items) ? (guestCart as any).items : [];
     }
+    const cartItem = cartItems.find((item: any) => item.medicineId?.toString() === medicine._id?.toString());
+    isInCart = !!cartItem;
+    cartQuantity = cartItem ? cartItem.quantity : 0;
 
-    // Add isInCart and cartQuantity to each relatedProduct
+    // Add isInCart and cartQuantity to each relatedProduct (using same cartItems)
     let relatedProductsWithCart = [];
     if (medicine.relatedProducts && Array.isArray(medicine.relatedProducts)) {
-        let cartItems: any[] = [];
-        if (userId && typeof userId === 'string' && userId.trim() !== "") {
-            const cart = await Cart.findOne({ userId }).lean();
-            cartItems = cart && typeof cart === 'object' && 'items' in cart && Array.isArray((cart as any).items) ? (cart as any).items : [];
-        }
         relatedProductsWithCart = medicine.relatedProducts.map((prod: any) => {
             const cartItem = cartItems.find((item: any) => item.medicineId?.toString() === prod._id?.toString());
             return {
@@ -105,7 +105,10 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
  *             properties:
  *               userId:
  *                 type: string
- *                 description: User MongoDB ID
+ *                 description: User MongoDB ID (for logged-in users)
+ *               guestId:
+ *                 type: string
+ *                 description: Guest ID (for guest users)
  *     responses:
  *       200:
  *         description: Medicine details with cart info
