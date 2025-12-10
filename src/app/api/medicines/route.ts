@@ -61,9 +61,18 @@ export async function GET(request: NextRequest) {
     // By default return both active and inactive medicines. Use `status` query
     // param to restrict results: ?status=active | inactive | all
     const status = (url.searchParams.get("status") || "all").toLowerCase();
-    const filter: any = {};
-    if (status === "active") filter.isActive = true;
-    else if (status === "inactive") filter.isActive = false;
+    const categoryId = url.searchParams.get("categoryId");
+    const subCategoryId = url.searchParams.get("subCategoryId");
+
+    // baseFilter holds explicit filters (status/category/subcategory)
+    const baseFilter: any = {};
+    if (status === "active") baseFilter.isActive = true;
+    else if (status === "inactive") baseFilter.isActive = false;
+    if (categoryId) baseFilter.categoryId = categoryId;
+    if (subCategoryId) baseFilter.subCategoryId = subCategoryId;
+
+    let filter: any = { ...baseFilter };
+
     if (search) {
       const regex = { $regex: search, $options: "i" };
 
@@ -75,12 +84,19 @@ export async function GET(request: NextRequest) {
         await SubCategory.find({ name: regex }).select("_id").lean()
       ).map((s: any) => s._id);
 
-      filter.$or = [
+      const searchOr: any[] = [
         { name: regex },
         { manufacturer: regex },
-        ...(matchingCategoryIds.length ? [{ categoryId: { $in: matchingCategoryIds } }] : []),
-        ...(matchingSubcategoryIds.length ? [{ subCategoryId: { $in: matchingSubcategoryIds } }] : []),
       ];
+      if (matchingCategoryIds.length) searchOr.push({ categoryId: { $in: matchingCategoryIds } });
+      if (matchingSubcategoryIds.length) searchOr.push({ subCategoryId: { $in: matchingSubcategoryIds } });
+
+      // If we already have base filters (category/subcategory/status), combine with $and
+      if (Object.keys(baseFilter).length) {
+        filter = { $and: [baseFilter, { $or: searchOr }] };
+      } else {
+        filter = { $or: searchOr };
+      }
     }
 
     const total = await Medicine.countDocuments(filter);

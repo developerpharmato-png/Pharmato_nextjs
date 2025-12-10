@@ -4,6 +4,8 @@ import Link from "next/link";
 import HeaderWithAction from "../../components/HeaderWithAction";
 import Swal from "sweetalert2";
 import { showConfirmStatusAlert } from "../../components/ConfirmStatusAlert";
+import FilterSearch from "../../components/FilterSearch";
+import { CustomTable, Column } from "../../components/CustomTable";
 
 type Customer = {
   _id: string;
@@ -28,7 +30,6 @@ function getDeleteStatus(isDelete?: boolean) {
     </span>
   );
 }
-import { CustomTable, Column } from "../../components/CustomTable";
 
 export default function AdminCustomerListPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -38,13 +39,15 @@ export default function AdminCustomerListPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState("all");
 
+  // Ensure the status filter is passed correctly to the API
   useEffect(() => {
     setLoading(true);
     fetch(
       `/api/admin/customers/list?limit=${rowsPerPage}&offset=${
         page * rowsPerPage
-      }&search=${searchTerm}`
+      }&search=${searchTerm}&status=${statusFilter}`
     )
       .then((res) => res.json())
       .then((data) => {
@@ -71,14 +74,14 @@ export default function AdminCustomerListPage() {
           text: "Unable to fetch customers",
         });
       });
-  }, [page, rowsPerPage, searchTerm]);
+  }, [page, rowsPerPage, searchTerm, statusFilter]);
 
   const columns: Column<Customer>[] = [
     {
       id: "uniqueCode",
       label: "ID",
       minWidth: 120,
-      selector: (row) => (
+      selector: (row: Customer) => (
         <Link
           href={`/dashboard/admin/customers/${row._id}`}
           className="text-green-700 underline hover:text-green-900 font-semibold"
@@ -91,19 +94,19 @@ export default function AdminCustomerListPage() {
       id: "name",
       label: "Name",
       minWidth: 120,
-      selector: (row) => row.name || <span className="text-gray-400">-</span>,
+      selector: (row: Customer) => row.name || <span className="text-gray-400">-</span>,
     },
     {
       id: "email",
       label: "Email",
       minWidth: 180,
-      selector: (row) => row.email || <span className="text-gray-400">-</span>,
+      selector: (row: Customer) => row.email || <span className="text-gray-400">-</span>,
     },
     {
       id: "mobile",
       label: "Mobile",
       minWidth: 140,
-      selector: (row) =>
+      selector: (row: Customer) =>
         row.mobile ? (
           `${row.countryCode ? row.countryCode : ""} ${row.mobile}`.trim()
         ) : (
@@ -114,13 +117,13 @@ export default function AdminCustomerListPage() {
       id: "walletAmount",
       label: "Wallet",
       minWidth: 100,
-      selector: (row) => `₹${(row.walletAmount ?? 0).toFixed(2)}`,
+      selector: (row: Customer) => `₹${(row.walletAmount ?? 0).toFixed(2)}`,
     },
     {
       id: "isActive",
       label: "Status",
       minWidth: 80,
-      selector: (row) => (
+      selector: (row: Customer) => (
         <button
           onClick={async () => {
             showConfirmStatusAlert({
@@ -180,7 +183,7 @@ export default function AdminCustomerListPage() {
       id: "isDelete",
       label: "Account Status",
       minWidth: 100,
-      selector: (row) => getDeleteStatus(row.isDelete),
+      selector: (row: Customer) => getDeleteStatus(row.isDelete),
     },
   ];
 
@@ -194,7 +197,15 @@ export default function AdminCustomerListPage() {
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
       />
-
+      <FilterSearch
+        onChange={({ search, status }) => {
+          setSearchTerm(search || "");
+          setStatusFilter(status || "all");
+        }}
+        placeholder="Search customers..."
+        isSearchShow={true}
+        showApply={false}
+      />
       <CustomTable
         columns={columns}
         data={customers}
@@ -211,4 +222,3 @@ export default function AdminCustomerListPage() {
     </div>
   );
 }
-// ...existing code...

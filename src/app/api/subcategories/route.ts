@@ -11,11 +11,6 @@ import SubCategory from '@/models/SubCategory';
  *       - SubCategory
  *     parameters:
  *       - in: query
- *         name: categoryId
- *         schema:
- *           type: string
- *         description: Filter by category ID
- *       - in: query
  *         name: isOTC
  *         schema:
  *           type: boolean
@@ -69,13 +64,9 @@ export async function GET(request: NextRequest) {
         await connectDB();
 
         const { searchParams } = new URL(request.url);
-        const categoryId = searchParams.get('categoryId');
         const isOTC = searchParams.get('isOTC');
 
         let query: any = {};
-        if (categoryId) {
-            query.categoryId = categoryId;
-        }
         if (isOTC !== null) {
             query.isOTC = isOTC === 'true';
         }

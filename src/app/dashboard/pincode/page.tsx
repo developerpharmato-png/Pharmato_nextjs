@@ -6,41 +6,25 @@ import { showConfirmStatusAlert } from "../components/ConfirmStatusAlert";
 import { CustomTable, Column } from "../components/CustomTable";
 import HeaderWithAction from "../components/HeaderWithAction";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import {
-  CustomButton,
-  CustomTooltip,
-  ErrorMessageCom,
-} from "../components/miniComponents";
+import { CustomTooltip } from "../components/miniComponents";
 import { EditIcon } from "lucide-react";
 import Swal from "sweetalert2";
-import { useFormik } from "formik";
-import * as Yup from "yup";
+import { AddEditPincodeModal } from "./AddEditPincodeModal";
+import { Button } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import FilterSearch from "../components/FilterSearch";
 
 interface Pincode {
   _id: string;
   pincode: string;
   isActive: boolean;
 }
-const PincodeSchema = Yup.object().shape({
-  pincode: Yup.string()
-    .required("Pincode(s) required")
-    .test(
-      "bulk-pincode",
-      "Each pincode must be 6 digits, not start with 0",
-      (value) => {
-        if (!value) return false;
-        const pins = value.split(/[,\s]+/).filter(Boolean);
-        return pins.every((pin) => /^([1-9][0-9]{5})$/.test(pin));
-      }
-    ),
-  isActive: Yup.boolean().required(),
-});
-
-// --- MAIN COMPONENT ---
 
 export default function PincodeDashboard() {
   const [pincodes, setPincodes] = useState<Pincode[]>([]);
-  const [editId, setEditId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPincode, setCurrentPincode] = useState<Pincode | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -71,57 +55,19 @@ export default function PincodeDashboard() {
     fetchPincodes();
   }, [search, page, rowsPerPage, sortBy]);
 
-  // --- FORMIK SETUP ---
-  const formik = useFormik({
-    initialValues: {
-      pincode: "",
-      isActive: true,
-    },
-    validationSchema: PincodeSchema,
-    onSubmit: async (values, { resetForm }) => {
-      setLoading(true);
-      setError("");
-
-      try {
-        const successMessage = editId
-          ? "Pincode updated successfully!"
-          : "Pincode added successfully!";
-
-        if (editId) {
-          await axios.put("/api/admin/pincode", { id: editId, ...values });
-        } else {
-          await axios.post("/api/admin/pincode", values);
-        }
-
-        Swal.fire({
-          toast: true,
-          position: "top-end",
-          icon: "success",
-          title: successMessage,
-          showConfirmButton: false,
-          timer: 2000,
-        });
-
-        resetForm(); // Reset form fields to initial values
-        setEditId(null);
-        fetchPincodes();
-      } catch (err: any) {
-        setError(err?.response?.data?.message || "Error saving pincode");
-      }
-      setLoading(false);
-    },
-  });
-
-  const handleEdit = (pin: Pincode) => {
-    formik.setValues({ pincode: pin.pincode, isActive: pin.isActive });
-    formik.setErrors({}); // Clear validation errors when starting edit
-    formik.setTouched({});
-    setEditId(pin._id);
+  const handleAddPincode = () => {
+    setCurrentPincode(null);
+    setIsModalOpen(true);
   };
 
-  const handleCancelEdit = () => {
-    formik.resetForm();
-    setEditId(null);
+  const handleEditPincode = (pin: Pincode) => {
+    setCurrentPincode(pin); // Directly set the pincode value
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setCurrentPincode(null);
   };
 
   const handleDelete = async (id: string) => {
@@ -155,7 +101,6 @@ export default function PincodeDashboard() {
     });
   };
 
-  // CustomTable columns definition (Uses Formik to trigger edit)
   const columns: Column<Pincode>[] = [
     {
       id: "pincode",
@@ -198,9 +143,7 @@ export default function PincodeDashboard() {
                     timer: 2000,
                   });
                   fetchPincodes();
-                } catch {
-                  // Optionally show error toast
-                }
+                } catch {}
               },
             });
           }}
@@ -208,39 +151,41 @@ export default function PincodeDashboard() {
           style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
           title={row.isActive ? "Click to deactivate" : "Click to activate"}
         >
+          {" "}
           <span
             className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
               row.isActive ? "translate-x-6" : "translate-x-1"
             }`}
-          />
+          />{" "}
         </button>
       ),
     },
     {
       id: "actions",
       label: "Actions",
-      minWidth: 100,
+
       selector: (row) => (
         <div className="flex gap-2">
+          {" "}
           <CustomTooltip title="Edit Pincode" placement="top">
+            <span>
+              <span
+                onClick={() => handleEditPincode(row)}
+                className="EditListStyle"
+              >
+                <EditIcon fontSize="small" />
+              </span>
+            </span>
+          </CustomTooltip>
+          {/* <CustomTooltip title="Delete Pincode" placement="top">
             <button
               style={{
                 cursor: "pointer",
-                color: "var(--primary)",
+                color: "#ef4444",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
               }}
-              onClick={() => handleEdit(row)}
-              disabled={loading}
-            >
-              <EditIcon fontSize="small" />
-            </button>
-          </CustomTooltip>
-
-          {/* <CustomTooltip title="Delete Pincode" placement="top">
-            <button
-              className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-red-100 text-red-700"
               onClick={() => handleDelete(row._id)}
               disabled={loading}
             >
@@ -254,82 +199,24 @@ export default function PincodeDashboard() {
 
   return (
     <div className="containerStyle scrollbar-hide">
+      {" "}
       <HeaderWithAction
         title="Pincode Management"
         subtitle="Add, edit, and manage serviceable pincodes"
         showBack={false}
-        showSearch={true}
-        searchValue={search}
-        onSearchChange={setSearch}
-      />
-
-      {/* --- FORMIK FORM --- */}
-      <form
-        onSubmit={formik.handleSubmit}
-        className="mb-8 flex flex-wrap gap-4 items-end bg-gray-50 p-6 rounded-xl border border-gray-100 shadow-sm"
-      >
-        <div>
-          <input
-            type="text"
-            placeholder="Enter pincode"
-            className="border border-gray-300 px-4 py-3 rounded-lg w-64 focus:outline-none focus:border-green-500 text-base shadow-sm"
-            id="pincode"
-            name="pincode"
-            value={formik.values.pincode}
-            onChange={(e) => {
-              // Only allow numbers, spaces, and commas
-              const filtered = e.target.value.replace(/[^0-9,\s]/g, "");
-              formik.setFieldValue("pincode", filtered);
-            }}
-            onBlur={formik.handleBlur}
-          />
-          {/* Formik Error Display */}
-          {formik.touched.pincode && formik.errors.pincode && (
-            <ErrorMessageCom error={formik.errors.pincode} />
-          )}
-        </div>
-
-        <label className="flex items-center gap-2 text-lg">
-          <input
-            type="checkbox"
-            // Formik Bindings
-            id="isActive"
-            name="isActive"
-            checked={formik.values.isActive}
-            onChange={formik.handleChange}
-            className="accent-green-600 w-5 h-5"
-          />
-          <span className="text-green-700 font-bold">Active</span>
-        </label>
-
-        <CustomButton
-          type="submit"
-          className={`px-8 py-3 rounded-lg font-semibold text-white transition shadow-md ${
-            editId
-              ? "bg-yellow-500 hover:bg-yellow-600"
-              : "bg-green-600 hover:bg-green-700"
-          }`}
-          disabled={loading || !formik.isValid}
-        >
-          {editId ? "Update" : "Add"}
-        </CustomButton>
-        {editId && (
-          <CustomButton
-            type="button"
-            className="px-8 py-3 rounded-lg bg-gray-300 hover:bg-gray-400 font-semibold text-gray-700 shadow-md"
-            onClick={handleCancelEdit}
-          >
-            Cancel
-          </CustomButton>
-        )}
-      </form>
-      {/* --- END FORMIK FORM --- */}
-
-      {error && (
-        <div className="text-red-600 mb-4 font-semibold text-center text-lg">
-          {error}
-        </div>
-      )}
+        showSearch={false}
+        addLabel="Add "
+        addShow={true}
+        handleAdd={handleAddPincode}
+      />{" "}
+      <FilterSearch
+        onChange={(f) => setSearch(f.search || "")}
+        placeholder="Search pincodes..."
+        isSearchShow={true}
+        isShowCategory={false}
+        isShowSub={false}
+        isShowOTC={false} // Disable OTC filter
+      />{" "}
       <CustomTable
         columns={columns}
         data={pincodes}
@@ -339,13 +226,21 @@ export default function PincodeDashboard() {
         onPageChange={setPage}
         onRowsPerPageChange={setRowsPerPage}
         loading={loading}
-      />
-
+      />{" "}
       {loading && (
         <div className="mt-8 text-green-600 text-xl font-bold text-center animate-pulse">
-          Loading...
+          Loading...{" "}
         </div>
       )}
+      {isModalOpen && (
+        <AddEditPincodeModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSaveSuccess={fetchPincodes}
+          id={currentPincode?._id}
+          pincode={currentPincode?.pincode}
+        />
+      )}{" "}
     </div>
   );
 }

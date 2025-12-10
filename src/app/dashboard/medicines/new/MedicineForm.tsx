@@ -21,6 +21,7 @@ import {
   medicineFormValidationSchema,
 } from "./medicineFormUtil";
 import DeleteIcon from "@mui/icons-material/Delete";
+import MedicineImageUploader from "../Imageuplod";
 
 export default function MedicineForm() {
   const router = useRouter();
@@ -35,7 +36,11 @@ export default function MedicineForm() {
         // UI validation: Selling price must not exceed MRP
         const priceNum = Number(values.price);
         const mrpNum = Number(values.mrp);
-        if (!Number.isNaN(priceNum) && !Number.isNaN(mrpNum) && priceNum > mrpNum) {
+        if (
+          !Number.isNaN(priceNum) &&
+          !Number.isNaN(mrpNum) &&
+          priceNum > mrpNum
+        ) {
           Swal.fire({
             icon: "error",
             title: "Invalid price",
@@ -462,122 +467,20 @@ export default function MedicineForm() {
 
         <div>
           <form onSubmit={formik.handleSubmit} className="space-y-8">
-            {" "}
-            <div>
-              <label className="block text-sm font-bold text-gray-800 mb-2">
-                {" "}
-                Medicine Images *
-                <p className="text-xs text-gray-500 font-normal">
-                  Min 1, Max 5 images. Each ≤ 5MB.
-                </p>
-              </label>
-              <input
-                id="medicine-image-input"
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleFileChange}
-                style={{ display: "none" }}
-              />
-              <div className="flex items-center gap-4">
-                {" "}
-                <button
-                  type="button"
-                  onClick={() =>
-                    document.getElementById("medicine-image-input")?.click()
-                  }
-                  className="h-28 w-28 flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-400 rounded-lg hover:bg-gray-100 transition duration-150 shadow-inner"
-                  title="Upload photos"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-9 h-9 text-gray-500"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M8.25 12.75l2.25 3 3-4.5 4.5 6"
-                    />
-                  </svg>
-                </button>
-                {uploading && (
-                  <span className="text-blue-600 font-medium">
-                    Uploading...
-                  </span>
-                )}
-              </div>
-              {formik.values.images.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-3 justify-start w-fit">
-                  {formik.values.images.map((img, idx) => (
-                    <div key={img} className="relative group h-24 w-24">
-                      <img
-                        src={img}
-                        alt={`Medicine ${idx + 1}`}
-                        className="h-24 w-24 object-cover rounded-lg border border-gray-200 shadow-sm"
-                      />
-                      {formik.values.coverImage === img ? (
-                        <span className="absolute top-1 left-1 bg-green-600 text-white text-[10px] px-2 py-0.5 rounded-full shadow-lg font-semibold">
-                          Primary
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            formik.setFieldValue("coverImage", img)
-                          }
-                          className="absolute top-1 left-1 bg-gray-800 text-white text-[10px] px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 shadow-lg transition duration-200 font-semibold"
-                          title="Set as primary"
-                        >
-                          Set Primary
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteImage(img)}
-                        // Delete button style enhanced
-                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 shadow-lg transition duration-200 hover:bg-red-700"
-                        title="Delete image"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={2}
-                          stroke="currentColor"
-                          className="w-4 h-4"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+            <MedicineImageUploader
+              form={{
+                images: formik.values.images,
+                coverImage: formik.values.coverImage || "",
+              }}
+              touched={{ images: Array.isArray(formik.touched.images) }} // Convert to boolean explicitly
+              errors={formik.errors}
+              uploading={uploading}
+              handleFileChange={handleFileChange}
+              setPrimaryImage={(url) => formik.setFieldValue("coverImage", url)}
+              handleDeleteImage={handleDeleteImage}
+              openSlider={() => {}} // Provided a no-op function
+            />
 
-              {formik.touched.images && formik.errors.images && (
-                <ErrorMessageCom
-                  error={
-                    Array.isArray(formik.errors.images)
-                      ? formik.errors.images.join(", ")
-                      : (formik.errors.images as string)
-                  }
-                />
-              )}
-              <div className="mt-2 flex items-center gap-3"></div>
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="">
                 <TextField
@@ -840,20 +743,6 @@ export default function MedicineForm() {
                     ))}
                   </Select>
                 </FormControl>
-                {selectedCategory && (
-                  <div className="mt-2">
-                    {/* Tags colors enhanced */}
-                    {selectedCategory.isOTC ? (
-                      <span className="text-xs px-2.5 py-1 bg-green-100 text-green-700 font-semibold rounded-full">
-                        🟢 OTC Category
-                      </span>
-                    ) : (
-                      <span className="text-xs px-2.5 py-1 bg-orange-100 text-orange-700 font-semibold rounded-full">
-                        📋 Prescription Category
-                      </span>
-                    )}
-                  </div>
-                )}
               </div>
               {/* Subcategory */}
               <div>
@@ -884,19 +773,74 @@ export default function MedicineForm() {
                     ))}
                   </Select>
                 </FormControl>
-                {selectedSubcategory && (
-                  <div className="mt-2">
-                    {/* Tags colors enhanced */}
-                    {selectedSubcategory.isOTC ? (
-                      <span className="text-xs px-2.5 py-1 bg-green-100 text-green-700 font-semibold rounded-full">
-                        🟢 OTC Subcategory
-                      </span>
-                    ) : (
-                      <span className="text-xs px-2.5 py-1 bg-orange-100 text-orange-700 font-semibold rounded-full">
-                        📋 Prescription Subcategory
-                      </span>
-                    )}
-                  </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="w-full">
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <DatePicker
+                    label="Expiry Date *"
+                    value={
+                      formik.values.expiryDate
+                        ? new Date(formik.values.expiryDate)
+                        : null
+                    }
+                    onChange={(date: Date | null) => {
+                      formik.setFieldValue(
+                        "expiryDate",
+                        date ? date.toISOString().slice(0, 10) : ""
+                      );
+                    }}
+                    minDate={new Date()}
+                    slotProps={{
+                      textField: {
+                        name: "expiryDate",
+                        fullWidth: true,
+                        variant: "outlined",
+                        onBlur: formik.handleBlur,
+                        error:
+                          formik.touched.expiryDate &&
+                          Boolean(formik.errors.expiryDate),
+
+                        InputProps: {
+                          style: {
+                            borderRadius: "0.75rem",
+                            background: "#fff",
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </LocalizationProvider>
+                {formik.touched.expiryDate && formik.errors.expiryDate && (
+                  <ErrorMessageCom error={formik.errors.expiryDate} />
+                )}
+              </div>
+
+              <div className="">
+                <TextField
+                  name="batchNumber"
+                  label="Batch Number*"
+                  type="text"
+                  value={formik.values.batchNumber}
+                  onChange={handleChange}
+                  onBlur={formik.handleBlur}
+                  fullWidth
+                  variant="outlined"
+                  placeholder="Batch number"
+                  error={
+                    formik.touched.batchNumber &&
+                    Boolean(formik.errors.batchNumber)
+                  }
+                  InputProps={{
+                    style: {
+                      borderRadius: "0.75rem",
+                      background: "#fff",
+                    },
+                  }}
+                />
+                {formik.touched.batchNumber && formik.errors.batchNumber && (
+                  <ErrorMessageCom error={formik.errors.batchNumber} />
                 )}
               </div>
             </div>
@@ -999,75 +943,6 @@ export default function MedicineForm() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="w-full">
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <DatePicker
-                    label="Expiry Date *"
-                    value={
-                      formik.values.expiryDate
-                        ? new Date(formik.values.expiryDate)
-                        : null
-                    }
-                    onChange={(date: Date | null) => {
-                      formik.setFieldValue(
-                        "expiryDate",
-                        date ? date.toISOString().slice(0, 10) : ""
-                      );
-                    }}
-                    minDate={new Date()}
-                    slotProps={{
-                      textField: {
-                        name: "expiryDate",
-                        fullWidth: true,
-                        variant: "outlined",
-                        onBlur: formik.handleBlur,
-                        error:
-                          formik.touched.expiryDate &&
-                          Boolean(formik.errors.expiryDate),
-
-                        InputProps: {
-                          style: {
-                            borderRadius: "0.75rem",
-                            background: "#fff",
-                          },
-                        },
-                      },
-                    }}
-                  />
-                </LocalizationProvider>
-                {formik.touched.expiryDate && formik.errors.expiryDate && (
-                  <ErrorMessageCom error={formik.errors.expiryDate} />
-                )}
-              </div>
-
-              <div className="">
-                <TextField
-                  name="batchNumber"
-                  label="Batch Number*"
-                  type="text"
-                  value={formik.values.batchNumber}
-                  onChange={handleChange}
-                  onBlur={formik.handleBlur}
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Batch number"
-                  error={
-                    formik.touched.batchNumber &&
-                    Boolean(formik.errors.batchNumber)
-                  }
-                  InputProps={{
-                    style: {
-                      borderRadius: "0.75rem",
-                      background: "#fff",
-                    },
-                  }}
-                />
-                {formik.touched.batchNumber && formik.errors.batchNumber && (
-                  <ErrorMessageCom error={formik.errors.batchNumber} />
-                )}
-              </div>
-            </div>
             {/* Composition Section Styling */}
             <div>
               <label className="block text-sm font-bold text-gray-800 mb-2">
@@ -1159,16 +1034,13 @@ export default function MedicineForm() {
             </div>
             <div className="space-y-4 border-t pt-8">
               {" "}
-              {/* Increased padding top */}
               <h3 className="text-xl font-bold text-gray-800">
                 {" "}
-                {/* Header bold and larger */}
                 Medicine Classification
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-300 rounded-xl shadow-md">
                   {" "}
-                  {/* Enhanced checkbox styling */}
                   <input
                     type="checkbox"
                     id="requiresPrescription"
@@ -1195,18 +1067,14 @@ export default function MedicineForm() {
             {error && (
               <div className="bg-red-50 border border-red-300 rounded-xl p-4 shadow-sm">
                 {" "}
-                {/* Error box enhanced */}
                 <p className="text-sm font-medium text-red-800">{error}</p>
               </div>
             )}
             <div className="mt-8 flex justify-center w-full">
               {" "}
-              {/* Centered submission area */}
               <div className="flex justify-center w-full max-w-sm">
                 {" "}
-                {/* Constrained width for button */}
-                {/* CustomButton component styling is assumed to be handled internally but uses a green primary color for "Add Medicine" */}
-                <CustomButton type="submit" disabled={loading} width="100%">
+                 <CustomButton type="submit" disabled={loading} width="100%">
                   <MdSave size={22} /> {loading ? "Saving..." : "Add Medicine"}
                 </CustomButton>
               </div>

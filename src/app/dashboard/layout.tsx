@@ -181,7 +181,7 @@ export default function DashboardLayout({
     },
   
     { name: "Pincodes", path: "/dashboard/pincode", icon: "place" },
-    // { name: "Stores", path: "/dashboard/store", icon: "store" },
+    { name: "Stores", path: "/dashboard/store", icon: "store" },
     { name: "Banner Images", path: "/dashboard/banner-images", icon: "image" },
   ];
 

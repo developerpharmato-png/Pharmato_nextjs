@@ -7,34 +7,79 @@ import axios from "axios";
 import Avatar from "@mui/material/Avatar";
 import { useRouter } from "next/navigation";
 import { EditIcon } from "lucide-react";
+import { GetServerSideProps } from "next";
 
 type Props = {
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  categoryId?: string | null;
+  subCategoryId?: string | null;
 };
 
-const MedicinesTable: React.FC<Props> = ({ searchValue, onSearchChange }) => {
-  const [data, setData] = useState<any[]>([]);
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { query } = context;
+  const params = new URLSearchParams();
+  params.set("limit", "10"); // Default rows per page
+  params.set("offset", "0"); // Default page
+  if (query.searchValue) params.set("search", String(query.searchValue));
+  if (query.categoryId) params.set("categoryId", String(query.categoryId));
+  if (query.subCategoryId) params.set("subCategoryId", String(query.subCategoryId));
+
+  const response = await fetch(`${process.env.API_BASE_URL}/api/medicines?${params.toString()}`);
+  const data = await response.json();
+
+  return {
+    props: {
+      initialData: data.data || [],
+      initialTotalCount: data.total || 0,
+    },  
+  };
+};
+
+const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: number }> = ({
+  searchValue,
+  onSearchChange,
+  categoryId,
+  subCategoryId,
+  initialData,
+  initialTotalCount,
+}) => {
+  const [data, setData] = useState<any[]>(initialData || []);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [totalCount, setTotalCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    if (page === 0 && rowsPerPage === 10 && Array.isArray(data) && data.length > 0) return; // Skip fetch if initial data is used
+
     setLoading(true);
-    fetch(`/api/medicines?limit=${rowsPerPage}&offset=${page * rowsPerPage}&search=${encodeURIComponent(searchValue || "")}`)
+    const params = new URLSearchParams();
+    params.set("limit", String(rowsPerPage));
+    params.set("offset", String(page * rowsPerPage));
+    if (searchValue) params.set("search", String(searchValue));
+    if (categoryId) params.set("categoryId", String(categoryId));
+    if (subCategoryId) params.set("subCategoryId", String(subCategoryId));
+
+    fetch(`/api/medicines?${params.toString()}`)
       .then((res) => res.json())
       .then((res) => {
         setData(res.data || []);
         setTotalCount(res.total || 0);
       })
       .finally(() => setLoading(false));
-  }, [page, rowsPerPage, searchValue]);
+  }, [page, rowsPerPage, searchValue, categoryId, subCategoryId]);
 
   const fetchMedicines = () => {
     setLoading(true);
-    fetch(`/api/medicines?limit=${rowsPerPage}&offset=${page * rowsPerPage}&search=${encodeURIComponent(searchValue || "")}`)
+    const params = new URLSearchParams();
+    params.set('limit', String(rowsPerPage));
+    params.set('offset', String(page * rowsPerPage));
+    if (searchValue) params.set('search', String(searchValue));
+    if (categoryId) params.set('categoryId', String(categoryId));
+    if (subCategoryId) params.set('subCategoryId', String(subCategoryId));
+    fetch(`/api/medicines?${params.toString()}`)
       .then((res) => res.json())
       .then((res) => {
         setData(res.data || []);

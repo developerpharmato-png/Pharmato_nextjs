@@ -128,6 +128,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import MobileStepper from "@mui/material/MobileStepper";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
+import { Box, Typography } from "@mui/material";
 
 interface CustomImageProps {
   coverImage: string;
@@ -306,3 +307,47 @@ export const DeleteIcon = (props: React.SVGProps<SVGSVGElement>) => (
     />
   </svg>
 );
+
+
+
+
+
+// ModalHeader.tsx
+
+
+interface ModalHeaderProps {
+    title: string;
+    onClose: () => void;
+}
+
+export function ModalHeader({ title, onClose }: ModalHeaderProps) {
+    return (
+        <Box
+            sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 3,
+                pb: 1,
+                // New: Subtle background color and bottom margin for separation
+                backgroundColor: 'rgba(0, 128, 0, 0.05)', // Light green tint
+                borderRadius: '8px 8px 0 0',
+                mx: -4, // Extend to modal edges (compensates for box padding)
+                mt: -4,
+                px: 4,
+                py: 2,
+            }}
+        >
+            <Typography id="modal-title" variant="h6" component="h2" 
+                sx={{ 
+                    fontWeight: 700, 
+                    color: 'var(--primary)', // Use theme primary color (green)
+                }}>
+                {title}
+            </Typography>
+            <IconButton onClick={onClose} aria-label="close" sx={{ color: 'var(--primary)' }}>
+                <CloseIcon />
+            </IconButton>
+        </Box>
+    );
+}

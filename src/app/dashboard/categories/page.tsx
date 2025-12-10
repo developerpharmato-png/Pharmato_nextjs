@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import HeaderWithAction from "../components/HeaderWithAction";
 import CategoriesTable from "./CategoriesTable";
 import { useRouter } from "next/navigation";
+import FilterSearch from "../components/FilterSearch";
 
 export default function CategoriesPage() {
   const [seeding, setSeeding] = React.useState(false);
@@ -60,8 +61,8 @@ export default function CategoriesPage() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<'ASC' | 'DESC'>('ASC');
-  const [columnName, setColumnName] = useState<string>('');
+  const [sortBy, setSortBy] = useState<"ASC" | "DESC">("ASC");
+  const [columnName, setColumnName] = useState<string>("");
 
   useEffect(() => {
     fetchCategories();
@@ -134,48 +135,27 @@ export default function CategoriesPage() {
         title="Categories"
         subtitle="Manage medicine categories and OTC classification"
         showBack={false}
-        showSearch={true}
-        searchValue={searchTerm}
+        showSearch={false}
         onSearchChange={setSearchTerm}
         addLabel="Add "
-        addHref="/dashboard/categories/new"
+        
         addShow={true}
         handleAdd={handleAdd}
       />
-      <div className="flex items-center mb-6 justify-end gap-3 w-full">
-        <select
-          value={filterOTC}
-          onChange={(e) => setFilterOTC(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          style={{ minWidth: 160 }}
-        >
-          <option value="all">All</option>
-          <option value="true">OTC Only</option>
-          <option value="false">Non-OTC Only</option>
-        </select>
-      
-        <button
-          onClick={handleSeedData}
-          disabled={seeding}
-          className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium disabled:opacity-50 flex items-center gap-2"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-5 h-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          {seeding ? "Seeding..." : "Seed Dummy Data"}
-        </button>
-      </div>
+
+      <FilterSearch
+        onChange={(f) => {
+          setSearchTerm(f.search || "");
+          if (f.categoryId) setCategories([{ id: f.categoryId }]);
+          if (f.subCategoryId) setCategories([{ id: f.subCategoryId }]);
+        }}
+        placeholder="Search medicines..."
+        isSearchShow={true}
+        isShowCategory={true} // Corrected to true to match the expected prop
+        isShowSub={false}
+        isShowOTC={true}
+      />
+
       <CategoriesTable
         data={categories}
         page={page}

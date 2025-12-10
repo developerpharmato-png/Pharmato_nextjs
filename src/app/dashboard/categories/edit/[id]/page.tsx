@@ -421,12 +421,12 @@ export default function EditCategoryPage() {
               description="Medicines in this subcategory can be purchased without a prescription"
             />
 
-            <StandardFormCheckbox
+            {/* <StandardFormCheckbox
               id="isActive"
               checked={formik.values.isActive}
               onChange={formik.handleChange}
               label="Active Subcategory"
-            />
+            /> */}
 
             <Box sx={{ display: "flex", gap: 2, pt: 4 }}>
               <Box sx={{ display: "flex", gap: 2, pt: 2 }}>

@@ -5,6 +5,7 @@ import { CustomImage, CustomTooltip } from "../components/miniComponents";
 import Link from "next/link";
 import Swal from "sweetalert2";
 import { showConfirmStatusAlert } from "../components/ConfirmStatusAlert";
+import FilterSearch from "../components/FilterSearch";
 import HeaderWithAction from "../components/HeaderWithAction";
 import { useRouter } from "next/navigation";
 import { EditIcon } from "lucide-react";
@@ -35,7 +36,7 @@ export default function SubCategoriesPage() {
 
 function SubCategoriesTable() {
   const [subcategories, setSubcategories] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  // categories are now loaded inside FilterSearch — page no longer fetches categories
   const [filteredSubcategories, setFilteredSubcategories] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
@@ -48,6 +49,9 @@ function SubCategoriesTable() {
     id: string;
     isActive: boolean;
   } | null>(null);
+  const [filterSubcategory, setFilterSubcategory] = useState<string | null>(
+    null
+  );
   const router = useRouter();
 
   React.useEffect(() => {
@@ -66,24 +70,22 @@ function SubCategoriesTable() {
         (sub) => sub.categoryId?._id === filterCategory
       );
     }
+    if (filterSubcategory) {
+      filtered = filtered.filter((sub) => sub._id === filterSubcategory);
+    }
     if (filterOTC !== "all") {
       filtered = filtered.filter((sub) => sub.isOTC === (filterOTC === "true"));
     }
     setFilteredSubcategories(filtered);
     setPage(0);
-  }, [searchTerm, filterCategory, filterOTC, subcategories]);
+  }, [searchTerm, filterCategory, filterSubcategory, filterOTC, subcategories]);
 
   const fetchData = async () => {
     try {
-      const [subRes, catRes] = await Promise.all([
-        fetch("/api/subcategories"),
-        fetch("/api/categories"),
-      ]);
+      const subRes = await fetch("/api/subcategories");
       const subData = await subRes.json();
-      const catData = await catRes.json();
       setSubcategories(subData.data || []);
       setFilteredSubcategories(subData.data || []);
-      setCategories(catData.data || []);
     } catch (error) {
       console.error("Failed to fetch data:", error);
     } finally {
@@ -144,63 +146,6 @@ function SubCategoriesTable() {
         text: "Network error",
       });
     }
-  };
-
-  const confirmToggleStatus = async () => {
-    if (!pendingSubcategory) return;
-    try {
-      const res = await fetch(
-        `/api/subcategories/${pendingSubcategory.id}/toggle-status`,
-        {
-          method: "PATCH",
-        }
-      );
-      const data = await res.json();
-      if (data.success) {
-        setSubcategories((prev) =>
-          prev.map((sub) =>
-            sub._id === pendingSubcategory.id
-              ? { ...sub, isActive: !sub.isActive }
-              : sub
-          )
-        );
-        setFilteredSubcategories((prev) =>
-          prev.map((sub) =>
-            sub._id === pendingSubcategory.id
-              ? { ...sub, isActive: !sub.isActive }
-              : sub
-          )
-        );
-        Swal.fire({
-          toast: true,
-          position: "top-end",
-          icon: "success",
-          title: "Status updated",
-          showConfirmButton: false,
-          timer: 2000,
-        });
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to toggle status",
-          text: data.error || "Failed to toggle subcategory status",
-        });
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Failed to toggle status",
-        text: "Network error",
-      });
-    } finally {
-      setDialogOpen(false);
-      setPendingSubcategory(null);
-    }
-  };
-
-  const cancelToggleStatus = () => {
-    setDialogOpen(false);
-    setPendingSubcategory(null);
   };
 
   // Table columns
@@ -334,78 +279,19 @@ function SubCategoriesTable() {
   );
 
   return (
-    <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="flex-1 min-w-[200px] relative">
-          <input
-            type="text"
-            placeholder="Search subcategories..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          />
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="absolute left-3 top-2.5 w-5 h-5 text-gray-400"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="m21 21-4.35-4.35"
-            />
-          </svg>
-          {searchTerm && (
-            <button
-              type="button"
-              onClick={() => setSearchTerm("")}
-              className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
-              title="Clear search"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="w-5 h-5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          )}
-        </div>
-        <select
-          value={filterCategory}
-          onChange={(e) => setFilterCategory(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-        >
-          <option value="all">All Categories</option>
-          {categories.map((cat) => (
-            <option key={cat._id} value={cat._id}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
-        <select
-          value={filterOTC}
-          onChange={(e) => setFilterOTC(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-        >
-          <option value="all">All Types</option>
-          <option value="true">OTC Only</option>
-          <option value="false">Non OTC Only</option>
-        </select>
-      </div>
+    <div>
+      <FilterSearch
+        subcategories={subcategories}
+        onChange={(f) => {
+          setSearchTerm(f.search || "");
+          setFilterCategory(f.categoryId || "all");
+          setFilterSubcategory(f.subCategoryId || null);
+        }}
+        placeholder="Search subcategories..."
+        isSearchShow={true}
+        isShowCategory={true}
+        isShowSub={false}
+      />
 
       <CustomTable
         columns={columns}

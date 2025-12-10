@@ -10,6 +10,7 @@ import { showConfirmStatusAlert } from "../components/ConfirmStatusAlert";
 import HeaderWithAction from "../components/HeaderWithAction";
 import { EditIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import FilterSearch from "../components/FilterSearch";
 
 type StoreForm = {
   name: string;
@@ -47,7 +48,7 @@ export default function StoreDashboard() {
   const [editId, setEditId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-console.log(loading,"loadingloading");
+  console.log(loading, "loadingloading");
 
   useEffect(() => {
     fetchStores();
@@ -59,7 +60,9 @@ console.log(loading,"loadingloading");
     setError("");
     try {
       const query = q ?? search;
-      const url = query ? `/api/admin/store?search=${encodeURIComponent(query)}` : "/api/admin/store";
+      const url = query
+        ? `/api/admin/store?search=${encodeURIComponent(query)}`
+        : "/api/admin/store";
       const res = await axios.get(url);
       setStores(res.data.data || []);
     } catch {
@@ -106,7 +109,7 @@ console.log(loading,"loadingloading");
     } catch (err: any) {
       setError(
         err?.response?.data?.message ||
-          (editId ? "Error updating store" : "Error adding store")
+        (editId ? "Error updating store" : "Error adding store")
       );
     }
     setLoading(false);
@@ -202,9 +205,10 @@ console.log(loading,"loadingloading");
             showConfirmStatusAlert({
               isActive: row.status === 1,
               title: row.status === 1 ? "Deactivate Store?" : "Activate Store?",
-              text: row.status === 1
-                ? "Are you sure you want to deactivate this store?"
-                : "Are you sure you want to activate this store?",
+              text:
+                row.status === 1
+                  ? "Are you sure you want to deactivate this store?"
+                  : "Are you sure you want to activate this store?",
               confirmText: row.status === 1 ? "Deactivate" : "Activate",
               cancelText: "Cancel",
               onConfirm: async () => {
@@ -221,8 +225,12 @@ console.log(loading,"loadingloading");
             });
           }}
           className="relative cursor-pointer inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-          style={{ backgroundColor: row.status === 1 ? "#10b981" : "#d1d5db" }}
-          title={row.status === 1 ? "Click to deactivate" : "Click to activate"}
+          style={{
+            backgroundColor: row.status === 1 ? "#10b981" : "#d1d5db",
+          }}
+          title={
+            row.status === 1 ? "Click to deactivate" : "Click to activate"
+          }
         >
           <span
             className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
@@ -261,17 +269,20 @@ console.log(loading,"loadingloading");
         title="Stores"
         subtitle="Manage your store locations and service pincodes"
         showBack={false}
-        showSearch={true}
-        searchValue={search}
-        onSearchChange={(v: string) => {
-          setSearch(v);
-          fetchStores(v);
-        }}
+        showSearch={false}
         addLabel="Add "
-        addHref="/dashboard/store/new"
         addShow={true}
-        handleAdd={openAddStore}
-      />  
+        handleAdd={() => setShowModal(true)}
+      />
+
+      <FilterSearch
+        onChange={(f) => setSearch(f.search || "")}
+        placeholder="Search stores..."
+        isSearchShow={true}
+        isShowCategory={false}
+        isShowSub={false}
+        isShowOTC={false} // Disable OTC filter
+      />
 
       <CustomTable
         columns={columns}

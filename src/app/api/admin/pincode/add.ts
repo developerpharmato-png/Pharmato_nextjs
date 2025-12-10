@@ -61,15 +61,34 @@ import Pincode from '@/models/Pincode';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { pincode, isActive = true } = await req.json();
-    if (!pincode || typeof pincode !== 'string') {
-        return NextResponse.json({ success: false, message: 'pincode is required' }, { status: 400 });
+    const body = await req.json();
+    const pincodes = body.pincodes || body.data?.pincodes; // Support both formats
+
+    if (!Array.isArray(pincodes) || pincodes.length === 0) {
+        return NextResponse.json({ success: false, message: 'pincodes array is required' }, { status: 400 });
     }
-    const exists = await Pincode.findOne({ pincode });
-    if (exists) {
-        return NextResponse.json({ success: false, message: 'Pincode already exists' }, { status: 409 });
+
+    const invalidPincodes = pincodes.filter(pincode => typeof pincode !== 'string' || !/^([1-9][0-9]{5})$/.test(pincode));
+    if (invalidPincodes.length > 0) {
+        return NextResponse.json({
+            success: false,
+            message: `Invalid pincodes: ${invalidPincodes.join(', ')}`
+        }, { status: 400 });
     }
-    const pin = await Pincode.create({ pincode, isActive });
-    return NextResponse.json({ success: true, data: pin });
+
+    const existingPincodes = await Pincode.find({ pincode: { $in: pincodes } });
+    const existingPincodeValues = existingPincodes.map(pin => pin.pincode);
+
+    const newPincodes = pincodes.filter(pincode => !existingPincodeValues.includes(pincode));
+    if (newPincodes.length === 0) {
+        return NextResponse.json({ success: false, message: 'All pincodes already exist' }, { status: 409 });
+    }
+
+    const createdPincodes = await Pincode.insertMany(newPincodes.map(pincode => ({ pincode, isActive: true })));
+
+    return NextResponse.json({
+        success: true,
+        data: createdPincodes
+    });
 }
 

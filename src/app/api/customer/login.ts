@@ -35,7 +35,7 @@
  *       403:
  *         description: User is blocked
  *       429:
- *         description: Too many OTP requests
+ *         description: Too many OTP requestsb
  */
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     if (!mobile) {
         return NextResponse.json({ success: false, error: 'Mobile number required' }, { status: 400 });
     }
-    // Find user or create new
+    // Find user or create new--
     let user = await User.findOne({ mobile });
     const now = new Date();
     // Blocked user check
