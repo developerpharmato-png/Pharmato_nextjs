@@ -39,7 +39,7 @@ export function CustomTable<T>({
   
   return (
     <Paper sx={{ width: "100%", overflow: "hidden" }}>
-      <TableContainer sx={{ maxHeight: 600 }}>
+      <TableContainer sx={{ height: { xs: '30vh', sm: '23vh', md: '44vh', lg: '50vh', xl: '60vh' } }}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>

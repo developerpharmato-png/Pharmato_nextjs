@@ -1,5 +1,9 @@
 import React, { useState } from "react";
-
+import { Swiper, SwiperSlide } from "swiper/react";
+import { CustomImage } from "../components/miniComponents";
+import "swiper/css";
+import "swiper/css/pagination";
+import { Pagination } from "swiper/modules";
 // --- 1. TYPE DEFINITIONS ---
 // Define the shape of the form data related to images
 interface ImageFormState {
@@ -144,8 +148,20 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
   handleFileChange,
   setPrimaryImage,
   handleDeleteImage,
-  openSlider, // New prop
+  openSlider,
 }) => {
+  const [sliderOpen, setSliderOpen] = React.useState(false);
+  const [sliderIndex, setSliderIndex] = React.useState(0);
+
+  const handleOpenSlider = (index: number) => {
+    setSliderIndex(index);
+    setSliderOpen(true);
+  };
+
+  const handleCloseSlider = () => {
+    setSliderOpen(false);
+  };
+
   return (
     <div>
       <label className="block text-sm font-bold text-gray-800 mb-2">
@@ -154,7 +170,7 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
           Min 1, Max 5 images. Each &le; 5MB.
         </p>
       </label>
-      
+
       {/* Hidden File Input (ID changed to match the original requirement: "medicine-image-input") */}
       <input
         id="medicine-image-input" // Changed ID to avoid conflict with "medicine-edit-image-input" if both are used
@@ -164,7 +180,7 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
         onChange={handleFileChange}
         style={{ display: "none" }}
       />
-      
+
       {/* Upload Button and Upload Status */}
       <div className="flex items-center gap-4">
         <ImageUploadButton
@@ -181,7 +197,7 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
       {touched?.images && errors?.images && (
         <ErrorMessageCom error={errors.images} />
       )}
-      
+
       {/* Image Display Cards */}
       {form.images.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-3 justify-start w-fit">
@@ -193,9 +209,52 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
               coverImage={form.coverImage}
               setPrimaryImage={setPrimaryImage}
               handleDeleteImage={handleDeleteImage}
-              openSlider={openSlider} // Pass the slider handler
+              openSlider={handleOpenSlider}
             />
           ))}
+        </div>
+      )}
+
+      {/* --- NEW: Image Slider / Viewer --- */}
+    {sliderOpen && (
+        // MODIFICATION: Overlay changed to black with opacity for better focus
+        <div className="fixed inset-0  bg-opacity-75 flex items-center justify-center z-[1000] p-4 backdrop-blur-sm">
+          <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl relative p-4"> {/* Increased general padding */}
+            <button
+              onClick={handleCloseSlider}
+              // Close button position and color updated for a dark overlay
+              className="absolute top-0 right-0 m-4 bg-white/70 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold hover:bg-white hover:text-red-600 transition duration-150 z-10"
+              title="Close"
+            >
+              &times;
+            </button>
+            <Swiper
+              initialSlide={sliderIndex}
+              spaceBetween={10}
+              slidesPerView={1}
+              pagination={{ clickable: true }}
+              modules={[Pagination]}
+              // MODIFICATION: Increased Swiper container height for better visual impact
+              className="w-full h-[70vh] max-h-[700px] rounded-xl overflow-hidden" 
+            >
+              {form.images.map((url, index) => (
+                // MODIFICATION: Added background to SwiperSlide for contrast
+                <SwiperSlide key={index} className="flex items-center justify-center bg-gray-100 rounded-xl">
+                  <img
+                    src={url}
+                    alt={`Slide ${index}`}
+                    // CRITICAL MODIFICATION: object-contain ensures the full image is visible without cropping.
+                    // Increased image container height to utilize more of the SwiperSlide area.
+                    className="max-w-full w-full h-full object-contain p-4" 
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            {/* Display index */}
+            <div className="text-center py-2 text-gray-700 font-semibold border-t border-gray-200 mt-2">
+              Viewing Image {sliderIndex + 1} of {form.images.length}
+            </div>
+          </div>
         </div>
       )}
     </div>

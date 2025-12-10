@@ -1,5 +1,9 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
 import Tooltip, { tooltipClasses, TooltipProps } from "@mui/material/Tooltip";
 interface ErrorMessageComProps {
   error: string;
@@ -105,16 +109,20 @@ export const CustomTooltip = styled(
 // A consistent close button used across dialogs and modals
 export const CustomCloseButton: React.FC<{
   onClick?: () => void;
-  size?: 'small' | 'medium';
+  size?: "small" | "medium";
   ariaLabel?: string;
   sx?: any;
-}> = ({ onClick, size = 'medium', ariaLabel = 'close', sx }) => {
+}> = ({ onClick, size = "medium", ariaLabel = "close", sx }) => {
   return (
     <IconButton
       onClick={onClick}
       size={size}
       aria-label={ariaLabel}
-      sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' }, ...sx }}
+      sx={{
+        color: "text.secondary",
+        "&:hover": { color: "error.main" },
+        ...sx,
+      }}
     >
       <CloseIcon />
     </IconButton>
@@ -136,7 +144,6 @@ interface CustomImageProps {
   alt?: string;
   style?: React.CSSProperties;
 }
-
 
 export const CustomImage: React.FC<CustomImageProps> = ({
   coverImage,
@@ -165,88 +172,43 @@ export const CustomImage: React.FC<CustomImageProps> = ({
         onClick={handleOpen}
         className={images.length > 0 ? "cursor-pointer" : ""}
       />
-      <Dialog open={open} onClose={handleClose} maxWidth="md">
-        <IconButton
-          aria-label="close"
-          onClick={handleClose}
-          sx={{
-            position: "absolute",
-            right: 8,
-            top: 8,
-            color: (theme) => theme.palette.grey[500],
-          }}
-        >
-          <CloseIcon />
-        </IconButton>
-        <DialogContent>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              minHeight: 180,
-              minWidth: 180,
-              position: "relative",
-              flexDirection: "column",
-            }}
-          >
-            {images.length > 1 ? (
-              <>
-                <img
-                  src={images[current]}
-                  alt={`img-${current}`}
-                  style={{
-                    height: 240,
-                    width: 240,
-                    objectFit: "cover",
-                    borderRadius: 8,
-                    margin: 8,
-                  }}
-                />
-                <MobileStepper
-                  steps={images.length}
-                  position="static"
-                  activeStep={current}
-                  nextButton={
-                    <IconButton
-                      size="small"
-                      onClick={() => handleStep((current + 1) % images.length)}
-                      disabled={images.length <= 1}
-                    >
-                      <KeyboardArrowRight />
-                    </IconButton>
-                  }
-                  backButton={
-                    <IconButton
-                      size="small"
-                      onClick={() => handleStep((current - 1 + images.length) % images.length)}
-                      disabled={images.length <= 1}
-                    >
-                      <KeyboardArrowLeft />
-                    </IconButton>
-                  }
-                  sx={{
-                    background: "transparent",
-                    marginTop: 2,
-                  }}
-                />
-              </>
-            ) : (
-              <img
-                src={images[0] || coverImage}
-                alt={alt}
-                style={{
-                  height: 240,
-                  width: 240,
-                  objectFit: "cover",
-                  borderRadius: 8,
-                  margin: 8,
-                }}
-              />
-            )}
+      {open && (
+        <div className="fixed inset-0 bg-opacity-75 flex items-center justify-center z-1000 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl relative p-4">
+            <button
+              onClick={handleClose}
+              className="absolute top-0 right-0 m-4 bg-white/70 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold hover:bg-white hover:text-red-600 transition duration-150 z-10"
+              title="Close"
+            >
+              &times;
+            </button>
+            <Swiper
+              initialSlide={current}
+              spaceBetween={10}
+              slidesPerView={1}
+              pagination={{ clickable: true }}
+              modules={[Pagination]}
+              className="w-full h-[70vh] max-h-[700px] rounded-xl overflow-hidden"
+            >
+              {images.map((url, index) => (
+                <SwiperSlide
+                  key={index}
+                  className="flex items-center justify-center bg-gray-100 rounded-xl"
+                >
+                  <img
+                    src={url}
+                    alt={`Slide ${index}`}
+                    className="max-w-full w-full h-full object-contain p-4"
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            <div className="text-center py-2 text-gray-700 font-semibold border-t border-gray-200 mt-2">
+              Viewing Image {current + 1} of {images.length}
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </>
   );
 };
@@ -308,46 +270,49 @@ export const DeleteIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-
-
-
-
 // ModalHeader.tsx
 
-
 interface ModalHeaderProps {
-    title: string;
-    onClose: () => void;
+  title: string;
+  onClose: () => void;
 }
 
 export function ModalHeader({ title, onClose }: ModalHeaderProps) {
-    return (
-        <Box
-            sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 3,
-                pb: 1,
-                // New: Subtle background color and bottom margin for separation
-                backgroundColor: 'rgba(0, 128, 0, 0.05)', // Light green tint
-                borderRadius: '8px 8px 0 0',
-                mx: -4, // Extend to modal edges (compensates for box padding)
-                mt: -4,
-                px: 4,
-                py: 2,
-            }}
-        >
-            <Typography id="modal-title" variant="h6" component="h2" 
-                sx={{ 
-                    fontWeight: 700, 
-                    color: 'var(--primary)', // Use theme primary color (green)
-                }}>
-                {title}
-            </Typography>
-            <IconButton onClick={onClose} aria-label="close" sx={{ color: 'var(--primary)' }}>
-                <CloseIcon />
-            </IconButton>
-        </Box>
-    );
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        mb: 3,
+        pb: 1,
+        // New: Subtle background color and bottom margin for separation
+        backgroundColor: "rgba(0, 128, 0, 0.05)", // Light green tint
+        borderRadius: "8px 8px 0 0",
+        mx: -4, // Extend to modal edges (compensates for box padding)
+        mt: -4,
+        px: 4,
+        py: 2,
+      }}
+    >
+      <Typography
+        id="modal-title"
+        variant="h6"
+        component="h2"
+        sx={{
+          fontWeight: 700,
+          color: "var(--primary)", // Use theme primary color (green)
+        }}
+      >
+        {title}
+      </Typography>
+      <IconButton
+        onClick={onClose}
+        aria-label="close"
+        sx={{ color: "var(--primary)" }}
+      >
+        <CloseIcon />
+      </IconButton>
+    </Box>
+  );
 }
