@@ -33,12 +33,18 @@ export function CustomTable<T>({
   onPageChange,
   onRowsPerPageChange,
   loading = false,
-}: CustomTableProps<T>) {
+  onFilterChange,
+}: CustomTableProps<T> & { onFilterChange?: (filter: string) => void }) {
 
-  console.log(data,"datadata");
-  
+  const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (onFilterChange) {
+      onFilterChange(event.target.value);
+    }
+  };
+
   return (
     <Paper sx={{ width: "100%", overflow: "hidden" }}>
+    
       <TableContainer sx={{ height: { xs: '30vh', sm: '23vh', md: '44vh', lg: '50vh', xl: '60vh' } }}>
         <Table stickyHeader>
           <TableHead>
