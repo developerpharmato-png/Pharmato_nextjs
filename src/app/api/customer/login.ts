@@ -35,7 +35,7 @@
  *       403:
  *         description: User is blocked
  *       429:
- *         description: Too many OTP requests
+ *         description: Too many OTP requestsb
  */
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
