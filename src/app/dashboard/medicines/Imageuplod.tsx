@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { CustomImage } from "../components/miniComponents";
 
 // --- 1. TYPE DEFINITIONS ---
 // Define the shape of the form data related to images
@@ -144,8 +145,20 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
   handleFileChange,
   setPrimaryImage,
   handleDeleteImage,
-  openSlider, // New prop
+  openSlider,
 }) => {
+  const [sliderOpen, setSliderOpen] = React.useState(false);
+  const [sliderIndex, setSliderIndex] = React.useState(0);
+
+  const handleOpenSlider = (index: number) => {
+    setSliderIndex(index);
+    setSliderOpen(true);
+  };
+
+  const handleCloseSlider = () => {
+    setSliderOpen(false);
+  };
+
   return (
     <div>
       <label className="block text-sm font-bold text-gray-800 mb-2">
@@ -154,7 +167,7 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
           Min 1, Max 5 images. Each &le; 5MB.
         </p>
       </label>
-      
+
       {/* Hidden File Input (ID changed to match the original requirement: "medicine-image-input") */}
       <input
         id="medicine-image-input" // Changed ID to avoid conflict with "medicine-edit-image-input" if both are used
@@ -164,7 +177,7 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
         onChange={handleFileChange}
         style={{ display: "none" }}
       />
-      
+
       {/* Upload Button and Upload Status */}
       <div className="flex items-center gap-4">
         <ImageUploadButton
@@ -181,7 +194,7 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
       {touched?.images && errors?.images && (
         <ErrorMessageCom error={errors.images} />
       )}
-      
+
       {/* Image Display Cards */}
       {form.images.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-3 justify-start w-fit">
@@ -193,10 +206,20 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
               coverImage={form.coverImage}
               setPrimaryImage={setPrimaryImage}
               handleDeleteImage={handleDeleteImage}
-              openSlider={openSlider} // Pass the slider handler
+              openSlider={handleOpenSlider}
             />
           ))}
         </div>
+      )}
+
+      {/* --- NEW: Image Slider / Viewer --- */}
+      {sliderOpen && (
+        <CustomImage
+          coverImage={form.images[sliderIndex]}
+          images={form.images}
+          alt="Medicine Image"
+          style={{ maxWidth: "100%", maxHeight: "100%" }}
+        />
       )}
     </div>
   );

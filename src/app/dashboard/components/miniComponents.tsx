@@ -141,7 +141,7 @@ interface CustomImageProps {
 export const CustomImage: React.FC<CustomImageProps> = ({
   coverImage,
   images = [],
-  alt = "",
+  alt = "",  
   style,
 }) => {
   const [open, setOpen] = React.useState(false);
