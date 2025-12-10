@@ -96,6 +96,6 @@ export async function POST(request: NextRequest) {
         success: true,
         cart,
         medicineInCart,
-        message: 'Guest cart added successfully'
+        message: 'Added to Cart'
     });
 }

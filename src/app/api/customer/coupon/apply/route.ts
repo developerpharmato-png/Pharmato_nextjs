@@ -14,26 +14,11 @@
  *             properties:
  *               couponCode:
  *                 type: string
- *               userId:
- *                 type: string
  *               cart:
  *                 type: object
- *                 properties:
- *                   items:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         medicineId:
- *                           type: string
- *                         categoryId:
- *                           type: string
- *                         price:
- *                           type: number
- *                         quantity:
- *                           type: number
- *                   total:
- *                     type: number
+ *                 description: Any cart object (structure may vary)
+ *                 additionalProperties: true
+ *                 example: {}
  *     responses:
  *       200:
  *         description: Coupon validation result
@@ -59,11 +44,11 @@ import { validateAndApplyCoupon } from '@/models/validateAndApplyCoupon';
 
 export async function POST(request: NextRequest) {
     await connectDB();
-    const { couponCode, userId, cart } = await request.json();
-    if (!couponCode || !userId || !cart) {
-        return NextResponse.json({ success: false, reason: 'couponCode, userId, and cart are required' }, { status: 400 });
+    const { couponCode, cart } = await request.json();
+    if (!couponCode || !cart) {
+        return NextResponse.json({ success: false, reason: 'couponCode and cart are required' }, { status: 400 });
     }
-    const result = await validateAndApplyCoupon(couponCode, userId, cart);
+    const result = await validateAndApplyCoupon(couponCode, cart);
     return NextResponse.json({
         success: result.discount > 0,
         discount: result.discount,

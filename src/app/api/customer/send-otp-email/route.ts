@@ -68,5 +68,5 @@ export async function POST(req: NextRequest) {
         subject: OTP_EMAIL_SUBJECT,
         html: `<p>Your OTP is <b>${otp}</b>. It is valid for 5 minutes.</p>`
     });
-    return NextResponse.json({ success: true, message: 'OTP sent to email' });
+    return NextResponse.json({ success: true, message: 'OTP Sent Successfully.' });
 }

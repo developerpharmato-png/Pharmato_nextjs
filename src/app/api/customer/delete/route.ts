@@ -59,5 +59,5 @@ export async function POST(request: NextRequest) {
     };
     Object.assign(user, emptyFields);
     await user.save();
-    return NextResponse.json({ success: true, message: 'Account delete successfully' }, { status: 200 });
+    return NextResponse.json({ success: true, message: 'Account Deletion Successful.' }, { status: 200 });
 }

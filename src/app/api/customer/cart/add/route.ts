@@ -80,11 +80,11 @@ export async function POST(request: NextRequest) {
         }
         await cart.save();
     }
-    let message = 'Item added to cart';
+    let message = 'Added to Cart';
     if (typeof quantity === 'number' && quantity < 0) {
-        message = 'Item removed from cart';
+        message = 'Removed from Cart';
     } else if (typeof quantity === 'number' && quantity > 0) {
-        message = 'Item added to cart';
+        message = cart ? 'Cart Updated' : 'Added to Cart';
     }
     if (cart) {
         const updatedItem = cart.items.find((item: any) => item.medicineId.toString() === medicineId);

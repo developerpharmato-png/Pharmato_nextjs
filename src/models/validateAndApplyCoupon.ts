@@ -20,11 +20,28 @@ interface CouponResult {
     coupon?: ICoupon;
 }
 
+
+
 export async function validateAndApplyCoupon(
     couponCode: string,
-    userId: string,
-    cart: Cart
+    cartFromApi: any
 ): Promise<CouponResult> {
+    // Extract userId from cartFromApi
+    const userId = cartFromApi.userId;
+    // Transform cartFromApi to Cart format
+    const cart: Cart = {
+        items: (cartFromApi.items || []).map((item: any) => ({
+            medicineId: item.medicineId._id,
+            categoryId: item.medicineId.categoryId,
+            price: item.medicineId.price,
+            quantity: item.quantity
+        })),
+        total: (cartFromApi.items || []).reduce(
+            (sum: number, item: any) => sum + item.medicineId.price * item.quantity,
+            0
+        )
+    };
+
     // 1. Check if coupon exists
     const coupon = await Coupon.findOne({ code: couponCode.trim().toUpperCase() });
     if (!coupon) return { discount: 0, eligibleAmount: 0, reason: 'Coupon not found' };
@@ -39,8 +56,8 @@ export async function validateAndApplyCoupon(
     if (coupon.totalUses !== null && coupon.usedCount >= coupon.totalUses) {
         return { discount: 0, eligibleAmount: 0, reason: 'Coupon usage limit reached' };
     }
-    const userUsage = coupon.usersUsed.find((u: { userId: any; uses: number }) => u.userId.toString() === userId);
-    if (userUsage && userUsage.uses >= coupon.perUserLimit) {
+    const userUsage = (coupon.usersUsed || []).find((u: { userId: any; uses: number }) => u.userId.toString() === userId);
+    if (coupon.perUserLimit != null && userUsage && userUsage.uses >= coupon.perUserLimit) {
         return { discount: 0, eligibleAmount: 0, reason: 'You have used this coupon maximum allowed times' };
     }
 
@@ -55,17 +72,17 @@ export async function validateAndApplyCoupon(
         eligibleItems = cart.items;
     } else if (coupon.scope === 'category') {
         eligibleItems = cart.items.filter(item =>
-            coupon.includedCategoryIds.includes(item.categoryId || '')
+            (coupon.includedCategoryIds || []).includes(item.categoryId || '')
         );
     } else if (coupon.scope === 'product') {
         eligibleItems = cart.items.filter(item =>
-            coupon.includedProductIds.includes(item.medicineId)
+            (coupon.includedProductIds || []).includes(item.medicineId)
         );
     }
 
     // 6. Exclude products if listed
     eligibleItems = eligibleItems.filter(item =>
-        !coupon.excludedProductIds.includes(item.medicineId)
+        !(coupon.excludedProductIds || []).includes(item.medicineId)
     );
 
     // 7. Calculate eligible amount

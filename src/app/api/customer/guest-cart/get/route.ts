@@ -89,6 +89,8 @@ export async function POST(request: NextRequest) {
                                     in: {
                                         _id: "$$med._id",
                                         name: "$$med.name",
+                                        categoryId: "$$med.categoryId",
+                                        subCategoryId: "$$med.subCategoryId",
                                         manufacturer: "$$med.manufacturer",
                                         isPrescription: "$$med.isPrescription",
                                         price: "$$med.price",
@@ -111,7 +113,8 @@ export async function POST(request: NextRequest) {
     ]);
 
     return NextResponse.json({
-        success: true,
+        success: true,        
+        message: 'Cart fetched successfully',
         cart: cart?.[0] || null
     });
 }

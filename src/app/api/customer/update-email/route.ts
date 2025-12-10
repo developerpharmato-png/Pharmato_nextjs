@@ -63,5 +63,5 @@ export async function POST(req: NextRequest) {
     user.otp = undefined;
     user.otpExpires = undefined;
     await user.save();
-    return NextResponse.json({ success: true, message: 'Email updated successfully' });
+    return NextResponse.json({ success: true, message: 'Email Updated Successfully.' });
 }

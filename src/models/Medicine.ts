@@ -138,8 +138,7 @@ const MedicineSchema = new Schema<IMedicine>({
     },
     batchNumber: {
         type: String,
-        default: '',
-        unique: false,
+        default: ''
     },
     composition: [
         {

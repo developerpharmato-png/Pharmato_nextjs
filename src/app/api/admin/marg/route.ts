@@ -63,12 +63,13 @@ function safeJSONParse(str: string) {
  */
 export async function POST(request: NextRequest) {
     try {
-        // Ignore request body, use static payload
+
         const url = 'https://wservices.margcompusoft.com/api/eOnlineData/MargMST2017';
-        const key = 'CJ4IJ1O85Q7Y';
+
+        const key = '48TPI07W1R2S';
         const payload = {
-            CompanyCode: 'TESTCOMPANY',
-            MargID: 230965,
+            CompanyCode: 'PharmatoInd2',
+            MargID: 486257,
             Datetime: '',
             index: 0
         };
@@ -78,61 +79,47 @@ export async function POST(request: NextRequest) {
         });
 
         const encryptedResponse = response.data;
-
         const decrypted = decryptAES(encryptedResponse, key);
         const inflated = gzinflate(decrypted.toString());
-
-        // Convert to JSON (object/array automatically)
         const jsonData = safeJSONParse(inflated);
-        const products = Array.isArray(jsonData?.Details?.pro_N) ? jsonData.Details.pro_N : [];
-        for (const item of products) {
-            console.log('MargERP item:', item);
-            if (!item) continue;
-            const mrp = !isNaN(Number(item?.MRP)) ? Number(item?.MRP) : 0;
-            const price = !isNaN(Number(item?.Rate)) ? Number(item?.Rate) : 0;
-            const discount = (mrp > 0 && price > 0) ? Math.round(((mrp - price) / mrp) * 100) : 0;
-            // Parse expiryDate safely
-            const expRaw = item?.exp?.trim();
-            let expiryDate: Date | null = null;
-            if (expRaw && expRaw.length > 0 && !isNaN(Date.parse(expRaw))) {
-                expiryDate = new Date(expRaw);
+
+        const products = jsonData?.Details?.pro_N || [];
+
+        // 🔥 Insert Each Product Into DB
+        const inserted = [];
+
+        for (const p of products) {
+
+            const checkMedicine = await Medicine.findOne({ uniqueIdentity: p.rid });
+
+            if (checkMedicine) {
+
+                console.log("Medicine already exists with uniqueIdentity:", p.rid);
+
             } else {
-                expiryDate = null;
+
+                const medObj = {
+                    uniqueIdentity: p.rid,
+                    name: p.name,
+                    manufacturer: p.company,
+                    price: Number(p.Rate) || 0,
+                    purchasePrice: Number(p.PRate) || 0,
+                    mrp: Number(p.MRP) || 0,
+                    stock: Number(p.stock) || 0,
+                    batchNumber: p.code,
+                    isDeleted: p.Is_Deleted === "1" ? true : false,
+
+                    // optional additional mapping (not mandatory)
+                    margData: p
+                };
+
+                const saved = await Medicine.create(medObj);
+                inserted.push(saved);
+
             }
-            const medicine = {
-                uniqueIdentity: item?.rid || '',
-                name: item?.name?.trim() || 'Unnamed',
-                stock: !isNaN(Number(item?.stock)) ? Number(item?.stock) : 0,
-                manufacturer: item?.company || 'Unknown',
-                mrp,
-                price,
-                purchasePrice: !isNaN(Number(item?.PRate)) ? Number(item?.PRate) : 0,
-                isDeleted: item?.Is_Deleted === '1',
-                isActive: item?.Is_Deleted === '0',
-                expiryDate,
-                batchNumber: item?.curbatch?.trim() || `BATCH-${item?.code}`,
-                // Defaults for new model fields
-                description: '',
-                category: 'Other',
-                categoryId: null,
-                subCategoryId: null,
-                isOTC: false,
-                isPrescription: false,
-                discount,
-                composition: [],
-                images: [],
-                highlights: [],
-                relatedProducts: [],
-                rating: { average: 0, count: 0 },
-                margData: item,
-            };
-            // Save to DB (upsert by uniqueIdentity)
-            await Medicine.findOneAndUpdate(
-                { uniqueIdentity: medicine.uniqueIdentity },
-                medicine,
-                { upsert: true, new: true }
-            );
+
         }
+
         return NextResponse.json({ success: true, message: 'Medicines imported successfully.' });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message || 'MargERP API error' }, { status: 500 });
