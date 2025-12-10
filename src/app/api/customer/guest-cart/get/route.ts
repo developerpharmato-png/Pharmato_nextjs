@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import GuestCart from '@/models/GuestCart';
+import mongoose from 'mongoose';
 
 /**
  * @swagger
@@ -44,9 +45,73 @@ export async function POST(request: NextRequest) {
     if (!guestId) {
         return NextResponse.json({ success: false, error: 'Guest not authenticated' }, { status: 401 });
     }
-    const cart = await GuestCart.findOne({ guestId }).populate({
-        path: 'items.medicineId',
-        select: '_id name manufacturer isPrescription mrp price images'
+
+    // AGGREGATE PIPELINE (FULL GUEST CART WITH MEDICINE DETAILS, SELECTED FIELDS)
+    const cart = await GuestCart.aggregate([
+        {
+            $match: {
+                guestId: guestId
+            }
+        },
+        {
+            $lookup: {
+                from: "medicines",
+                localField: "items.medicineId",
+                foreignField: "_id",
+                as: "medicines"
+            }
+        },
+        {
+            $addFields: {
+                items: {
+                    $map: {
+                        input: "$items",
+                        as: "item",
+                        in: {
+                            quantity: "$$item.quantity",
+                            _id: "$$item._id",
+                            medicineId: {
+                                $let: {
+                                    vars: {
+                                        med: {
+                                            $arrayElemAt: [
+                                                {
+                                                    $filter: {
+                                                        input: "$medicines",
+                                                        as: "m",
+                                                        cond: { $eq: ["$$m._id", "$$item.medicineId"] }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        }
+                                    },
+                                    in: {
+                                        _id: "$$med._id",
+                                        name: "$$med.name",
+                                        manufacturer: "$$med.manufacturer",
+                                        isPrescription: "$$med.isPrescription",
+                                        price: "$$med.price",
+                                        mrp: "$$med.mrp",
+                                        images: "$$med.images",
+                                        coverImage: "$$med.coverImage"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            $project: {
+                medicines: 0
+            }
+        }
+    ]);
+
+    return NextResponse.json({
+        success: true,
+        cart: cart?.[0] || null
     });
-    return NextResponse.json({ success: true, cart });
 }

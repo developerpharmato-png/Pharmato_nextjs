@@ -12,7 +12,9 @@
  *           schema:
  *             type: object
  *             properties:
- *               # No body required
+ *               userId:
+ *                 type: string
+ *                 description: User's ObjectId
  *     responses:
  *       200:
  *         description: Cart cleared
@@ -45,5 +47,5 @@ export async function POST(request: NextRequest) {
     }
     cart.items = [];
     await cart.save();
-    return NextResponse.json({ success: true,message: 'Cart cleared', cart });
+    return NextResponse.json({ success: true, message: 'Cart cleared', cart });
 }

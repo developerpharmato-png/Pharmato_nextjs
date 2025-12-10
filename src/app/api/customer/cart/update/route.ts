@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
             await cart.save();
             cart = await Cart.findOne({ userId }).populate({
                 path: 'items.medicineId',
-                select: '_id name manufacturer isPrescription mrp price images'
+                select: '_id name manufacturer isPrescription mrp price images coverImage'
             });
             return NextResponse.json({ success: true, cart });
         }
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
             await cart.save();
             cart = await Cart.findOne({ userId }).populate({
                 path: 'items.medicineId',
-                select: '_id name manufacturer isPrescription mrp price images'
+                select: '_id name manufacturer isPrescription mrp price images coverImage'
             });
             return NextResponse.json({ success: true, cart });
         }
