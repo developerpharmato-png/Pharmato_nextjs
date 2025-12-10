@@ -67,5 +67,5 @@ export async function POST(req: NextRequest) {
     user.otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
     await user.save();
     // TODO: Integrate SMS gateway here to send OTP to new mobile
-    return NextResponse.json({ success: true, message: 'OTP sent', otp }); // For dev, return OTP
+    return NextResponse.json({ success: true, message: 'OTP Sent Successfully.', otp }); // For dev, return OTP
 }

@@ -39,5 +39,5 @@ export async function POST(request: NextRequest) {
     user.deviceToken = '';
     user.refreshToken = '';
     await user.save();
-    return NextResponse.json({ success: true, message: 'Account deactivated successfully' }, { status: 200 });
+    return NextResponse.json({ success: true, message: 'Account Deactivation Successful.' }, { status: 200 });
 }

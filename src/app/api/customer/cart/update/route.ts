@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
             await cart.save();
             cart = await Cart.findOne({ userId }).populate({
                 path: 'items.medicineId',
-                select: '_id name manufacturer isPrescription mrp price images coverImage'
+                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price images coverImage'
             });
             return NextResponse.json({ success: true, cart });
         }
@@ -80,9 +80,9 @@ export async function POST(request: NextRequest) {
             await cart.save();
             cart = await Cart.findOne({ userId }).populate({
                 path: 'items.medicineId',
-                select: '_id name manufacturer isPrescription mrp price images coverImage'
+                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price images coverImage'
             });
-            return NextResponse.json({ success: true, cart });
+            return NextResponse.json({ success: true, message: 'Cart Updated', cart });
         }
         return NextResponse.json({ success: false, error: 'Item not found in cart and quantity is negative' }, { status: 404 });
     } catch (error) {

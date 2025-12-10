@@ -52,8 +52,8 @@ export async function POST(req: NextRequest) {
     }
     const pin = await Pincode.findOne({ pincode, isActive: true });
     if (pin) {
-        return NextResponse.json({ success: true, message: 'Pincode is available' });
+        return NextResponse.json({ success: true, message: 'Area is serviceable.' });
     } else {
-        return NextResponse.json({ success: false, message: 'Pincode not available' }, { status: 404 });
+        return NextResponse.json({ success: false, message: 'Area is unserviceable.' }, { status: 404 });
     }
 }
