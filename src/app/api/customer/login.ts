@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     if (!mobile) {
         return NextResponse.json({ success: false, error: 'Mobile number required' }, { status: 400 });
     }
-    // Find user or create new
+    // Find user or create new--
     let user = await User.findOne({ mobile });
     const now = new Date();
     // Blocked user check
