@@ -48,6 +48,7 @@ import connectDB from "@/lib/mongodb";
 import Medicine from "@/models/Medicine";
 import Category from "@/models/Category";
 import SubCategory from "@/models/SubCategory";
+import mongoose from "mongoose";
 
 export async function GET(request: NextRequest) {
   try {
@@ -57,63 +58,53 @@ export async function GET(request: NextRequest) {
     const search = (url.searchParams.get("search") || "").trim();
     const limit = parseInt(url.searchParams.get("limit") || "10", 10);
     const offset = parseInt(url.searchParams.get("offset") || "0", 10);
-
-    // By default return both active and inactive medicines. Use `status` query
-    // param to restrict results: ?status=active | inactive | all
-    const status = (url.searchParams.get("status") || "all").toLowerCase();
     const categoryId = url.searchParams.get("categoryId");
     const subCategoryId = url.searchParams.get("subCategoryId");
 
-    // baseFilter holds explicit filters (status/category/subcategory)
-    const baseFilter: any = {};
-    if (status === "active") baseFilter.isActive = true;
-    else if (status === "inactive") baseFilter.isActive = false;
-    if (categoryId) baseFilter.categoryId = categoryId;
-    if (subCategoryId) baseFilter.subCategoryId = subCategoryId;
-
-    let filter: any = { ...baseFilter };
-
-    if (search) {
-      const regex = { $regex: search, $options: "i" };
-
-      // find matching category and subcategory ids by name
-      const matchingCategoryIds = (
-        await Category.find({ name: regex }).select("_id").lean()
-      ).map((c: any) => c._id);
-      const matchingSubcategoryIds = (
-        await SubCategory.find({ name: regex }).select("_id").lean()
-      ).map((s: any) => s._id);
-
-      const searchOr: any[] = [
-        { name: regex },
-        { manufacturer: regex },
-      ];
-      if (matchingCategoryIds.length) searchOr.push({ categoryId: { $in: matchingCategoryIds } });
-      if (matchingSubcategoryIds.length) searchOr.push({ subCategoryId: { $in: matchingSubcategoryIds } });
-
-      // If we already have base filters (category/subcategory/status), combine with $and
-      if (Object.keys(baseFilter).length) {
-        filter = { $and: [baseFilter, { $or: searchOr }] };
-      } else {
-        filter = { $or: searchOr };
+    // Validate categoryId and subCategoryId
+    const baseFilter: any = { isActive: true };
+    if (categoryId && mongoose.Types.ObjectId.isValid(categoryId)) {
+      baseFilter.categoryId = categoryId;
+    } else if (categoryId) {
+      const category = await Category.findOne({
+        name: new RegExp(`^${categoryId}$`, "i"),
+      });
+      if (category) {
+        baseFilter.categoryId = category._id;
       }
     }
 
-    const total = await Medicine.countDocuments(filter);
+    if (subCategoryId && mongoose.Types.ObjectId.isValid(subCategoryId)) {
+      baseFilter.subCategoryId = subCategoryId;
+    } else if (subCategoryId) {
+      const subCategory = await SubCategory.findOne({
+        name: new RegExp(`^${subCategoryId}$`, "i"),
+      });
+      if (subCategory) {
+        baseFilter.subCategoryId = subCategory._id;
+      }
+    }
 
-    const medicines = await Medicine.find(filter)
+    if (search) {
+      baseFilter.name = { $regex: new RegExp(search, "i") }; // Use RegExp for case-insensitive match
+    }
+
+    const total = await Medicine.countDocuments(baseFilter);
+
+    const medicines = await Medicine.find(baseFilter)
       .populate("categoryId", "name isOTC")
       .populate("subCategoryId", "name isOTC")
       .populate("relatedProducts", "name price images")
       .sort({ createdAt: -1 })
-      .skip(isNaN(offset) ? 0 : offset)
-      .limit(isNaN(limit) ? 10 : limit);
+      .skip(offset)
+      .limit(limit);
 
     return NextResponse.json({ success: true, data: medicines, total });
   } catch (error) {
     console.error("GET /api/medicines error", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { success: false, error: "Failed to fetch medicines" },
+      { success: false, error: "Failed to fetch medicines", details: errorMessage },
       { status: 500 }
     );
   }

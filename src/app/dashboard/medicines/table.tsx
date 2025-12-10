@@ -50,23 +50,30 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
   const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+console.log(searchValue,"searchValue");
 
   useEffect(() => {
-    if (page === 0 && rowsPerPage === 10 && Array.isArray(data) && data.length > 0) return; // Skip fetch if initial data is used
-
+   
     setLoading(true);
     const params = new URLSearchParams();
     params.set("limit", String(rowsPerPage));
     params.set("offset", String(page * rowsPerPage));
-    if (searchValue) params.set("search", String(searchValue));
+    if (searchValue && searchValue.trim() !== "") {
+        params.set("search", String(searchValue));
+    }
     if (categoryId) params.set("categoryId", String(categoryId));
     if (subCategoryId) params.set("subCategoryId", String(subCategoryId));
+
+    console.log("Fetching with params:", params.toString());
 
     fetch(`/api/medicines?${params.toString()}`)
       .then((res) => res.json())
       .then((res) => {
         setData(res.data || []);
         setTotalCount(res.total || 0);
+      })
+      .catch((error) => {
+        console.error("Error fetching medicines:", error);
       })
       .finally(() => setLoading(false));
   }, [page, rowsPerPage, searchValue, categoryId, subCategoryId]);
@@ -110,6 +117,35 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
         }
       },
     });
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    if (onSearchChange) {
+      onSearchChange(value);
+    }
+
+    // Call the API immediately when the search value changes
+    setLoading(true);
+    const params = new URLSearchParams();
+    params.set("limit", String(rowsPerPage));
+    params.set("offset", String(page * rowsPerPage));
+    if (value.trim() !== "") {
+      params.set("search", value);
+    }
+    if (categoryId) params.set("categoryId", String(categoryId));
+    if (subCategoryId) params.set("subCategoryId", String(subCategoryId));
+
+    fetch(`/api/medicines?${params.toString()}`)
+      .then((res) => res.json())
+      .then((res) => {
+        setData(res.data || []);
+        setTotalCount(res.total || 0);
+      })
+      .catch((error) => {
+        console.error("Error fetching medicines:", error);
+      })
+      .finally(() => setLoading(false));
   };
 
   const columns: Column<any>[] = [
@@ -402,6 +438,7 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
 
   return (
     <>
+     
       <CustomTable
         columns={columns}
         data={data}

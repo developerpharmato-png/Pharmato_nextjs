@@ -78,16 +78,27 @@ export default function FilterSearch({
         isOTC: filterOTC !== "all" ? filterOTC : undefined,
         status: statusFilter !== "all" ? statusFilter : undefined,
         categoryId: categoryFilter !== "all" ? categoryFilter : undefined,
-        subCategoryId: subcategoryFilter !== "all" ? subcategoryFilter : undefined,
+        subCategoryId:
+          subcategoryFilter !== "all" ? subcategoryFilter : undefined,
       });
     }, debounceMs);
 
     return () => clearTimeout(handle); // Fixed the return type issue
-  }, [search, filterOTC, statusFilter, categoryFilter, subcategoryFilter, debounceMs, onChange, showApply]);
+  }, [
+    search,
+    filterOTC,
+    statusFilter,
+    categoryFilter,
+    subcategoryFilter,
+    debounceMs,
+    onChange,
+    showApply,
+  ]);
 
   // Fetch categories on component mount
   useEffect(() => {
-    axios.get("/api/categories")
+    axios
+      .get("/api/categories")
       .then((response) => {
         if (response.data.success && Array.isArray(response.data.data)) {
           setCategories(response.data.data);
@@ -104,7 +115,8 @@ export default function FilterSearch({
 
   // Fetch subcategories directly on component mount
   useEffect(() => {
-    axios.get("/api/subcategories")
+    axios
+      .get("/api/subcategories")
       .then((response) => {
         if (response.data.success && Array.isArray(response.data.data)) {
           setSubcategories(response.data.data);
@@ -134,7 +146,8 @@ export default function FilterSearch({
       isOTC: filterOTC !== "all" ? filterOTC : undefined, // Include OTC filter in onApply
       status: statusFilter !== "all" ? statusFilter : undefined, // Include status filter in onApply
       categoryId: categoryFilter !== "all" ? categoryFilter : undefined, // Include category filter in onApply
-      subCategoryId: subcategoryFilter !== "all" ? subcategoryFilter : undefined, // Include subcategory filter in onApply
+      subCategoryId:
+        subcategoryFilter !== "all" ? subcategoryFilter : undefined, // Include subcategory filter in onApply
     };
     onApply ? onApply(filters) : onChange?.(filters);
   }
@@ -147,13 +160,7 @@ export default function FilterSearch({
         flexDirection: "row",
         flexWrap: "wrap",
         alignItems: "center",
-        gap: "16px",
-        padding: "10px",
-
-        backgroundColor: "#ffffff",
-        borderRadius: "12px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-        border: "1px solid #e5e7eb",
+        gap: "2px",
       }}
     >
       {isSearchShow && (
@@ -290,7 +297,11 @@ export default function FilterSearch({
                 All Categories
               </option>
               {categories.map((category) => (
-                <option key={category.id} value={category.id} style={{ color: "#171717" }}>
+                <option
+                  key={category.id}
+                  value={category.id}
+                  style={{ color: "#171717" }}
+                >
                   {category.name}
                 </option>
               ))}
@@ -300,45 +311,45 @@ export default function FilterSearch({
       )}
 
       {/* Category Filter Dropdown */}
-     
 
-{isShowSub && (
-
-      <div style={{ flex: "0 1 240px", minWidth: "200px" }}>
-        <div style={{ position: "relative" }}>
-          <select
-            id="subcategory-filter"
-            value={subcategoryFilter}
-            onChange={(e) => setSubcategoryFilter(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "12px 36px 12px 16px",
-              border: "1px solid #d1d5db",
-              borderRadius: "8px",
-              fontSize: "14px",
-              outline: "none",
-              backgroundColor: "#ffffff",
-              cursor: "pointer",
-              appearance: "none",
-              transition: "all 0.2s",
-              fontFamily: "inherit",
-              color: subcategoryFilter !== "all" ? "#171717" : "#6b7280",
-            }}
-          >
-            <option value="all" style={{ color: "#6b7280" }}>
-              All Subcategories
-            </option>
-            {subcategories.map((subcategory) => (
-              <option key={subcategory.id} value={subcategory.id} style={{ color: "#171717" }}>
-                {subcategory.name}
+      {isShowSub && (
+        <div style={{ flex: "0 1 240px", minWidth: "200px" }}>
+          <div style={{ position: "relative" }}>
+            <select
+              id="subcategory-filter"
+              value={subcategoryFilter}
+              onChange={(e) => setSubcategoryFilter(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "12px 36px 12px 16px",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                fontSize: "14px",
+                outline: "none",
+                backgroundColor: "#ffffff",
+                cursor: "pointer",
+                appearance: "none",
+                transition: "all 0.2s",
+                fontFamily: "inherit",
+                color: subcategoryFilter !== "all" ? "#171717" : "#6b7280",
+              }}
+            >
+              <option value="all" style={{ color: "#6b7280" }}>
+                All Subcategories
               </option>
-            ))}
-          </select>
+              {subcategories.map((subcategory) => (
+                <option
+                  key={subcategory.id}
+                  value={subcategory.id}
+                  style={{ color: "#171717" }}
+                >
+                  {subcategory.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-      </div>
-)}
-
-      
+      )}
 
       {/* Status Filter Dropdown - Conditionally Rendered */}
       {showStatusFilter && (
