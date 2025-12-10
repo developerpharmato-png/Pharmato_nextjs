@@ -51,7 +51,6 @@ export async function POST(request: NextRequest) {
         isActive: false,
         isDelete: true,
         walletAmount: 0,
-        uniqueCode: '',
         incorrectOtpAttempt: 0,
         otpCount: 0,
         otpGenerateTime: null,

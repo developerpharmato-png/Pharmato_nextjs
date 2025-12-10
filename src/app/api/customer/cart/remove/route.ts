@@ -68,6 +68,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Cart from '@/models/Cart';
+import mongoose from "mongoose";
 import Medicine from '@/models/Medicine';
 
 export async function POST(request: NextRequest) {
@@ -80,11 +81,76 @@ export async function POST(request: NextRequest) {
     if (!medicineId || typeof medicineId !== 'string') {
         return NextResponse.json({ success: false, error: 'medicineId is required and must be a string' }, { status: 400 });
     }
-    const cart = await Cart.findOne({ userId });
-    if (!cart) {
+    // Remove item from cart, then re-aggregate for medicine details
+    const cartDoc = await Cart.findOne({ userId });
+    if (!cartDoc) {
         return NextResponse.json({ success: false, error: 'Cart not found' }, { status: 404 });
     }
-    cart.items = cart.items.filter((item: any) => item.medicineId.toString() !== medicineId);
-    await cart.save();
-    return NextResponse.json({ success: true, cart, message: 'Remove from cart successfully' });
+    cartDoc.items = cartDoc.items.filter((item: any) => item.medicineId.toString() !== medicineId);
+    await cartDoc.save();
+
+    // AGGREGATE PIPELINE (FULL CART WITH MEDICINE DETAILS, SELECTED FIELDS)
+    const fullCart = await Cart.aggregate([
+        {
+            $match: {
+                _id: cartDoc._id
+            }
+        },
+        {
+            $lookup: {
+                from: "medicines",
+                localField: "items.medicineId",
+                foreignField: "_id",
+                as: "medicines"
+            }
+        },
+        {
+            $addFields: {
+                items: {
+                    $map: {
+                        input: "$items",
+                        as: "item",
+                        in: {
+                            quantity: "$$item.quantity",
+                            _id: "$$item._id",
+                            medicineId: {
+                                $let: {
+                                    vars: {
+                                        med: {
+                                            $arrayElemAt: [
+                                                {
+                                                    $filter: {
+                                                        input: "$medicines",
+                                                        as: "m",
+                                                        cond: { $eq: ["$$m._id", "$$item.medicineId"] }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        }
+                                    },
+                                    in: {
+                                        _id: "$$med._id",
+                                        name: "$$med.name",
+                                        manufacturer: "$$med.manufacturer",
+                                        isPrescription: "$$med.isPrescription",
+                                        price: "$$med.price",
+                                        mrp: "$$med.mrp",
+                                        images: "$$med.images",
+                                        coverImage: "$$med.coverImage"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            $project: {
+                medicines: 0
+            }
+        }
+    ]);
+    return NextResponse.json({ success: true, cart: fullCart?.[0] || null, message: 'Remove from cart successfully' });
 }

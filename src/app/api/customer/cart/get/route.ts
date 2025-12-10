@@ -30,25 +30,102 @@
  */
 
 
-import { NextRequest, NextResponse } from 'next/server';
+// import { NextRequest, NextResponse } from 'next/server';
+
 import dbConnect from '@/lib/mongodb';
-import Cart from '@/models/Cart';
+import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
+import Cart from "@/models/Cart";
 
 export async function POST(request: NextRequest) {
     await dbConnect();
-    let body: any = {};
+
     try {
-        body = await request.json();
-    } catch (err) {
-        // If no body or invalid JSON, ignore
+        const body = await request.json();
+        const { userId } = body;
+
+        if (!userId) {
+            return NextResponse.json(
+                { success: false, error: "User not authenticated" },
+                { status: 401 }
+            );
+        }
+
+        // AGGREGATE PIPELINE (FULL CART WITH MEDICINE DETAILS, SELECTED FIELDS)
+        const cart = await Cart.aggregate([
+            {
+                $match: {
+                    userId: new mongoose.Types.ObjectId(userId)
+                }
+            },
+            {
+                $lookup: {
+                    from: "medicines",
+                    localField: "items.medicineId",
+                    foreignField: "_id",
+                    as: "medicines"
+                }
+            },
+            {
+                $addFields: {
+                    items: {
+                        $map: {
+                            input: "$items",
+                            as: "item",
+                            in: {
+                                quantity: "$$item.quantity",
+                                _id: "$$item._id",
+                                medicineId: {
+                                    $let: {
+                                        vars: {
+                                            med: {
+                                                $arrayElemAt: [
+                                                    {
+                                                        $filter: {
+                                                            input: "$medicines",
+                                                            as: "m",
+                                                            cond: { $eq: ["$$m._id", "$$item.medicineId"] }
+                                                        }
+                                                    },
+                                                    0
+                                                ]
+                                            }
+                                        },
+                                        in: {
+                                            _id: "$$med._id",
+                                            name: "$$med.name",
+                                            manufacturer: "$$med.manufacturer",
+                                            isPrescription: "$$med.isPrescription",
+                                            price: "$$med.price",
+                                            mrp: "$$med.mrp",
+                                            images: "$$med.images",
+                                            coverImage: "$$med.coverImage"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    medicines: 0
+                }
+            }
+        ]);
+
+        return NextResponse.json({
+            success: true,
+            cart: cart?.[0] || null
+        });
+
+    } catch (err: any) {
+        console.error("Cart fetch error:", err);
+
+        return NextResponse.json(
+            { success: false, error: "Internal server error", details: err.message },
+            { status: 500 }
+        );
     }
-    const userId = body.userId;
-    if (!userId) {
-        return NextResponse.json({ success: false, error: 'User not authenticated' }, { status: 401 });
-    }
-    const cart = await Cart.findOne({ userId }).populate({
-        path: 'items.medicineId',
-        select: '_id name manufacturer isPrescription mrp price images'
-    });
-    return NextResponse.json({ success: true, cart });
 }
