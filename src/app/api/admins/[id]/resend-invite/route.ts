@@ -4,6 +4,8 @@ import Admin from "@/models/Admin";
 import crypto from "crypto";
 import { sendEmail } from "@/utils/sendEmail";
 import { WELCOME_EMAIL_SUBJECT } from "@/utils/emailSubjects";
+import fs from 'fs';
+import path from 'path';
 
 async function sendMail(to: string, subject: string, html: string) {
   const host = process.env.SMTP_HOST;
@@ -54,20 +56,28 @@ export async function POST(
   const base = process.env.NEXT_PUBLIC_BASE_URL || '';
   const inviteUrl = `${base}/set-Password/${token}`;
 
+
+  const templatePath = path.join(process.cwd(), 'src/app/api/admin/html-templates/inviteEmailTemplate.html');
+  let html = '';
+  try {
+    html = fs.readFileSync(templatePath, 'utf8').replace(/{{inviteUrl}}/g, inviteUrl);
+  } catch (err) {
+      }
+
   // try to send mail if SMTP configured
   let sent = false;
   let sendError: string | null = null;
   const mailRes = await sendEmail({
     to: admin.email,
     subject: WELCOME_EMAIL_SUBJECT,
-    html: `<h1>Welcome to Pharmato!</h1><p>Please set your password using the following link:</p><p><a href='${inviteUrl}'>${inviteUrl}</a></p>`,
+    html,
   });
   if (mailRes.success) sent = true;
   else sendError = mailRes.message || 'Failed to send';
 
   return NextResponse.json({
     success: true,
-    message: 'Reset token created',
+    message: 'Please check your email to set your password.',
     data: { inviteUrl, sent, sendError }
   });
 }
