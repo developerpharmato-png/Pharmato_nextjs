@@ -26,8 +26,9 @@ export async function validateAndApplyCoupon(
     couponCode: string,
     cartFromApi: any
 ): Promise<CouponResult> {
-    // Extract userId from cartFromApi
+    // Extract userId and guestId from cartFromApi
     const userId = cartFromApi.userId;
+    const guestId = cartFromApi.guestId;
     // Transform cartFromApi to Cart format
     const cart: Cart = {
         items: (cartFromApi.items || []).map((item: any) => ({
@@ -56,8 +57,12 @@ export async function validateAndApplyCoupon(
     if (coupon.totalUses !== null && coupon.usedCount >= coupon.totalUses) {
         return { discount: 0, eligibleAmount: 0, reason: 'Coupon usage limit reached' };
     }
-    const userUsage = (coupon.usersUsed || []).find((u: { userId: any; uses: number }) => u.userId.toString() === userId);
-    if (coupon.perUserLimit != null && userUsage && userUsage.uses >= coupon.perUserLimit) {
+    // Find usage for either user or guest
+    const userOrGuestUsage = (coupon.usersOrGuestsUsed || []).find((u: { userId?: any; guestId?: string; uses: number }) =>
+        (userId && u.userId && u.userId.toString() === userId) ||
+        (guestId && u.guestId === guestId)
+    );
+    if (coupon.perUserLimit != null && userOrGuestUsage && userOrGuestUsage.uses >= coupon.perUserLimit) {
         return { discount: 0, eligibleAmount: 0, reason: 'You have used this coupon maximum allowed times' };
     }
 

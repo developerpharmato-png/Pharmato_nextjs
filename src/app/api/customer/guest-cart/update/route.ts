@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
                 path: 'items.medicineId',
                 select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price images coverImage'
             });
-            return NextResponse.json({ success: true, cart });
+            return NextResponse.json({ success: true,message: 'Cart Updated', cart });
         }
         // Only add if quantity is positive
         if (quantity > 0) {
