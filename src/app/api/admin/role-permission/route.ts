@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import RolePermission from '@/models/RolePermission';
+import Admin from '@/models/Admin';
+import crypto from 'crypto';
 
 // POST - upsert role permission
 export async function POST(req: NextRequest) {
@@ -39,10 +41,17 @@ export async function POST(req: NextRequest) {
     });
   }
 
+
   await RolePermission.findOneAndUpdate(
     { roleId },
     { $set: { permissions } },
     { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+
+  // Invalidate all admin sessions for this role
+  await Admin.updateMany(
+    { roleId },
+    { $set: { sessionToken: crypto.randomBytes(32).toString('hex') } }
   );
 
   // Ensure legacy flat keys are removed if present

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import GlobalFetchInterceptor from "./GlobalFetchInterceptor";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,16 +18,21 @@ export const metadata: Metadata = {
   description: "Pharmato Admin Dashboard",
 };
 
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <GlobalFetchInterceptor />
         {children}
       </body>
     </html>
