@@ -77,8 +77,11 @@ export default function ManagementPage() {
     const popup =
       typeof window !== "undefined" ? window.open("", "_blank") : null;
     try {
+      const admin = admins.find((a) => a._id === id);
       const res = await fetch(`/api/admins/${id}/resend-invite`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: admin?.email }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -100,7 +103,7 @@ export default function ManagementPage() {
         // notify user
         alert("Reset email sent");
       } else if (!inviteUrl) {
-        alert(`Note: email not sent (${sendError || "SMTP not configured"})`);
+       
       }
     } catch (err: any) {
       if (popup) popup.close();
@@ -355,7 +358,7 @@ export default function ManagementPage() {
                 email: editing.email,
                 roleId: editing.roleId,
               }
-            : undefined  
+            : undefined
         }
         roles={roles}
         editing={!!editing}
