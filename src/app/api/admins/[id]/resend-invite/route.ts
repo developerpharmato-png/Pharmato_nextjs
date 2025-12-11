@@ -57,7 +57,7 @@ export async function POST(
   const inviteUrl = `${base}/set-Password/${token}`;
 
 
-  const templatePath = path.join(process.cwd(), 'src/app/api/admin/html-templates/inviteEmailTemplate.html');
+  const templatePath = path.join(process.cwd(), 'src/app/api/admin/html-templates/resetPassword.html');
   let html = '';
   try {
     html = fs.readFileSync(templatePath, 'utf8').replace(/{{inviteUrl}}/g, inviteUrl);
