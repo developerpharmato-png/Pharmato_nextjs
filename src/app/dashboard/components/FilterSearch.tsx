@@ -161,6 +161,7 @@ export default function FilterSearch({
         flexWrap: "wrap",
         alignItems: "center",
         gap: "2px",
+        marginBottom: "16px",
       }}
     >
       {isSearchShow && (

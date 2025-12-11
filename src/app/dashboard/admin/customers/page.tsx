@@ -193,7 +193,7 @@ export default function AdminCustomerListPage() {
         title=" Customers"
         subtitle="Manage your customer records"
         showBack={false}
-        showSearch={true}
+        showSearch={false}
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
       />
