@@ -37,10 +37,12 @@ export async function GET() {
             let categoryActive = false;
             let subcategoryAvailable = false;
             let medicineCount = 0;
+            let categoryName = '';
             if (img.targetId) {
                 const categoryDoc = await (await import('@/models/Category')).default.findOne({ _id: img.targetId, isActive: true }).lean();
                 if (categoryDoc && !Array.isArray(categoryDoc) && categoryDoc._id) {
                     categoryActive = true;
+                    categoryName = categoryDoc.name || '';
                     const subcategoryDoc = await (await import('@/models/SubCategory')).default.findOne({ categoryId: categoryDoc._id, isActive: true }).lean();
                     if (subcategoryDoc && !Array.isArray(subcategoryDoc) && subcategoryDoc._id) {
                         subcategoryAvailable = true;
@@ -66,7 +68,8 @@ export async function GET() {
                 targetId: img.targetId || '',
                 categoryActive,
                 subcategoryAvailable,
-                medicineCount
+                medicineCount,
+                categoryName
             };
         }));
     }
