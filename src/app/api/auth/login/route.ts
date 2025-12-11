@@ -42,6 +42,8 @@ import connectDB from '@/lib/mongodb';
 import Admin from '@/models/Admin';
 import Role from '@/models/Role';
 import bcrypt from 'bcryptjs';
+import { signJwt } from '@/lib/jwt';
+
 
 export async function POST(request: NextRequest) {
     try {
@@ -102,11 +104,31 @@ export async function POST(request: NextRequest) {
         adminObj.roleId = roleId;
         adminObj.roleName = roleName;
 
-        return NextResponse.json({
+        // Generate JWT token
+        const token = signJwt({
+            _id: adminObj._id,
+            email: adminObj.email,
+            roleId: adminObj.roleId,
+            roleName: adminObj.roleName
+        });
+
+        // Store token in admin document (single session)
+        await Admin.findByIdAndUpdate(adminObj._id, { sessionToken: token });
+
+        // Set token in HTTP-only cookie
+        const response = NextResponse.json({
             success: true,
             data: adminObj,
             message: 'Login successful'
         });
+        response.cookies.set('access_token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 60 * 60 * 24 // 1 day
+        });
+        return response;
     } catch (error) {
         console.error('Login error:', error);
         return NextResponse.json(

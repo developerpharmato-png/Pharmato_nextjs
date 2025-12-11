@@ -38,7 +38,7 @@ export function showConfirmStatusAlert({
       title: "font-bold text-lg text-gray-900",
       htmlContainer: "text-base text-gray-700",
       confirmButton: "!bg-green-600 !text-white !rounded-lg !px-6 !py-2 !font-semibold !text-base !cursor-pointer",
-      cancelButton: "!bg-gray-100 !text-gray-700 !rounded-lg !px-6 !py-2 !font-semibold !text-base !cursor-pointer",
+      cancelButton: "!bg-gray-100 !text-gray-700 !rounded-lg !px-6 !py-2 !font-semibold !text-base !cursor-pointer !mr-4",
     },
     buttonsStyling: false,
   }).then((result) => {

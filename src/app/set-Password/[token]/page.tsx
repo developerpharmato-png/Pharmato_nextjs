@@ -1,5 +1,7 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
+
 // Corrected: Removed unsupported 'next/navigation' imports
 import { ToastContainer, toast } from "react-toastify";
 // Note: Ensure that the react-toastify styling is included globally in your application 
@@ -83,6 +85,58 @@ export default function SetPasswordPage() {
     // Use the mocked useParams hook
     const { token } = useParams();
     console.log(token,"tokentoken");
+        const [tokenValid, setTokenValid] = useState<boolean | null>(null);
+    // Verify token on mount
+    useEffect(() => {
+        if (!token) {
+            setTokenValid(false);
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid or missing token',
+                text: 'Please use the link from your email.',
+                timer: 2000,
+                showConfirmButton: false,
+            }).then(() => {
+                router.push('/login');
+            });
+            return;
+        }
+        (async () => {
+            try {
+                const res = await fetch('/api/admins/verify-token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token }),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    setTokenValid(true);
+                } else {
+                    setTokenValid(false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid or expired token',
+                        text: data.message || 'Please use the link from your email.',
+                        timer: 2000,
+                        showConfirmButton: false,
+                    }).then(() => {
+                        router.push('/login');
+                    });
+                }
+            } catch (err) {
+                setTokenValid(false);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Token verification failed',
+                    text: 'Please try again.',
+                    timer: 2000,
+                    showConfirmButton: false,
+                }).then(() => {
+                    router.push('/login');
+                });
+            }
+        })();
+    }, [token]);
     
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -138,6 +192,7 @@ export default function SetPasswordPage() {
         }
     };
 
+    if (tokenValid === false) return null;
     return (
         <>
             <ToastContainer />
@@ -231,7 +286,7 @@ export default function SetPasswordPage() {
                                 {({ isSubmitting, status: formikStatus }) => (
                                     <Form className="mt-8 space-y-5">
                                         {/* Password Field */}
-                                        <div>
+                                         <div>
                                             <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
                                                 New Password
                                             </label>

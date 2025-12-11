@@ -1,16 +1,27 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+
 import Swal from "sweetalert2";
 import HeaderWithAction from "../components/HeaderWithAction";
+import TextareaSkeleton from "../components/skeleton/TextareaSkeleton";
 import { CustomButton } from "../components/miniComponents";
+import { customGet, customPost } from "../BaseURL/CustomNetwork";
 
 type Role = { _id: string; name: string };
 
 // Use the same menu items as the main layout (names must match)
 const menuItems = [
-  'Dashboard','Medicines','Categories','Subcategories','Prescriptions','Admins','Customers','Pincodes','Stores','Banner Images'
+  "Dashboard",
+  "Medicines",
+  "Categories",
+  "Subcategories",
+  "Prescriptions",
+  "Admins",
+  "Customers",
+  "Pincodes",
+  "Stores",
+  "Banner Images",
 ];
 
 function prettyLabel(name: string) {
@@ -23,14 +34,19 @@ export default function PermissionPage() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   // values will be { [menuName]: { view: boolean; edit: boolean } }
-  const [values, setValues] = useState<Record<string, { view: boolean; edit: boolean }>>({});
-  const [loading, setLoading] = useState(false);
+  const [values, setValues] = useState<
+    Record<string, { view: boolean; edit: boolean }>
+  >({});
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => { fetchRoles(); }, []);
+  useEffect(() => {
+    fetchRoles();
+  }, []);
 
   const fetchRoles = async () => {
+    setLoading(true);
     try {
-      const res = await axios.get('/api/admin/role/active');
+      const res = await customGet("/api/admin/role/active");
       const fetched: Role[] = res.data.data || [];
       setRoles(fetched);
       // auto-select the first role by default and load its permissions
@@ -41,18 +57,18 @@ export default function PermissionPage() {
         loadPermissions(firstId);
       }
     } catch (err) {
-      // Improved error handling UI, but keeping setRoles for logic.
       setRoles([]);
     }
+    setLoading(false);
   };
 
   const loadPermissions = async (roleId: string) => {
     setLoading(true);
     try {
-      const res = await axios.get(`/api/admin/role-permission/${roleId}`);
+      const res = await customGet(`/api/admin/role-permission/${roleId}`);
       const data = res.data.data;
       const obj: Record<string, { view: boolean; edit: boolean }> = {};
-      menuItems.forEach(menu => {
+      menuItems.forEach((menu) => {
         if (!data || !data.permissions || !data.permissions[menu]) {
           obj[menu] = { view: true, edit: true }; // Default permissions
         } else {
@@ -64,7 +80,7 @@ export default function PermissionPage() {
       });
       setValues(obj);
     } catch (err) {
-      Swal.fire({ icon: 'error', title: 'Failed to load permissions' });
+      Swal.fire({ icon: "error", title: "Failed to load permissions" });
       setValues({}); // Reset on failure
     }
     setLoading(false);
@@ -73,80 +89,145 @@ export default function PermissionPage() {
   const onRoleChange = (id: string) => {
     setSelectedRole(id);
     if (id) {
-        loadPermissions(id);
+      loadPermissions(id);
     } else {
-        setValues({}); // Clear values if no role is selected
+      setValues({}); // Clear values if no role is selected
     }
   };
 
   // determine selected role name and whether it's SuperAdmin
-  const selectedRoleName = roles.find(r => r._id === selectedRole)?.name || '';
-  const isSuperAdmin = selectedRoleName === 'SuperAdmin';
+  const selectedRoleName =
+    roles.find((r) => r._id === selectedRole)?.name || "";
+  const isSuperAdmin = selectedRoleName === "SuperAdmin";
 
-  const toggle = (menu: string, field: 'view' | 'edit') => {
+  const toggle = (menu: string, field: "view" | "edit") => {
     if (isSuperAdmin) return; // Prevent changes for SuperAdmin
-    setValues(prev => ({ 
-        ...prev, 
-        [menu]: { 
-            // Ensure we have a base object if it doesn't exist (though loadPermissions should handle this)
-            ...(prev[menu] || { view: false, edit: false }), 
-            [field]: !((prev[menu] && prev[menu][field]) || false) 
-        } 
+    setValues((prev) => ({
+      ...prev,
+      [menu]: {
+        // Ensure we have a base object if it doesn't exist (though loadPermissions should handle this)
+        ...(prev[menu] || { view: false, edit: false }),
+        [field]: !((prev[menu] && prev[menu][field]) || false),
+      },
     }));
   };
 
   const save = async () => {
-    if (!selectedRole) { Swal.fire({ icon: 'warning', title: 'Select a role' }); return; }
-    if (isSuperAdmin) { Swal.fire({ icon: 'info', title: 'SuperAdmin permissions cannot be modified' }); return; }
-    
+    if (!selectedRole) {
+      Swal.fire({ icon: "warning", title: "Select a role" });
+      return;
+    }
+    if (isSuperAdmin) {
+      Swal.fire({
+        icon: "info",
+        title: "SuperAdmin permissions cannot be modified",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const payload = { roleId: selectedRole, permissions: values };
-      const res = await axios.post('/api/admin/role-permission', payload);
-      if (res.data.success) {
-        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Permissions saved', showConfirmButton: false, timer: 1500 });
-      } else {
-         Swal.fire({ icon: 'error', title: 'Save failed', text: res.data.message || 'Unknown error' });
-      }
+      await customPost("/api/admin/role-permission", payload);
     } catch (err) {
-      Swal.fire({ icon: 'error', title: 'Save failed', text: 'An error occurred during save.' });
+      Swal.fire({
+        icon: "error",
+        title: "Save failed",
+        text: "An error occurred during save.",
+      });
     }
     setLoading(false);
   };
 
   return (
-    <div  className="containerStyle scrollbar-hide">
-      <HeaderWithAction title="Admin Permissions" subtitle="Assign specific view and edit rights to admin roles" showBack={false} showSearch={false} />
+    <div className="containerStyle scrollbar-hide">
+      <HeaderWithAction
+        title="Admin Permissions"
+        subtitle="Assign specific view and edit rights to admin roles"
+        showBack={false}
+        showSearch={false}
+      />
 
       <div className="bg-white p-6 rounded-xl shadow-lg mt-6">
         {/* Role Selection & Info */}
         <div className="mb-6 border-b pb-4">
-          <label htmlFor="role-select" className="block mb-2 text-sm font-semibold text-gray-700">
-            Select Role
-          </label>
-          <select 
-            id="role-select"
-            className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 transition duration-150 ease-in-out" 
-            value={selectedRole || ''} 
-            onChange={e => onRoleChange(e.target.value)}
-          >
-            <option value="" disabled>-- Select an admin role --</option>
-            {roles.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
-          </select>
-          
-          {selectedRoleName && (
-            <p className="mt-3 text-sm text-gray-600">
-              Permissions for: <strong className="text-green-700">{selectedRoleName}</strong>
-              {isSuperAdmin && <span className="ml-2 text-xs font-medium text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
-                (Fixed Permissions - Full Access)
-              </span>}
-            </p>
+          {loading ? (
+            <TextareaSkeleton rows={2} />
+          ) : (
+            <>
+              <label
+                htmlFor="role-select"
+                className="block mb-2 text-sm font-semibold text-gray-700"
+              >
+                Select Role
+              </label>
+              <select
+                id="role-select"
+                className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 transition duration-150 ease-in-out"
+                value={selectedRole || ""}
+                onChange={(e) => onRoleChange(e.target.value)}
+              >
+                <option value="" disabled>
+                  -- Select an admin role --
+                </option>
+                {roles.map((r) => (
+                  <option key={r._id} value={r._id}>
+                    {r.name}
+                  </option>
+                ))}
+              </select>
+              {selectedRoleName && (
+                <p className="mt-3 text-sm text-gray-600">
+                  Permissions for:{" "}
+                  <strong className="text-green-700">{selectedRoleName}</strong>
+                  {isSuperAdmin && (
+                    <span className="ml-2 text-xs font-medium text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
+                      (Fixed Permissions - Full Access)
+                    </span>
+                  )}
+                </p>
+              )}
+            </>
           )}
         </div>
         {/* --- */}
 
-        {/* Permissions Table */}
-        {selectedRole && (
+        {/* Permissions Table Skeleton or Table */}
+        {selectedRole && loading && (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 animate-pulse">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider bg-gray-100">
+                    &nbsp;
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider bg-gray-100">
+                    &nbsp;
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider bg-gray-100">
+                    &nbsp;
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {[...Array(8)].map((_, i) => (
+                  <tr key={i}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="h-4 bg-gray-200 rounded w-2/3" />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="h-5 w-5 bg-gray-200 rounded mx-auto" />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="h-5 w-5 bg-gray-200 rounded mx-auto" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {selectedRole && !loading && (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -163,8 +244,11 @@ export default function PermissionPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {menuItems.map(menu => (
-                  <tr key={menu} className="hover:bg-green-50 transition duration-100 ease-in-out">
+                {menuItems.map((menu) => (
+                  <tr
+                    key={menu}
+                    className="hover:bg-green-50 transition duration-100 ease-in-out"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {prettyLabel(menu)}
                     </td>
@@ -172,9 +256,13 @@ export default function PermissionPage() {
                       <input
                         type="checkbox"
                         checked={!!values[menu]?.view}
-                        onChange={() => toggle(menu, 'view')}
+                        onChange={() => toggle(menu, "view")}
                         // Tailwind utility for custom checkbox styling
-                        className={`form-checkbox h-5 w-5 rounded transition duration-150 ease-in-out ${isSuperAdmin ? 'text-gray-400 cursor-not-allowed' : 'text-green-600 border-green-300 focus:ring-green-500'}`}
+                        className={`form-checkbox h-5 w-5 rounded transition duration-150 ease-in-out ${
+                          isSuperAdmin
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-green-600 border-green-300 focus:ring-green-500"
+                        }`}
                         disabled={isSuperAdmin}
                       />
                     </td>
@@ -182,8 +270,12 @@ export default function PermissionPage() {
                       <input
                         type="checkbox"
                         checked={!!values[menu]?.edit}
-                        onChange={() => toggle(menu, 'edit')}
-                        className={`form-checkbox h-5 w-5 rounded transition duration-150 ease-in-out ${isSuperAdmin ? 'text-gray-400 cursor-not-allowed' : 'text-green-600 border-green-300 focus:ring-green-500'}`}
+                        onChange={() => toggle(menu, "edit")}
+                        className={`form-checkbox h-5 w-5 rounded transition duration-150 ease-in-out ${
+                          isSuperAdmin
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-green-600 border-green-300 focus:ring-green-500"
+                        }`}
                         disabled={isSuperAdmin}
                       />
                     </td>
@@ -194,17 +286,20 @@ export default function PermissionPage() {
           </div>
         )}
         {/* --- */}
-        
+
         {/* Action Buttons */}
         <div className="mt-6 pt-4 border-t flex justify-end gap-3">
-         
-          <CustomButton 
-            type="button" 
-            className={`font-semibold py-2 px-6 rounded-lg transition duration-150 ${loading || isSuperAdmin ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`} 
-            onClick={save} 
+          <CustomButton
+            type="button"
+            className={`font-semibold py-2 px-6 rounded-lg transition duration-150 ${
+              loading || isSuperAdmin
+                ? "bg-green-400 cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-700"
+            }`}
+            onClick={save}
             disabled={loading || isSuperAdmin}
           >
-            {loading ? 'Saving...' : 'Update '}
+            {loading ? "Saving..." : "Update "}
           </CustomButton>
         </div>
       </div>

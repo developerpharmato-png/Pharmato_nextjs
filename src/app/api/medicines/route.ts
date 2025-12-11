@@ -49,8 +49,24 @@ import Medicine from "@/models/Medicine";
 import Category from "@/models/Category";
 import SubCategory from "@/models/SubCategory";
 import mongoose from "mongoose";
+import { verifyJwt } from '@/utils/jwt';
 
 export async function GET(request: NextRequest) {
+    // --- AUTH CHECK ---
+    const token = request.cookies.get('access_token')?.value;
+    if (!token) {
+      return NextResponse.json({ success: false, error: 'Auth error: No token' }, { status: 401 });
+    }
+    const decoded: any = verifyJwt(token);
+    if (!decoded || !decoded._id) {
+      return NextResponse.json({ success: false, error: 'Auth error: Invalid token' }, { status: 401 });
+    }
+    const admin = await mongoose.model('Admin').findById(decoded._id).lean() as any;
+    console.log(admin,"adminadminadmin");
+    
+    if (!admin || admin.sessionToken !== token) {
+      return NextResponse.json({ success: false, error: 'Auth error: Session expired or logged in elsewhere' }, { status: 401 });
+    }
   try {
     await connectDB();
 
@@ -111,6 +127,19 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+    // --- AUTH CHECK ---
+    const token = request.cookies.get('access_token')?.value;
+    if (!token) {
+      return NextResponse.json({ success: false, error: 'Auth error: No token' }, { status: 401 });
+    }
+    const decoded: any = verifyJwt(token);
+    if (!decoded || !decoded._id) {
+      return NextResponse.json({ success: false, error: 'Auth error: Invalid token' }, { status: 401 });
+    }
+    const admin = await mongoose.model('Admin').findById(decoded._id).lean() as any;
+    if (!admin || admin.sessionToken !== token) {
+      return NextResponse.json({ success: false, error: 'Auth error: Session expired or logged in elsewhere' }, { status: 401 });
+    }
   try {
     await connectDB();
     const body = await request.json();

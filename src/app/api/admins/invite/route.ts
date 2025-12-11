@@ -4,18 +4,18 @@ import Admin from '@/models/Admin';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import Role from '@/models/Role';
+import { sendEmail } from '@/utils/sendEmail';
+import { WELCOME_EMAIL_SUBJECT } from '@/utils/emailSubjects';
+import fs from 'fs';
+import path from 'path';
 
 // POST /api/admins/invite
+
 export async function POST(req: NextRequest) {
   await dbConnect();
   const body = await req.json();
-  const { name, email, roleId } = body;
+  const { name, email, roleId, _id } = body;
   if (!email || !name) return NextResponse.json({ success: false, message: 'name and email required' }, { status: 400 });
-
-  const existing = await Admin.findOne({ email: email.toLowerCase() });
-  if (existing) {
-    // If user exists, still allow re-sending invite by creating token
-  }
 
   // create or update admin with temp password and token
   const token = crypto.randomBytes(20).toString('hex');
@@ -27,25 +27,40 @@ export async function POST(req: NextRequest) {
     if (!r) return NextResponse.json({ success: false, message: 'Invalid role' }, { status: 400 });
   }
 
-  const tempPassword = crypto.randomBytes(8).toString('hex');
-  const hashed = await bcrypt.hash(tempPassword, 10);
-
-  const payload: any = {
-    name,
-    email: email.toLowerCase(),
-    password: hashed,
-    roleId: roleId || null,
-    resetPasswordToken: token,
-    resetPasswordExpires: expires,
-    isActive: true,
-  };
-
-  let upserted: any = await Admin.findOneAndUpdate(
-    { email: email.toLowerCase() },
-    { $set: payload },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  ).lean();
-  if (Array.isArray(upserted)) upserted = upserted[0];
+  let upserted: any = null;
+  if (_id) {
+    // Update by _id (edit case)
+    upserted = await Admin.findByIdAndUpdate(
+      _id,
+      {
+        $set: {
+          name,
+          email: email.toLowerCase(),
+          roleId: roleId || null,
+        },
+      },
+      { new: true }
+    ).lean();
+  } else {
+    // Invite or upsert by email (create case)
+    const tempPassword = crypto.randomBytes(8).toString('hex');
+    const hashed = await bcrypt.hash(tempPassword, 10);
+    const payload: any = {
+      name,
+      email: email.toLowerCase(),
+      password: hashed,
+      roleId: roleId || null,
+      resetPasswordToken: token,
+      resetPasswordExpires: expires,
+      isActive: true,
+    };
+    upserted = await Admin.findOneAndUpdate(
+      { email: email.toLowerCase() },
+      { $set: payload },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).lean();
+    if (Array.isArray(upserted)) upserted = upserted[0];
+  }
 
   // If roleId is present, try to populate role name for convenience
   let roleName: string | null = null;
@@ -59,15 +74,49 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Create invite URL (development: return in response)
+  // Create invite URL
   const base = process.env.NEXT_PUBLIC_BASE_URL || '';
   const inviteUrl = `${base}/set-Password/${token}`;
 
-  // TODO: send email via configured SMTP/service. For now return inviteUrl in response.
+
+  // Choose template based on create or update
+  let templateFile = '';
+  if (_id) {
+    templateFile = 'resetPassword.html';
+  } else {
+    templateFile = 'firstTimeSetPassword.html';
+  }
+  const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+  const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+  const contentPath = path.join(process.cwd(), 'src/app/api/admin/html-templates', templateFile);
+  let html = '';
+  try {
+    const header = fs.readFileSync(headerPath, 'utf8');
+    const content = fs.readFileSync(contentPath, 'utf8').replace(/{{inviteUrl}}/g, inviteUrl);
+    const footer = fs.readFileSync(footerPath, 'utf8');
+    html = header + content + footer;
+  } catch (err) {
+    // ignore
+  }
+
+  // Send email if SMTP configured
+  let sent = false;
+  let sendError: string | null = null;
+  const mailRes = await sendEmail({
+    to: upserted?.email,
+    subject: WELCOME_EMAIL_SUBJECT,
+    html,
+  });
+  if (mailRes.success) sent = true;
+  else sendError = mailRes.message || 'Failed to send';
+
   const adminResp: any = { id: upserted?._id, email: upserted?.email };
-  // Always include roleId key (string or null) so client can rely on its presence
   adminResp.roleId = (upserted && (upserted as any).roleId) ? String((upserted as any).roleId) : null;
   adminResp.roleName = roleName || null;
 
-  return NextResponse.json({ success: true, message: 'Invite created', data: { inviteUrl, admin: adminResp } });
+  return NextResponse.json({
+    success: true,
+    message: 'Invite created',
+    data: { inviteUrl, admin: adminResp, sent, sendError }
+  });
 }

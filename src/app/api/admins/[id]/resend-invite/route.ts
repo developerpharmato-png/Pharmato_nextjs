@@ -1,19 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import Admin from '@/models/Admin';
-import crypto from 'crypto';
+import { NextRequest, NextResponse } from "next/server";
+import dbConnect from "@/lib/mongodb";
+import Admin from "@/models/Admin";
+import crypto from "crypto";
+import { sendEmail } from "@/utils/sendEmail";
+import { WELCOME_EMAIL_SUBJECT } from "@/utils/emailSubjects";
+import fs from 'fs';
+import path from 'path';
 
 async function sendMail(to: string, subject: string, html: string) {
   const host = process.env.SMTP_HOST;
-  const port = Number(process.env.SMTP_PORT || '0');
+  const port = Number(process.env.SMTP_PORT || "0");
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
-  if (!host || !port || !user || !pass) return { success: false, message: 'SMTP not configured' };
+  if (!host || !port || !user || !pass)
+    return { success: false, message: "SMTP not configured" };
 
   // dynamically import nodemailer only when SMTP is configured
-  const nodemailerMod = await import('nodemailer');
-  const createTransport = (nodemailerMod && (nodemailerMod.createTransport || nodemailerMod.default?.createTransport)) as any;
-  if (!createTransport) return { success: false, message: 'nodemailer unavailable' };
+  const nodemailerMod = await import("nodemailer");
+  const createTransport = (nodemailerMod &&
+    (nodemailerMod.createTransport ||
+      nodemailerMod.default?.createTransport)) as any;
+  if (!createTransport)
+    return { success: false, message: "nodemailer unavailable" };
 
   const transporter = createTransport({
     host,
@@ -26,7 +34,10 @@ async function sendMail(to: string, subject: string, html: string) {
   return { success: true };
 }
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   await dbConnect();
   const { id } = await params;
   if (!id) return NextResponse.json({ success: false, message: 'id required' }, { status: 400 });
@@ -45,20 +56,35 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const base = process.env.NEXT_PUBLIC_BASE_URL || '';
   const inviteUrl = `${base}/set-Password/${token}`;
 
+
+
+  const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+  const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+  const contentPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/resetPassword.html');
+  let html = '';
+  try {
+    const header = fs.readFileSync(headerPath, 'utf8');
+    const content = fs.readFileSync(contentPath, 'utf8').replace(/{{inviteUrl}}/g, inviteUrl);
+    const footer = fs.readFileSync(footerPath, 'utf8');
+    html = header + content + footer;
+  } catch (err) {
+    // ignore
+  }
+
   // try to send mail if SMTP configured
   let sent = false;
   let sendError: string | null = null;
-  try {
-    const mailRes = await sendMail(
-      admin.email,
-      'Set your admin password',
-      `<p>Hello ${admin.name || ''},</p><p>Please set your password using the following link (valid for 15 minutes):</p><p><a href="${inviteUrl}">${inviteUrl}</a></p>`
-    );
-    if (mailRes.success) sent = true;
-    else sendError = mailRes.message || 'Failed to send';
-  } catch (e: any) {
-    sendError = e?.message || String(e);
-  }
+  const mailRes = await sendEmail({
+    to: admin.email,
+    subject: WELCOME_EMAIL_SUBJECT,
+    html,
+  });
+  if (mailRes.success) sent = true;
+  else sendError = mailRes.message || 'Failed to send';
 
-  return NextResponse.json({ success: true, message: 'Reset token created', data: { inviteUrl, sent, sendError } });
+  return NextResponse.json({
+    success: true,
+    message: 'Please check your email to set your password.',
+    data: { inviteUrl, sent, sendError }
+  });
 }

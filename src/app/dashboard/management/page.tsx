@@ -1,4 +1,5 @@
 "use client";
+import { customPost, customGet } from "../BaseURL/CustomNetwork";
 import React, { useEffect, useState } from "react";
 import HeaderWithAction from "../components/HeaderWithAction";
 import { CustomTable, Column } from "../components/CustomTable";
@@ -6,6 +7,7 @@ import { showConfirmStatusAlert } from "../components/ConfirmStatusAlert";
 import AdminForm from "./AdminForm";
 import { Edit2Icon, EditIcon, Trash2 } from "lucide-react";
 import { CustomButton } from "../components/miniComponents";
+import Swal from "sweetalert2";
 
 type Admin = {
   _id: string;
@@ -44,11 +46,10 @@ export default function ManagementPage() {
   async function fetchAdmins() {
     setLoading(true);
     try {
-      const res = await fetch(
+      const res = await customGet(
         `/api/admins?page=${page + 1}&limit=${rowsPerPage}`
       );
-      if (!res.ok) throw new Error("Failed to load admins");
-      const json = await res.json();
+      const json = res.data;
       setAdmins(json.data || []);
       setTotalCount(json.totalCount ?? (json.data || []).length);
     } catch (err) {
@@ -73,39 +74,10 @@ export default function ManagementPage() {
   }, [search]);
 
   async function resendInvite(id: string) {
-    // Open a blank tab immediately to avoid popup blockers, then navigate when we have the URL
-    const popup =
-      typeof window !== "undefined" ? window.open("", "_blank") : null;
-    try {
-      const res = await fetch(`/api/admins/${id}/resend-invite`, {
-        method: "POST",
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        if (popup) popup.close();
-        throw new Error(json?.message || "Failed to create reset token");
-      }
-      const { inviteUrl, sent, sendError } = json.data || {};
-      if (inviteUrl && popup) {
-        try {
-          // navigate the previously opened tab to the invite URL
-          popup.location.href = inviteUrl;
-        } catch (e) {
-          // fallback: open a new tab
-          window.open(inviteUrl, "_blank");
-        }
-      }
-
-      if (sent) {
-        // notify user
-        alert("Reset email sent");
-      } else if (!inviteUrl) {
-        alert(`Note: email not sent (${sendError || "SMTP not configured"})`);
-      }
-    } catch (err: any) {
-      if (popup) popup.close();
-      alert(err?.message || "Failed to send reset link");
-    }
+    const admin = admins.find((a) => a._id === id);
+    await customPost(`/api/admins/${id}/resend-invite`, {
+      email: admin?.email,
+    });
   }
 
   async function toggleActive(id: string, isActive?: boolean) {
@@ -197,10 +169,16 @@ export default function ManagementPage() {
   }) {
     try {
       if (editing && editing._id) {
-        const res = await fetch(`/api/admins/${editing._id}`, {
-          method: "PATCH",
+        // Use POST to /api/admins/invite for editing as well, including email
+        const res = await fetch("/api/admins/invite", {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: values.name, roleId: values.roleId }),
+          body: JSON.stringify({
+            name: values.name,
+            email: values.email, // always include email
+            roleId: values.roleId,
+            _id: editing._id, // pass _id to indicate update
+          }),
         });
         if (!res.ok) throw new Error("Update failed");
         const json = await res.json();
@@ -214,7 +192,7 @@ export default function ManagementPage() {
           body: JSON.stringify({
             name: values.name,
             email: values.email,
-            roleId: values.roleId,
+            roleId: values.roleId,  
           }),
         });
         if (!res.ok) throw new Error("Invite failed");
@@ -355,7 +333,7 @@ export default function ManagementPage() {
                 email: editing.email,
                 roleId: editing.roleId,
               }
-            : undefined  
+            : undefined
         }
         roles={roles}
         editing={!!editing}
