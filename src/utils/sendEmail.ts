@@ -30,7 +30,7 @@ export async function sendEmail({ to, subject, html }: {
         const info = await transporter.sendMail(mailOptions);
         console.log('Message sent: %s', info.messageId);
         return { success: true, info };
-    } catch (error) {
+    } catch (error: any) {
         console.error('Email send error:', error);
         return { success: false, message: error?.message || String(error) };
     }
