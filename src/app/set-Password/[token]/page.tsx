@@ -231,7 +231,7 @@ export default function SetPasswordPage() {
                                 {({ isSubmitting, status: formikStatus }) => (
                                     <Form className="mt-8 space-y-5">
                                         {/* Password Field */}
-                                        <div>
+                                         <div>
                                             <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
                                                 New Password
                                             </label>

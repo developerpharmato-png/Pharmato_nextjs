@@ -169,10 +169,16 @@ export default function ManagementPage() {
   }) {
     try {
       if (editing && editing._id) {
-        const res = await fetch(`/api/admins/${editing._id}`, {
-          method: "PATCH",
+        // Use POST to /api/admins/invite for editing as well, including email
+        const res = await fetch("/api/admins/invite", {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: values.name, roleId: values.roleId }),
+          body: JSON.stringify({
+            name: values.name,
+            email: values.email, // always include email
+            roleId: values.roleId,
+            _id: editing._id, // pass _id to indicate update
+          }),
         });
         if (!res.ok) throw new Error("Update failed");
         const json = await res.json();
