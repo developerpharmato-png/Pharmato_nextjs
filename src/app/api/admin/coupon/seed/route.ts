@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
                 totalUses: null,
                 perUserLimit: 2,
                 isActive: true,
+                isSecret: false,
                 isStackable: false
             },
             {
@@ -59,11 +60,16 @@ export async function POST(request: NextRequest) {
                 totalUses: 10000,
                 perUserLimit: 1,
                 isActive: true,
+                isSecret: false,
                 isStackable: false
             }
         ];
-        const result = await Coupon.insertMany(dummyCoupons, { ordered: false });
-        return NextResponse.json({ success: true, insertedCount: result.length });
+        let insertedCount = 0;
+        for (const coupon of dummyCoupons) {
+            await Coupon.create(coupon);
+            insertedCount++;
+        }
+        return NextResponse.json({ success: true, insertedCount });
     } catch (error: any) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }

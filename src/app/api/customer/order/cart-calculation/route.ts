@@ -21,6 +21,9 @@ import mongoose from 'mongoose';
  *               userId:
  *                 type: string
  *                 description: User's ObjectId
+ *               discount:
+ *                 type: number
+ *                 description: Discount amount to apply (optional)
  *     responses:
  *       200:
  *         description: Calculation data returned
@@ -36,7 +39,9 @@ import mongoose from 'mongoose';
  *                 data:
  *                   type: object
  *                   properties:
- *                     priceTotalSum:
+ *                     priceTotalSumBeforeDiscount:
+ *                       type: number
+ *                     priceTotalSumAfterDiscount:
  *                       type: number
  *                     mrpTotalSum:
  *                       type: number
@@ -65,10 +70,11 @@ import mongoose from 'mongoose';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { userId } = await req.json();
+    const { userId, discount } = await req.json();
     if (!userId || typeof userId !== 'string') {
         return NextResponse.json({ success: false, message: 'userId is required' }, { status: 400 });
     }
+    const discountValue = typeof discount === 'number' && discount > 0 ? discount : 0;
     // Aggregate cart data for user
     const cartData = await Cart.aggregate([
         { $match: { userId: new mongoose.Types.ObjectId(userId) } },
@@ -124,18 +130,21 @@ export async function POST(req: NextRequest) {
         medicineQuantity.push({ medicineId: `${element.medicine._id}`, quantity: Number(element.quantity) });
     }
 
-    const priceTotalSum = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
+    const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
     const mrpTotalSum = cartData.reduce((sum, item) => sum + (item.medicine.mrp * item.quantity), 0);
     const platformFee = Number(calculationData.platformFeeInRupees) + (Number(calculationData.platformFeeInRupees) * Number(calculationData.platformFeeGstInPercent)) / 100;
-    calculationData.priceTotalSum = priceTotalSum;
+    calculationData.priceTotalSumBeforeDiscount = priceTotalSumBeforeDiscount;
     calculationData.mrpTotalSum = mrpTotalSum;
     calculationData.platformFee = platformFee;
-    const userTotalCharged = priceTotalSum + platformFee;
+    // Apply discount to priceTotalSum
+    const priceTotalSumAfterDiscount = Math.max(0, priceTotalSumBeforeDiscount - discountValue);
+    calculationData.priceTotalSumAfterDiscount = priceTotalSumAfterDiscount;
+    const userTotalCharged = priceTotalSumAfterDiscount + platformFee;
     const razorPayCommissionAmount = (userTotalCharged * Number(calculationData.razorPayCommissionInPercent)) / 100;
     const razorPayCommissionGstAmount = (razorPayCommissionAmount * Number(calculationData.razorPayCommissionGstInPercent)) / 100;
     calculationData.razorPayCommissionAmount = razorPayCommissionAmount;
     calculationData.razorPayCommissionGstAmount = razorPayCommissionGstAmount;
-    const totalOrderAmount = userTotalCharged + razorPayCommissionAmount + razorPayCommissionGstAmount;
+    let totalOrderAmount = userTotalCharged + razorPayCommissionAmount + razorPayCommissionGstAmount;
     calculationData.totalOrderAmount = totalOrderAmount;
     calculationData.medicineId = medicineId;
     calculationData.medicineQuantity = medicineQuantity;
