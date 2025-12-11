@@ -30,6 +30,8 @@ type Medicine = any;
 export default function EditFormClient({ id }: { id?: string }) {
   const params = useParams();
   const router = useRouter();
+
+  
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error";
@@ -303,6 +305,7 @@ export default function EditFormClient({ id }: { id?: string }) {
       "image/svg+xml",
     ];
     const maxSize = 5 * 1024 * 1024;
+    setUploading(true);
     const currentCount = form.images.length;
     if (currentCount >= 5) {
       Swal.fire({
@@ -584,12 +587,8 @@ export default function EditFormClient({ id }: { id?: string }) {
               openSlider={(index: number) => {
                 console.log(`Opening slider for image at index: ${index}`);
               }}
-              uploading={false} // Added default value for `uploading`
-              handleFileChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                if (event.target.files && event.target.files[0]) {
-                  console.log(`File uploaded: ${event.target.files[0].name}`);
-                }
-              }} // Corrected parameter type for `handleFileChange`
+              uploading={uploading} 
+              handleFileChange={handleFileChange} 
               setPrimaryImage={(url: string) => {
                 console.log(`Primary image set to URL: ${url}`);
               }} // Corrected parameter type for `setPrimaryImage`
