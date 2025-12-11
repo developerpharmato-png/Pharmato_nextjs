@@ -57,12 +57,19 @@ export async function POST(
   const inviteUrl = `${base}/set-Password/${token}`;
 
 
-  const templatePath = path.join(process.cwd(), 'src/app/api/admin/html-templates/resetPassword.html');
+
+  const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+  const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+  const contentPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/resetPassword.html');
   let html = '';
   try {
-    html = fs.readFileSync(templatePath, 'utf8').replace(/{{inviteUrl}}/g, inviteUrl);
+    const header = fs.readFileSync(headerPath, 'utf8');
+    const content = fs.readFileSync(contentPath, 'utf8').replace(/{{inviteUrl}}/g, inviteUrl);
+    const footer = fs.readFileSync(footerPath, 'utf8');
+    html = header + content + footer;
   } catch (err) {
-      }
+    // ignore
+  }
 
   // try to send mail if SMTP configured
   let sent = false;
