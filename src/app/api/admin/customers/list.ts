@@ -26,7 +26,9 @@ import dbConnect from '@/lib/mongodb';
  *                   items:
  *                     type: object
  */
+
 export async function GET() {
+    
     await dbConnect();
     const customers = await User.find({}).lean();
     // Ensure walletAmount is present for all

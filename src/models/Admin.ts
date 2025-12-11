@@ -8,6 +8,7 @@ export interface IAdmin extends Document {
     isActive?: boolean;
     resetPasswordToken?: string | null;
     resetPasswordExpires?: Date | null;
+    sessionToken?: string | null;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -30,6 +31,7 @@ const AdminSchema = new Schema<IAdmin>({
     isActive: { type: Boolean, default: true },
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
+    sessionToken: { type: String, default: null },
 }, {
     timestamps: true,
 });
