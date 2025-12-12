@@ -9,6 +9,7 @@ export interface IUserOrGuestCouponUsage {
 
 
 export interface ICoupon extends Document {
+    uniqueCode?: string;
     code: string;
     title: string;
     description: string;
@@ -28,11 +29,15 @@ export interface ICoupon extends Document {
     usersOrGuestsUsed: IUserOrGuestCouponUsage[];
     isActive: boolean;
     isStackable: boolean;
+    isSecret: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
 
 const CouponSchema = new Schema<ICoupon>({
+    uniqueCode: {
+        type: String
+    },
     code: { type: String, required: true },
     title: { type: String, required: true },
     description: { type: String, default: '' },
@@ -58,8 +63,21 @@ const CouponSchema = new Schema<ICoupon>({
     ],
     isActive: { type: Boolean, default: true },
     isStackable: { type: Boolean, default: false },
+    isSecret: { type: Boolean, default: false },
 }, {
     timestamps: true,
+});
+
+// Auto-increment uniqueCode on new medicine creation (count-based) before save
+CouponSchema.pre('save', async function (next) {
+    // @ts-ignore
+    if (this.isNew && !this.uniqueCode) {
+        const Coupon = mongoose.models.Coupon || mongoose.model<ICoupon>('Coupon', CouponSchema);
+        const count = await Coupon.countDocuments();
+        // @ts-ignore
+        this.uniqueCode = `CO-${count + 1}`;
+    }
+    next();
 });
 
 export default mongoose.models.Coupon || mongoose.model<ICoupon>('Coupon', CouponSchema);
