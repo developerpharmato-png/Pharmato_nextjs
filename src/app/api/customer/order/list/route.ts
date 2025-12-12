@@ -41,6 +41,33 @@ export async function POST(req: NextRequest) {
     if (!userId || typeof userId !== 'string') {
         return NextResponse.json({ status: false, message: 'userId is required' }, { status: 400 });
     }
-    const orders = await Order.find({ userId }).sort({ createdAt: -1 });
-    return NextResponse.json({ status: true, data: orders });
+    const orders = await Order.find({ userId })
+        .sort({ createdAt: -1 })
+        .populate({
+            path: 'medicineId',
+            select: '_id name manufacturer mrp price discount images coverImage'
+        });
+
+    // Attach quantity to each medicine in medicineId for every order
+    const ordersWithQuantities = Array.isArray(orders)
+        ? orders.map(order => {
+            const medicineQuantities = Array.isArray(order.medicineQuantity) ? order.medicineQuantity : [];
+            const medicineIdWithQuantity = Array.isArray(order.medicineId)
+                ? order.medicineId.map((med: any) => {
+                    const q = medicineQuantities.find((qty: any) => {
+                        return (qty.medicineId?.toString && med._id?.toString && qty.medicineId.toString() === med._id.toString());
+                    });
+                    return {
+                        ...med.toObject(),
+                        quantity: q?.quantity || 1
+                    };
+                })
+                : [];
+            const orderObj = order.toObject();
+            orderObj.medicineId = medicineIdWithQuantity;
+            return orderObj;
+        })
+        : [];
+
+    return NextResponse.json({ status: true, data: ordersWithQuantities });
 }

@@ -42,9 +42,32 @@ export async function POST(req: NextRequest) {
     if (!userId || typeof userId !== 'string' || !orderId || typeof orderId !== 'string') {
         return NextResponse.json({ status: false, message: 'userId and orderId are required' }, { status: 400 });
     }
-    const order = await Order.findOne({ _id: orderId, userId });
+    const order = await Order.findOne({ _id: orderId, userId }).populate({
+        path: 'medicineId',
+        select: '_id name manufacturer mrp price discount images coverImage'
+    });
     if (!order) {
         return NextResponse.json({ status: false, message: 'Order not found' }, { status: 404 });
     }
-    return NextResponse.json({ status: true, data: order });
+
+    // Attach medicineQuantity to each medicine in medicineId
+    const medicineQuantities = Array.isArray(order.medicineQuantity) ? order.medicineQuantity : [];
+    const medicineIdWithQuantity = Array.isArray(order.medicineId)
+        ? order.medicineId.map((med: any) => {
+            // Find the quantity object for this medicine
+            const q = medicineQuantities.find((qty: any) => {
+                // qty.medicineId may be string or ObjectId
+                return (qty.medicineId?.toString && med._id?.toString && qty.medicineId.toString() === med._id.toString());
+            });
+            return {
+                ...med.toObject(),
+                quantity: q?.quantity || 1 // fallback to 1 if not found
+            };
+        })
+        : [];
+
+    // Return order with updated medicineId array
+    const orderObj = order.toObject();
+    orderObj.medicineId = medicineIdWithQuantity;
+    return NextResponse.json({ status: true, data: orderObj });
 }
