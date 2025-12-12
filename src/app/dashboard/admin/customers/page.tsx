@@ -90,12 +90,12 @@ export default function AdminCustomerListPage() {
         </Link>
       ),
     },
-    {
-      id: "name",
-      label: "Name",
-      minWidth: 120,
-      selector: (row: Customer) => row.name || <span className="text-gray-400">-</span>,
-    },
+    // {
+    //   id: "name",
+    //   label: "Name",
+    //   minWidth: 120,
+    //   selector: (row: Customer) => row.name || <span className="text-gray-400">-</span>,
+    // },
     {
       id: "email",
       label: "Email",
@@ -196,6 +196,7 @@ export default function AdminCustomerListPage() {
         showSearch={false}
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
+        isunsaved={false}
       />
       <FilterSearch
         onChange={({ search, status }) => {
