@@ -51,8 +51,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // AGGREGATE PIPELINE (FULL CART WITH MEDICINE DETAILS, SELECTED FIELDS)
-        const cart = await Cart.aggregate([
+
+        // Get cart with medicine details
+        const cartAgg = await Cart.aggregate([
             {
                 $match: {
                     userId: new mongoose.Types.ObjectId(userId)
@@ -65,63 +66,66 @@ export async function POST(request: NextRequest) {
                     foreignField: "_id",
                     as: "medicines"
                 }
-            },
-            {
-                $addFields: {
-                    items: {
-                        $map: {
-                            input: "$items",
-                            as: "item",
-                            in: {
-                                quantity: "$$item.quantity",
-                                _id: "$$item._id",
-                                medicineId: {
-                                    $let: {
-                                        vars: {
-                                            med: {
-                                                $arrayElemAt: [
-                                                    {
-                                                        $filter: {
-                                                            input: "$medicines",
-                                                            as: "m",
-                                                            cond: { $eq: ["$$m._id", "$$item.medicineId"] }
-                                                        }
-                                                    },
-                                                    0
-                                                ]
-                                            }
-                                        },
-                                        in: {
-                                            _id: "$$med._id",
-                                            name: "$$med.name",
-                                            categoryId: "$$med.categoryId",
-                                            subCategoryId: "$$med.subCategoryId",
-                                            manufacturer: "$$med.manufacturer",
-                                            isPrescription: "$$med.isPrescription",
-                                            price: "$$med.price",
-                                            mrp: "$$med.mrp",
-                                            discount: "$$med.discount",
-                                            images: "$$med.images",
-                                            coverImage: "$$med.coverImage"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                $project: {
-                    medicines: 0
-                }
             }
         ]);
 
+        const cart = cartAgg?.[0] || null;
+        if (!cart) {
+            return NextResponse.json({ success: true, message: 'Cart fetched successfully', cart: null });
+        }
+
+        // Build medicineId -> cart quantity map
+        const cartQuantityMap: Record<string, number> = {};
+        for (const item of cart.items) {
+            cartQuantityMap[item.medicineId.toString()] = item.quantity;
+        }
+
+        // Attach medicine details and crossSellProducts
+        const medicines = cart.medicines || [];
+        const itemsWithDetails = await Promise.all(cart.items.map(async (item: any) => {
+            const med = medicines.find((m: any) => m._id.toString() === item.medicineId.toString());
+            let crossSellProducts = [];
+            if (med && med.crossSellProducts && Array.isArray(med.crossSellProducts) && med.crossSellProducts.length > 0) {
+                // Fetch crossSellProducts details
+                const crossSellIds = med.crossSellProducts.map((id: any) => new mongoose.Types.ObjectId(id));
+                const crossSellMeds = await mongoose.model('Medicine').find({ _id: { $in: crossSellIds } },
+                    '_id name manufacturer mrp price images discount').lean();
+                crossSellProducts = crossSellMeds.map((prod: any) => {
+                    const inCart = cartQuantityMap[prod._id.toString()] || 0;
+                    return {
+                        ...prod,
+                        isInCart: inCart > 0,
+                        cartQuantity: inCart
+                    };
+                });
+            }
+            return {
+                ...item,
+                medicineId: med ? {
+                    _id: med._id,
+                    name: med.name,
+                    categoryId: med.categoryId,
+                    subCategoryId: med.subCategoryId,
+                    manufacturer: med.manufacturer,
+                    isPrescription: med.isPrescription,
+                    price: med.price,
+                    mrp: med.mrp,
+                    discount: med.discount,
+                    images: med.images,
+                    coverImage: med.coverImage
+                } : item.medicineId,
+                crossSellProducts
+            };
+        }));
+
         return NextResponse.json({
             success: true,
-        message: 'Cart fetched successfully',
-            cart: cart?.[0] || null
+            message: 'Cart fetched successfully',
+            cart: {
+                ...cart,
+                items: itemsWithDetails,
+                medicines: undefined // remove medicines array from response
+            }
         });
 
     } catch (err: any) {
