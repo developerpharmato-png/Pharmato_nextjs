@@ -77,27 +77,29 @@ export async function POST(request: NextRequest) {
             for (const item of cart.items) {
                 cartQuantityMap[item.medicineId._id?.toString?.() || item.medicineId.toString()] = item.quantity;
             }
-            // Attach crossSellProducts
-            const itemsWithCrossSell = await Promise.all(cart.items.map(async (item: any) => {
-                let crossSellProducts = [];
-                if (item.medicineId.crossSellProducts && Array.isArray(item.medicineId.crossSellProducts) && item.medicineId.crossSellProducts.length > 0) {
-                    const crossSellIds = item.medicineId.crossSellProducts.map((id: any) => id.toString());
-                    const crossSellMeds = await Medicine.find({ _id: { $in: crossSellIds } }, '_id name manufacturer mrp price images discount').lean();
-                    crossSellProducts = crossSellMeds.map((prod: any) => {
-                        const inCart = cartQuantityMap[prod._id.toString()] || 0;
-                        return {
-                            ...prod,
-                            isInCart: inCart > 0,
-                            cartQuantity: inCart
-                        };
-                    });
+            // Collect all crossSellProduct IDs from all medicines in the cart
+            const allCrossSellIdsSet = new Set<string>();
+            for (const item of cart.items) {
+                if (item.medicineId.crossSellProducts && Array.isArray(item.medicineId.crossSellProducts)) {
+                    item.medicineId.crossSellProducts.forEach((id: any) => allCrossSellIdsSet.add(id.toString()));
                 }
-                return {
-                    ...item.toObject(),
-                    crossSellProducts
-                };
-            }));
-            return NextResponse.json({ success: true, cart: { ...cart.toObject(), items: itemsWithCrossSell } });
+            }
+            const allCrossSellIds = Array.from(allCrossSellIdsSet);
+            let allCrossSellProducts: any[] = [];
+            if (allCrossSellIds.length > 0) {
+                const crossSellMeds = await Medicine.find({ _id: { $in: allCrossSellIds } }, '_id name manufacturer mrp price images discount').lean();
+                allCrossSellProducts = crossSellMeds.map((prod: any) => {
+                    const inCart = cartQuantityMap[prod._id.toString()] || 0;
+                    return {
+                        ...prod,
+                        isInCart: inCart > 0,
+                        cartQuantity: inCart
+                    };
+                }).filter((prod: any) => !prod.isInCart);
+            }
+            // Items array remains unchanged except for .toObject()
+            const itemsWithoutCrossSell = cart.items.map((item: any) => item.toObject());
+            return NextResponse.json({ success: true, cart: { ...cart.toObject(), items: itemsWithoutCrossSell, crossSellProducts: allCrossSellProducts } });
         }
         // Only add if quantity is positive
         if (quantity > 0) {
@@ -112,27 +114,29 @@ export async function POST(request: NextRequest) {
             for (const item of cart.items) {
                 cartQuantityMap[item.medicineId._id?.toString?.() || item.medicineId.toString()] = item.quantity;
             }
-            // Attach crossSellProducts
-            const itemsWithCrossSell = await Promise.all(cart.items.map(async (item: any) => {
-                let crossSellProducts = [];
-                if (item.medicineId.crossSellProducts && Array.isArray(item.medicineId.crossSellProducts) && item.medicineId.crossSellProducts.length > 0) {
-                    const crossSellIds = item.medicineId.crossSellProducts.map((id: any) => id.toString());
-                    const crossSellMeds = await Medicine.find({ _id: { $in: crossSellIds } }, '_id name manufacturer mrp price images discount').lean();
-                    crossSellProducts = crossSellMeds.map((prod: any) => {
-                        const inCart = cartQuantityMap[prod._id.toString()] || 0;
-                        return {
-                            ...prod,
-                            isInCart: inCart > 0,
-                            cartQuantity: inCart
-                        };
-                    });
+            // Collect all crossSellProduct IDs from all medicines in the cart
+            const allCrossSellIdsSet = new Set<string>();
+            for (const item of cart.items) {
+                if (item.medicineId.crossSellProducts && Array.isArray(item.medicineId.crossSellProducts)) {
+                    item.medicineId.crossSellProducts.forEach((id: any) => allCrossSellIdsSet.add(id.toString()));
                 }
-                return {
-                    ...item.toObject(),
-                    crossSellProducts
-                };
-            }));
-            return NextResponse.json({ success: true, message: 'Cart Updated', cart: { ...cart.toObject(), items: itemsWithCrossSell } });
+            }
+            const allCrossSellIds = Array.from(allCrossSellIdsSet);
+            let allCrossSellProducts: any[] = [];
+            if (allCrossSellIds.length > 0) {
+                const crossSellMeds = await Medicine.find({ _id: { $in: allCrossSellIds } }, '_id name manufacturer mrp price images discount').lean();
+                allCrossSellProducts = crossSellMeds.map((prod: any) => {
+                    const inCart = cartQuantityMap[prod._id.toString()] || 0;
+                    return {
+                        ...prod,
+                        isInCart: inCart > 0,
+                        cartQuantity: inCart
+                    };
+                });
+            }
+            // Items array remains unchanged except for .toObject()
+            const itemsWithoutCrossSell = cart.items.map((item: any) => item.toObject());
+            return NextResponse.json({ success: true, message: 'Cart Updated', cart: { ...cart.toObject(), items: itemsWithoutCrossSell, crossSellProducts: allCrossSellProducts } });
         }
         return NextResponse.json({ success: false, error: 'Item not found in cart and quantity is negative' }, { status: 404 });
     } catch (error) {
