@@ -118,25 +118,33 @@ export async function POST(request: NextRequest) {
         cartQuantityMap[item.medicineId.toString()] = item.quantity;
     }
 
-    // Attach medicine details and crossSellProducts
+    // Attach medicine details and collect all unique crossSellProducts
     const medicines = cart.medicines || [];
+    // Collect all crossSellProduct IDs from all medicines in the cart
+    const allCrossSellIdsSet = new Set<string>();
+    for (const item of cart.items) {
+        const med = medicines.find((m: any) => m._id.toString() === item.medicineId.toString());
+        if (med && med.crossSellProducts && Array.isArray(med.crossSellProducts)) {
+            med.crossSellProducts.forEach((id: any) => allCrossSellIdsSet.add(id.toString()));
+        }
+    }
+    const allCrossSellIds = Array.from(allCrossSellIdsSet).map(id => new mongoose.Types.ObjectId(id));
+    let allCrossSellProducts: any[] = [];
+    if (allCrossSellIds.length > 0) {
+        const crossSellMeds = await mongoose.model('Medicine').find({ _id: { $in: allCrossSellIds } },
+            '_id name manufacturer mrp price images discount').lean();
+        allCrossSellProducts = crossSellMeds.map((prod: any) => {
+            const inCart = cartQuantityMap[prod._id.toString()] || 0;
+            return {
+                ...prod,
+                isInCart: inCart > 0,
+                cartQuantity: inCart
+            };
+        }).filter((prod: any) => !prod.isInCart);
+    }
+
     const itemsWithDetails = await Promise.all(cart.items.map(async (item: any) => {
         const med = medicines.find((m: any) => m._id.toString() === item.medicineId.toString());
-        let crossSellProducts = [];
-        if (med && med.crossSellProducts && Array.isArray(med.crossSellProducts) && med.crossSellProducts.length > 0) {
-            // Fetch crossSellProducts details
-            const crossSellIds = med.crossSellProducts.map((id: any) => new mongoose.Types.ObjectId(id));
-            const crossSellMeds = await mongoose.model('Medicine').find({ _id: { $in: crossSellIds } },
-                '_id name manufacturer mrp price images discount').lean();
-            crossSellProducts = crossSellMeds.map((prod: any) => {
-                const inCart = cartQuantityMap[prod._id.toString()] || 0;
-                return {
-                    ...prod,
-                    isInCart: inCart > 0,
-                    cartQuantity: inCart
-                };
-            });
-        }
         return {
             ...item,
             medicineId: med ? {
@@ -151,8 +159,7 @@ export async function POST(request: NextRequest) {
                 discount: med.discount,
                 images: med.images,
                 coverImage: med.coverImage
-            } : item.medicineId,
-            crossSellProducts
+            } : item.medicineId
         };
     }));
 
@@ -161,6 +168,7 @@ export async function POST(request: NextRequest) {
         cart: {
             ...cart,
             items: itemsWithDetails,
+            crossSellProducts: allCrossSellProducts,
             medicines: undefined // remove medicines array from response
         },
         message: 'Removed from Cart'
