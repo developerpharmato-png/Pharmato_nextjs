@@ -136,6 +136,7 @@ export async function POST(req: NextRequest) {
     calculationData.priceTotalSumBeforeDiscount = priceTotalSumBeforeDiscount;
     calculationData.mrpTotalSum = mrpTotalSum;
     calculationData.platformFee = platformFee;
+    calculationData.discount = discountValue;
     // Apply discount to priceTotalSum
     const priceTotalSumAfterDiscount = Math.max(0, priceTotalSumBeforeDiscount - discountValue);
     calculationData.priceTotalSumAfterDiscount = priceTotalSumAfterDiscount;

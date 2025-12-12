@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
         now.getMilliseconds().toString().padStart(3, '0');
     const orderID = `SB-ORDER-${uniqueNumber}`;
     const paymentId = `PAYID-PNT-${uniqueNumber}M`;
+    const discount = calculationData.discount || 0;
     const userTotalTaxCharged = calculationData.platformFee || 0;
     const totalOrderAmount = calculationData.totalOrderAmount || 0;
     const razorPayCommissionAmount = calculationData.razorPayCommissionAmount || 0;
@@ -110,10 +111,11 @@ export async function POST(req: NextRequest) {
         medicineId,
         payment_mode: calculationData.payment_mode || 'online',
         total_order_amount: totalOrderAmount,
-        actual_amount: calculationData.priceTotalSum || 0,
+        actual_amount: calculationData.priceTotalSumBeforeDiscount || 0,
         user_total_tax_charged: userTotalTaxCharged,
         razorPay_total_tax_charged: totalAmountRazorPayCharged,
         platform_fee: calculationData.platformFee || 0,
+        discount: discount,
         order_id: orderID,
         invoice_url: '',
         payment_id: paymentId,

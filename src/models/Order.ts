@@ -9,6 +9,7 @@ export interface IOrder extends Document {
     user_total_tax_charged: number;
     razorPay_total_tax_charged: number;
     platform_fee: number;
+    discount: number; // Added discount field
     order_id: string;
     invoice_url: string;
     payment_id: string;
@@ -31,6 +32,7 @@ const OrderSchema = new Schema<IOrder>({
     user_total_tax_charged: { type: Number, default: 0 },
     razorPay_total_tax_charged: { type: Number, default: 0 },
     platform_fee: { type: Number, default: 0 },
+    discount: { type: Number, default: 0 }, // Added discount field
     order_id: { type: String, default: '' },
     invoice_url: { type: String, default: '' },
     payment_id: { type: String, default: '' },

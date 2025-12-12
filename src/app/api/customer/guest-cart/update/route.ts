@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
             await cart.save();
             cart = await GuestCart.findOne({ guestId }).populate({
                 path: 'items.medicineId',
-                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price images coverImage'
+                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount images coverImage'
             });
             return NextResponse.json({ success: true,message: 'Cart Updated', cart });
         }
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
             await cart.save();
             cart = await GuestCart.findOne({ guestId }).populate({
                 path: 'items.medicineId',
-                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price images coverImage'
+                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount images coverImage'
             });
             return NextResponse.json({ success: true, message: 'Cart Updated', cart });
         }

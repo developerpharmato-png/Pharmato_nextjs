@@ -95,6 +95,7 @@ export async function POST(request: NextRequest) {
                                         isPrescription: "$$med.isPrescription",
                                         price: "$$med.price",
                                         mrp: "$$med.mrp",
+                                        discount: "$$med.discount",
                                         images: "$$med.images",
                                         coverImage: "$$med.coverImage"
                                     }
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
     ]);
 
     return NextResponse.json({
-        success: true,        
+        success: true,
         message: 'Cart fetched successfully',
         cart: cart?.[0] || null
     });
