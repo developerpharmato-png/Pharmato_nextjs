@@ -69,6 +69,10 @@ export default function EditFormClient({ id }: { id?: string }) {
     unitInput: "",
     unit: "",
   });
+  useEffect(()=>{
+    console.log(form?.requiresPrescription,"isPrescription");
+    
+  },[])
   const [uploading, setUploading] = useState(false);
   const [composition, setComposition] = useState([{ name: "", value: "" }]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -155,7 +159,7 @@ export default function EditFormClient({ id }: { id?: string }) {
               : "",
             batchNumber: data.batchNumber ?? "",
             isOTC: data.isOTC ?? false,
-            requiresPrescription: data.requiresPrescription ?? true,
+            requiresPrescription: data.isPrescription ,
             images: Array.isArray(data.images) ? data.images : [],
             coverImage:
               data.coverImage ||
@@ -212,7 +216,7 @@ export default function EditFormClient({ id }: { id?: string }) {
     setForm((prev) => ({
       ...prev,
       isOTC: derivedOTC,
-      requiresPrescription: !derivedOTC,
+      // requiresPrescription: !derivedOTC,
     }));
   }, [form.categoryId, form.subCategoryId, categories, subcategories]);
 
@@ -497,6 +501,7 @@ export default function EditFormClient({ id }: { id?: string }) {
       subCategoryId: form.subCategoryId || undefined,
       coverImage: cover,
       finalUpdate: true,
+      isPrescription: form.requiresPrescription,
     };
     const res = fetch(`/api/medicines/${effectiveId}`, {
       method: "PUT",

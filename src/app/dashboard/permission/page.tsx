@@ -163,7 +163,7 @@ export default function PermissionPage() {
               </label>
               <select
                 id="role-select"
-                className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 transition duration-150 ease-in-out"
+                className=" border border-gray-300 p-3 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 transition duration-150 ease-in-out"
                 value={selectedRole || ""}
                 onChange={(e) => onRoleChange(e.target.value)}
               >
@@ -176,17 +176,7 @@ export default function PermissionPage() {
                   </option>
                 ))}
               </select>
-              {selectedRoleName && (
-                <p className="mt-3 text-sm text-gray-600">
-                  Permissions for:{" "}
-                  <strong className="text-green-700">{selectedRoleName}</strong>
-                  {isSuperAdmin && (
-                    <span className="ml-2 text-xs font-medium text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
-                      (Fixed Permissions - Full Access)
-                    </span>
-                  )}
-                </p>
-              )}
+            
             </>
           )}
         </div>
