@@ -28,6 +28,7 @@ export interface IMedicine {
     images: string[];
     highlights: string[];
     relatedProducts: mongoose.Types.ObjectId[];
+    crossSellProducts: mongoose.Types.ObjectId[];
     rating?: {
         average: number;
         count: number;
@@ -111,7 +112,7 @@ const MedicineSchema = new Schema<IMedicine>({
         default: 0,
         min: [0, 'Purchase price cannot be negative'],
     },
-    mrp: {
+    mrp: { 
         type: Number,
         default: 0,
         min: [0, 'MRP cannot be negative'],
@@ -157,6 +158,9 @@ const MedicineSchema = new Schema<IMedicine>({
         { type: String, default: '' }
     ],
     relatedProducts: [
+        { type: Schema.Types.ObjectId, ref: 'Medicine', default: null }
+    ],
+    crossSellProducts: [
         { type: Schema.Types.ObjectId, ref: 'Medicine', default: null }
     ],
     rating: {

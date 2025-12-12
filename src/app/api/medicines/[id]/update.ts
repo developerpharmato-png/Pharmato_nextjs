@@ -14,7 +14,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         delete update._id;
         delete update.createdAt;
         delete update.updatedAt;
-        // Update medicine
+        // Allow updating crossSellProducts
         const result = await Medicine.findByIdAndUpdate(id, update, { new: true });
         if (!result) {
             return NextResponse.json({ success: false, error: 'Medicine not found' }, { status: 404 });

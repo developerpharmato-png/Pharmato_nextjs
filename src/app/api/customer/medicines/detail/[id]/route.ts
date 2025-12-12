@@ -64,8 +64,6 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
             let isInCart = false;
             let cartQuantity = 0;
             if (userId && typeof userId === 'string' && userId.trim() !== "") {
-                // Find cart for this user
-                // (re-query for each product to ensure up-to-date info, or use cartItems if you want to optimize)
                 const cart = cartItems && Array.isArray(cartItems) ? cartItems : [];
                 const cartItem = cart.find((item: any) => item.medicineId?.toString() === prod._id?.toString());
                 isInCart = !!cartItem;
@@ -83,9 +81,36 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
             };
         });
     }
-    // Update relatedProducts in the medicine object itself
     if (medicine && Array.isArray(relatedProductsWithCart)) {
         medicine.relatedProducts = relatedProductsWithCart;
+    }
+
+    // Add isInCart and cartQuantity to each crossSellProduct (find separately for each)
+    let crossSellProductsWithCart = [];
+    if (medicine.crossSellProducts && Array.isArray(medicine.crossSellProducts)) {
+        crossSellProductsWithCart = medicine.crossSellProducts.map((prod: any) => {
+            let isInCart = false;
+            let cartQuantity = 0;
+            if (userId && typeof userId === 'string' && userId.trim() !== "") {
+                const cart = cartItems && Array.isArray(cartItems) ? cartItems : [];
+                const cartItem = cart.find((item: any) => item.medicineId?.toString() === prod._id?.toString());
+                isInCart = !!cartItem;
+                cartQuantity = cartItem ? cartItem.quantity : 0;
+            } else if (guestId && typeof guestId === 'string' && guestId.trim() !== "") {
+                const guestCart = cartItems && Array.isArray(cartItems) ? cartItems : [];
+                const cartItem = guestCart.find((item: any) => item.medicineId?.toString() === prod._id?.toString());
+                isInCart = !!cartItem;
+                cartQuantity = cartItem ? cartItem.quantity : 0;
+            }
+            return {
+                ...prod,
+                isInCart,
+                cartQuantity
+            };
+        });
+    }
+    if (medicine && Array.isArray(crossSellProductsWithCart)) {
+        medicine.crossSellProducts = crossSellProductsWithCart;
     }
     return NextResponse.json({
         success: true,
