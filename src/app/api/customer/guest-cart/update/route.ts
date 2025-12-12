@@ -64,9 +64,36 @@ export async function POST(request: NextRequest) {
             await cart.save();
             cart = await GuestCart.findOne({ guestId }).populate({
                 path: 'items.medicineId',
-                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount images coverImage'
+                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount images coverImage crossSellProducts'
             });
-            return NextResponse.json({ success: true,message: 'Cart Updated', cart });
+            // Build medicineId -> cart quantity map
+            const cartQuantityMap: Record<string, number> = {};
+            for (const item of cart.items) {
+                cartQuantityMap[item.medicineId._id?.toString?.() || item.medicineId.toString()] = item.quantity;
+            }
+            // Collect all crossSellProduct IDs from all medicines in the cart
+            const allCrossSellIdsSet = new Set<string>();
+            for (const item of cart.items) {
+                if (item.medicineId.crossSellProducts && Array.isArray(item.medicineId.crossSellProducts)) {
+                    item.medicineId.crossSellProducts.forEach((id: any) => allCrossSellIdsSet.add(id.toString()));
+                }
+            }
+            const allCrossSellIds = Array.from(allCrossSellIdsSet);
+            let allCrossSellProducts: any[] = [];
+            if (allCrossSellIds.length > 0) {
+                const crossSellMeds = await (await import('@/models/Medicine')).default.find({ _id: { $in: allCrossSellIds } }, '_id name manufacturer mrp price images discount').lean();
+                allCrossSellProducts = crossSellMeds.map((prod: any) => {
+                    const inCart = cartQuantityMap[prod._id.toString()] || 0;
+                    return {
+                        ...prod,
+                        isInCart: inCart > 0,
+                        cartQuantity: inCart
+                    };
+                }).filter((prod: any) => !prod.isInCart);
+            }
+            // Items array remains unchanged except for .toObject()
+            const itemsWithoutCrossSell = cart.items.map((item: any) => item.toObject());
+            return NextResponse.json({ success: true, message: 'Cart Updated', cart: { ...cart.toObject(), items: itemsWithoutCrossSell, crossSellProducts: allCrossSellProducts } });
         }
         // Only add if quantity is positive
         if (quantity > 0) {
@@ -74,9 +101,36 @@ export async function POST(request: NextRequest) {
             await cart.save();
             cart = await GuestCart.findOne({ guestId }).populate({
                 path: 'items.medicineId',
-                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount images coverImage'
+                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount images coverImage crossSellProducts'
             });
-            return NextResponse.json({ success: true, message: 'Cart Updated', cart });
+            // Build medicineId -> cart quantity map
+            const cartQuantityMap: Record<string, number> = {};
+            for (const item of cart.items) {
+                cartQuantityMap[item.medicineId._id?.toString?.() || item.medicineId.toString()] = item.quantity;
+            }
+            // Collect all crossSellProduct IDs from all medicines in the cart
+            const allCrossSellIdsSet = new Set<string>();
+            for (const item of cart.items) {
+                if (item.medicineId.crossSellProducts && Array.isArray(item.medicineId.crossSellProducts)) {
+                    item.medicineId.crossSellProducts.forEach((id: any) => allCrossSellIdsSet.add(id.toString()));
+                }
+            }
+            const allCrossSellIds = Array.from(allCrossSellIdsSet);
+            let allCrossSellProducts: any[] = [];
+            if (allCrossSellIds.length > 0) {
+                const crossSellMeds = await (await import('@/models/Medicine')).default.find({ _id: { $in: allCrossSellIds } }, '_id name manufacturer mrp price images discount').lean();
+                allCrossSellProducts = crossSellMeds.map((prod: any) => {
+                    const inCart = cartQuantityMap[prod._id.toString()] || 0;
+                    return {
+                        ...prod,
+                        isInCart: inCart > 0,
+                        cartQuantity: inCart
+                    };
+                }).filter((prod: any) => !prod.isInCart);
+            }
+            // Items array remains unchanged except for .toObject()
+            const itemsWithoutCrossSell = cart.items.map((item: any) => item.toObject());
+            return NextResponse.json({ success: true, message: 'Cart Updated', cart: { ...cart.toObject(), items: itemsWithoutCrossSell, crossSellProducts: allCrossSellProducts } });
         }
         return NextResponse.json({ success: false, error: 'Item not found in guest cart and quantity is negative' }, { status: 404 });
     } catch (error) {
