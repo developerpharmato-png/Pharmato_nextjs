@@ -21,6 +21,10 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
             path: 'relatedProducts',
             select: '_id name manufacturer mrp price images discount'
         })
+        .populate({
+            path: 'crossSellProducts',
+            select: '_id name manufacturer mrp price images discount'
+        })
         .lean();
     if (Array.isArray(medicine)) {
         medicine = medicine[0];
@@ -53,15 +57,29 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     isInCart = !!cartItem;
     cartQuantity = cartItem ? cartItem.quantity : 0;
 
-    // Add isInCart and cartQuantity to each relatedProduct (using same cartItems)
+    // Add isInCart and cartQuantity to each relatedProduct (find separately for each)
     let relatedProductsWithCart = [];
     if (medicine.relatedProducts && Array.isArray(medicine.relatedProducts)) {
         relatedProductsWithCart = medicine.relatedProducts.map((prod: any) => {
-            const cartItem = cartItems.find((item: any) => item.medicineId?.toString() === prod._id?.toString());
+            let isInCart = false;
+            let cartQuantity = 0;
+            if (userId && typeof userId === 'string' && userId.trim() !== "") {
+                // Find cart for this user
+                // (re-query for each product to ensure up-to-date info, or use cartItems if you want to optimize)
+                const cart = cartItems && Array.isArray(cartItems) ? cartItems : [];
+                const cartItem = cart.find((item: any) => item.medicineId?.toString() === prod._id?.toString());
+                isInCart = !!cartItem;
+                cartQuantity = cartItem ? cartItem.quantity : 0;
+            } else if (guestId && typeof guestId === 'string' && guestId.trim() !== "") {
+                const guestCart = cartItems && Array.isArray(cartItems) ? cartItems : [];
+                const cartItem = guestCart.find((item: any) => item.medicineId?.toString() === prod._id?.toString());
+                isInCart = !!cartItem;
+                cartQuantity = cartItem ? cartItem.quantity : 0;
+            }
             return {
                 ...prod,
-                isInCart: !!cartItem,
-                cartQuantity: cartItem ? cartItem.quantity : 0
+                isInCart,
+                cartQuantity
             };
         });
     }
