@@ -100,6 +100,7 @@ export async function POST(request: NextRequest) {
                                             isPrescription: "$$med.isPrescription",
                                             price: "$$med.price",
                                             mrp: "$$med.mrp",
+                                            discount: "$$med.discount",
                                             images: "$$med.images",
                                             coverImage: "$$med.coverImage"
                                         }
