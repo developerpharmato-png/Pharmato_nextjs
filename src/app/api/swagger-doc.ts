@@ -13,6 +13,7 @@ export async function GET() {
         apiFolder: 'src/app/api',
         schemaFolders: ['src/models'],
     });
+    return NextResponse.json(spec);
 }
 
 
