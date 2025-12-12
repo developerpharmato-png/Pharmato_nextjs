@@ -101,6 +101,10 @@ export async function GET(
             .populate({
                 path: 'relatedProducts',
                 select: '_id name manufacturer mrp price images discount'
+            })
+            .populate({
+                path: 'crossSellProducts',
+                select: '_id name manufacturer mrp price images discount'
             });
         if (!medicine) {
             return NextResponse.json(
@@ -135,6 +139,7 @@ export async function PUT(
         const body = await request.json();
         // Always set unit from body (if present)
         const update = { ...body, unit: body.unit || "" };
+            // Allow updating crossSellProducts
         delete update._id;
         delete update.createdAt;
         delete update.updatedAt;

@@ -16,15 +16,16 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
         return NextResponse.json({ success: false, message: 'Medicine id is required', data: null }, { status: 400 });
     }
 
-    let medicine = await Medicine.findById(id)
+    let medicineDoc = await Medicine.findById(id)
         .populate({
             path: 'relatedProducts',
             select: '_id name manufacturer mrp price images discount'
         })
-        .lean();
-    if (Array.isArray(medicine)) {
-        medicine = medicine[0];
-    }
+        .populate({
+            path: 'crossSellProducts',
+            select: '_id name manufacturer mrp price images discount'
+        });
+    let medicine = medicineDoc ? medicineDoc.toObject() : null;
     if (!medicine) {
         return NextResponse.json({ success: false, message: 'Medicine not found', data: null }, { status: 404 });
     }
@@ -65,9 +66,24 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
             };
         });
     }
-    // Update relatedProducts in the medicine object itself
     if (medicine && Array.isArray(relatedProductsWithCart)) {
         medicine.relatedProducts = relatedProductsWithCart;
+    }
+
+    // Add isInCart and cartQuantity to each crossSellProduct (using same cartItems)
+    let crossSellProductsWithCart = [];
+    if (medicine.crossSellProducts && Array.isArray(medicine.crossSellProducts)) {
+        crossSellProductsWithCart = medicine.crossSellProducts.map((prod: any) => {
+            const cartItem = cartItems.find((item: any) => item.medicineId?.toString() === prod._id?.toString());
+            return {
+                ...prod,
+                isInCart: !!cartItem,
+                cartQuantity: cartItem ? cartItem.quantity : 0
+            };
+        });
+    }
+    if (medicine && Array.isArray(crossSellProductsWithCart)) {
+        medicine.crossSellProducts = crossSellProductsWithCart;
     }
     return NextResponse.json({
         success: true,

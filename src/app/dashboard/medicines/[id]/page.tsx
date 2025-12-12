@@ -7,6 +7,7 @@ import HeaderWithAction from "../../components/HeaderWithAction";
 import { CustomButton } from "../../components/miniComponents";
 import MedicineDetailSkeleton from "../skeleton/MedicineDetailSkeleton";
 import ProductImageSlider from "../../components/ProductImageSlider";
+import CrossSellProductsPopup from "../components/CrossSellProductsPopup";
 
 type TabKey = "overview" | "pricing" | "inventory" | "composition" | "related";
 
@@ -19,6 +20,7 @@ export default function MedicineDetailPage() {
   const [showEditPopup, setShowEditPopup] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [showCrossSellPopup, setShowCrossSellPopup] = useState(false);
 
   // Ensure Material Icons font is available for this page
   useEffect(() => {
@@ -80,8 +82,41 @@ export default function MedicineDetailPage() {
 
   const images: string[] = medicine.images || [];
 
+  // Handler for updating cross-sell products
+  const handleUpdateCrossSellProducts = async (ids: string[]) => {
+    try {
+      await fetch("/api/medicines/update-cross-sell", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ medicineId: id, crossSellProductIds: ids }),
+      });
+    } catch (err) {}
+    setShowCrossSellPopup(false);
+    // Refetch medicine detail to update UI
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/medicines/${id}`);
+      const data = await res.json();
+      setMedicine(data.data);
+    } catch (err) {
+      setMedicine(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="containerStyle scrollbar-hide">
+      {showCrossSellPopup && (
+        <CrossSellProductsPopup
+          categoryId={medicine.categoryId?._id || medicine.categoryId}
+          selected={
+            medicine.crossSellProducts?.map((prod: any) => prod._id) || []
+          }
+          onClose={() => setShowCrossSellPopup(false)}
+          onUpdate={handleUpdateCrossSellProducts}
+        />
+      )}
       <HeaderWithAction
         title={medicine.name}
         subtitle={medicine.manufacturer || ""}
@@ -396,8 +431,6 @@ export default function MedicineDetailPage() {
                   </CustomButton>
                 </div>
                 <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {" "}
-                  {/* Increased gap for cards */}
                   {medicine.relatedProducts?.map((prod: any) => (
                     <div
                       key={prod._id}
@@ -439,6 +472,66 @@ export default function MedicineDetailPage() {
                   {medicine.relatedProducts?.length === 0 && (
                     <div className="col-span-full text-sm text-gray-500 italic">
                       No related products linked.
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Cross-Sell Products */}
+              <section className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4 border-b pb-2">
+                  <h3 className="text-base font-medium text-gray-700 inline-flex items-center gap-2">
+                    <span className="material-icons text-lg text-blue-600">
+                      compare_arrows
+                    </span>{" "}
+                    Cross-Sell Products
+                  </h3>
+                  <CustomButton onClick={() => setShowCrossSellPopup(true)}>
+                    Update
+                  </CustomButton>
+                </div>
+                <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {medicine.crossSellProducts?.map((prod: any) => (
+                    <div
+                      key={prod._id}
+                      className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition"
+                    >
+                      <div className="h-36 w-full bg-gray-100 flex items-center justify-center">
+                        {prod.images?.[0] ? (
+                          <img
+                            src={prod.images?.[0]}
+                            alt={prod.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="material-icons text-3xl text-gray-400">
+                            image_not_supported
+                          </span>
+                        )}
+                      </div>
+                      <div className="p-3">
+                        <div className="text-sm font-semibold truncate text-gray-800">
+                          {prod.name}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {prod.manufacturer}
+                        </div>
+                        <div className="mt-2 flex items-center justify-between">
+                          <div className="text-green-700 font-bold">
+                            ₹{prod.price}
+                          </div>
+                          {prod.mrp && prod.mrp > prod.price && (
+                            <div className="text-xs text-gray-400 line-through">
+                              ₹{prod.mrp}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {medicine.crossSellProducts?.length === 0 && (
+                    <div className="col-span-full text-sm text-gray-500 italic">
+                      No cross-sell products linked.
                     </div>
                   )}
                 </div>
