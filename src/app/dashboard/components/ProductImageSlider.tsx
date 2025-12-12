@@ -7,21 +7,16 @@ interface ProductImageSliderProps {
 
 const ProductImageSlider: React.FC<ProductImageSliderProps> = ({ images, productName }) => {
     const [activeIndex, setActiveIndex] = useState(0);
-
-    
-    const defaultImages = images && images.length > 0 ? images : [
-        '/path/to/image1.jpg',
-       
-    ];
-    
-    const currentImageSrc = defaultImages[activeIndex];
+    const hasImages = images && images.length > 0;
+    const currentImageSrc = hasImages ? images[activeIndex] : undefined;
     const currentAltText = productName || "Product Image";
 
-    if (defaultImages.length === 0) {
+    if (!hasImages) {
+        // Show avatar/placeholder if no images
         return (
             <div className="lg:col-span-1">
                 <div className="w-full h-96 flex flex-col items-center justify-center text-8xl text-gray-500 bg-gray-100 rounded-lg">
-                    <span className="material-icons text-8xl">photo_camera</span>
+                    <span className="material-icons text-8xl">account_circle</span>
                     <span className="text-base mt-2">No Images Available</span>
                 </div>
             </div>
@@ -30,11 +25,9 @@ const ProductImageSlider: React.FC<ProductImageSliderProps> = ({ images, product
 
     return (
         <div className="lg:col-span-1">
-          
             <div className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 shadow-inner">
                 <button
                     type="button"
-                 
                     className="w-full block transition-opacity hover:opacity-90"
                 >
                     <img
@@ -47,7 +40,7 @@ const ProductImageSlider: React.FC<ProductImageSliderProps> = ({ images, product
 
             <div className="mt-4 overflow-x-auto">
                 <div className="flex gap-3 items-center">
-                    {defaultImages.map((img, idx) => (
+                    {images.map((img, idx) => (
                         <button
                             key={idx}
                             onClick={() => setActiveIndex(idx)}

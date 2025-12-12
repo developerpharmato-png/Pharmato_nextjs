@@ -1,7 +1,7 @@
 import React from "react";
 import { CustomButton } from "../../components/miniComponents";
 
-export default function CrossSellProductsPopup({
+function RelatedProductsPopup({
   categoryId,
   selected,
   onClose,
@@ -22,6 +22,7 @@ export default function CrossSellProductsPopup({
     typeof window !== "undefined"
       ? window.location.pathname.split("/").pop()
       : "";
+  console.log(categoryId, "categoryId");
 
   React.useEffect(() => {
     fetch(`/api/medicines/by-category/${categoryId}`)
@@ -46,29 +47,31 @@ export default function CrossSellProductsPopup({
     }
   };
 
-  const handleUpdate = () => {
-onUpdate(checked);
-  };
-
   return (
     <div
       className="fixed inset-0 flex items-center justify-center z-50 p-4"
-      style={{ backdropFilter: "blur(10px)", background: "rgba(0,0,0,0.4)" }}
+      style={{ backdropFilter: "blur(10px)", backgroundColor: "rgba(0, 0, 0, 0.4)" }}
     >
+      {" "}
+      {/* Darker backdrop */}
       <div className="bg-white rounded-xl shadow-2xl p-6 md:p-8 w-full max-w-lg transform transition-all duration-300 ease-out">
         <h2 className="text-2xl font-bold text-gray-800 mb-5 border-b pb-3">
-          Select Cross-Sell Products
+          Select Related Products
         </h2>
         {loading ? (
-          <div className="p-4 text-center text-gray-600">Loading products...</div>
+          <div className="p-4 text-center text-gray-600">
+            Loading products...
+          </div>
         ) : (
           <div className="flex flex-col gap-1 max-h-80 overflow-y-auto pr-2">
+            {" "}
+            {/* Added max-height and scrollbar */}
             {products.map((prod) => (
               <label
                 key={prod._id}
                 className={`flex items-center gap-3 py-2 px-3 rounded-lg transition-colors duration-150 ease-in-out ${
                   checked.includes(prod._id)
-                    ? "bg-blue-50 border border-blue-200"
+                    ? "bg-green-50 border border-green-200"
                     : "hover:bg-gray-100"
                 } ${
                   checked.length >= 5 && !checked.includes(prod._id)
@@ -80,7 +83,7 @@ onUpdate(checked);
                   type="checkbox"
                   checked={checked.includes(prod._id)}
                   onChange={() => handleCheck(prod._id)}
-                  className="accent-blue-600 w-5 h-5 rounded"
+                  className="accent-green-600 w-5 h-5 rounded"
                   disabled={checked.length >= 5 && !checked.includes(prod._id)}
                 />
                 <span className="font-medium text-gray-800 text-base flex-1">
@@ -110,7 +113,7 @@ onUpdate(checked);
           >
             Cancel
           </button>
-          <CustomButton width="200px" onClick={handleUpdate}>
+          <CustomButton width="200px" onClick={() => onUpdate(checked)}>
             Save Changes
           </CustomButton>
         </div>
@@ -118,3 +121,5 @@ onUpdate(checked);
     </div>
   );
 }
+
+export default RelatedProductsPopup;
