@@ -396,7 +396,11 @@ export default function MedicineDetailPage() {
                       </div>
                     </div>
                   ))}
-
+                  {medicine.crossSellProducts?.length === 0 && (
+                    <div className="col-span-full text-sm text-gray-500 italic">
+                      No related products linked.
+                    </div>
+                  )}
                   {showCrossSellPopup && (
                     <CrossSellProductsPopup
                       categoryId={medicine.categoryId}
