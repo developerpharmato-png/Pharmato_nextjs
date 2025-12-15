@@ -158,6 +158,7 @@ export async function POST(req: NextRequest) {
                 price: 1,
                 mrp: 1,
                 discount: 1,
+                stock: 1,
                 description: 1,
                 isActive: 1,
                 categoryId: 1,

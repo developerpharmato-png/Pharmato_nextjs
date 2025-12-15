@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
             await cart.save();
             cart = await GuestCart.findOne({ guestId }).populate({
                 path: 'items.medicineId',
-                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount images coverImage crossSellProducts'
+                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount stock images coverImage crossSellProducts'
             });
             // Build medicineId -> cart quantity map
             const cartQuantityMap: Record<string, number> = {};
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
             const allCrossSellIds = Array.from(allCrossSellIdsSet);
             let allCrossSellProducts: any[] = [];
             if (allCrossSellIds.length > 0) {
-                const crossSellMeds = await (await import('@/models/Medicine')).default.find({ _id: { $in: allCrossSellIds } }, '_id name manufacturer mrp price images discount').lean();
+                const crossSellMeds = await (await import('@/models/Medicine')).default.find({ _id: { $in: allCrossSellIds } }, '_id name manufacturer mrp price stock images discount').lean();
                 allCrossSellProducts = crossSellMeds.map((prod: any) => {
                     const inCart = cartQuantityMap[prod._id.toString()] || 0;
                     return {
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
             await cart.save();
             cart = await GuestCart.findOne({ guestId }).populate({
                 path: 'items.medicineId',
-                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount images coverImage crossSellProducts'
+                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price stock discount images coverImage crossSellProducts'
             });
             // Build medicineId -> cart quantity map
             const cartQuantityMap: Record<string, number> = {};
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
             const allCrossSellIds = Array.from(allCrossSellIdsSet);
             let allCrossSellProducts: any[] = [];
             if (allCrossSellIds.length > 0) {
-                const crossSellMeds = await (await import('@/models/Medicine')).default.find({ _id: { $in: allCrossSellIds } }, '_id name manufacturer mrp price images discount').lean();
+                const crossSellMeds = await (await import('@/models/Medicine')).default.find({ _id: { $in: allCrossSellIds } }, '_id name manufacturer mrp price stock images discount').lean();
                 allCrossSellProducts = crossSellMeds.map((prod: any) => {
                     const inCart = cartQuantityMap[prod._id.toString()] || 0;
                     return {
