@@ -27,6 +27,9 @@
  *               guestId:
  *                 type: string
  *                 description: Guest ID (for guest users)
+ *               storeId:
+ *                 type: string
+ *                 description: Filter medicines by storeId
  *     responses:
  *       200:
  *         description: Medicines list with cart info
@@ -77,13 +80,17 @@ import dbConnect from '@/lib/mongodb';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { limit = 10, offset = 0, search = "", userId, guestId } = await req.json();
+    const { limit = 10, offset = 0, search = "", userId, guestId, storeId } = await req.json();
     // userId can be empty string, do not return error
 
     // Build filter for search
     const filter: Record<string, any> = { isActive: true };
     if (search && search.trim() !== "") {
         filter.name = { $regex: search, $options: "i" };
+    }
+    // Optional store filter
+    if (storeId && typeof storeId === 'string' && storeId.trim() !== '') {
+        filter.storeId = storeId.trim();
     }
 
     // Fetch medicines with pagination

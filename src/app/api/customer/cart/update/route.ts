@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
             await cart.save();
             cart = await Cart.findOne({ userId }).populate({
                 path: 'items.medicineId',
-                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount images coverImage crossSellProducts'
+                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount images stock coverImage crossSellProducts'
             });
             // Build medicineId -> cart quantity map
             const cartQuantityMap: Record<string, number> = {};
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
             const allCrossSellIds = Array.from(allCrossSellIdsSet);
             let allCrossSellProducts: any[] = [];
             if (allCrossSellIds.length > 0) {
-                const crossSellMeds = await Medicine.find({ _id: { $in: allCrossSellIds } }, '_id name manufacturer mrp price images discount').lean();
+                const crossSellMeds = await Medicine.find({ _id: { $in: allCrossSellIds } }, '_id name manufacturer mrp price images discount stock').lean();
                 allCrossSellProducts = crossSellMeds.map((prod: any) => {
                     const inCart = cartQuantityMap[prod._id.toString()] || 0;
                     return {
@@ -99,7 +99,8 @@ export async function POST(request: NextRequest) {
             }
             // Items array remains unchanged except for .toObject()
             const itemsWithoutCrossSell = cart.items.map((item: any) => item.toObject());
-            return NextResponse.json({ success: true, cart: { ...cart.toObject(), items: itemsWithoutCrossSell, crossSellProducts: allCrossSellProducts } });
+            const isPrescriptionRequired = itemsWithoutCrossSell.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
+            return NextResponse.json({ success: true, cart: { ...cart.toObject(), items: itemsWithoutCrossSell, crossSellProducts: allCrossSellProducts, isPrescriptionRequired } });
         }
         // Only add if quantity is positive
         if (quantity > 0) {
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
             await cart.save();
             cart = await Cart.findOne({ userId }).populate({
                 path: 'items.medicineId',
-                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount images coverImage crossSellProducts'
+                select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount stock images coverImage crossSellProducts'
             });
             // Build medicineId -> cart quantity map
             const cartQuantityMap: Record<string, number> = {};
@@ -124,7 +125,7 @@ export async function POST(request: NextRequest) {
             const allCrossSellIds = Array.from(allCrossSellIdsSet);
             let allCrossSellProducts: any[] = [];
             if (allCrossSellIds.length > 0) {
-                const crossSellMeds = await Medicine.find({ _id: { $in: allCrossSellIds } }, '_id name manufacturer mrp price images discount').lean();
+                const crossSellMeds = await Medicine.find({ _id: { $in: allCrossSellIds } }, '_id name manufacturer mrp price images discount stock').lean();
                 allCrossSellProducts = crossSellMeds.map((prod: any) => {
                     const inCart = cartQuantityMap[prod._id.toString()] || 0;
                     return {
@@ -136,7 +137,8 @@ export async function POST(request: NextRequest) {
             }
             // Items array remains unchanged except for .toObject()
             const itemsWithoutCrossSell = cart.items.map((item: any) => item.toObject());
-            return NextResponse.json({ success: true, message: 'Cart Updated', cart: { ...cart.toObject(), items: itemsWithoutCrossSell, crossSellProducts: allCrossSellProducts } });
+            const isPrescriptionRequired = itemsWithoutCrossSell.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
+            return NextResponse.json({ success: true, message: 'Cart Updated', cart: { ...cart.toObject(), items: itemsWithoutCrossSell, crossSellProducts: allCrossSellProducts, isPrescriptionRequired } });
         }
         return NextResponse.json({ success: false, error: 'Item not found in cart and quantity is negative' }, { status: 404 });
     } catch (error) {

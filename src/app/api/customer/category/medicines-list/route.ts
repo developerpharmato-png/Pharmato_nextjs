@@ -22,6 +22,9 @@ import GuestCart from '@/models/GuestCart';
  *                 type: string
  *               subCategoryId:
  *                 type: string
+ *               storeId:
+ *                 type: string
+ *                 description: Filter medicines by storeId
  *               limit:
  *                 type: integer
  *                 default: 10
@@ -116,7 +119,8 @@ export async function POST(req: NextRequest) {
         sortBy,
         columnName,
         userId = "",
-        guestId = ""
+        guestId = "",
+        storeId = ""
     } = await req.json();
 
     // Set defaults if empty or invalid
@@ -132,6 +136,14 @@ export async function POST(req: NextRequest) {
     }
     if (subCategoryId) {
         matchStage.subCategoryId = new mongoose.Types.ObjectId(subCategoryId);
+    }
+    if (typeof (global as any).ObjectId === 'function') { }
+    if (typeof storeId === 'string' && storeId.trim() !== '') {
+        try {
+            matchStage.storeId = new mongoose.Types.ObjectId(storeId.trim());
+        } catch {
+            // if invalid ObjectId string, ignore filter
+        }
     }
     if (manufacturer && manufacturer.trim() !== '') {
         matchStage.manufacturer = { $regex: manufacturer, $options: 'i' };
@@ -158,6 +170,7 @@ export async function POST(req: NextRequest) {
                 price: 1,
                 mrp: 1,
                 discount: 1,
+                stock: 1,
                 description: 1,
                 isActive: 1,
                 categoryId: 1,

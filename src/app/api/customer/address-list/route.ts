@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import UserAddress from '@/models/UserAddress';
+import Store from '@/models/Store';
 import dbConnect from '@/lib/mongodb';
 
 /**
@@ -55,15 +56,20 @@ export async function POST(req: NextRequest) {
         const addressList = await UserAddress.find({ userId }).sort({ createdAt: -1 }).lean();
         // For each address, find stores with matching servicePinCodes
         for (const address of addressList) {
-            const pinCode = address?.address?.pinCode || address?.address?.pincode;
-            if (pinCode) {
-                const storeList = await (await import('@/models/Store')).default.find({ servicePinCodes: pinCode, status: 1 }).lean();
-                address.storeList = storeList;
+            const rawPinCode = address?.address?.pinCode;
+            const pinCode = typeof rawPinCode === 'string' ? rawPinCode.trim() : '';
+            if (pinCode.length > 0) {
+                const store = await Store.findOne({ servicePinCodes: { $in: [pinCode] }, status: 1 }).lean();
+                address.storeList = store ? [store] : [];
             } else {
                 address.storeList = [];
             }
         }
-        return NextResponse.json({ success: true, message: 'Address list fetched successfully', addressList });
+
+        // Filter out addresses that have no matching store
+        const filteredAddressList = addressList.filter((a: any) => Array.isArray(a.storeList) && a.storeList.length > 0);        
+
+        return NextResponse.json({ success: true, message: 'Address list fetched successfully', addressList: filteredAddressList });
     } catch (error: any) {
         return NextResponse.json({ success: false, message: 'Error fetching address list', error: error.message });
     }

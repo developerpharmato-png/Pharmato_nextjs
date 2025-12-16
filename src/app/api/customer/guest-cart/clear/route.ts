@@ -4,8 +4,7 @@ import GuestCart from '@/models/GuestCart';
 
 /**
  * @swagger
- * 
- * :
+ * /api/customer/guest-cart/clear:
  *   post:
  *     summary: Clear all items from guest cart
  *     tags:

@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
         let allCrossSellProducts: any[] = [];
         if (allCrossSellIds.length > 0) {
             const crossSellMeds = await mongoose.model('Medicine').find({ _id: { $in: allCrossSellIds } },
-                '_id name manufacturer mrp price images discount').lean();
+                '_id name manufacturer mrp price stock images discount').lean();
             allCrossSellProducts = crossSellMeds.map((prod: any) => {
                 const inCart = cartQuantityMap[prod._id.toString()] || 0;
                 return {
@@ -120,11 +120,15 @@ export async function POST(request: NextRequest) {
                     price: med.price,
                     mrp: med.mrp,
                     discount: med.discount,
+                    stock: med.stock,
                     images: med.images,
                     coverImage: med.coverImage
                 } : item.medicineId
             };
         }));
+
+        // Determine if any item requires a prescription
+        const isPrescriptionRequired = itemsWithDetails.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
 
         return NextResponse.json({
             success: true,
@@ -133,6 +137,7 @@ export async function POST(request: NextRequest) {
                 ...cart,
                 items: itemsWithDetails,
                 crossSellProducts: allCrossSellProducts,
+                isPrescriptionRequired,
                 medicines: undefined // remove medicines array from response
             }
         });

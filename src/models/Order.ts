@@ -21,6 +21,7 @@ export interface IOrder extends Document {
     medicineQuantity: Record<string, any>[];
     calculationData: Record<string, any>;
     paymentHistory: [{}];
+<<<<<<< HEAD
     // Prescription fields
     prescription_required: boolean;
     prescription_url: string;
@@ -33,6 +34,11 @@ export interface IOrder extends Document {
     prescription_rejected_at: Date;
     // Delivery address
     delivery_address: Record<string, any>;
+=======
+    isPrescriptionRequired?: boolean;
+    prescription_url: string;
+    prescription_status: string;
+>>>>>>> 2e6674b69568ef56a17ba869e0a169169a1f7ed6
     createdAt: Date;
     updatedAt: Date;
 }
@@ -58,6 +64,7 @@ const OrderSchema = new Schema<IOrder>({
     medicineQuantity: { type: [Object], default: [] },
     calculationData: { type: Object, default: {} },
     paymentHistory: [{ type: Object, default: {} }],
+<<<<<<< HEAD
     // Prescription fields
     prescription_required: { type: Boolean, default: false },
     prescription_url: { type: String, default: '' },
@@ -70,6 +77,11 @@ const OrderSchema = new Schema<IOrder>({
     prescription_rejected_at: { type: Date },
     // Delivery address
     delivery_address: { type: Object, default: {} },
+=======
+    isPrescriptionRequired: { type: Boolean, default: false },
+    prescription_url: { type: String, default: '' },
+    prescription_status: { type: String, default: '' },
+>>>>>>> 2e6674b69568ef56a17ba869e0a169169a1f7ed6
 }, { timestamps: true });
 
 export default mongoose.models.Order || mongoose.model<IOrder>('Order', OrderSchema);
