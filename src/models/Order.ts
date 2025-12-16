@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Types } from 'mongoose';
 
 export interface IOrder extends Document {
     userId: mongoose.Types.ObjectId;
+    storeId: mongoose.Types.ObjectId;
     medicineId: Types.ObjectId[];
     payment_mode: string;
     total_order_amount: number;
@@ -28,6 +29,7 @@ export interface IOrder extends Document {
 
 const OrderSchema = new Schema<IOrder>({
     userId: { type: Schema.Types.ObjectId, ref: 'User' },
+    storeId: { type: Schema.Types.ObjectId, ref: 'Store' },
     medicineId: [{ type: Schema.Types.ObjectId, ref: 'Medicine' }],
     payment_mode: { type: String, default: '' },
     total_order_amount: { type: Number, default: 0 },
