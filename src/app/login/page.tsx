@@ -165,7 +165,18 @@ export default function LoginPage() {
                         type: "error",
                       });
                     } else {
+                      // Store all admin data
                       localStorage.setItem("admin", JSON.stringify(data.data));
+                      
+                      // Store individual fields for quick access
+                      localStorage.setItem("adminId", data.data._id);
+                      localStorage.setItem("adminEmail", data.data.email);
+                      localStorage.setItem("adminName", data.data.name);
+                      localStorage.setItem("roleId", data.data.roleId);
+                      localStorage.setItem("roleName", data.data.roleName);
+                      localStorage.setItem("sessionToken", data.data.sessionToken);
+                      localStorage.setItem("managedStores", JSON.stringify(data.data.managedStores || []));
+                      
                       // fetch role permissions and store them locally for the UI
                       try {
                         const roleId = data.data?.roleId;

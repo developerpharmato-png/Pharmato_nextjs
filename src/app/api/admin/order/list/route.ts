@@ -38,6 +38,12 @@ import { log } from '@/lib/logger';
  *               customerId:
  *                 type: string
  *                 description: Filter by customer ID (optional)
+ *               storeId:
+ *                 type: string
+ *                 description: Filter by store ID (optional, bypassed for SuperAdmin)
+ *               roleName:
+ *                 type: string
+ *                 description: Admin role name (SuperAdmin sees all orders)
  *     responses:
  *       200:
  *         description: List of orders
@@ -69,7 +75,9 @@ export async function POST(req: NextRequest) {
             limit = 10, 
             page = 0, 
             search = '', 
-            customerId 
+            customerId,
+            storeId,
+            roleName 
         } = body || {};
 
         // Coerce numeric inputs safely
@@ -83,6 +91,14 @@ export async function POST(req: NextRequest) {
         
         // Build query
         const query: any = {};
+        
+        // Filter by storeId if provided (bypass for SuperAdmin)
+        if (storeId && typeof storeId === 'string' && roleName !== 'SuperAdmin') {
+            query.storeId = storeId;
+            log.info('AdminOrderList: filtering by storeId', storeId);
+        } else if (roleName === 'SuperAdmin') {
+            log.info('AdminOrderList: SuperAdmin - showing all orders');
+        }
         
         // Filter by customerId if provided
         if (customerId && typeof customerId === 'string') {
