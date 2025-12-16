@@ -4,6 +4,7 @@ import Order from '@/models/Order';
 // Ensure referenced models are registered for populate
 import '@/models/Medicine';
 import '@/models/User';
+import { log } from '@/lib/logger';
 
 /**
  * @swagger
@@ -62,6 +63,7 @@ export async function POST(req: NextRequest) {
     
     try {
         const body = await req.json();
+        log.info('AdminOrderList: incoming body', body);
         const { 
             offset = 0, 
             limit = 10, 
@@ -99,6 +101,7 @@ export async function POST(req: NextRequest) {
         const total = await Order.countDocuments(query);
 
         // Fetch orders with pagination
+        log.debug('AdminOrderList: query', { query, skip, parsedLimit });
         const orders = await Order.find(query)
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -112,6 +115,7 @@ export async function POST(req: NextRequest) {
                 select: '_id name manufacturer mrp price discount images coverImage'
             })
             .lean();
+        log.info('AdminOrderList: fetched orders count', Array.isArray(orders) ? orders.length : 0);
 
         // Attach quantity to each medicine in medicineId for every order
         const ordersWithQuantities = (Array.isArray(orders) ? orders : []).map(order => {
@@ -135,6 +139,7 @@ export async function POST(req: NextRequest) {
             };
         });
 
+        log.success('AdminOrderList: success', { count: ordersWithQuantities.length, total });
         return NextResponse.json({ 
             success: true, 
             data: ordersWithQuantities,
@@ -142,7 +147,7 @@ export async function POST(req: NextRequest) {
         });
 
     } catch (error: any) {
-        console.error('Error fetching orders:', error);
+        log.error('AdminOrderList: error', error?.message || error);
         return NextResponse.json(
             { success: false, message: 'Failed to fetch orders', error: error?.message },
             { status: 500 }
