@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Store from '@/models/Store';
 import Pincode from '@/models/Pincode';
+import Admin from '@/models/Admin';
 
 // POST: List all stores (with search and filters in body)
 export async function POST(req: NextRequest) {
@@ -32,6 +33,18 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, message: 'Store name is required' }, { status: 400 });
         }
         const store = await Store.create({ name, servicePinCodes, address, GoogleAddress, status, adminManagerId });
+
+        // If adminManagerId provided, link store to admin.managedStores
+        if (adminManagerId) {
+            await Admin.updateOne(
+                { _id: adminManagerId },
+                {
+                    $addToSet: {
+                        managedStores: { storeId: store._id, storeName: name },
+                    },
+                }
+            );
+        }
         const populatedStore = await Store.findById(store._id).populate('adminManagerId', 'email firstName lastName');
         return NextResponse.json({ success: true, message: 'Store added successfully', data: populatedStore }, { status: 201 });
     } catch (error: any) {
@@ -53,6 +66,14 @@ export async function PUT(req: NextRequest) {
             return NextResponse.json({ success: false, message: 'Store ID is required' }, { status: 400 });
         }
         const { name, servicePinCodes, address, GoogleAddress, status, adminManagerId } = await req.json();
+
+        const existing = await Store.findById(id);
+        if (!existing) {
+            return NextResponse.json({ success: false, message: 'Store not found' }, { status: 404 });
+        }
+
+        const prevAdminId = existing.adminManagerId?.toString();
+
         const updated = await Store.findByIdAndUpdate(
             id,
             { name, servicePinCodes, address, GoogleAddress, status, adminManagerId },
@@ -61,6 +82,35 @@ export async function PUT(req: NextRequest) {
         if (!updated) {
             return NextResponse.json({ success: false, message: 'Store not found' }, { status: 404 });
         }
+
+        const newAdminId = adminManagerId ? adminManagerId.toString() : undefined;
+
+        // Remove store from previous admin if changed
+        if (prevAdminId && prevAdminId !== newAdminId) {
+            await Admin.updateOne(
+                { _id: prevAdminId },
+                { $pull: { managedStores: { storeId: updated._id } } }
+            );
+        }
+
+        // Add store to new admin
+        if (newAdminId) {
+            await Admin.updateOne(
+                { _id: newAdminId },
+                {
+                    $addToSet: {
+                        managedStores: { storeId: updated._id, storeName: name },
+                    },
+                }
+            );
+        }
+
+        // Sync storeName across admins for this store
+        await Admin.updateMany(
+            { 'managedStores.storeId': updated._id },
+            { $set: { 'managedStores.$.storeName': name } }
+        );
+
         return NextResponse.json({ success: true, message: 'Store updated successfully', data: updated });
     } catch (error: any) {
         console.error('PUT /api/admin/store error:', error);
