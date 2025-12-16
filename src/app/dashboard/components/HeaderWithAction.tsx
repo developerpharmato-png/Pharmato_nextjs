@@ -91,8 +91,6 @@ export default function HeaderWithAction({
 }: Props) {
   const router = useRouter();
 
-console.log(isunsaved,"isunsavedisunsaved");
-
   const handleBack = async () => {
     if (onBack) {
       onBack();

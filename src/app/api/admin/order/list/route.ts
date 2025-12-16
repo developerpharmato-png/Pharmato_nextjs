@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
+// Ensure referenced models are registered for populate
+import '@/models/Medicine';
+import '@/models/User';
+import { log } from '@/lib/logger';
 
 /**
  * @swagger
@@ -34,6 +38,12 @@ import Order from '@/models/Order';
  *               customerId:
  *                 type: string
  *                 description: Filter by customer ID (optional)
+ *               storeId:
+ *                 type: string
+ *                 description: Filter by store ID (optional, bypassed for SuperAdmin)
+ *               roleName:
+ *                 type: string
+ *                 description: Admin role name (SuperAdmin sees all orders)
  *     responses:
  *       200:
  *         description: List of orders
@@ -59,19 +69,36 @@ export async function POST(req: NextRequest) {
     
     try {
         const body = await req.json();
+        log.info('AdminOrderList: incoming body', body);
         const { 
             offset = 0, 
             limit = 10, 
             page = 0, 
             search = '', 
-            customerId 
-        } = body;
+            customerId,
+            storeId,
+            roleName 
+        } = body || {};
+
+        // Coerce numeric inputs safely
+        let parsedLimit = Number.isFinite(Number(limit)) ? Number(limit) : 10;
+        if (parsedLimit <= 0) parsedLimit = 10;
+        const parsedOffset = Number.isFinite(Number(offset)) ? Number(offset) : 0;
+        const parsedPage = Number.isFinite(Number(page)) ? Number(page) : 0;
 
         // Calculate skip based on page or offset
-        const skip = page > 0 ? page * limit : offset;
+        const skip = parsedPage > 0 ? parsedPage * parsedLimit : parsedOffset;
         
         // Build query
         const query: any = {};
+        
+        // Filter by storeId if provided (bypass for SuperAdmin)
+        if (storeId && typeof storeId === 'string' && roleName !== 'SuperAdmin') {
+            query.storeId = storeId;
+            log.info('AdminOrderList: filtering by storeId', storeId);
+        } else if (roleName === 'SuperAdmin') {
+            log.info('AdminOrderList: SuperAdmin - showing all orders');
+        }
         
         // Filter by customerId if provided
         if (customerId && typeof customerId === 'string') {
@@ -90,10 +117,11 @@ export async function POST(req: NextRequest) {
         const total = await Order.countDocuments(query);
 
         // Fetch orders with pagination
+        log.debug('AdminOrderList: query', { query, skip, parsedLimit });
         const orders = await Order.find(query)
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit)
+            .limit(parsedLimit)
             .populate({
                 path: 'userId',
                 select: '_id name email phone'
@@ -103,9 +131,10 @@ export async function POST(req: NextRequest) {
                 select: '_id name manufacturer mrp price discount images coverImage'
             })
             .lean();
+        log.info('AdminOrderList: fetched orders count', Array.isArray(orders) ? orders.length : 0);
 
         // Attach quantity to each medicine in medicineId for every order
-        const ordersWithQuantities = orders.map(order => {
+        const ordersWithQuantities = (Array.isArray(orders) ? orders : []).map(order => {
             const medicineQuantities = Array.isArray(order.medicineQuantity) ? order.medicineQuantity : [];
             const medicineIdWithQuantity = Array.isArray(order.medicineId)
                 ? order.medicineId.map((med: any) => {
@@ -126,16 +155,17 @@ export async function POST(req: NextRequest) {
             };
         });
 
+        log.success('AdminOrderList: success', { count: ordersWithQuantities.length, total });
         return NextResponse.json({ 
             success: true, 
             data: ordersWithQuantities,
             total 
         });
 
-    } catch (error) {
-        console.error('Error fetching orders:', error);
+    } catch (error: any) {
+        log.error('AdminOrderList: error', error?.message || error);
         return NextResponse.json(
-            { success: false, message: 'Failed to fetch orders' },
+            { success: false, message: 'Failed to fetch orders', error: error?.message },
             { status: 500 }
         );
     }

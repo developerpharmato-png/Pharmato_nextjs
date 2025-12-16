@@ -43,6 +43,7 @@ import Admin from '@/models/Admin';
 import Role from '@/models/Role';
 import bcrypt from 'bcryptjs';
 import { signJwt } from '@/lib/jwt';
+import Store from '@/models/Store';
 
 
 export async function POST(request: NextRequest) {
@@ -103,6 +104,15 @@ export async function POST(request: NextRequest) {
         // Ensure top-level roleId/roleName for client convenience
         adminObj.roleId = roleId;
         adminObj.roleName = roleName;
+
+        // Expose managedStores for store selection/permissions
+        // If none on the admin doc, hydrate from Store.adminManagerId for backward compatibility
+        if (!adminObj.managedStores || adminObj.managedStores.length === 0) {
+            const stores = await Store.find({ adminManagerId: adminObj._id })
+                .select('_id name')
+                .lean();
+            adminObj.managedStores = (stores || []).map((s: any) => ({ storeId: s._id, storeName: s.name }));
+        }
 
         // Generate JWT token
         const token = signJwt({

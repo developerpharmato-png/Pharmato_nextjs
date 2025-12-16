@@ -6,7 +6,7 @@ import OrdersTable from "./OrdersTable";
 import { useRouter } from "next/navigation";
 import FilterSearch from "../components/FilterSearch";
 import { OrderListStore } from "../storeAPICall/useUserStore";
-import { OrderLIst } from "../storeAPICall/API/BaseApi";
+import { OrderLIstPath } from "../storeAPICall/API/BaseApi";
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -40,8 +40,27 @@ export default function OrdersPage() {
     if (searchTerm) body.search = searchTerm;
     if (customerId) body.customerId = customerId;
 
+    // Add storeId and roleName from localStorage
+    const roleName = localStorage.getItem("roleName");
+    const managedStoresStr = localStorage.getItem("managedStores");
+    
+    if (roleName) body.roleName = roleName;
+    
+    // Get storeId from managedStores array
+    if (managedStoresStr) {
+      try {
+        const managedStores = JSON.parse(managedStoresStr);
+        if (Array.isArray(managedStores) && managedStores.length > 0) {
+          // Use the first store's ID if multiple stores
+          body.storeId = managedStores[0].storeId;
+        }
+      } catch (e) {
+        console.error("Failed to parse managedStores", e);
+      }
+    }
+
     try {
-      await ListPost(OrderLIst, body);
+      await ListPost(OrderLIstPath, body);
     } catch (err) {
       console.error("Order list fetch failed", err);
     }
