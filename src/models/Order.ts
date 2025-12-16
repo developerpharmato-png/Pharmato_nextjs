@@ -21,24 +21,9 @@ export interface IOrder extends Document {
     medicineQuantity: Record<string, any>[];
     calculationData: Record<string, any>;
     paymentHistory: [{}];
-<<<<<<< HEAD
-    // Prescription fields
-    prescription_required: boolean;
-    prescription_url: string;
-    prescription_status: 'Pending' | 'Approved' | 'Rejected' | 'Re-upload Required';
-    prescription_rejection_reason: string;
-    prescription_approved_by: mongoose.Types.ObjectId;
-    prescription_approved_at: Date;
-    prescription_approval_notes: string;
-    prescription_rejected_by: mongoose.Types.ObjectId;
-    prescription_rejected_at: Date;
-    // Delivery address
-    delivery_address: Record<string, any>;
-=======
     isPrescriptionRequired?: boolean;
     prescription_url: string;
     prescription_status: string;
->>>>>>> 2e6674b69568ef56a17ba869e0a169169a1f7ed6
     createdAt: Date;
     updatedAt: Date;
 }
@@ -64,24 +49,9 @@ const OrderSchema = new Schema<IOrder>({
     medicineQuantity: { type: [Object], default: [] },
     calculationData: { type: Object, default: {} },
     paymentHistory: [{ type: Object, default: {} }],
-<<<<<<< HEAD
-    // Prescription fields
-    prescription_required: { type: Boolean, default: false },
-    prescription_url: { type: String, default: '' },
-    prescription_status: { type: String, enum: ['Pending', 'Approved', 'Rejected', 'Re-upload Required'], default: 'Pending' },
-    prescription_rejection_reason: { type: String, default: '' },
-    prescription_approved_by: { type: Schema.Types.ObjectId, ref: 'Admin' },
-    prescription_approved_at: { type: Date },
-    prescription_approval_notes: { type: String, default: '' },
-    prescription_rejected_by: { type: Schema.Types.ObjectId, ref: 'Admin' },
-    prescription_rejected_at: { type: Date },
-    // Delivery address
-    delivery_address: { type: Object, default: {} },
-=======
     isPrescriptionRequired: { type: Boolean, default: false },
     prescription_url: { type: String, default: '' },
     prescription_status: { type: String, default: '' },
->>>>>>> 2e6674b69568ef56a17ba869e0a169169a1f7ed6
 }, { timestamps: true });
 
 export default mongoose.models.Order || mongoose.model<IOrder>('Order', OrderSchema);
