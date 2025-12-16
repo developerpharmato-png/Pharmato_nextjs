@@ -18,6 +18,21 @@
   --secondary: rgb(93, 172, 93);
   --background: #ffffff;
   --foreground: #171717;
+  /* Status badge colors */
+  --status-pending-bg: #FEF3C7;  /* yellow-100 */
+  --status-pending-text: #92400E; /* yellow-800 */
+  --status-success-bg: #DCFCE7;  /* green-100 */
+  --status-success-text: #065F46; /* green-800 */
+  --status-danger-bg: #FEE2E2;   /* red-100 */
+  --status-danger-text: #991B1B; /* red-800 */
+  --status-info-bg: #DBEAFE;     /* blue-100 */
+  --status-info-text: #1E40AF;   /* blue-800 */
+  --status-purple-bg: #EDE9FE;   /* purple-100 */
+  --status-purple-text: #5B21B6; /* purple-800 */
+  --status-warning-bg: #FFEDD5;  /* orange-100 */
+  --status-warning-text: #9A3412;/* orange-800 */
+  --status-default-bg: #F3F4F6;  /* gray-100 */
+  --status-default-text: #1F2937;/* gray-800 */
 }
 
 @theme inline {
@@ -203,3 +218,12 @@ display: inline-block;
   gap: 5px;
   border-bottom: 1px solid var(--primary) !important;
 }
+
+/* Status badge helpers (use with Tailwind spacing/shape utilities) */
+.status-pending { background-color: var(--status-pending-bg); color: var(--status-pending-text); }
+.status-success { background-color: var(--status-success-bg); color: var(--status-success-text); }
+.status-danger  { background-color: var(--status-danger-bg);  color: var(--status-danger-text); }
+.status-info    { background-color: var(--status-info-bg);    color: var(--status-info-text); }
+.status-purple  { background-color: var(--status-purple-bg);  color: var(--status-purple-text); }
+.status-warning { background-color: var(--status-warning-bg); color: var(--status-warning-text); }
+.status-default { background-color: var(--status-default-bg); color: var(--status-default-text); }

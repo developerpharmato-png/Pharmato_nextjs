@@ -44,30 +44,30 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
   const router = useRouter();
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    const s = (status || '').toLowerCase();
+    switch (s) {
       case "pending":
       case "placed":
-        return "bg-yellow-100 text-yellow-800";
+        return "status-pending";
       case "completed":
       case "success":
       case "delivered":
-        return "bg-green-100 text-green-800";
+      case "paid":
+        return "status-success";
       case "failed":
       case "cancelled":
       case "returned":
-        return "bg-red-100 text-red-800";
+        return "status-danger";
       case "processing":
       case "confirmed":
       case "packed":
-        return "bg-blue-100 text-blue-800";
+        return "status-info";
       case "dispatched":
-        return "bg-purple-100 text-purple-800";
-      case "paid":
-        return "bg-green-100 text-green-800";
+        return "status-purple";
       case "refunded":
-        return "bg-orange-100 text-orange-800";
+        return "status-warning";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "status-default";
     }
   };
 

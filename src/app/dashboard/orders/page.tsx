@@ -5,6 +5,8 @@ import HeaderWithAction from "../components/HeaderWithAction";
 import OrdersTable from "./OrdersTable";
 import { useRouter } from "next/navigation";
 import FilterSearch from "../components/FilterSearch";
+import { OrderListStore } from "../storeAPICall/useUserStore";
+import { OrderLIst } from "../storeAPICall/API/BaseApi";
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -14,48 +16,56 @@ export default function OrdersPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [customerId, setCustomerId] = useState("");
+
+  const {
+    postData: ListPost,
+    loading: ListLoading,
+    data: OrderListData,
+    clearData,
+  } = OrderListStore();
 
   useEffect(() => {
     fetchOrders();
   }, [page, rowsPerPage, searchTerm, customerId]);
 
   const fetchOrders = async () => {
-    setLoading(true);
-    try {
-      const body: any = {
-        limit: rowsPerPage,
-        offset: page * rowsPerPage,
-        page: page,
-      };
-      
-      if (searchTerm) body.search = searchTerm;
-      if (customerId) body.customerId = customerId;
+    const body: any = {
+      limit: rowsPerPage,
+      offset: page * rowsPerPage,
+      page,
+    };
 
-      const res = await fetch(`/api/admin/order/list`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      
-      if (data.success) {
-        setOrders(data.data || []);
-        setTotalCount(data.total || 0);
+    if (searchTerm) body.search = searchTerm;
+    if (customerId) body.customerId = customerId;
+
+    try {
+      await ListPost(OrderLIst, body);
+    } catch (err) {
+      console.error("Order list fetch failed", err);
+    }
+  };  
+
+  // Map store response to local table state
+  useEffect(() => {
+    if (!OrderListData) return;
+    try {
+      const success = (OrderListData as any).success;
+      if (success) {
+        setOrders((OrderListData as any).data || []);
+        setTotalCount((OrderListData as any).total || 0);
       } else {
         setOrders([]);
         setTotalCount(0);
       }
-    } catch (error) {
-      console.error("Error fetching orders:", error);
+    } catch (e) {
       setOrders([]);
       setTotalCount(0);
-    } finally {
-      setLoading(false);
     }
-  };
+    // optional: clear store data after mapping to avoid stale reads
+    // clearData();
+  }, [OrderListData]);
 
   return (
     <div className="containerStyle scrollbar-hide">
@@ -86,7 +96,7 @@ export default function OrdersPage() {
         totalCount={totalCount}
         onPageChange={setPage}
         onRowsPerPageChange={setRowsPerPage}
-        loading={loading}
+        loading={ListLoading}
       />
     </div>
   );
