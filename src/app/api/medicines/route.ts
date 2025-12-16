@@ -71,11 +71,20 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const url = new URL(request.url);
-    const search = (url.searchParams.get("search") || "").trim();
+    // Normalize search: decode and convert '+' to space
+    const rawSearch = url.searchParams.get("search");
+    const search = (rawSearch ? decodeURIComponent(rawSearch).replace(/\+/g, " ") : "").trim();
     const limit = parseInt(url.searchParams.get("limit") || "10", 10);
     const offset = parseInt(url.searchParams.get("offset") || "0", 10);
-    const categoryId = url.searchParams.get("categoryId");
-    const subCategoryId = url.searchParams.get("subCategoryId");
+    // Read and normalize query params: decode and convert '+' to spaces
+    const rawCategoryId = url.searchParams.get("categoryId");
+    const rawSubCategoryId = url.searchParams.get("subCategoryId");
+    const categoryId = rawCategoryId
+      ? decodeURIComponent(rawCategoryId).replace(/\+/g, " ")
+      : null;
+    const subCategoryId = rawSubCategoryId
+      ? decodeURIComponent(rawSubCategoryId).replace(/\+/g, " ")
+      : null;
 
     // Validate categoryId and subCategoryId
     const baseFilter: any = { isActive: true };
@@ -102,7 +111,10 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
-      baseFilter.name = { $regex: new RegExp(search, "i") }; // Use RegExp for case-insensitive match
+      // Escape user input for safe regex (so '*' and other metacharacters are treated literally)
+      const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const pattern = escapeRegExp(search);
+      baseFilter.name = { $regex: new RegExp(pattern, "i") };
     }
 
     const total = await Medicine.countDocuments(baseFilter);

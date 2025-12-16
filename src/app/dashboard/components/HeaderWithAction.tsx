@@ -19,6 +19,7 @@ type Props = {
   onSearchChange?: (value: string) => void;
   rightNode?: React.ReactNode;
   isunsaved?: boolean;
+  onBack?: () => void;
 };
 
 
@@ -86,12 +87,18 @@ export default function HeaderWithAction({
   addShow = false,
   handleAdd,
   isunsaved = true,
+  onBack,
 }: Props) {
   const router = useRouter();
 
 console.log(isunsaved,"isunsavedisunsaved");
 
   const handleBack = async () => {
+    if (onBack) {
+      onBack();
+      return;
+    }
+    
     if (isunsaved) {
       const confirm = await showUnsavedConfirm({
         title: "Unsaved Changes",

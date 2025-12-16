@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { Search, Filter, X } from "lucide-react";
 import axios from "axios";
+import { CategoriesStore, SubcategoriesStore } from "../storeAPICall/useUserStore";
+import { CategoriesPath, SubcategoriesPath } from "../storeAPICall/API/BaseApi";
 
 // Define types for categories and subcategories
 interface Category {
@@ -69,6 +71,10 @@ export default function FilterSearch({
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
 
+  // Zustand stores for categories and subcategories
+  const { fetchData: fetchCategories, data: categoriesData } = CategoriesStore();
+  const { fetchData: fetchSubs, data: subsData } = SubcategoriesStore();
+
   // Debounce onChange when showApply is false
   useEffect(() => {
     if (showApply) return;
@@ -97,39 +103,39 @@ export default function FilterSearch({
 
   // Fetch categories on component mount
   useEffect(() => {
-    axios
-      .get("/api/categories")
-      .then((response) => {
-        if (response.data.success && Array.isArray(response.data.data)) {
-          setCategories(response.data.data);
-        } else {
-          console.error("Invalid categories response", response.data);
-          setCategories([]); // Fallback to empty array
-        }
-      })
-      .catch((error) => {
-        console.error("Failed to fetch categories", error);
-        setCategories([]); // Fallback to empty array
-      });
-  }, []);
+    // fetch categories via zustand
+    fetchCategories({ url: CategoriesPath });
+  }, [fetchCategories]);
+
+  useEffect(() => {
+    if (!categoriesData) return;
+    const success = (categoriesData as any).success;
+    if (success && Array.isArray((categoriesData as any).data)) {
+      setCategories((categoriesData as any).data);
+    } else {
+      setCategories([]);
+    }
+  }, [categoriesData]);
 
   // Fetch subcategories directly on component mount
   useEffect(() => {
-    axios
-      .get("/api/subcategories")
-      .then((response) => {
-        if (response.data.success && Array.isArray(response.data.data)) {
-          setSubcategories(response.data.data);
-        } else {
-          console.error("Invalid subcategories response", response.data);
-          setSubcategories([]); // Fallback to empty array
-        }
-      })
-      .catch((error) => {
-        console.error("Failed to fetch subcategories", error);
-        setSubcategories([]); // Fallback to empty array
-      });
-  }, []);
+    // fetch subcategories via zustand; filter by selected category when applicable
+    const url =
+      categoryFilter !== "all"
+        ? `${SubcategoriesPath}?categoryId=${encodeURIComponent(categoryFilter)}`
+        : SubcategoriesPath;
+    fetchSubs({ url });
+  }, [fetchSubs, categoryFilter]);
+
+  useEffect(() => {
+    if (!subsData) return;
+    const success = (subsData as any).success;
+    if (success && Array.isArray((subsData as any).data)) {
+      setSubcategories((subsData as any).data);
+    } else {
+      setSubcategories([]);
+    }
+  }, [subsData]);
 
   function handleReset() {
     setSearch("");

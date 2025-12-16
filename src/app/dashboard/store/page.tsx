@@ -11,8 +11,10 @@ import HeaderWithAction from "../components/HeaderWithAction";
 import { EditIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import FilterSearch from "../components/FilterSearch";
+import { StoreListStore, StoreUpdateStore } from "../storeAPICall/useUserStore";
+import { StorePath } from "../storeAPICall/API/BaseApi";
 
-type StoreForm = {
+interface StoreForm {
   name: string;
   servicePinCodes: string[];
   address: {
@@ -24,13 +26,24 @@ type StoreForm = {
     gps: string;
   };
   status: number;
-};
+}
 
 export default function StoreDashboard() {
   const router = useRouter();
-  const [stores, setStores] = useState<any[]>([]);
-  const [pincodes, setPincodes] = useState<any[]>([]);
   const [search, setSearch] = useState<string>("");
+  
+  const {
+    fetchData: GetStores,
+    loading: storesLoading,
+    data: storesData,
+  } = StoreListStore();
+  
+  const {
+    putData: UpdateStoreStatus,
+    loading: updateStatusLoading,
+  } = StoreUpdateStore();
+  
+  const [stores, setStores] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState<StoreForm>({
     name: "",
@@ -51,91 +64,21 @@ export default function StoreDashboard() {
   console.log(loading, "loadingloading");
 
   useEffect(() => {
-    fetchStores();
-    fetchPincodes();
+    GetStores({ url: StorePath, data: { isListRequest: true } });
   }, []);
 
-  async function fetchStores(q?: string) {
-    setLoading(true);
-    setError("");
-    try {
-      const query = q ?? search;
-      const url = query
-        ? `/api/admin/store?search=${encodeURIComponent(query)}`
-        : "/api/admin/store";
-      const res = await axios.get(url);
-      setStores(res.data.data || []);
-    } catch {
-      setError("Failed to fetch stores");
+  useEffect(() => {
+    const query = search.trim();
+    GetStores({ url: StorePath, data: { isListRequest: true, search: query } });
+  }, [search]);
+
+  useEffect(() => {
+    if (storesData?.data && Array.isArray(storesData.data)) {
+      setStores(storesData.data);
+    } else {
+      setStores([]);
     }
-    setLoading(false);
-  }
-
-  async function fetchPincodes() {
-    try {
-      const res = await axios.get("/api/admin/pincode");
-      setPincodes(res.data.data || []);
-    } catch {
-      setError("Failed to fetch pincodes");
-    }
-  }
-
-  async function handleStoreSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      if (editId) {
-        await axios.put(`/api/admin/store?id=${editId}`, form);
-      } else {
-        await axios.post("/api/admin/store", form);
-      }
-      setShowModal(false);
-      setForm({
-        name: "",
-        servicePinCodes: [],
-        address: {
-          street: "",
-          city: "",
-          state: "",
-          country: "",
-          pincode: "",
-          gps: "",
-        },
-        status: 1,
-      });
-      setEditId(null);
-      fetchStores();
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message ||
-        (editId ? "Error updating store" : "Error adding store")
-      );
-    }
-    setLoading(false);
-  }
-
-  function openAddStore() {
-    window.location.href = "/dashboard/store/new";
-  }
-
-  function openEditStore(store: any) {
-    setEditId(store._id);
-    setForm({
-      name: store.name,
-      servicePinCodes: store.servicePinCodes || [],
-      address: store.address || {
-        street: "",
-        city: "",
-        state: "",
-        country: "",
-        pincode: "",
-        gps: "",
-      },
-      status: store.status ?? 1,
-    });
-    setShowModal(true);
-  }
+  }, [storesData]);
 
   // CustomTable columns definition
   const columns: Column<any>[] = [
@@ -150,6 +93,21 @@ export default function StoreDashboard() {
           </span>
         </CustomTooltip>
       ),
+    },
+    {
+      id: "adminManagerId",
+      label: "Store Manager",
+      minWidth: 150,
+      selector: (row) => {
+        const manager = row.adminManagerId;
+        if (!manager) return <span className="text-gray-400">Not Assigned</span>;
+        const displayName = manager.email || `${manager.firstName || ''} ${manager.lastName || ''}`.trim() || 'N/A';
+        return (
+          <CustomTooltip title={displayName} placement="top">
+            <span className="text-sm text-gray-700">{displayName}</span>
+          </CustomTooltip>
+        );
+      },
     },
     {
       id: "servicePinCodes",
@@ -213,13 +171,14 @@ export default function StoreDashboard() {
               cancelText: "Cancel",
               onConfirm: async () => {
                 try {
-                  await axios.put(`/api/admin/store?id=${row._id}`, {
+                  const updatedStore = {
                     ...row,
                     status: row.status === 1 ? 0 : 1,
-                  });
-                  fetchStores();
-                } catch {
-                  // Optionally show error toast
+                  };
+                  await UpdateStoreStatus(`${StorePath}?id=${row._id}`, updatedStore);
+                  GetStores({ url: StorePath, data: { isListRequest: true, search: search } });
+                } catch (err) {
+                  console.error('Error updating store status:', err);
                 }
               },
             });
@@ -254,7 +213,7 @@ export default function StoreDashboard() {
               justifyContent: "center",
               alignItems: "center",
             }}
-            onClick={() => router.push(`/dashboard/store/edit/${row._id}`)}
+            onClick={() => router.push(`/dashboard/store/new/${row._id}`)}
           >
             <EditIcon fontSize="small" />
           </span>
@@ -272,7 +231,7 @@ export default function StoreDashboard() {
         showSearch={false}
         addLabel="Add "
         addShow={true}
-        handleAdd={() => setShowModal(true)}
+        handleAdd={() => router.push(`/dashboard/store/new/`)}
       />
 
       <FilterSearch
@@ -291,7 +250,7 @@ export default function StoreDashboard() {
         rowsPerPage={100}
         totalCount={stores.length}
         onPageChange={() => {}}
-        loading={loading}
+        loading={storesLoading}
       />
       {error && (
         <div className="text-red-600 text-lg font-semibold mt-4">{error}</div>

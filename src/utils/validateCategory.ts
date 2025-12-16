@@ -25,6 +25,7 @@ export const LoginSchema = Yup.object().shape({
     .min(6, "Password must be at least 6 characters long")
     .required("Password is required"),
 });
+
 export const RegistervalidationSchema = Yup.object({
   name: Yup.string().required("Full Name is required"),
   email: Yup.string()
@@ -41,4 +42,43 @@ export const RegistervalidationSchema = Yup.object({
     .matches(/^\d{10}$/, "Phone number must be exactly 10 digits")
     .required("Phone number is required"),
   role: Yup.string().required("Role is required"),
+});
+
+export const StoreValidationSchema = Yup.object().shape({
+  name: Yup.string()
+    .trim()
+    .min(2, "Store name must be at least 2 characters")
+    .required("Store name is required"),
+  servicePinCodes: Yup.array()
+    .of(Yup.string())
+    .min(1, "Select at least one pincode")
+    .required("Select at least one pincode"),
+  address: Yup.object().shape({
+    street: Yup.string()
+      .trim()
+      .required("Street is required"),
+    city: Yup.string()
+      .trim()
+      .required("City is required"),
+    state: Yup.string()
+      .trim()
+      .required("State is required"),
+    country: Yup.string()
+      .trim()
+      .required("Country is required"),
+    pincode: Yup.string()
+      .trim()
+      .matches(/^\d{6}$/, "Pincode must be 6 digits")
+      .required("Pincode is required"),
+    gps: Yup.string()
+      .trim()
+      .required("GPS is required"),
+  }),
+  GoogleAddress: Yup.string()
+    .trim(),
+  status: Yup.number()
+    .oneOf([0, 1], "Invalid status")
+    .required("Status is required"),
+  adminManagerId: Yup.string()
+    .required("Store Manager is required"),
 });
