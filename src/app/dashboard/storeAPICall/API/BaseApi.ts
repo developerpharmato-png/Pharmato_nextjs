@@ -6,3 +6,6 @@ export const PrescriptionRejectPath = `/api/admin/order/prescription/reject`;
 
 export const CategoriesPath = `/api/categories`;
 export const SubcategoriesPath = `/api/subcategories`;
+
+export const StoreManagersPath = `/api/admins/store-managers`;
+export const StorePath = `/api/admin/store`;

@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
         if (limit > 0) {
             const totalCount = await Admin.countDocuments();
             return NextResponse.json({ success: true, data: normalized, totalCount });
-        }
+        } 
 
         return NextResponse.json({ success: true, data: normalized });
     } catch (error: any) {

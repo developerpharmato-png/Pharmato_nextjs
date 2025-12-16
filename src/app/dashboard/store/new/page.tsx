@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { CustomButton, ErrorMessageCom } from "../../components/miniComponents";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import HeaderWithAction from "../../components/HeaderWithAction";
@@ -11,6 +11,8 @@ import AddressFields from "../AddressFields";
 import PincodeSelect from "../PincodeSelect";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
+import { StoreManagersStore, StoreCreateStore } from "../../storeAPICall/useUserStore";
+import { StoreManagersPath, StorePath } from "../../storeAPICall/API/BaseApi";
 
 type StoreForm = {
   name: string;
@@ -24,10 +26,15 @@ type StoreForm = {
     gps: string;
   };
   status: number;
+  adminManagerId: string;
 };
 
 export default function AddStorePage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params?.id as string | undefined;
+  const isEditMode = !!id;
+  
   const [form, setForm] = useState<StoreForm>({
     name: "",
     servicePinCodes: [],
@@ -40,11 +47,40 @@ export default function AddStorePage() {
       gps: "",
     },
     status: 1,
+    adminManagerId: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [pincodes, setPincodes] = useState<any[]>([]);
+  
+  const {
+    fetchData: GetStoreManagers,
+    loading: storeManagersLoading,
+    data: storeManagersData,
+    clearData: clearStoreManagers,
+  } = StoreManagersStore();
+  
+  const {
+    postData: CreateStore,
+    loading: createStoreLoading,
+    data: createStoreData,
+    clearData: clearCreateStore,
+  } = StoreCreateStore();
+  
+  const {
+    fetchData: GetStoreById,
+    loading: storeDetailLoading,
+    data: storeDetailData,
+    clearData: clearStoreDetail,
+  } = StoreCreateStore();
+  
+  const {
+    putData: UpdateStore,
+    loading: updateStoreLoading,
+    data: updateStoreData,
+    clearData: clearUpdateStore,
+  } = StoreCreateStore();
 
   React.useEffect(() => {
     async function fetchPincodes() {
@@ -58,6 +94,33 @@ export default function AddStorePage() {
     fetchPincodes();
   }, []);
 
+  React.useEffect(() => {
+    GetStoreManagers({ url: StoreManagersPath });
+    if (isEditMode && id) {
+      GetStoreById({ url: `${StorePath}/${id}` });
+    }
+  }, [id, isEditMode]);
+
+  React.useEffect(() => {
+    if (isEditMode && storeDetailData?.data) {
+      const store = storeDetailData.data;
+      setForm({
+        name: store.name || "",
+        servicePinCodes: store.servicePinCodes || [],
+        address: store.address || {
+          street: "",
+          city: "",
+          state: "",
+          country: "India",
+          pincode: "",
+          gps: "",
+        },
+        status: store.status ?? 1,
+        adminManagerId: store.adminManagerId?._id || store.adminManagerId || "",
+      });
+    }
+  }, [storeDetailData, isEditMode]);
+ 
   const [fieldErrors, setFieldErrors] = useState<any>({});
 
   function validateFields() {
@@ -73,6 +136,7 @@ export default function AddStorePage() {
     if (!form.address.gps.trim()) errors.gps = "GPS is required";
     if (form.status === null || form.status === undefined)
       errors.status = "Status is required";
+    if (!form.adminManagerId) errors.adminManagerId = "Store Manager is required";
     return errors;
   }
 
@@ -85,43 +149,57 @@ export default function AddStorePage() {
     if (Object.keys(errors).length > 0) return;
     setLoading(true);
     try {
-      await axios.post("/api/admin/store", form);
-      setSuccess("Store added successfully!");
-      Swal.fire({
-        toast: true,
-        position: "top-end",
-        icon: "success",
-        title: "Store added successfully!",
-        showConfirmButton: false,
-        timer: 2000,
-      });
-      setTimeout(() => {
-        try {
-          router.push("/dashboard/store");
-        } catch (e) {
-          if (typeof window !== "undefined") window.location.href = "/dashboard/store";
-        }
-      }, 1000);
-      setForm({
-        name: "",
-        servicePinCodes: [],
-        address: {
-          street: "",
-          city: "",
-          state: "",
-          country: "India",
-          pincode: "",
-          gps: "",
-        },
-        status: 1,
-      });  
-      setFieldErrors({});
+      let response;
+      if (isEditMode && id) {
+        // PUT for edit
+        response = await UpdateStore(`${StorePath}?id=${id}`, form);
+      } else {
+        // POST for add
+        response = await CreateStore({ url: StorePath, data: form });
+      }
+      
+      if (response?.success) {
+        setSuccess(isEditMode ? "Store updated successfully!" : "Store added successfully!");
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: isEditMode ? "Store updated successfully!" : "Store added successfully!",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        setTimeout(() => {
+          try {
+            router.push("/dashboard/store");
+          } catch (e) {
+            if (typeof window !== "undefined") window.location.href = "/dashboard/store";
+          }
+        }, 1000);
+        setForm({
+          name: "",
+          servicePinCodes: [],
+          address: {
+            street: "",
+            city: "",
+            state: "",
+            country: "India",
+            pincode: "",
+            gps: "",
+          },
+          status: 1,
+          adminManagerId: "",
+        });  
+        setFieldErrors({});
+      } else {
+        throw new Error(response?.message || response?.error || 'Failed to add store');
+      }
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Error adding store");
+      const errorMsg = err?.message || err?.response?.data?.message || "Error adding store";
+      setError(errorMsg);
       Swal.fire({
         icon: "error",
         title: "Error adding store",
-        text: err?.response?.data?.message || "Unknown error",
+        text: errorMsg,
       });
     }
     setLoading(false);
@@ -130,8 +208,8 @@ export default function AddStorePage() {
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
-        title="Add Store"
-        subtitle="Create a new store location"
+        title={isEditMode ? "Edit Store" : "Add Store"}
+        subtitle={isEditMode ? "Update store details" : "Create a new store location"}
         showBack={true}
         showSearch={false}
       />
@@ -152,6 +230,31 @@ export default function AddStorePage() {
             />
             {fieldErrors.name && <ErrorMessageCom error={fieldErrors.name} />}
           </div>
+          <div>
+            <FormControl fullWidth variant="outlined" error={Boolean(fieldErrors.adminManagerId)}>
+              <InputLabel id="admin-manager-label">Store Manager *</InputLabel>
+              <Select
+                labelId="admin-manager-label"
+                value={form.adminManagerId}
+                onChange={(e) => setForm({ ...form, adminManagerId: e.target.value })}
+                label="Store Manager *"
+                disabled={storeManagersLoading}
+              >
+                <MenuItem value="">
+                  <em>{storeManagersLoading ? 'Loading...' : 'Select Store Manager'}</em>
+                </MenuItem>
+                {(storeManagersData?.data || []).map((admin: any) => (
+                  <MenuItem key={admin._id} value={admin._id}>
+                    {admin.email} - {admin.firstName} {admin.lastName}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            {fieldErrors.adminManagerId && <ErrorMessageCom error={fieldErrors.adminManagerId} />}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div></div>
           <div>
             <PincodeSelect
               pincodes={pincodes}
@@ -174,8 +277,8 @@ export default function AddStorePage() {
         <div className=" flex flex-col md:flex-row gap-8 items-center">
       
           <div className="w-full md:w-1/2 flex justify-end items-end mt-4 md:mt-0">
-            <CustomButton type="submit" disabled={loading} width="140px">
-              Add
+            <CustomButton type="submit" disabled={loading || storeDetailLoading || updateStoreLoading} width="140px">
+              {isEditMode ? "Update" : "Add"}
             </CustomButton>
           </div>
         </div>

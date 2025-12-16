@@ -63,6 +63,7 @@ export function createApiStore<T>() {
         set({ loading: true, error: null });
         try {
           const url = (params as any)?.url as string;
+          const data = (params as any)?.data;
           const isAbsolute = /^https?:\/\//i.test(url || '');
           const isPath = (url || '').startsWith("/");
           const finalUrl = isAbsolute
@@ -71,11 +72,16 @@ export function createApiStore<T>() {
               ? `${window.location.origin}${url}`
               : url;
 
-          const response = await api.get<T>(finalUrl);
+          // If data is provided, use POST instead of GET
+          const response = data
+            ? await api.post<T>(finalUrl, data)
+            : await api.get<T>(finalUrl);
           set({ data: response.data, loading: false });
+          return response.data;
         } catch (error: any) {
           handleUnauthorizedError(error);
           set({ error: error.message, loading: false });
+          throw error;
         }
       },
 
@@ -92,9 +98,11 @@ export function createApiStore<T>() {
 
           const response = await api.post<T>(finalUrl, body);
           set({ data: response.data, loading: false });
+          return response.data;
         } catch (error: any) {
           handleUnauthorizedError(error);
           set({ error: error.message, loading: false });
+          throw error;
         }
       },
 
@@ -111,9 +119,11 @@ export function createApiStore<T>() {
 
           const response = await api.put<T>(finalUrl, body);
           set({ data: response.data, loading: false });
+          return response.data;
         } catch (error: any) {
           handleUnauthorizedError(error);
           set({ error: error.message, loading: false });
+          throw error;
         }
       },
 

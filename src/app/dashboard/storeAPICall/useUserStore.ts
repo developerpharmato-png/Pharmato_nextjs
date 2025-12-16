@@ -10,4 +10,7 @@ export const RejectPrescriptionStore = createApiStore<any>();
 
 export const CategoriesStore = createApiStore<any>();
 export const SubcategoriesStore = createApiStore<any>();
+
+export const StoreManagersStore = createApiStore<any>();
+export const StoreCreateStore = createApiStore<any>();
  
