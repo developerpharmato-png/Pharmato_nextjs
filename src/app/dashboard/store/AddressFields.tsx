@@ -10,11 +10,27 @@ export default function AddressFields({
   address,
   errors,
   onChange,
+  onBlur,
+  touched,
 }: {
   address: any;
   errors: any;
   onChange: (field: string, value: string) => void;
+  onBlur?: (field: string) => void;
+  touched?: any;
 }) {
+  const getError = (field: string) => {
+    if (!errors) return null;
+    if (touched?.[field]) {
+      return errors[field] || null;
+    }
+    return null;
+  };
+
+  const handleBlur = (field: string) => {
+    if (onBlur) onBlur(field);
+  };
+
   return (
     <div className=" grid grid-cols-1 md:grid-cols-2 gap-8">
       <div>
@@ -25,13 +41,15 @@ export default function AddressFields({
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             onChange("street", e.target.value)
           }
+          onBlur={() => handleBlur("street")}
           fullWidth
           variant="outlined"
           placeholder="Street"
-          error={Boolean(errors.street)}
-        
+          error={Boolean(getError("street"))}
         />
-        {errors.street && <ErrorMessageCom error={errors.street} />}
+        {getError("street") && (
+          <ErrorMessageCom error={getError("street")} />
+        )}
       </div>
       <div>
         <TextField
@@ -41,16 +59,22 @@ export default function AddressFields({
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             onChange("city", e.target.value)
           }
+          onBlur={() => handleBlur("city")}
           fullWidth
           variant="outlined"
           placeholder="City"
-          error={Boolean(errors.city)}
-        
+          error={Boolean(getError("city"))}
         />
-        {errors.city && <ErrorMessageCom error={errors.city} />}
+        {getError("city") && (
+          <ErrorMessageCom error={getError("city")} />
+        )}
       </div>
       <div>
-        <FormControl fullWidth variant="outlined">
+        <FormControl 
+          fullWidth 
+          variant="outlined"
+          error={Boolean(getError("state"))}
+        >
           <InputLabel id="state-label">State *</InputLabel>
           <Select
             labelId="state-label"
@@ -58,7 +82,7 @@ export default function AddressFields({
             value={address.state}
             label="State *"
             onChange={(e) => onChange("state", e.target.value)}
-         
+            onBlur={() => handleBlur("state")}
           >
             {[
               "Andhra Pradesh",
@@ -104,7 +128,7 @@ export default function AddressFields({
             ))}
           </Select>
         </FormControl>
-        {errors.state && <ErrorMessageCom error={errors.state} />}
+        {getError("state") && <ErrorMessageCom error={getError("state")} />}
       </div>
       <div>
         <TextField
@@ -114,13 +138,15 @@ export default function AddressFields({
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             onChange("country", e.target.value)
           }
+          onBlur={() => handleBlur("country")}
           fullWidth
           variant="outlined"
           placeholder="Country"
-          error={Boolean(errors.country)}
-         
+          error={Boolean(getError("country"))}
         />
-        {errors.country && <ErrorMessageCom error={errors.country} />}
+        {getError("country") && (
+          <ErrorMessageCom error={getError("country")} />
+        )}
       </div>
       <div>
         <TextField
@@ -130,13 +156,15 @@ export default function AddressFields({
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             onChange("pincode", e.target.value)
           }
+          onBlur={() => handleBlur("pincode")}
           fullWidth
           variant="outlined"
           placeholder="Pincode"
-          error={Boolean(errors.pincode)}
-        
+          error={Boolean(getError("pincode"))}
         />
-        {errors.pincode && <ErrorMessageCom error={errors.pincode} />}
+        {getError("pincode") && (
+          <ErrorMessageCom error={getError("pincode")} />
+        )}
       </div>
       <div>
         <TextField
@@ -146,13 +174,15 @@ export default function AddressFields({
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             onChange("gps", e.target.value)
           }
+          onBlur={() => handleBlur("gps")}
           fullWidth
           variant="outlined"
           placeholder="GPS (lat,long)"
-          error={Boolean(errors.gps)}
-        
+          error={Boolean(getError("gps"))}
         />
-        {errors.gps && <ErrorMessageCom error={errors.gps} />}
+        {getError("gps") && (
+          <ErrorMessageCom error={getError("gps")} />
+        )}
       </div>
       {/* googleMap field removed per request */}
     </div>

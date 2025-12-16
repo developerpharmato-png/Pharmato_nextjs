@@ -1,14 +1,10 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-
+import { useFormik } from "formik";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
-
 import axios from "axios";
 import Swal from "sweetalert2";
-import CircularProgress from "@mui/material/CircularProgress";
-
-import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import {
   StoreCreateStore,
@@ -27,45 +23,16 @@ import {
 } from "@/app/dashboard/components/miniComponents";
 import PincodeSelect from "../../PincodeSelect";
 import AddressFields from "../../AddressFields";
-
-type StoreForm = {
-  name: string;
-  servicePinCodes: string[];
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    country: string;
-    pincode: string;
-    gps: string;
-  };
-  status: number;
-  adminManagerId: string;
-};
+import StoreMapComponent from "../../StoreMapComponent";
+import { StoreInitialValues } from "@/utils/initCategory";
+import { StoreValidationSchema } from "@/utils/validateCategory";
 
 export default function AddStorePage() {
   const router = useRouter();
   const params = useParams();
-  const id = (params?.id as string[] | undefined)?.[0]; // Extract from optional catch-all array
+  const id = (params?.id as string[] | undefined)?.[0];
   const isEditMode = !!id;
 
-  const [form, setForm] = useState<StoreForm>({
-    name: "",
-    servicePinCodes: [],
-    address: {
-      street: "",
-      city: "",
-      state: "",
-      country: "India",
-      pincode: "",
-      gps: "",
-    },
-    status: 1,
-    adminManagerId: "",
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [pincodes, setPincodes] = useState<any[]>([]);
 
   const {
@@ -74,10 +41,8 @@ export default function AddStorePage() {
     data: storeManagersData,
   } = StoreManagersStore();
 
-  const {
-    postData: CreateStore,
-    loading: createStoreLoading,
-  } = StoreCreateStore();
+  const { postData: CreateStore, loading: createStoreLoading } =
+    StoreCreateStore();
 
   const {
     fetchData: GetStoreById,
@@ -85,10 +50,52 @@ export default function AddStorePage() {
     data: storeDetailData,
   } = StoreDetailStore();
 
-  const {
-    putData: UpdateStore,
-    loading: updateStoreLoading,
-  } = StoreUpdateStore();
+  const { putData: UpdateStore, loading: updateStoreLoading } =
+    StoreUpdateStore();
+
+  const formik = useFormik({
+    initialValues: StoreInitialValues,
+    validationSchema: StoreValidationSchema,
+    enableReinitialize: true,
+    onSubmit: async (values) => {
+      try {
+        let response;
+        if (isEditMode && id) {
+          response = await UpdateStore(`${StorePath}?id=${id}`, values);
+        } else {
+          response = await CreateStore(StorePath, values);
+        }
+
+        if (response?.success) {
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "success",
+            title: isEditMode
+              ? "Store updated successfully!"
+              : "Store added successfully!",
+            showConfirmButton: false,
+            timer: 2000,
+          });
+          setTimeout(() => {
+            router.push("/dashboard/store");
+          }, 1000);
+        } else {
+          throw new Error(
+            response?.message || response?.error || "Failed to save store"
+          );
+        }
+      } catch (err: any) {
+        const errorMsg =
+          err?.message || err?.response?.data?.message || "Error saving store";
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: errorMsg,
+        });
+      }
+    },
+  });
 
   React.useEffect(() => {
     async function fetchPincodes() {
@@ -112,7 +119,7 @@ export default function AddStorePage() {
   React.useEffect(() => {
     if (isEditMode && storeDetailData?.data) {
       const store = storeDetailData.data;
-      setForm({
+      formik.setValues({
         name: store.name || "",
         servicePinCodes: store.servicePinCodes || [],
         address: store.address || {
@@ -129,100 +136,12 @@ export default function AddStorePage() {
     }
   }, [storeDetailData, isEditMode]);
 
-  const [fieldErrors, setFieldErrors] = useState<any>({});
-
-  function validateFields() {
-    const errors: any = {};
-    if (!form.name.trim()) errors.name = "Store name is required";
-    if (!form.servicePinCodes.length)
-      errors.servicePinCodes = "Select at least one pincode";
-    if (!form.address.street.trim()) errors.street = "Street is required";
-    if (!form.address.city.trim()) errors.city = "City is required";
-    if (!form.address.state.trim()) errors.state = "State is required";
-    if (!form.address.country.trim()) errors.country = "Country is required";
-    if (!form.address.pincode.trim()) errors.pincode = "Pincode is required";
-    if (!form.address.gps.trim()) errors.gps = "GPS is required";
-    if (form.status === null || form.status === undefined)
-      errors.status = "Status is required";
-    if (!form.adminManagerId)
-      errors.adminManagerId = "Store Manager is required";
-    return errors;
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    const errors = validateFields();
-    setFieldErrors(errors);
-    if (Object.keys(errors).length > 0) return;
-    setLoading(true);
-    try {
-      let response;
-      if (isEditMode && id) {
-        // PUT for edit
-        response = await UpdateStore(`${StorePath}?id=${id}`, form);
-      } else {
-        // POST for add
-        response = await CreateStore(StorePath, form);
-      }
-
-      if (response?.success) {
-        setSuccess(
-          isEditMode
-            ? "Store updated successfully!"
-            : "Store added successfully!"
-        );
-        Swal.fire({
-          toast: true,
-          position: "top-end",
-          icon: "success",
-          title: isEditMode
-            ? "Store updated successfully!"
-            : "Store added successfully!",
-          showConfirmButton: false,
-          timer: 2000,
-        });
-        setTimeout(() => {
-          try {
-            router.push("/dashboard/store");
-          } catch (e) {
-            if (typeof window !== "undefined")
-              window.location.href = "/dashboard/store";
-          }
-        }, 1000);
-        setForm({
-          name: "",
-          servicePinCodes: [],
-          address: {
-            street: "",
-            city: "",
-            state: "",
-            country: "India",
-            pincode: "",
-            gps: "",
-          },
-          status: 1,
-          adminManagerId: "",
-        });
-        setFieldErrors({});
-      } else {
-        throw new Error(
-          response?.message || response?.error || "Failed to add store"
-        );
-      }
-    } catch (err: any) {
-      const errorMsg =
-        err?.message || err?.response?.data?.message || "Error adding store";
-      setError(errorMsg);
-      Swal.fire({
-        icon: "error",
-        title: "Error adding store",
-        text: errorMsg,
-      });
-    }
-    setLoading(false);
-  }
+  const getFieldError = (fieldName: string) => {
+    return formik.touched[fieldName as keyof typeof formik.touched] &&
+      formik.errors[fieldName as keyof typeof formik.errors]
+      ? formik.errors[fieldName as keyof typeof formik.errors]
+      : null;
+  };
 
   return (
     <div className="containerStyle scrollbar-hide">
@@ -235,34 +154,42 @@ export default function AddStorePage() {
         showSearch={false}
       />
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-8 px-8 py-8">
+      <form
+        onSubmit={formik.handleSubmit}
+        className="flex flex-col gap-8 px-8 py-8"
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <TextField
               name="name"
               label="Store Name *"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              value={formik.values.name}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               fullWidth
               variant="outlined"
               placeholder="Enter store name"
-              error={Boolean(fieldErrors.name)}
+              error={Boolean(getFieldError("name"))}
             />
-            {fieldErrors.name && <ErrorMessageCom error={fieldErrors.name} />}
+            {getFieldError("name") && (
+              <ErrorMessageCom error={getFieldError("name") as string} />
+            )}
           </div>
           <div>
             <FormControl
               fullWidth
               variant="outlined"
-              error={Boolean(fieldErrors.adminManagerId)}
+              error={Boolean(
+                formik.touched.adminManagerId && formik.errors.adminManagerId
+              )}
             >
               <InputLabel id="admin-manager-label">Store Manager *</InputLabel>
               <Select
                 labelId="admin-manager-label"
-                value={form.adminManagerId}
-                onChange={(e) =>
-                  setForm({ ...form, adminManagerId: e.target.value })
-                }
+                name="adminManagerId"
+                value={formik.values.adminManagerId}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 label="Store Manager *"
                 disabled={storeManagersLoading}
               >
@@ -280,8 +207,8 @@ export default function AddStorePage() {
                 ))}
               </Select>
             </FormControl>
-            {fieldErrors.adminManagerId && (
-              <ErrorMessageCom error={fieldErrors.adminManagerId} />
+            {formik.touched.adminManagerId && formik.errors.adminManagerId && (
+              <ErrorMessageCom error={formik.errors.adminManagerId as string} />
             )}
           </div>
         </div>
@@ -290,37 +217,68 @@ export default function AddStorePage() {
           <div>
             <PincodeSelect
               pincodes={pincodes}
-              value={form.servicePinCodes}
-              error={fieldErrors.servicePinCodes}
+              value={formik.values.servicePinCodes}
+              error={
+                formik.touched.servicePinCodes
+                  ? (formik.errors.servicePinCodes as string)
+                  : ""
+              }
               onChange={(selected) =>
-                setForm({ ...form, servicePinCodes: selected })
+                formik.setFieldValue("servicePinCodes", selected)
               }
             />
-            {fieldErrors.servicePinCodes && (
-              <ErrorMessageCom error={fieldErrors.servicePinCodes} />
-            )}
+            {formik.touched.servicePinCodes &&
+              formik.errors.servicePinCodes && (
+                <ErrorMessageCom
+                  error={formik.errors.servicePinCodes as string}
+                />
+              )}
           </div>
         </div>
+
         <AddressFields
-          address={form.address}
-          errors={fieldErrors}
+          address={formik.values.address}
+          errors={formik.errors.address as Record<string, string> | undefined}
+          touched={formik.touched.address}
+          onBlur={(field) => formik.setFieldTouched(`address.${field}`, true)}
           onChange={(field, value) =>
-            setForm({ ...form, address: { ...form.address, [field]: value } })
+            formik.setFieldValue("address", {
+              ...formik.values.address,
+              [field]: value,
+            })
           }
         />
-        <div className=" flex flex-col md:flex-row gap-8 items-center">
+
+        {/* OpenStreetMap for GPS Location Selection */}
+        <div className="w-full">
+          <StoreMapComponent
+            gpsValue={formik.values.address.gps}
+            onLocationSelect={(lat, lng) => {
+              formik.setFieldValue("address.gps", `${lat},${lng}`);
+            }}
+            disabled={formik.isSubmitting}
+          />
+          {formik.touched.address?.gps && formik.errors.address?.gps && (
+            <ErrorMessageCom error={formik.errors.address.gps as string} />
+          )}
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-8 items-center">
           <div className="w-full md:w-1/2 flex justify-end items-end mt-4 md:mt-0">
             <CustomButton
               type="submit"
-              disabled={loading || storeDetailLoading || updateStoreLoading}
+              disabled={
+                formik.isSubmitting ||
+                createStoreLoading ||
+                storeDetailLoading ||
+                updateStoreLoading
+              }
               width="140px"
             >
               {isEditMode ? "Update" : "Add"}
             </CustomButton>
           </div>
         </div>
-
-        {error && <ErrorMessageCom error={error} />}
       </form>
     </div>
   );
