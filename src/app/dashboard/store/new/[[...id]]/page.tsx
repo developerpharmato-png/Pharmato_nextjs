@@ -1,18 +1,30 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { CustomButton, ErrorMessageCom } from "../../components/miniComponents";
+
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
-import HeaderWithAction from "../../components/HeaderWithAction";
+
 import axios from "axios";
 import Swal from "sweetalert2";
 import CircularProgress from "@mui/material/CircularProgress";
-import AddressFields from "../AddressFields";
-import PincodeSelect from "../PincodeSelect";
+
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
-import { StoreManagersStore, StoreCreateStore } from "../../storeAPICall/useUserStore";
-import { StoreManagersPath, StorePath } from "../../storeAPICall/API/BaseApi";
+import {
+  StoreCreateStore,
+  StoreManagersStore,
+} from "@/app/dashboard/storeAPICall/useUserStore";
+import {
+  StoreManagersPath,
+  StorePath,
+} from "@/app/dashboard/storeAPICall/API/BaseApi";
+import HeaderWithAction from "@/app/dashboard/components/HeaderWithAction";
+import {
+  CustomButton,
+  ErrorMessageCom,
+} from "@/app/dashboard/components/miniComponents";
+import PincodeSelect from "../../PincodeSelect";
+import AddressFields from "../../AddressFields";
 
 type StoreForm = {
   name: string;
@@ -32,9 +44,9 @@ type StoreForm = {
 export default function AddStorePage() {
   const router = useRouter();
   const params = useParams();
-  const id = params?.id as string | undefined;
+  const id = (params?.id as string[] | undefined)?.[0]; // Extract from optional catch-all array
   const isEditMode = !!id;
-  
+
   const [form, setForm] = useState<StoreForm>({
     name: "",
     servicePinCodes: [],
@@ -53,28 +65,28 @@ export default function AddStorePage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [pincodes, setPincodes] = useState<any[]>([]);
-  
+
   const {
     fetchData: GetStoreManagers,
     loading: storeManagersLoading,
     data: storeManagersData,
     clearData: clearStoreManagers,
   } = StoreManagersStore();
-  
+
   const {
     postData: CreateStore,
     loading: createStoreLoading,
     data: createStoreData,
     clearData: clearCreateStore,
   } = StoreCreateStore();
-  
+
   const {
     fetchData: GetStoreById,
     loading: storeDetailLoading,
     data: storeDetailData,
     clearData: clearStoreDetail,
   } = StoreCreateStore();
-  
+
   const {
     putData: UpdateStore,
     loading: updateStoreLoading,
@@ -120,7 +132,7 @@ export default function AddStorePage() {
       });
     }
   }, [storeDetailData, isEditMode]);
- 
+
   const [fieldErrors, setFieldErrors] = useState<any>({});
 
   function validateFields() {
@@ -136,7 +148,8 @@ export default function AddStorePage() {
     if (!form.address.gps.trim()) errors.gps = "GPS is required";
     if (form.status === null || form.status === undefined)
       errors.status = "Status is required";
-    if (!form.adminManagerId) errors.adminManagerId = "Store Manager is required";
+    if (!form.adminManagerId)
+      errors.adminManagerId = "Store Manager is required";
     return errors;
   }
 
@@ -157,14 +170,20 @@ export default function AddStorePage() {
         // POST for add
         response = await CreateStore({ url: StorePath, data: form });
       }
-      
+
       if (response?.success) {
-        setSuccess(isEditMode ? "Store updated successfully!" : "Store added successfully!");
+        setSuccess(
+          isEditMode
+            ? "Store updated successfully!"
+            : "Store added successfully!"
+        );
         Swal.fire({
           toast: true,
           position: "top-end",
           icon: "success",
-          title: isEditMode ? "Store updated successfully!" : "Store added successfully!",
+          title: isEditMode
+            ? "Store updated successfully!"
+            : "Store added successfully!",
           showConfirmButton: false,
           timer: 2000,
         });
@@ -172,7 +191,8 @@ export default function AddStorePage() {
           try {
             router.push("/dashboard/store");
           } catch (e) {
-            if (typeof window !== "undefined") window.location.href = "/dashboard/store";
+            if (typeof window !== "undefined")
+              window.location.href = "/dashboard/store";
           }
         }, 1000);
         setForm({
@@ -188,13 +208,16 @@ export default function AddStorePage() {
           },
           status: 1,
           adminManagerId: "",
-        });  
+        });
         setFieldErrors({});
       } else {
-        throw new Error(response?.message || response?.error || 'Failed to add store');
+        throw new Error(
+          response?.message || response?.error || "Failed to add store"
+        );
       }
     } catch (err: any) {
-      const errorMsg = err?.message || err?.response?.data?.message || "Error adding store";
+      const errorMsg =
+        err?.message || err?.response?.data?.message || "Error adding store";
       setError(errorMsg);
       Swal.fire({
         icon: "error",
@@ -209,7 +232,9 @@ export default function AddStorePage() {
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
         title={isEditMode ? "Edit Store" : "Add Store"}
-        subtitle={isEditMode ? "Update store details" : "Create a new store location"}
+        subtitle={
+          isEditMode ? "Update store details" : "Create a new store location"
+        }
         showBack={true}
         showSearch={false}
       />
@@ -226,22 +251,31 @@ export default function AddStorePage() {
               variant="outlined"
               placeholder="Enter store name"
               error={Boolean(fieldErrors.name)}
-            
             />
             {fieldErrors.name && <ErrorMessageCom error={fieldErrors.name} />}
           </div>
           <div>
-            <FormControl fullWidth variant="outlined" error={Boolean(fieldErrors.adminManagerId)}>
+            <FormControl
+              fullWidth
+              variant="outlined"
+              error={Boolean(fieldErrors.adminManagerId)}
+            >
               <InputLabel id="admin-manager-label">Store Manager *</InputLabel>
               <Select
                 labelId="admin-manager-label"
                 value={form.adminManagerId}
-                onChange={(e) => setForm({ ...form, adminManagerId: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, adminManagerId: e.target.value })
+                }
                 label="Store Manager *"
                 disabled={storeManagersLoading}
               >
                 <MenuItem value="">
-                  <em>{storeManagersLoading ? 'Loading...' : 'Select Store Manager'}</em>
+                  <em>
+                    {storeManagersLoading
+                      ? "Loading..."
+                      : "Select Store Manager"}
+                  </em>
                 </MenuItem>
                 {(storeManagersData?.data || []).map((admin: any) => (
                   <MenuItem key={admin._id} value={admin._id}>
@@ -250,7 +284,9 @@ export default function AddStorePage() {
                 ))}
               </Select>
             </FormControl>
-            {fieldErrors.adminManagerId && <ErrorMessageCom error={fieldErrors.adminManagerId} />}
+            {fieldErrors.adminManagerId && (
+              <ErrorMessageCom error={fieldErrors.adminManagerId} />
+            )}
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -264,7 +300,9 @@ export default function AddStorePage() {
                 setForm({ ...form, servicePinCodes: selected })
               }
             />
-            {fieldErrors.servicePinCodes && <ErrorMessageCom error={fieldErrors.servicePinCodes} />}
+            {fieldErrors.servicePinCodes && (
+              <ErrorMessageCom error={fieldErrors.servicePinCodes} />
+            )}
           </div>
         </div>
         <AddressFields
@@ -275,9 +313,12 @@ export default function AddStorePage() {
           }
         />
         <div className=" flex flex-col md:flex-row gap-8 items-center">
-      
           <div className="w-full md:w-1/2 flex justify-end items-end mt-4 md:mt-0">
-            <CustomButton type="submit" disabled={loading || storeDetailLoading || updateStoreLoading} width="140px">
+            <CustomButton
+              type="submit"
+              disabled={loading || storeDetailLoading || updateStoreLoading}
+              width="140px"
+            >
               {isEditMode ? "Update" : "Add"}
             </CustomButton>
           </div>

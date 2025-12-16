@@ -61,8 +61,10 @@ export default function StoreDashboard() {
   }, [search]);
 
   useEffect(() => {
-    if (storesData?.data) {
+    if (storesData?.data && Array.isArray(storesData.data)) {
       setStores(storesData.data);
+    } else {
+      setStores([]);
     }
   }, [storesData]);
 
@@ -199,7 +201,7 @@ export default function StoreDashboard() {
               justifyContent: "center",
               alignItems: "center",
             }}
-            onClick={() => router.push(`/dashboard/store/edit/${row._id}`)}
+            onClick={() => router.push(`/dashboard/store/new/${row._id}`)}
           >
             <EditIcon fontSize="small" />
           </span>
@@ -217,7 +219,7 @@ export default function StoreDashboard() {
         showSearch={false}
         addLabel="Add "
         addShow={true}
-        handleAdd={() => router.push(`/dashboard/store/new`)}
+        handleAdd={() => router.push(`/dashboard/store/new/`)}
       />
 
       <FilterSearch

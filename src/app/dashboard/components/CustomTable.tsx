@@ -71,7 +71,7 @@ export function CustomTable<T>({
                   ))}
                 </TableRow>
               ))
-            ) : !data || data.length === 0 ? (
+            ) : !data || !Array.isArray(data) || data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={columns.length} align="center">
                   No data found
