@@ -149,3 +149,57 @@ display: inline-block;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border: 1px solid #e5e7eb;
 }
+
+
+
+/* *************** tabs************ */
+
+
+.TabList {
+  position: relative;
+  display: flex;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+@media (max-width: 765px) and (min-width: 320px) {
+  .TabList {
+    overflow-x: scroll !important;
+  }
+}
+
+.TabList::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #ccc;
+  z-index: -1;
+}
+
+.Tab {
+  position: relative;
+  padding: 10px 15px;  
+  margin-right: 10px;
+  cursor: pointer;
+  /* /border-right: 5px solid transparent;
+  /border-right: 1px solid grey; */
+  outline: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.Tab[aria-selected="true"] {
+  color:var(--primary);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border-bottom: 1px solid var(--primary) !important;
+}

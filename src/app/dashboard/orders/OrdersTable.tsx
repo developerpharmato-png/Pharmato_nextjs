@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 interface Order {
   _id: string;
   order_id: string;
+  payment_id: string;
+  discount: number;
   userId?: {
     _id: string;
     name: string;
@@ -44,15 +46,26 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "pending":
+      case "placed":
         return "bg-yellow-100 text-yellow-800";
       case "completed":
       case "success":
+      case "delivered":
         return "bg-green-100 text-green-800";
       case "failed":
       case "cancelled":
+      case "returned":
         return "bg-red-100 text-red-800";
       case "processing":
+      case "confirmed":
+      case "packed":
         return "bg-blue-100 text-blue-800";
+      case "dispatched":
+        return "bg-purple-100 text-purple-800";
+      case "paid":
+        return "bg-green-100 text-green-800";
+      case "refunded":
+        return "bg-orange-100 text-orange-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -90,17 +103,35 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
     {
       id: "items",
       label: "Items",
-      minWidth: 80,
+      minWidth: 70,
       selector: (row: Order) => (
         <span className="text-gray-700">
-          {row.medicineId?.length || 0} item(s)
+          {row.medicineId?.length || 0}
         </span>
       ),
     },
     {
+      id: "payment_id",
+      label: "Payment ID",
+      minWidth: 140,
+      selector: (row: Order) => (
+        <CustomTooltip title={row.payment_id || "Not Available"}>
+          <span className="text-xs text-gray-600 font-mono">
+            {row.payment_id ? (
+              row.payment_id.length > 15
+                ? `${row.payment_id.substring(0, 15)}...`
+                : row.payment_id
+            ) : (
+              "-"
+            )}
+          </span>
+        </CustomTooltip>
+      ),
+    },
+    {
       id: "total_amount",
-      label: "Total Amount",
-      minWidth: 120,
+      label: "Amount",
+      minWidth: 100,
       selector: (row: Order) => (
         <span className="font-medium text-gray-900">
           ₹{row.total_order_amount?.toFixed(2) || "0.00"}
@@ -108,11 +139,21 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       ),
     },
     {
-      id: "payment_mode",
-      label: "Payment",
-      minWidth: 100,
+      id: "discount",
+      label: "Discount",
+      minWidth: 90,
       selector: (row: Order) => (
-        <span className="capitalize text-gray-700">
+        <span className="font-medium text-green-600">
+          {row.discount > 0 ? `₹${row.discount.toFixed(2)}` : "-"}
+        </span>
+      ),
+    },
+    {
+      id: "payment_mode",
+      label: "Payment Mode",
+      minWidth: 110,
+      selector: (row: Order) => (
+        <span className="capitalize text-gray-700 text-xs">
           {row.payment_mode || "-"}
         </span>
       ),

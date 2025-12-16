@@ -339,21 +339,21 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
         isunsaved={false}
       />
 
-      <div className="mt-8">
+     
         <Tabs>
-          <TabList>
-            <Tab>Details</Tab>
-            <Tab>Orders</Tab>
+          <TabList className="TabList">
+            <Tab className="Tab">Details</Tab>
+            <Tab className="Tab">Orders</Tab>
           </TabList>
 
-          <TabPanel>
+          <TabPanel className="TabPanel">
             <div className="mt-8 space-y-8">
               <CustomerDetails />
               {!loading && customer && <CustomerAddresses />}
             </div>
           </TabPanel>
 
-          <TabPanel>
+          <TabPanel className="TabPanel">
             <div className="mt-8">
               <div className="bg-white rounded-xl shadow-md p-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">
@@ -396,7 +396,7 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
             </div>
           </TabPanel>
         </Tabs>
-      </div>
+   
     </div>
   );
 }

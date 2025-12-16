@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
         const order = await Order.findOne({ _id: orderId })
             .populate({
                 path: 'userId',
-                select: '_id name email phone'
+                select: '_id name email phone mobile'
             })
             .populate({
                 path: 'medicineId',
@@ -92,7 +92,11 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error('Error fetching order detail:', error);
         return NextResponse.json(
-            { success: false, message: 'Failed to fetch order detail' },
+            { 
+                success: false, 
+                message: 'Failed to fetch order detail',
+                error: error instanceof Error ? error.message : 'Unknown error'
+            },
             { status: 500 }
         );
     }
