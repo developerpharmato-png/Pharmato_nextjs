@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
-
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
 import Razorpay from 'razorpay';
 
-const RAZORPAY_WEBHOOK_SECRET = process.env.razorPay_Secret_Key || '';
 const razorpayInstance = new Razorpay({
     key_id: process.env.razorPay_Key_Id || '',
     key_secret: process.env.razorPay_Secret_Key || ''
@@ -32,29 +29,12 @@ const razorpayInstance = new Razorpay({
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const rawBody = await req.text();
-    const signature = req.headers.get('x-razorpay-signature');
-
-    // Validate signature
-    const expectedSignature = crypto
-        .createHmac('sha256', RAZORPAY_WEBHOOK_SECRET)
-        .update(rawBody)
-        .digest('hex');
-
-    if (signature !== expectedSignature) {
-        return NextResponse.json({ status: false, message: 'Invalid signature' }, { status: 400 });
-    }
-
-    let body;
-    try {
-        body = JSON.parse(rawBody);
-    } catch (err) {
-        return NextResponse.json({ status: false, message: 'Invalid JSON' }, { status: 400 });
-    }
+    const body = await req.json();   
 
     if (body?.payload?.payment?.entity) {
         let paymentHistory: any = {};
         const entity = body.payload.payment.entity;
+         console.log(entity);
         const orderId = entity.notes?.razorpay_order_id;
 
         paymentHistory.orderId = orderId;
@@ -69,12 +49,8 @@ export async function POST(req: NextRequest) {
                 const currency = entity.currency;
 
                 try {
-                    // Uncomment and configure if you want to capture payment
                     const captureResponse = await razorpayInstance.payments.capture(entity.id, amount, currency);
-                    // Optionally log captureResponse
-                } catch (error) {
-                    // Optionally log error
-                }
+                } catch (error) { }
             }
 
             if (body.event === 'payment.captured') {
@@ -99,5 +75,5 @@ export async function POST(req: NextRequest) {
         }
     }
 
-    return NextResponse.json({ status: true, message: 'Webhook processed' });
+    return NextResponse.json({ status: true, message: 'Webhook processed (direct)' });
 }
