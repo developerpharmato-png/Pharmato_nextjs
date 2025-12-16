@@ -62,7 +62,16 @@ export function createApiStore<T>() {
       fetchData: async (params = {}) => {
         set({ loading: true, error: null });
         try {
-          const response = await api.get<T>(params?.url);
+          const url = (params as any)?.url as string;
+          const isAbsolute = /^https?:\/\//i.test(url || '');
+          const isPath = (url || '').startsWith("/");
+          const finalUrl = isAbsolute
+            ? url
+            : isPath && typeof window !== "undefined"
+              ? `${window.location.origin}${url}`
+              : url;
+
+          const response = await api.get<T>(finalUrl);
           set({ data: response.data, loading: false });
         } catch (error: any) {
           handleUnauthorizedError(error);

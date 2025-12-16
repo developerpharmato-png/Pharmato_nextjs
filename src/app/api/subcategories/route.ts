@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import SubCategory from '@/models/SubCategory';
+import Category from '@/models/Category';
 
 /**
  * @swagger
@@ -65,10 +66,27 @@ export async function GET(request: NextRequest) {
 
         const { searchParams } = new URL(request.url);
         const isOTC = searchParams.get('isOTC');
+        const categoryId = searchParams.get('categoryId');
 
         let query: any = {};
         if (isOTC !== null) {
             query.isOTC = isOTC === 'true';
+        }
+        if (categoryId) {
+            // If categoryId is a valid ObjectId, use directly; otherwise resolve by name
+            const isValidObjectId = /^[a-fA-F0-9]{24}$/.test(categoryId);
+            if (isValidObjectId) {
+                query.categoryId = categoryId;
+            } else {
+                const categoryDoc = await Category.findOne({ name: categoryId }).select('_id');
+                if (!categoryDoc) {
+                    return NextResponse.json(
+                        { success: false, error: 'Category not found' },
+                        { status: 400 }
+                    );
+                }
+                query.categoryId = categoryDoc._id;
+            }
         }
 
         const subcategories = await SubCategory.find(query)
