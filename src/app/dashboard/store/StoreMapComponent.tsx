@@ -15,7 +15,9 @@ L.Icon.Default.mergeOptions({
 
 interface StoreMapComponentProps {
   gpsValue: string; // "lat,lng" format
+  addressValue?: string; // Google/OSM address string
   onLocationSelect: (lat: number, lng: number) => void;
+  onAddressSelect?: (address: string) => void;
   disabled?: boolean;
 }
 
@@ -74,12 +76,14 @@ interface Suggestion {
 
 const StoreMapComponent: React.FC<StoreMapComponentProps> = ({
   gpsValue,
+  addressValue = "",
   onLocationSelect,
+  onAddressSelect,
   disabled = false,
 }) => {
   const [position, setPosition] = useState<[number, number] | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number]>([20.5937, 78.9629]); // India center
-  const [searchAddress, setSearchAddress] = useState("");
+  const [searchAddress, setSearchAddress] = useState(addressValue);
   const [searchError, setSearchError] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -95,6 +99,13 @@ const StoreMapComponent: React.FC<StoreMapComponentProps> = ({
       }
     }
   }, [gpsValue]);
+
+  // Update search address when addressValue prop changes
+  useEffect(() => {
+    if (addressValue) {
+      setSearchAddress(addressValue);
+    }
+  }, [addressValue]);
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -149,6 +160,7 @@ const StoreMapComponent: React.FC<StoreMapComponentProps> = ({
     setMapCenter(newPos);
     handleLocationSelect(lat, lng);
     setSearchAddress(suggestion.display_name);
+    onAddressSelect?.(suggestion.display_name); // Update GoogleAddress field
     setShowSuggestions(false);
     setSearchError("");
   };

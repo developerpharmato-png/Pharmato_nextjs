@@ -27,11 +27,11 @@ export async function POST(req: NextRequest) {
         }
 
         // Otherwise, create a new store
-        const { name, servicePinCodes, address, status, adminManagerId } = body;
+        const { name, servicePinCodes, address, GoogleAddress, status, adminManagerId } = body;
         if (!name || typeof name !== 'string') {
             return NextResponse.json({ success: false, message: 'Store name is required' }, { status: 400 });
         }
-        const store = await Store.create({ name, servicePinCodes, address, status, adminManagerId });
+        const store = await Store.create({ name, servicePinCodes, address, GoogleAddress, status, adminManagerId });
         const populatedStore = await Store.findById(store._id).populate('adminManagerId', 'email firstName lastName');
         return NextResponse.json({ success: true, message: 'Store added successfully', data: populatedStore }, { status: 201 });
     } catch (error: any) {
@@ -52,10 +52,10 @@ export async function PUT(req: NextRequest) {
         if (!id) {
             return NextResponse.json({ success: false, message: 'Store ID is required' }, { status: 400 });
         }
-        const { name, servicePinCodes, address, status, adminManagerId } = await req.json();
+        const { name, servicePinCodes, address, GoogleAddress, status, adminManagerId } = await req.json();
         const updated = await Store.findByIdAndUpdate(
             id,
-            { name, servicePinCodes, address, status, adminManagerId },
+            { name, servicePinCodes, address, GoogleAddress, status, adminManagerId },
             { new: true }
         ).populate('adminManagerId', 'email firstName lastName');
         if (!updated) {

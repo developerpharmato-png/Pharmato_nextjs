@@ -59,7 +59,7 @@ export default function AddStorePage() {
     enableReinitialize: true,
     onSubmit: async (values) => {
       try {
-        let response;
+        let response: any;
         if (isEditMode && id) {
           response = await UpdateStore(`${StorePath}?id=${id}`, values);
         } else {
@@ -130,6 +130,7 @@ export default function AddStorePage() {
           pincode: "",
           gps: "",
         },
+        GoogleAddress: store.GoogleAddress || "",
         status: store.status ?? 1,
         adminManagerId: store.adminManagerId?._id || store.adminManagerId || "",
       });
@@ -253,8 +254,12 @@ export default function AddStorePage() {
         <div className="w-full">
           <StoreMapComponent
             gpsValue={formik.values.address.gps}
+            addressValue={formik.values.GoogleAddress}
             onLocationSelect={(lat, lng) => {
               formik.setFieldValue("address.gps", `${lat},${lng}`);
+            }}
+            onAddressSelect={(address) => {
+              formik.setFieldValue("GoogleAddress", address);
             }}
             disabled={formik.isSubmitting}
           />

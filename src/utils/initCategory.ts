@@ -26,6 +26,7 @@ export const StoreInitialValues = {
     pincode: "",
     gps: "",
   },
+  GoogleAddress: "",
   status: 1,
   adminManagerId: "",
 };

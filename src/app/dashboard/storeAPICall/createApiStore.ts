@@ -5,6 +5,11 @@ import { devtools } from "zustand/middleware";
 import type { AxiosError } from "axios";
 import api from "./API/api";
 
+interface ApiState<T> {
+  data: T | null;
+  loading: boolean;
+  error: string | null;
+}
 
 const handleUnauthorizedError = (error: AxiosError | any) => {
   if (error?.response?.status === 401) {
@@ -18,7 +23,7 @@ const handleUnauthorizedError = (error: AxiosError | any) => {
 
 async function handleAuthRefreshAndRetry<T>(
   originalRequest: () => Promise<any>
-): Promise<T> {
+): Promise<T | void> {
   const refreshToken = localStorage.getItem("REFRESH_TOKEN_KEY");
 
   // if (!refreshToken) {

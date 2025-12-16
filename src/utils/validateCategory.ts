@@ -74,6 +74,8 @@ export const StoreValidationSchema = Yup.object().shape({
       .trim()
       .required("GPS is required"),
   }),
+  GoogleAddress: Yup.string()
+    .trim(),
   status: Yup.number()
     .oneOf([0, 1], "Invalid status")
     .required("Status is required"),

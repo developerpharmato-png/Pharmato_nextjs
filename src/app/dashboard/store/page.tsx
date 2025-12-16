@@ -14,6 +14,19 @@ import FilterSearch from "../components/FilterSearch";
 import { StoreListStore, StoreUpdateStore } from "../storeAPICall/useUserStore";
 import { StorePath } from "../storeAPICall/API/BaseApi";
 
+interface StoreForm {
+  name: string;
+  servicePinCodes: string[];
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+    pincode: string;
+    gps: string;
+  };
+  status: number;
+}
 
 export default function StoreDashboard() {
   const router = useRouter();
