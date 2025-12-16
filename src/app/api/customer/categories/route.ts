@@ -5,7 +5,7 @@ import dbConnect from '@/lib/mongodb';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { otcOnly = false, limit = 10, offset = 0, search = "" } = await req.json();
+    const { otcOnly = false, limit = 10, offset = 0, search = "", storeId } = await req.json();
 
     // Category filter
     let categoryFilter: any = { isActive: true };
@@ -32,11 +32,15 @@ export async function POST(req: NextRequest) {
             }
             const subcategories = await SubCategory.find(subcategoryFilter).lean();
             const subcategoriesWithCounts = await Promise.all(subcategories.map(async sub => {
-                const count = await (await import('@/models/Medicine')).default.countDocuments({
+                const medFilter: any = {
                     categoryId: cat._id,
                     subCategoryId: sub._id,
                     isActive: true
-                });
+                };
+                if (typeof storeId === 'string' && storeId.trim() !== '') {
+                    medFilter.storeId = storeId.trim();
+                }
+                const count = await (await import('@/models/Medicine')).default.countDocuments(medFilter);
                 return {
                     ...sub,
                     images: Array.isArray(sub.images) ? sub.images : [],
@@ -46,10 +50,14 @@ export async function POST(req: NextRequest) {
             // Only include subcategories with medicineCount > 0
             const filteredSubcategories = subcategoriesWithCounts.filter(sub => sub.medicineCount > 0);
             // Count active medicines for this category
-            const medicineCount = await (await import('@/models/Medicine')).default.countDocuments({
+            const catMedFilter: any = {
                 categoryId: cat._id,
                 isActive: true
-            });
+            };
+            if (typeof storeId === 'string' && storeId.trim() !== '') {
+                catMedFilter.storeId = storeId.trim();
+            }
+            const medicineCount = await (await import('@/models/Medicine')).default.countDocuments(catMedFilter);
             return {
                 ...cat,
                 subcategories: filteredSubcategories,
@@ -101,6 +109,10 @@ export async function POST(req: NextRequest) {
  *                 type: string
  *                 description: Search by category or subcategory name
  *                 example: "Pain"
+ *               storeId:
+ *                 type: string
+ *                 description: Filter medicine counts by storeId (ObjectId string)
+ *                 example: "656e1234abcd5678efgh9012"
  *     responses:
  *       200:
  *         description: Paginated category and subcategory list

@@ -20,6 +20,10 @@ import dbConnect from '@/lib/mongodb';
  *                 type: string
  *                 description: Category ID to filter subcategories
  *                 example: "CATEGORY_OBJECT_ID"
+ *               storeId:
+ *                 type: string
+ *                 description: Filter medicine counts by storeId (ObjectId string)
+ *                 example: "656e1234abcd5678efgh9012"
  *     responses:
  *       200:
  *         description: List of subcategories for the category
@@ -49,7 +53,7 @@ import dbConnect from '@/lib/mongodb';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { categoryId, limit = 10, offset = 0, search = "" } = await req.json();
+    const { categoryId, limit = 10, offset = 0, search = "", storeId } = await req.json();
     if (!categoryId) {
         return NextResponse.json({ success: false, error: 'categoryId is required' }, { status: 400 });
     }
@@ -69,7 +73,8 @@ export async function POST(req: NextRequest) {
         medicineCount: await Medicine.countDocuments({
             categoryId: sub.categoryId,
             subCategoryId: sub._id,
-            isActive: true
+            isActive: true,
+            ...(typeof storeId === 'string' && storeId.trim() !== '' ? { storeId: storeId.trim() } : {})
         })
     })));
 

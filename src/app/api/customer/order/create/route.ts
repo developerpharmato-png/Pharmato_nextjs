@@ -20,6 +20,9 @@ import mongoose from 'mongoose';
  *               userId:
  *                 type: string
  *                 description: User's ObjectId
+ *               storeId:
+ *                 type: string
+ *                 description: Store's ObjectId for the order
  *               calculationData:
  *                 type: object
  *                 description: Calculation data from cart-calculation API
@@ -74,9 +77,12 @@ import mongoose from 'mongoose';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { userId, calculationData } = await req.json();
+    const { userId, storeId, calculationData } = await req.json();
     if (!userId || typeof userId !== 'string') {
         return NextResponse.json({ success: false, message: 'userId is required' }, { status: 400 });
+    }
+    if (!storeId || typeof storeId !== 'string' || storeId.trim() === '') {
+        return NextResponse.json({ success: false, message: 'storeId is required' }, { status: 400 });
     }
     if (!calculationData || typeof calculationData !== 'object') {
         return NextResponse.json({ success: false, message: 'calculationData is required' }, { status: 400 });
@@ -106,8 +112,16 @@ export async function POST(req: NextRequest) {
     const razorPayCommissionGstAmount = calculationData.razorPayCommissionGstAmount || 0;
     const totalAmountRazorPayCharged = razorPayCommissionAmount + razorPayCommissionGstAmount;
     // Create order
+    let storeObjectId: mongoose.Types.ObjectId | null = null;
+    try {
+        storeObjectId = new mongoose.Types.ObjectId(storeId.trim());
+    } catch {
+        return NextResponse.json({ success: false, message: 'Invalid storeId' }, { status: 400 });
+    }
+
     const createOrder = await Order.create({
         userId: userCheck._id,
+        storeId: storeObjectId,
         medicineId,
         payment_mode: calculationData.payment_mode || 'online',
         total_order_amount: totalOrderAmount,
