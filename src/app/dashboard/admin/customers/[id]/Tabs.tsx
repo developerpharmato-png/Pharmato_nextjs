@@ -2,6 +2,9 @@
 import React, { useState, useEffect } from "react";
 import HeaderWithAction from "../../../components/HeaderWithAction";
 import Swal from "sweetalert2";
+import { Tab, TabList, TabPanel, Tabs } from "react-tabs";
+import "react-tabs/style/react-tabs.css";
+import OrdersTable from "../../../orders/OrdersTable";
 
 // --- Type Definitions ---
 
@@ -39,6 +42,13 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
   // Address state
   const [addresses, setAddresses] = useState<UserAddress[]>([]);
   const [addressLoading, setAddressLoading] = useState(true);
+
+  // Orders state
+  const [orders, setOrders] = useState<any[]>([]);
+  const [ordersPage, setOrdersPage] = useState(0);
+  const [ordersRowsPerPage, setOrdersRowsPerPage] = useState(10);
+  const [ordersTotalCount, setOrdersTotalCount] = useState(0);
+  const [ordersLoading, setOrdersLoading] = useState(false);
 
   // 1. Fetch Customer Details
   useEffect(() => {
@@ -100,6 +110,47 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
       setAddressLoading(false);
     }
   }, [id]);
+
+  // 3. Fetch Orders for this customer
+  useEffect(() => {
+    if (id) {
+      fetchOrders();
+    }
+  }, [id, ordersPage, ordersRowsPerPage]);
+
+  const fetchOrders = async () => {
+    if (!id) return;
+    setOrdersLoading(true);
+    try {
+      const body = {
+        limit: ordersRowsPerPage,
+        offset: ordersPage * ordersRowsPerPage,
+        page: ordersPage,
+        customerId: id,
+      };
+
+      const res = await fetch(`/api/admin/order/list`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setOrders(data.data || []);
+        setOrdersTotalCount(data.total || 0);
+      } else {
+        setOrders([]);
+        setOrdersTotalCount(0);
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      setOrders([]);
+      setOrdersTotalCount(0);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
 
 
   // --- Helper Components and Functions ---
@@ -282,17 +333,69 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
         title=" Customer "
-        subtitle={"View and manage all customer details and addresses"}
+        subtitle={"View and manage all customer details and orders"}
         showBack={true}
         showSearch={false}
         isunsaved={false}
       />
 
-      <div className="mt-8 space-y-8">
-        <CustomerDetails />
-        
-        {/* Render addresses only if customer details loaded successfully */}
-        {!loading && customer && <CustomerAddresses />}
+      <div className="mt-8">
+        <Tabs>
+          <TabList>
+            <Tab>Details</Tab>
+            <Tab>Orders</Tab>
+          </TabList>
+
+          <TabPanel>
+            <div className="mt-8 space-y-8">
+              <CustomerDetails />
+              {!loading && customer && <CustomerAddresses />}
+            </div>
+          </TabPanel>
+
+          <TabPanel>
+            <div className="mt-8">
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">
+                  Customer Orders
+                </h2>
+                {!loading && customer && (
+                  <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-600">Customer:</span>{" "}
+                        <span className="font-medium">{customer.name || customer.email || "-"}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Email:</span>{" "}
+                        <span className="font-medium">{customer.email || "-"}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Mobile:</span>{" "}
+                        <span className="font-medium">{customer.mobile || "-"}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Wallet:</span>{" "}
+                        <span className="font-medium text-green-600">
+                          ₹{(customer.walletAmount ?? 0).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <OrdersTable
+                  data={orders}
+                  page={ordersPage}
+                  rowsPerPage={ordersRowsPerPage}
+                  totalCount={ordersTotalCount}
+                  onPageChange={setOrdersPage}
+                  onRowsPerPageChange={setOrdersRowsPerPage}
+                  loading={ordersLoading}
+                />
+              </div>
+            </div>
+          </TabPanel>
+        </Tabs>
       </div>
     </div>
   );

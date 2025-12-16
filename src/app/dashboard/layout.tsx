@@ -161,7 +161,7 @@ export default function DashboardLayout({
         }
       },
     });
-  };
+  }; 
 
   const menuItems = [
     { name: "Dashboard", path: "/dashboard", icon: "dashboard" },
@@ -172,9 +172,9 @@ export default function DashboardLayout({
     //   name: "Prescriptions",
     //   path: "/dashboard/prescriptions",
     //   icon: "receipt_long",
-    // },
-   
-    {
+    // }, 
+    { name: "Orders", path: "/dashboard/orders", icon: "receipt_long" },
+    {   
       name: " Customers",
       path: "/dashboard/admin/customers",
       icon: "person",
