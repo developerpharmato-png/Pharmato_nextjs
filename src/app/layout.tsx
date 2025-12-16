@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import "leaflet/dist/leaflet.css";
+// import "leaflet/dist/leaflet.css"; // Temporarily disabled to unblock build
 import GlobalFetchInterceptor from "./GlobalFetchInterceptor";
-import Head from "next/head";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,10 +26,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Leaflet CSS via CDN to avoid module resolution issues */}
+        <link
+          rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-o9U0V1gu0t7f3kUmV6RbsZMNwlg36sRq9iUpvS8+0XY="
+          crossOrigin=""
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        
+
         {/* <GlobalFetchInterceptor /> */}
         {children}
       </body>
