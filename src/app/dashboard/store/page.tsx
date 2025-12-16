@@ -11,7 +11,7 @@ import HeaderWithAction from "../components/HeaderWithAction";
 import { EditIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import FilterSearch from "../components/FilterSearch";
-import { StoreCreateStore } from "../storeAPICall/useUserStore";
+import { StoreListStore, StoreUpdateStore } from "../storeAPICall/useUserStore";
 import { StorePath } from "../storeAPICall/API/BaseApi";
 
 
@@ -23,13 +23,12 @@ export default function StoreDashboard() {
     fetchData: GetStores,
     loading: storesLoading,
     data: storesData,
-    clearData: clearStores,
-  } = StoreCreateStore();
+  } = StoreListStore();
   
   const {
     putData: UpdateStoreStatus,
     loading: updateStatusLoading,
-  } = StoreCreateStore();
+  } = StoreUpdateStore();
   
   const [stores, setStores] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);

@@ -12,6 +12,8 @@ import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import {
   StoreCreateStore,
+  StoreUpdateStore,
+  StoreDetailStore,
   StoreManagersStore,
 } from "@/app/dashboard/storeAPICall/useUserStore";
 import {
@@ -70,29 +72,23 @@ export default function AddStorePage() {
     fetchData: GetStoreManagers,
     loading: storeManagersLoading,
     data: storeManagersData,
-    clearData: clearStoreManagers,
   } = StoreManagersStore();
 
   const {
     postData: CreateStore,
     loading: createStoreLoading,
-    data: createStoreData,
-    clearData: clearCreateStore,
   } = StoreCreateStore();
 
   const {
     fetchData: GetStoreById,
     loading: storeDetailLoading,
     data: storeDetailData,
-    clearData: clearStoreDetail,
-  } = StoreCreateStore();
+  } = StoreDetailStore();
 
   const {
     putData: UpdateStore,
     loading: updateStoreLoading,
-    data: updateStoreData,
-    clearData: clearUpdateStore,
-  } = StoreCreateStore();
+  } = StoreUpdateStore();
 
   React.useEffect(() => {
     async function fetchPincodes() {
@@ -168,7 +164,7 @@ export default function AddStorePage() {
         response = await UpdateStore(`${StorePath}?id=${id}`, form);
       } else {
         // POST for add
-        response = await CreateStore({ url: StorePath, data: form });
+        response = await CreateStore(StorePath, form);
       }
 
       if (response?.success) {

@@ -11,6 +11,10 @@ export const RejectPrescriptionStore = createApiStore<any>();
 export const CategoriesStore = createApiStore<any>();
 export const SubcategoriesStore = createApiStore<any>();
 
+// Store Management - Separate stores for each operation
 export const StoreManagersStore = createApiStore<any>();
+export const StoreListStore = createApiStore<any>();
+export const StoreDetailStore = createApiStore<any>();
 export const StoreCreateStore = createApiStore<any>();
+export const StoreUpdateStore = createApiStore<any>();
  
