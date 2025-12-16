@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 
-// Replace with your Razorpay webhook secret
-const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || '';
+import dbConnect from '@/lib/mongodb';
+import Order from '@/models/Order';
+import Razorpay from 'razorpay';
+
+const RAZORPAY_WEBHOOK_SECRET = process.env.razorPay_Secret_Key || '';
+const razorpayInstance = new Razorpay({
+    key_id: process.env.razorPay_Key_Id || '',
+    key_secret: process.env.razorPay_Secret_Key || ''
+});
 
 /**
  * @swagger
@@ -24,6 +31,7 @@ const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || '';
  */
 
 export async function POST(req: NextRequest) {
+    await dbConnect();
     const rawBody = await req.text();
     const signature = req.headers.get('x-razorpay-signature');
 
@@ -44,15 +52,52 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ status: false, message: 'Invalid JSON' }, { status: 400 });
     }
 
-    // Extract payment entity and orderId
     if (body?.payload?.payment?.entity) {
+        let paymentHistory: any = {};
         const entity = body.payload.payment.entity;
         const orderId = entity.notes?.razorpay_order_id;
 
-        // TODO: Add your business logic here, e.g., update order status in DB
+        paymentHistory.orderId = orderId;
+        paymentHistory.entity = entity;
 
-        return NextResponse.json({ status: true, message: 'Payment entity processed', orderId });
+        // Find the order in DB
+        const checkOrder = await Order.findOne({ order_id: orderId });
+
+        if (checkOrder) {
+            if (body.event === 'payment.authorized') {
+                const amount = entity.amount;
+                const currency = entity.currency;
+
+                try {
+                    // Uncomment and configure if you want to capture payment
+                    const captureResponse = await razorpayInstance.payments.capture(entity.id, amount, currency);
+                    // Optionally log captureResponse
+                } catch (error) {
+                    // Optionally log error
+                }
+            }
+
+            if (body.event === 'payment.captured') {
+                await Order.updateOne(
+                    { _id: checkOrder._id },
+                    {
+                        $push: { paymentHistory: paymentHistory },
+                        $set: { paymentStatus: 'Success' }
+                    }
+                );
+            }
+
+            if (body.event === 'payment.failed') {
+                await Order.updateOne(
+                    { _id: checkOrder._id },
+                    {
+                        $push: { paymentHistory: paymentHistory },
+                        $set: { payment_status: 'Failure' }
+                    }
+                );
+            }
+        }
     }
 
-    return NextResponse.json({ status: false, message: 'No payment entity found' }, { status: 400 });
+    return NextResponse.json({ status: true, message: 'Webhook processed' });
 }
