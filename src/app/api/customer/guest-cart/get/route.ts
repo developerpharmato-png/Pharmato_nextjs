@@ -122,6 +122,8 @@ export async function POST(request: NextRequest) {
         };
     }));
 
+    const isPrescriptionRequired = itemsWithDetails.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
+
     return NextResponse.json({
         success: true,
         message: 'Cart fetched successfully',
@@ -129,6 +131,7 @@ export async function POST(request: NextRequest) {
             ...cart,
             items: itemsWithDetails,
             crossSellProducts: allCrossSellProducts,
+            isPrescriptionRequired,
             medicines: undefined // remove medicines array from response
         }
     });

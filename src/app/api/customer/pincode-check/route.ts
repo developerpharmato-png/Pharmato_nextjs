@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Pincode from '@/models/Pincode';
+import Store from '@/models/Store';
 
 /**
  * @swagger
@@ -50,7 +51,9 @@ export async function POST(req: NextRequest) {
     if (!pincode) {
         return NextResponse.json({ success: false, message: 'pincode is required' }, { status: 400 });
     }
-    const pin = await Pincode.findOne({ pincode, isActive: true });
+
+    const pin = await Store.findOne({ servicePinCodes: { $in: [pincode] }, status: 1 }).lean();
+
     if (pin) {
         return NextResponse.json({ success: true, message: 'Area is serviceable.' });
     } else {
