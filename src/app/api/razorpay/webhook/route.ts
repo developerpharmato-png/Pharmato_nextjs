@@ -29,12 +29,12 @@ const razorpayInstance = new Razorpay({
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const body = await req.json();   
+    const body = await req.json();
 
     if (body?.payload?.payment?.entity) {
         let paymentHistory: any = {};
         const entity = body.payload.payment.entity;
-         console.log(entity);
+        console.log(entity);
         const orderId = entity.notes?.razorpay_order_id;
 
         paymentHistory.orderId = orderId;
@@ -58,7 +58,12 @@ export async function POST(req: NextRequest) {
                     { _id: checkOrder._id },
                     {
                         $push: { paymentHistory: paymentHistory },
-                        $set: { paymentStatus: 'Success' }
+                        $set: {
+                            paymentStatus: 'Success',
+                            payment_mode: entity.method || '',
+                            payment_id: entity.id || '',
+                            payment_status: entity.status || ''
+                        }
                     }
                 );
             }
