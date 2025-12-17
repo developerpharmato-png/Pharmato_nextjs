@@ -14,7 +14,7 @@ import path from 'path';
 export async function POST(req: NextRequest) {
   await dbConnect();
   const body = await req.json();
-  const { name, email, roleId, _id } = body;
+  const { name, email, roleId, _id, mobile } = body;
   if (!email || !name) return NextResponse.json({ success: false, message: 'name and email required' }, { status: 400 });
 
   // create or update admin with temp password and token
@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
           name,
           email: email.toLowerCase(),
           roleId: roleId || null,
+          mobile: mobile || '',
         },
       },
       { new: true }
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest) {
       resetPasswordToken: token,
       resetPasswordExpires: expires,
       isActive: true,
+      mobile: mobile || '',
     };
     upserted = await Admin.findOneAndUpdate(
       { email: email.toLowerCase() },

@@ -227,3 +227,11 @@ display: inline-block;
 .status-purple  { background-color: var(--status-purple-bg);  color: var(--status-purple-text); }
 .status-warning { background-color: var(--status-warning-bg); color: var(--status-warning-text); }
 .status-default { background-color: var(--status-default-bg); color: var(--status-default-text); }
+
+.customTooltip {
+  display: inline-block;
+  width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

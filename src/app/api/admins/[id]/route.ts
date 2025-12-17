@@ -11,6 +11,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const allowed: any = {};
     if (body.name !== undefined) allowed.name = body.name;
     if (body.roleId !== undefined) allowed.roleId = body.roleId;
+    if (body.mobile !== undefined) allowed.mobile = body.mobile;
     const admin = await Admin.findByIdAndUpdate(id, { $set: allowed }, { new: true }).select('-password').populate({ path: 'roleId', select: 'name', strictPopulate: false });
     if (!admin) return NextResponse.json({ success: false, message: 'Admin not found' }, { status: 404 });
     return NextResponse.json({ success: true, data: admin });

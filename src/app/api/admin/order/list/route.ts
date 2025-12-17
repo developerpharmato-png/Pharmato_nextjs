@@ -40,7 +40,7 @@ import { log } from '@/lib/logger';
  *                 description: Filter by customer ID (optional)
  *               storeId:
  *                 type: string
- *                 description: Filter by store ID (optional, bypassed for SuperAdmin)
+ *                 description: (Currently ignored) Store ID was accepted but all orders are returned regardless.
  *               roleName:
  *                 type: string
  *                 description: Admin role name (SuperAdmin sees all orders)
@@ -92,12 +92,9 @@ export async function POST(req: NextRequest) {
         // Build query
         const query: any = {};
         
-        // Filter by storeId if provided (bypass for SuperAdmin)
-        if (storeId && typeof storeId === 'string' && roleName !== 'SuperAdmin') {
-            query.storeId = storeId;
-            log.info('AdminOrderList: filtering by storeId', storeId);
-        } else if (roleName === 'SuperAdmin') {
-            log.info('AdminOrderList: SuperAdmin - showing all orders');
+        // storeId intentionally ignored: return all orders regardless of store assignment
+        if (typeof storeId === 'string' && storeId.trim() !== '') {
+            log.info('AdminOrderList: storeId provided but ignored for full listing', storeId.trim());
         }
         
         // Filter by customerId if provided

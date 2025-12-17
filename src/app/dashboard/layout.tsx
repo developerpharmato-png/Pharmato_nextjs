@@ -47,6 +47,10 @@ const iconMap = {
   chevron_left: ChevronLeft,
   chevron_right: ChevronRight,
   logout: LogOut,
+  // Admin Permissions children icons
+  role: Users,
+  permission: FileText,
+  management: User,
 };
 
 // Function to render the correct Lucide icon component
@@ -183,18 +187,36 @@ export default function DashboardLayout({
     { name: "Pincodes", path: "/dashboard/pincode", icon: "place" },
     { name: "Stores", path: "/dashboard/store", icon: "store" },
     { name: "Banner Images", path: "/dashboard/banner-images", icon: "image" },
+    {
+      name: "Admin Permissions",
+      icon: "admin_panel_settings",
+      children: [
+        { name: "Role", path: "/dashboard/role", icon: "role" },
+        { name: "Permission", path: "/dashboard/permission", icon: "permission" },
+        { name: "Management", path: "/dashboard/management", icon: "management" },
+      ],
+    },
+    
   ];
 
  
-  const menuItemsWithPermission = menuItems.map((item) => {
+  const menuItemsWithPermission = menuItems.map((item: any) => {
     const key = item.name.trim();
     let ispermission = true;
     if (permissions) {
       const perm = (permissions as any)[key];
-   
       ispermission = perm ? Boolean(perm.view) : true;
     }
-    return { ...(item as any), ispermission };
+    // Gate Admin Permissions group by super admin condition
+    if (item.name === "Admin Permissions") {
+      ispermission = isCurrentSuperAdmin;
+    }
+    const children = (item.children || []).filter((child: any) => {
+      if (!permissions) return true;
+      const perm = (permissions as any)[child.name];
+      return perm ? Boolean(perm.view) : true;
+    });
+    return { ...(item as any), ispermission, children };
   });
 
   const visibleMenuItems = menuItemsWithPermission.filter(
@@ -207,7 +229,7 @@ export default function DashboardLayout({
       <aside
         className={`${
           sidebarOpen ? "w-64" : "w-20"
-        } bg-white shadow-xl transition-all duration-300 ease-in-out flex-shrink-0 z-20 overflow-hidden`}
+        } bg-white shadow-xl transition-all duration-300 ease-in-out shrink-0 z-20 overflow-hidden`}
       >
         <div className="flex flex-col h-full">
           {/* Logo/Brand */}
@@ -253,10 +275,82 @@ export default function DashboardLayout({
 
           {/* Menu Items */}
           <nav className="flex-1 p-3 space-y-2 overflow-y-auto">
-            {visibleMenuItems.map((item) => {
+            {visibleMenuItems.map((item: any) => {
               const isActive =
                 pathname === item.path ||
                 (item.path !== "/dashboard" && pathname.startsWith(item.path));
+
+              // If item has children, render expandable group
+              if (item.children && item.children.length > 0) {
+                const childActive = item.children.some(
+                  (c: any) => pathname === c.path || pathname.startsWith(c.path)
+                );
+                return (
+                  <div key={item.name}>
+                    <button
+                      onClick={() => setAdminPermOpen((prev) => !prev)}
+                      className={`flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200 ${
+                        childActive
+                          ? "bg-green-600 text-white shadow-md"
+                          : "text-gray-700 hover:bg-green-100 hover:text-green-700"
+                      } ${!sidebarOpen ? "justify-center" : ""}`}
+                    >
+                      {renderIcon(
+                        item.icon as keyof typeof iconMap,
+                        sidebarOpen ? 20 : 24
+                      )}
+                      {sidebarOpen && (
+                        <span className="ml-3 font-medium flex-1 text-left">
+                          {item.name}
+                        </span>
+                      )}
+                      {sidebarOpen && (
+                        <span
+                          className={`transform transition-transform ${
+                            adminPermOpen || childActive ? "rotate-90" : ""
+                          }`}
+                        >
+                          {renderIcon("chevron_right", 18)}
+                        </span>
+                      )}
+                    </button>
+
+                    {sidebarOpen && (adminPermOpen || childActive) && (
+                      <div className="mt-2 space-y-1 pl-10 pr-2">
+                        {item.children.map((child: any) => (
+                          <Link
+                            key={child.path}
+                            href={child.path}
+                            className={`block px-3 py-2 rounded ${
+                              pathname.startsWith(child.path)
+                                ? "bg-green-600 text-white"
+                                : "text-gray-700 hover:bg-green-100"
+                            }`}
+                          >
+                            <span className="inline-flex items-center gap-2">
+                              {renderIcon(child.icon as keyof typeof iconMap, 16)}
+                              <span>{child.name}</span>
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+
+                    {!sidebarOpen && (
+                      <div className="flex flex-col items-center mt-2 gap-2">
+                        <CustomTooltip title={item.name}>
+                          <button
+                            onClick={() => setAdminPermOpen((prev) => !prev)}
+                            className="p-1"
+                          >
+                            {renderIcon("chevron_right", 18)}
+                          </button>
+                        </CustomTooltip>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
 
               const MenuLink = (
                 <Link
@@ -268,13 +362,11 @@ export default function DashboardLayout({
                       : "text-gray-700 hover:bg-green-100 hover:text-green-700"
                   } ${!sidebarOpen ? "justify-center" : ""}`}
                 >
-                  {/* DYNAMIC LUCIDE ICON RENDERING */}
                   {renderIcon(
                     item.icon as keyof typeof iconMap,
                     sidebarOpen ? 20 : 24,
                     sidebarOpen ? "text-xl" : "text-2xl"
                   )}
-
                   {sidebarOpen && (
                     <span className="ml-3 font-medium whitespace-nowrap">
                       {item.name}
@@ -291,103 +383,6 @@ export default function DashboardLayout({
                 </CustomTooltip>
               );
             })}
-
-            {/* --- Admin Permissions Group (Expandable) --- */}
-            <div>
-              {/** compute active for any child route */}
-              {(() => {
-                const childrenPaths = [
-                  "/dashboard/role",
-                  "/dashboard/permission",
-                  "/dashboard/management",
-                ];
-                const isAnyActive = childrenPaths.some(
-                  (p) => pathname === p || pathname.startsWith(p)
-                );
-                return (
-                  <div>
-                    {isCurrentSuperAdmin && (
-                      <button
-                        onClick={() => setAdminPermOpen((prev) => !prev)}
-                        className={`flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200 ${
-                          isAnyActive
-                            ? "bg-green-600 text-white shadow-md"
-                            : "text-gray-700 hover:bg-green-100 hover:text-green-700"
-                        } ${!sidebarOpen ? "justify-center" : ""}`}
-                      >
-                        {renderIcon(
-                          "admin_panel_settings",
-                          sidebarOpen ? 20 : 24
-                        )}
-                        {sidebarOpen && (
-                          <span className="ml-3 font-medium flex-1 text-left">
-                            Admin Permissions
-                          </span>
-                        )}
-                        {sidebarOpen && (
-                          <span
-                            className={`transform transition-transform ${
-                              adminPermOpen || isAnyActive ? "rotate-90" : ""
-                            }`}
-                          >
-                            {renderIcon("chevron_right", 18)}
-                          </span>
-                        )}
-                      </button>
-                    )}
-
-                    {/* Children links */}
-                    {sidebarOpen && (adminPermOpen || isAnyActive) && (
-                      <div className="mt-2 space-y-1 pl-10 pr-2">
-                        <Link
-                          href="/dashboard/role"
-                          className={`block px-3 py-2 rounded ${
-                            pathname.startsWith("/dashboard/role")
-                              ? "bg-green-600 text-white"
-                              : "text-gray-700 hover:bg-green-100"
-                          }`}
-                        >
-                          
-                          Role
-                        </Link>
-                        <Link
-                          href="/dashboard/permission"
-                          className={`block px-3 py-2 rounded ${
-                            pathname.startsWith("/dashboard/permission")
-                              ? "bg-green-600 text-white"
-                              : "text-gray-700 hover:bg-green-100"
-                          }`}
-                        >
-                          Permission
-                        </Link>
-                        <Link
-                          href="/dashboard/management"
-                          className={`block px-3 py-2 rounded ${
-                            pathname.startsWith("/dashboard/management")
-                              ? "bg-green-600 text-white"
-                              : "text-gray-700 hover:bg-green-100"
-                          }`}
-                        >
-                          Management
-                        </Link>
-                      </div>
-                    )}
-                    {!sidebarOpen && (
-                      <div className="flex flex-col items-center mt-2 gap-2">
-                        <CustomTooltip title="Admin Permissions">
-                          <button
-                            onClick={() => setAdminPermOpen((prev) => !prev)}
-                            className="p-1"
-                          >
-                            {renderIcon("chevron_right", 18)}
-                          </button>
-                        </CustomTooltip>
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
           </nav>
 
           {/* User Profile & Logout */}

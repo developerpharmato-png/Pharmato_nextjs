@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
             );
         }
         const hashed = await bcrypt.hash(body.password, 10);
-        const admin = await Admin.create({ ...body, password: hashed });
+        const admin = await Admin.create({ ...body, password: hashed, mobile: body.mobile || '' });
         const adminObj = admin.toObject();
         delete (adminObj as any).password;
         return NextResponse.json({ success: true, data: adminObj }, { status: 201 });
