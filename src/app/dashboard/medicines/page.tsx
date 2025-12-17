@@ -14,8 +14,7 @@ export default function MedicinesPage() {
   const router = useRouter();
 
   const [exportLoading, setExportLoading] = useState(false);
-  const [exportStartDate, setExportStartDate] = useState("");
-  const [exportEndDate, setExportEndDate] = useState("");
+  // No date fields needed for export
 
   const handleExport = async () => {
     setExportLoading(true);
@@ -23,15 +22,12 @@ export default function MedicinesPage() {
       const res = await fetch(MedicinesExportPath, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ startDate: exportStartDate, endDate: exportEndDate }),
+        body: JSON.stringify({}),
       });
       if (!res.ok) throw new Error("Failed to export medicines");
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
-      let filename = "medicines_export.xlsx";
-      if (exportStartDate && exportEndDate) {
-        filename = `medicines_export_${exportStartDate}_to_${exportEndDate}.xlsx`;
-      }
+      const filename = "medicines_export.xlsx";
       const a = document.createElement("a");
       a.href = url;
       a.download = filename;
@@ -64,10 +60,6 @@ export default function MedicinesPage() {
       />
       {/* Export Section */}
       <div className="flex items-center gap-2 mt-4">
-        <label>Start Date:</label>
-        <input type="date" value={exportStartDate} onChange={e => setExportStartDate(e.target.value)} />
-        <label>End Date:</label>
-        <input type="date" value={exportEndDate} onChange={e => setExportEndDate(e.target.value)} />
         <button
           onClick={handleExport}
           disabled={exportLoading}
