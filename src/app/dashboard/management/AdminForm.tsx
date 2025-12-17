@@ -10,8 +10,8 @@ type Role = { _id: string; name: string };
 type Props = {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: { name: string; email?: string; roleId: string }) => Promise<void>;
-  initialValues?: { name?: string; email?: string; roleId?: string };
+  onSubmit: (values: { name: string; email?: string; roleId: string; mobile: string }) => Promise<void>;
+  initialValues?: { name?: string; email?: string; roleId?: string; mobile?: string };
   roles: Role[];
   editing?: boolean;
 };
@@ -22,11 +22,15 @@ export default function AdminForm({ open, onClose, onSubmit, initialValues = {},
       name: initialValues.name || '',
       email: initialValues.email || '',
       roleId: initialValues.roleId || '',
+      mobile: initialValues.mobile || '',
     },
     validationSchema: Yup.object({
       name: Yup.string().required('Name is required'),
       email: editing ? Yup.string().email('Invalid email') : Yup.string().email('Invalid email').required('Email is required'),
       roleId: Yup.string().required('Role is required'),
+      mobile: Yup.string()
+        .test('mobile', 'Mobile number must be exactly 10 digits', (val) => !val || /^\d{10}$/i.test(val))
+        .notRequired(),
     }),
     enableReinitialize: true,
     onSubmit: async (values, { setSubmitting }) => {
@@ -86,6 +90,7 @@ export default function AdminForm({ open, onClose, onSubmit, initialValues = {},
             variant="outlined"
             {...formik.getFieldProps('name')}
             error={formik.touched.name && Boolean(formik.errors.name)}
+            required
             sx={{ 
               '& .MuiOutlinedInput-root': { borderRadius: 1 }, 
               bgcolor: 'background.paper', // Ensure white background
@@ -104,6 +109,7 @@ export default function AdminForm({ open, onClose, onSubmit, initialValues = {},
             {...formik.getFieldProps('email')}
             error={formik.touched.email && Boolean(formik.errors.email)}
             disabled={editing}
+            required={!editing}
             sx={{ 
               '& .MuiOutlinedInput-root': { 
                 borderRadius: 1, 
@@ -121,6 +127,24 @@ export default function AdminForm({ open, onClose, onSubmit, initialValues = {},
               </Box>
           )}
 
+          {/* Mobile Number Field */}
+          <TextField
+            label="Mobile Number (optional)"
+            fullWidth
+            size="medium"
+            variant="outlined"
+            {...formik.getFieldProps('mobile')}
+            error={formik.touched.mobile && Boolean(formik.errors.mobile)}
+            inputProps={{ maxLength: 10 }}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
+          />
+          {formik.touched.mobile && formik.errors.mobile && (
+            <ErrorMessageCom error={formik.errors.mobile as string} />
+          )}
+          {formik.touched.mobile && formik.errors.mobile && (
+            <ErrorMessageCom error={formik.errors.mobile as string} />
+          )}
+
           {/* Role Select Field */}
           <TextField
             select
@@ -130,6 +154,7 @@ export default function AdminForm({ open, onClose, onSubmit, initialValues = {},
             variant="outlined"
             {...formik.getFieldProps('roleId')}
             error={formik.touched.roleId && Boolean(formik.errors.roleId)}
+            required
             sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
           >
             <MenuItem value="" disabled sx={{ fontStyle: 'italic', color: 'text.secondary' }}>Select an administrative role</MenuItem>

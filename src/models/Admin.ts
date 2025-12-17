@@ -4,6 +4,7 @@ export interface IAdmin extends Document {
     name: string;
     email: string;
     password: string;
+    mobile?: string;
     roleId?: any;
     isActive?: boolean;
     resetPasswordToken?: string | null;
@@ -31,6 +32,7 @@ const AdminSchema = new Schema<IAdmin>({
         type: String,
         minlength: [6, 'Password must be at least 6 characters'],
     },
+    mobile: { type: String, default: '' },
     roleId: { type: Schema.Types.ObjectId, ref: 'Role' },
     isActive: { type: Boolean, default: true },
     resetPasswordToken: { type: String, default: null },

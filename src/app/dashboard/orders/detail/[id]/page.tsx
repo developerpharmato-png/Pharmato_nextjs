@@ -2,8 +2,17 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import HeaderWithAction from "../../../components/HeaderWithAction";
-import { CustomImage } from "../../../components/miniComponents";
+import { CustomImage, ModalHeader } from "../../../components/miniComponents";
 import Swal from "sweetalert2";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Typography,
+} from "@mui/material";
 import {
   OrderDetailsStore,
   ApprovePrescriptionStore,
@@ -25,7 +34,6 @@ export default function OrderDetailPage() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [approvalNotes, setApprovalNotes] = useState("");
-  const [showApproveModal, setShowApproveModal] = useState(false);
 
   const {
     postData: fetchDetailsPost,
@@ -78,7 +86,6 @@ export default function OrderDetailPage() {
   }, [detailsData]);
 
   const handleApprovePrescription = async () => {
-    setShowApproveModal(false);
     try {
       const adminData = localStorage.getItem("admin");
       const admin = adminData ? JSON.parse(adminData) : null;
@@ -268,7 +275,7 @@ export default function OrderDetailPage() {
         onBack={() => router.push("/dashboard/orders")}
         showSearch={false}
         addShow={false}
-         isunsaved={false}
+        isunsaved={false}
       />
 
       <div className="space-y-6">
@@ -387,10 +394,10 @@ export default function OrderDetailPage() {
                   {getPrescriptionStatusBadge(order.prescription_status)}
                 </div>
               </div>
-              {order.prescription_status === "Pending" && (
+              {order.prescription_status === "Not Required" && (
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setShowApproveModal(true)}
+                    onClick={handleApprovePrescription}
                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
                   >
                     Approve
@@ -510,7 +517,7 @@ export default function OrderDetailPage() {
                   key={index}
                   className="flex items-center gap-4 p-4 border rounded-lg hover:bg-gray-50"
                 >
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     {medicine.coverImage ||
                     (medicine.images && medicine.images[0]) ? (
                       <CustomImage
@@ -626,83 +633,65 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      {/* Approve Prescription Modal */}
-      {showApproveModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Approve Prescription
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              You are about to approve this prescription. You can optionally add
-              notes for your records.
-            </p>
-            <textarea
-              value={approvalNotes}
-              onChange={(e) => setApprovalNotes(e.target.value)}
-              placeholder="Add approval notes (optional)..."
-              className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none resize-none"
-              rows={4}
-            />
-            <div className="flex gap-3 mt-4">
-              <button
-                onClick={() => {
-                  setShowApproveModal(false);
-                  setApprovalNotes("");
-                }}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleApprovePrescription}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-              >
-                Approve
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Reject Prescription Modal */}
-      {showRejectModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Reject Prescription
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Please provide a reason for rejecting this prescription. The
-              customer will be notified and can re-upload a new prescription.
-            </p>
-            <textarea
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              placeholder="Enter rejection reason..."
-              className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none"
-              rows={4}
-            />
-            <div className="flex gap-3 mt-4">
-              <button
-                onClick={() => {
-                  setShowRejectModal(false);
-                  setRejectionReason("");
-                }}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleRejectPrescription}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-              >
-                Reject
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Reject Prescription Modal (MUI) */}
+      <Dialog
+        open={showRejectModal}
+        onClose={() => {
+          setShowRejectModal(false);
+          setRejectionReason("");
+        }}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            overflow: "visible",
+            borderRadius: 2,
+          },
+        }}
+      >
+        <DialogTitle sx={{ p: 2 }}>
+          <ModalHeader
+            title="Reject Prescription"
+            onClose={() => {
+              setShowRejectModal(false);
+              setRejectionReason("");
+            }}
+          />
+        </DialogTitle>
+        <DialogContent sx={{ overflow: "visible" }}>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Please provide a reason for rejecting this prescription. The
+            customer will be notified and can re-upload a new prescription.
+          </Typography>
+          <TextField
+            multiline
+            minRows={4}
+            fullWidth
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
+            placeholder="Enter rejection reason..."
+            variant="outlined"
+            margin="normal"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setShowRejectModal(false);
+              setRejectionReason("");
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleRejectPrescription}
+            variant="contained"
+            color="error"
+          >
+            Reject
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

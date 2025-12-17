@@ -15,6 +15,7 @@ type Admin = {
   email: string;
   roleId?: string;
   isActive?: boolean;
+  mobile?: string;
 };
 
 type Role = { _id: string; name: string };
@@ -166,6 +167,7 @@ export default function ManagementPage() {
     name: string;
     email?: string;
     roleId: string;
+    mobile: string;
   }) {
     try {
       if (editing && editing._id) {
@@ -177,6 +179,7 @@ export default function ManagementPage() {
             name: values.name,
             email: values.email, // always include email
             roleId: values.roleId,
+            mobile: values.mobile,
             _id: editing._id, // pass _id to indicate update
           }),
         });
@@ -192,7 +195,8 @@ export default function ManagementPage() {
           body: JSON.stringify({
             name: values.name,
             email: values.email,
-            roleId: values.roleId,  
+            roleId: values.roleId,
+            mobile: values.mobile,
           }),
         });
         if (!res.ok) throw new Error("Invite failed");
@@ -213,6 +217,7 @@ export default function ManagementPage() {
       selector: (r) => r.name || "-",
     },
     { id: "email", label: "Email", minWidth: 180, selector: (r) => r.email },
+    { id: "mobile", label: "Mobile", minWidth: 140, selector: (r) => r.mobile || '-' },
     {
       id: "role",
       label: "Role",
@@ -293,6 +298,7 @@ export default function ManagementPage() {
     return (
       (a.name || "").toLowerCase().includes(q) ||
       (a.email || "").toLowerCase().includes(q) ||
+      (a.mobile || "").toLowerCase().includes(q) ||
       roleName.toLowerCase().includes(q)
     );
   });
@@ -332,6 +338,7 @@ export default function ManagementPage() {
                 name: editing.name,
                 email: editing.email,
                 roleId: editing.roleId,
+                mobile: editing.mobile,
               }
             : undefined
         }

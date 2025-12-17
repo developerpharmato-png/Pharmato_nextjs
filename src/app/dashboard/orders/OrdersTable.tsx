@@ -44,7 +44,7 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
   const router = useRouter();
 
   const getStatusColor = (status: string) => {
-    const s = (status || '').toLowerCase();
+    const s = (status || "").toLowerCase();
     switch (s) {
       case "pending":
       case "placed":
@@ -79,7 +79,7 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       selector: (row: Order) => (
         <CustomTooltip title={row.order_id || "-"}>
           <span
-            className="ID-List"
+            className="ID-List customTooltip"
             onClick={() => router.push(`/dashboard/orders/detail/${row._id}`)}
           >
             {row.order_id || "-"}
@@ -93,10 +93,16 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       minWidth: 150,
       selector: (row: Order) => (
         <div>
-          <div className="font-medium text-gray-900">
-            {row.userId?.name || "-"}
-          </div>
-          <div className="text-xs text-gray-500">{row.userId?.email || "-"}</div>
+          <CustomTooltip title={row.userId?.name || "-"}>
+            <div className="font-medium text-gray-900 customTooltip">
+              {row.userId?.name || "-"}
+            </div>
+          </CustomTooltip>
+          <CustomTooltip title={row.userId?.email || "-"}>
+            <div className="text-xs text-gray-500 customTooltip">
+              {row.userId?.email || "-"}
+            </div>
+          </CustomTooltip>
         </div>
       ),
     },
@@ -105,26 +111,20 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       label: "Items",
       minWidth: 70,
       selector: (row: Order) => (
-        <span className="text-gray-700">
-          {row.medicineId?.length || 0}
-        </span>
+        <CustomTooltip title={(row.medicineId?.length || 0).toString()}>
+          <span className="text-gray-700 customTooltip">
+            {row.medicineId?.length || 0}
+          </span>
+        </CustomTooltip>
       ),
     },
     {
       id: "payment_id",
       label: "Payment ID",
-      minWidth: 140,
+      minWidth: 100,
       selector: (row: Order) => (
         <CustomTooltip title={row.payment_id || "Not Available"}>
-          <span className="text-xs text-gray-600 font-mono">
-            {row.payment_id ? (
-              row.payment_id.length > 15
-                ? `${row.payment_id.substring(0, 15)}...`
-                : row.payment_id
-            ) : (
-              "-"
-            )}
-          </span>
+          <span className="customTooltip">{row.payment_id || "-"}</span>
         </CustomTooltip>
       ),
     },
@@ -133,9 +133,11 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       label: "Amount",
       minWidth: 100,
       selector: (row: Order) => (
-        <span className="font-medium text-gray-900">
-          ₹{row.total_order_amount?.toFixed(2) || "0.00"}
-        </span>
+        <CustomTooltip title={row.total_order_amount?.toFixed(2) || "0.00"}>
+          <span className="customTooltip">
+            ₹{row.total_order_amount?.toFixed(2) || "0.00"}
+          </span>
+        </CustomTooltip>
       ),
     },
     {
@@ -143,9 +145,13 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       label: "Discount",
       minWidth: 90,
       selector: (row: Order) => (
-        <span className="font-medium text-green-600">
-          {row.discount > 0 ? `₹${row.discount.toFixed(2)}` : "-"}
-        </span>
+        <CustomTooltip
+          title={row.discount > 0 ? `₹${row.discount.toFixed(2)}` : "-"}
+        >
+          <span className="font-medium text-green-600 customTooltip">
+            {row.discount > 0 ? `₹${row.discount.toFixed(2)}` : "-"}
+          </span>
+        </CustomTooltip>
       ),
     },
     {
@@ -153,9 +159,11 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       label: "Payment Mode",
       minWidth: 110,
       selector: (row: Order) => (
-        <span className="capitalize text-gray-700 text-xs">
-          {row.payment_mode || "-"}
-        </span>
+        <CustomTooltip title={row.payment_mode || "-"}>
+          <span className="capitalize text-gray-700 text-xs customTooltip">
+            {row.payment_mode || "-"}
+          </span>
+        </CustomTooltip>
       ),
     },
     {
@@ -163,13 +171,15 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       label: "Payment Status",
       minWidth: 120,
       selector: (row: Order) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-            row.payment_status
-          )}`}
-        >
-          {row.payment_status || "Pending"}
-        </span>
+        <CustomTooltip title={row.payment_status || "Pending"}>
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-medium customTooltip ${getStatusColor(
+              row.payment_status
+            )}`}
+          >
+            {row.payment_status || "Pending"}
+          </span>
+        </CustomTooltip>
       ),
     },
     {
@@ -177,28 +187,33 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       label: "Order Status",
       minWidth: 120,
       selector: (row: Order) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-            row.order_status
-          )}`}
-        >
-          {row.order_status || "Pending"}
-        </span>
+        <CustomTooltip title={row.order_status || "Pending"}>
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-medium customTooltip ${getStatusColor(
+              row.order_status
+            )}`}
+          >
+            {row.order_status || "Pending"}
+          </span>
+        </CustomTooltip>
       ),
     },
     {
       id: "createdAt",
       label: "Date",
       minWidth: 120,
-      selector: (row: Order) => (
-        <span className="text-gray-700">
-          {new Date(row.createdAt).toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          })}
-        </span>
-      ),
+      selector: (row: Order) => {
+        const dateText = new Date(row.createdAt).toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+        return (
+          <CustomTooltip title={dateText}>
+            <span className="text-gray-700 customTooltip">{dateText}</span>
+          </CustomTooltip>
+        );
+      },
     },
   ];
 
