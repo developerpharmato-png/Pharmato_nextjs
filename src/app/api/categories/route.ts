@@ -96,12 +96,60 @@ export async function POST(request: NextRequest) {
         await connectDB();
 
         const body = await request.json();
-        const category = await Category.create(body);
 
-        return NextResponse.json({
-            success: true,
-            data: category,
-        }, { status: 201 });
+        // If request contains pagination/sorting keys, treat as list endpoint
+        const isListRequest = (
+            body && (
+                Object.prototype.hasOwnProperty.call(body, 'limit') ||
+                Object.prototype.hasOwnProperty.call(body, 'offset') ||
+                Object.prototype.hasOwnProperty.call(body, 'sortBy') ||
+                Object.prototype.hasOwnProperty.call(body, 'columnName') ||
+                Object.prototype.hasOwnProperty.call(body, 'isOTC') ||
+                Object.prototype.hasOwnProperty.call(body, 'name')
+            )
+        );
+
+        if (isListRequest) {
+            const {
+                limit = 10,
+                offset = 0,
+                sortBy = 'ASC', // ASC | DESC
+                columnName = 'createdAt',
+                isOTC,
+                name = '',
+            } = body || {};
+
+            const allowedSortFields = ['name', 'isOTC', 'isActive', 'createdAt', 'updatedAt'];
+            const sortField = allowedSortFields.includes(columnName) ? columnName : 'createdAt';
+            const sortDirection = String(sortBy).toUpperCase() === 'ASC' ? 1 : -1;
+
+            const query: any = {};
+            if (typeof isOTC !== 'undefined' && isOTC !== 'all' && isOTC !== '') {
+                // Allow boolean or string values
+                query.isOTC = typeof isOTC === 'boolean' ? isOTC : isOTC === 'true';
+            }
+            // Search across multiple fields: uniqueCode, name, description
+            if (name) {
+                query.$or = [
+                    { uniqueCode: { $regex: name, $options: 'i' } },
+                    { name: { $regex: name, $options: 'i' } },
+                    { description: { $regex: name, $options: 'i' } }
+                ];
+            }
+
+            const total = await Category.countDocuments(query);
+            let categoriesQuery = Category.find(query)
+                .sort({ [sortField]: sortDirection })
+                .skip(Number(offset) || 0)
+                .limit(Number(limit) || 10);
+            const categories = await categoriesQuery.exec();
+
+            return NextResponse.json({ success: true, data: categories, total });
+        }
+
+        // Otherwise, create a new category (original behavior)
+        const category = await Category.create(body);
+        return NextResponse.json({ success: true, data: category }, { status: 201 });
     } catch (error: any) {
         return NextResponse.json(
             { success: false, error: error.message },

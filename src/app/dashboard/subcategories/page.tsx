@@ -36,8 +36,7 @@ export default function SubCategoriesPage() {
 
 function SubCategoriesTable() {
   const [subcategories, setSubcategories] = useState<any[]>([]);
-  // categories are now loaded inside FilterSearch — page no longer fetches categories
-  const [filteredSubcategories, setFilteredSubcategories] = useState<any[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterOTC, setFilterOTC] = useState<string>("all");
@@ -56,36 +55,33 @@ function SubCategoriesTable() {
 
   React.useEffect(() => {
     fetchData();
-  }, []);
-
-  React.useEffect(() => {
-    let filtered = subcategories;
-    if (searchTerm) {
-      filtered = filtered.filter((sub) =>
-        sub.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    if (filterCategory !== "all") {
-      filtered = filtered.filter(
-        (sub) => sub.categoryId?._id === filterCategory
-      );
-    }
-    if (filterSubcategory) {
-      filtered = filtered.filter((sub) => sub._id === filterSubcategory);
-    }
-    if (filterOTC !== "all") {
-      filtered = filtered.filter((sub) => sub.isOTC === (filterOTC === "true"));
-    }
-    setFilteredSubcategories(filtered);
-    setPage(0);
-  }, [searchTerm, filterCategory, filterSubcategory, filterOTC, subcategories]);
+  }, [page, rowsPerPage, searchTerm, filterCategory, filterOTC]);
 
   const fetchData = async () => {
     try {
-      const subRes = await fetch("/api/subcategories");
+      setLoading(true);
+      const body: any = {
+        limit: rowsPerPage,
+        offset: page * rowsPerPage,
+      };
+      if (searchTerm) {
+        body.search = searchTerm;
+      }
+      if (filterCategory && filterCategory !== "all") {
+        body.categoryId = filterCategory;
+      }
+      if (filterOTC && filterOTC !== "all") {
+        body.isOTC = filterOTC === "true";
+      }
+
+      const subRes = await fetch("/api/subcategories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
       const subData = await subRes.json();
       setSubcategories(subData.data || []);
-      setFilteredSubcategories(subData.data || []);
+      setTotalCount(subData.total || 0);
     } catch (error) {
       console.error("Failed to fetch data:", error);
     } finally {
@@ -114,16 +110,7 @@ function SubCategoriesTable() {
       });
       const data = await res.json();
       if (data.success) {
-        setSubcategories((prev) =>
-          prev.map((sub) =>
-            sub._id === id ? { ...sub, isActive: !sub.isActive } : sub
-          )
-        );
-        setFilteredSubcategories((prev) =>
-          prev.map((sub) =>
-            sub._id === id ? { ...sub, isActive: !sub.isActive } : sub
-          )
-        );
+        fetchData(); // Refresh data from server
         Swal.fire({
           toast: true,
           position: "top-end",
@@ -160,30 +147,38 @@ function SubCategoriesTable() {
       ),
     },
     {
+      id: "image",
+      label: "Image",
+      selector: (row) => (
+        <CustomTooltip title={row.name || "Image"}>
+          {Array.isArray(row.images) && row.images[0] ? (
+            <CustomImage
+              coverImage={row.images[0]}
+              images={row.images}
+              alt="Subcategory"
+              style={{ width: 32, height: 32, borderRadius: 6 }}
+            />
+          ) : (
+            <span className="text-gray-400">—</span>
+          )}
+        </CustomTooltip>
+      ),
+    },
+    {
       id: "name",
       label: "Name",
       selector: (row) => (
         <CustomTooltip title={row.name || "-"}>
-          <div className="flex items-center gap-2">
-            {Array.isArray(row.images) && row.images[0] ? (
-              <CustomImage
-                coverImage={row.images[0]}
-                images={row.images}
-                alt="Subcategory"
-                style={{ width: 32, height: 32, borderRadius: 6 }}
-              />
-            ) : null}
-            <span
-              style={{
-                maxWidth: 120,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {row.name}
-            </span>
-          </div>
+          <span
+            style={{
+              maxWidth: 120,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {row.name}
+          </span>
         </CustomTooltip>
       ),
     },
@@ -272,12 +267,6 @@ function SubCategoriesTable() {
     },
   ];
 
-  // Pagination
-  const paginatedData = filteredSubcategories.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
-
   return (
     <div>
       <FilterSearch
@@ -286,6 +275,7 @@ function SubCategoriesTable() {
           setSearchTerm(f.search || "");
           setFilterCategory(f.categoryId || "all");
           setFilterSubcategory(f.subCategoryId || null);
+          setPage(0); // Reset to first page on filter change
         }}
         placeholder="Search subcategories..."
         isSearchShow={true}
@@ -295,10 +285,10 @@ function SubCategoriesTable() {
 
       <CustomTable
         columns={columns}
-        data={paginatedData}
+        data={subcategories}
         page={page}
         rowsPerPage={rowsPerPage}
-        totalCount={filteredSubcategories.length}
+        totalCount={totalCount}
         onPageChange={setPage}
         onRowsPerPageChange={setRowsPerPage}
         loading={loading}

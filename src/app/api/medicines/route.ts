@@ -114,7 +114,28 @@ export async function GET(request: NextRequest) {
       // Escape user input for safe regex (so '*' and other metacharacters are treated literally)
       const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const pattern = escapeRegExp(search);
-      baseFilter.name = { $regex: new RegExp(pattern, "i") };
+
+      // Find matching category IDs by name
+      const matchingCategories = await Category.find({
+        name: { $regex: pattern, $options: 'i' }
+      }).select('_id');
+      const matchingCategoryIds = matchingCategories.map(c => c._id);
+
+      // Find matching subcategory IDs by name
+      const matchingSubcategories = await SubCategory.find({
+        name: { $regex: pattern, $options: 'i' }
+      }).select('_id');
+      const matchingSubcategoryIds = matchingSubcategories.map(s => s._id);
+
+      // Search across multiple fields: uniqueCode, name, description, manufacturer, categoryId, subCategoryId
+      baseFilter.$or = [
+        { uniqueCode: { $regex: new RegExp(pattern, "i") } },
+        { name: { $regex: new RegExp(pattern, "i") } },
+        { description: { $regex: new RegExp(pattern, "i") } },
+        { manufacturer: { $regex: new RegExp(pattern, "i") } },
+        { categoryId: { $in: matchingCategoryIds } },
+        { subCategoryId: { $in: matchingSubcategoryIds } }
+      ];
     }
 
     const total = await Medicine.countDocuments(baseFilter);
