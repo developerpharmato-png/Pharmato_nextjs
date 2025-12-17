@@ -124,30 +124,79 @@ export async function POST(req: NextRequest) {
                         }
                     });
 
-                    // Notify admin (store manager) if possible
+                    // Notify admin (store manager) and superadmins with detailed message
+                    let storeName = '';
+                    let adminName = '';
+                    let adminRoleName = '';
+                    let customerName = userName;
                     if (updatedOrder && typeof updatedOrder === 'object' && !Array.isArray(updatedOrder) && 'storeId' in updatedOrder) {
                         const storeId = (updatedOrder as any).storeId;
                         if (storeId) {
                             const store = await Store.findById(storeId).lean();
-                            if (store && typeof store === 'object' && !Array.isArray(store) && 'adminManagerId' in store && store.adminManagerId) {
-                                await Notification.create({
-                                    userId: (store as any).adminManagerId.toString(),
-                                    role: 'admin',
-                                    title: 'New Order Payment Received',
-                                    message: `A new order has been paid! Please check and process order ${checkOrder.order_id}.`,
-                                    type: 'order',
-                                    targetScreen: 'orders/detail',
-                                    targetId: checkOrder._id.toString(),
-                                    meta: {
-                                        paymentId: entity.id,
-                                        amount: amountValue,
-                                        currency: entity.currency,
-                                        method: entity.method,
-                                        status: entity.status
+                            if (store && typeof store === 'object' && !Array.isArray(store)) {
+                                storeName = (store as any).name || '';
+                                if ('adminManagerId' in store && store.adminManagerId) {
+                                    const admin = await Admin.findById((store as any).adminManagerId).lean();
+                                    if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+                                        adminName = (admin as any).name || '';
+                                        // Try to get admin's role name
+                                        if ('roleId' in admin && admin.roleId) {
+                                            const roleDoc = await (await import('@/models/Role')).default.findById(admin.roleId).lean();
+                                            if (roleDoc && typeof roleDoc === 'object' && !Array.isArray(roleDoc)) {
+                                                adminRoleName = (roleDoc as any).name || '';
+                                            }
+                                        }
+                                        // Notify store admin
+                                        await Notification.create({
+                                            userId: (store as any).adminManagerId.toString(),
+                                            role: 'admin',
+                                            title: 'New Order Payment Received',
+                                            message: `Admin ${adminName} (${adminRoleName}) received a new order for store ${storeName}. Customer: ${customerName}. Order ID: ${checkOrder.order_id}.`,
+                                            type: 'order',
+                                            targetScreen: 'orders/detail',
+                                            targetId: checkOrder._id.toString(),
+                                            meta: {
+                                                paymentId: entity.id,
+                                                amount: amountValue,
+                                                currency: entity.currency,
+                                                method: entity.method,
+                                                status: entity.status
+                                            }
+                                        });
                                     }
-                                });
+                                }
                             }
                         }
+                    }
+
+                    // Notify all superadmins
+                    try {
+                        const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
+                        if (superAdminRole && superAdminRole._id) {
+                            const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+                            for (const superAdmin of superAdmins) {
+                                if (superAdmin && typeof superAdmin === 'object' && !Array.isArray(superAdmin) && 'id' in superAdmin) {
+                                    await Notification.create({
+                                        userId: (superAdmin as any)._id.toString(),
+                                        role: 'admin',
+                                        title: 'New Order Payment Received',
+                                        message: `Admin ${adminName} (${adminRoleName}) received a new order for store ${storeName}. Customer: ${customerName}. Order ID: ${checkOrder.order_id}.`,
+                                        type: 'order',
+                                        targetScreen: 'orders/detail',
+                                        targetId: checkOrder._id.toString(),
+                                        meta: {
+                                            paymentId: entity.id,
+                                            amount: amountValue,
+                                            currency: entity.currency,
+                                            method: entity.method,
+                                            status: entity.status
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Superadmin notification error:', err);
                     }
                 } catch (notifyErr) {
                     console.error('Notify/email error on payment captured:', notifyErr);
