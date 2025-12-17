@@ -6,6 +6,7 @@ import FilterSearch from "../components/FilterSearch";
 import { useRouter } from "next/navigation";
 
 import { MedicinesExportPath } from "../storeAPICall/API/BaseApi";
+import { CustomButton } from "../components/miniComponents";
 
 export default function MedicinesPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -57,18 +58,23 @@ export default function MedicinesPage() {
         showSearch={false}
         handleAdd={handleAdd}
         addShow={true}
-      />
-      {/* Export Section */}
-      <div className="flex items-center gap-2 mt-4">
-        <button
+        ExportButton={
+          <>
+          <div className="flex items-center ">
+        <CustomButton
           onClick={handleExport}
+          width="200px"
           disabled={exportLoading}
-          style={{ background: "green", color: "white", padding: "8px 16px", borderRadius: 6 }}
-        >
-          {exportLoading ? "Exporting..." : "Export Medicines (Excel)"}
-        </button>
+             >
+          {exportLoading ? "Exporting..." : "Export Medicines "}
+        </CustomButton>
       </div>
   
+          </>
+        }
+      />
+      {/* Export Section */}
+      
       <div className="mt-4">
         <FilterSearch
           onChange={(f) => {

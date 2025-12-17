@@ -20,8 +20,8 @@ type Props = {
   rightNode?: React.ReactNode;
   isunsaved?: boolean;
   onBack?: () => void;
+  ExportButton?: React.ReactNode;
 };
-
 
 import React from "react";
 
@@ -88,6 +88,7 @@ export default function HeaderWithAction({
   handleAdd,
   isunsaved = true,
   onBack,
+  ExportButton,
 }: Props) {
   const router = useRouter();
 
@@ -96,7 +97,7 @@ export default function HeaderWithAction({
       onBack();
       return;
     }
-    
+
     if (isunsaved) {
       const confirm = await showUnsavedConfirm({
         title: "Unsaved Changes",
@@ -119,32 +120,6 @@ export default function HeaderWithAction({
     >
       <BackArrowIcon />
     </button>
-  );
-
-  const searchInput = showSearch && (
-    <div className="hidden sm:block">
-      <div className="relative">
-        <input
-          type="text"
-          placeholder="Search ..."
-          value={searchValue ?? ""}
-          onChange={(e) => onSearchChange?.(e.target.value)}
-          className="w-72 px-3 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          aria-label="Search medicines"
-        />
-        <SearchIcon />
-        {searchValue && (
-          <button
-            type="button"
-            onClick={() => onSearchChange?.("")}
-            className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
-            title="Clear search"
-          >
-            <ClearIcon />
-          </button>
-        )}
-      </div>
-    </div>
   );
 
   const addAction = addShow ? (
@@ -197,9 +172,9 @@ export default function HeaderWithAction({
             )}
           </div>
         </div>
-
         <div className="flex items-center gap-3">
-          {searchInput}
+          {ExportButton && <>{ExportButton}</>}
+
           {rightNode}
           {addAction}
         </div>
