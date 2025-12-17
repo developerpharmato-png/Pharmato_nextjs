@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import Order from '@/models/Order';
+import UserAddress from '@/models/UserAddress';
 import mongoose from 'mongoose';
 
 /**
@@ -26,6 +27,9 @@ import mongoose from 'mongoose';
  *               calculationData:
  *                 type: object
  *                 description: Calculation data from cart-calculation API
+ *               addressId:
+ *                 type: string
+ *                 description: User address ObjectId to be used for this order
  *               isPrescriptionRequired:
  *                 type: boolean
  *                 description: Whether a prescription is required for this order
@@ -83,7 +87,7 @@ import mongoose from 'mongoose';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { userId, storeId, calculationData, isPrescriptionRequired, prescription_url } = await req.json();
+    const { userId, storeId, calculationData, addressId, isPrescriptionRequired, prescription_url } = await req.json();
     if (!userId || typeof userId !== 'string') {
         return NextResponse.json({ success: false, message: 'userId is required' }, { status: 400 });
     }
@@ -93,11 +97,23 @@ export async function POST(req: NextRequest) {
     if (!calculationData || typeof calculationData !== 'object') {
         return NextResponse.json({ success: false, message: 'calculationData is required' }, { status: 400 });
     }
+    if (!addressId || typeof addressId !== 'string') {
+        return NextResponse.json({ success: false, message: 'addressId is required' }, { status: 400 });
+    }
+    if (!mongoose.Types.ObjectId.isValid(addressId)) {
+        return NextResponse.json({ success: false, message: 'Invalid addressId' }, { status: 400 });
+    }
     // Check user exists
     const userCheck = await User.findOne({ _id: userId });
     if (!userCheck) {
         return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
+    // Fetch address and log it
+    const addressDoc = await UserAddress.findById(addressId);
+    if (!addressDoc) {
+        return NextResponse.json({ success: false, message: 'Address not found' }, { status: 404 });
+    }
+    console.log('Order address:', addressDoc);
     // Prepare medicineId array
     const medicineId = (calculationData.medicineId || []).map((id: string) => new mongoose.Types.ObjectId(id));
     // Generate unique order and payment IDs
@@ -147,7 +163,8 @@ export async function POST(req: NextRequest) {
         paymentHistory: [{}],
         isPrescriptionRequired: isPrescriptionRequired || false,
         prescription_url: prescription_url || '',
-        prescription_status: isPrescriptionRequired ? 'Pending' : 'Not Required'
+        prescription_status: isPrescriptionRequired ? 'Pending' : 'Not Required',
+        deliveredAddress: addressDoc.toObject()
     });
     if (createOrder) {
         return NextResponse.json({
