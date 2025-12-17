@@ -26,6 +26,12 @@ import mongoose from 'mongoose';
  *               calculationData:
  *                 type: object
  *                 description: Calculation data from cart-calculation API
+ *               isPrescriptionRequired:
+ *                 type: boolean
+ *                 description: Whether a prescription is required for this order
+ *               prescription_url:
+ *                 type: string
+ *                 description: URL of the uploaded prescription image/pdf
  *     responses:
  *       200:
  *         description: Order created successfully
@@ -77,7 +83,7 @@ import mongoose from 'mongoose';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { userId, storeId, calculationData } = await req.json();
+    const { userId, storeId, calculationData, isPrescriptionRequired, prescription_url } = await req.json();
     if (!userId || typeof userId !== 'string') {
         return NextResponse.json({ success: false, message: 'userId is required' }, { status: 400 });
     }
@@ -138,7 +144,10 @@ export async function POST(req: NextRequest) {
         order_status: 'Pending',
         medicineQuantity: calculationData.medicineQuantity || [],
         calculationData,
-        paymentHistory: [{}]
+        paymentHistory: [{}],
+        isPrescriptionRequired: isPrescriptionRequired || false,
+        prescription_url: prescription_url || '',
+        prescription_status: isPrescriptionRequired ? 'Pending' : 'Not Required'
     });
     if (createOrder) {
         return NextResponse.json({
