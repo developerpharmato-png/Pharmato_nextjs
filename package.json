@@ -48,6 +48,7 @@
     "sweetalert2": "^11.26.3",
     "swiper": "^12.0.3",
     "tailwind-merge": "^3.4.0",
+    "xlsx": "^0.18.5",
     "yup": "^1.7.1",
     "zustand": "^5.0.9"
   },
