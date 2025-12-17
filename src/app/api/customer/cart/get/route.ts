@@ -51,7 +51,6 @@ export async function POST(request: NextRequest) {
             );
         }
 
-
         // Get cart with medicine details
         const cartAgg = await Cart.aggregate([
             {
