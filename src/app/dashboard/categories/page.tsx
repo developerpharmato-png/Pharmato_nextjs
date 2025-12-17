@@ -5,6 +5,8 @@ import HeaderWithAction from "../components/HeaderWithAction";
 import CategoriesTable from "./CategoriesTable";
 import { useRouter } from "next/navigation";
 import FilterSearch from "../components/FilterSearch";
+import { CategoriesStore } from "../storeAPICall/useUserStore";
+import { CategoriesPath } from "../storeAPICall/API/BaseApi";
 
 export default function CategoriesPage() {
   const [seeding, setSeeding] = React.useState(false);
@@ -63,6 +65,7 @@ export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"ASC" | "DESC">("ASC");
   const [columnName, setColumnName] = useState<string>("");
+  const { postData: CategoriesPost, loading: CategoriesLoading, data: CategoriesResp } = CategoriesStore();
 
   useEffect(() => {
     fetchCategories();
@@ -71,17 +74,15 @@ export default function CategoriesPage() {
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      params.append("limit", rowsPerPage.toString());
-      params.append("offset", (page * rowsPerPage).toString());
-      if (searchTerm) params.append("name", searchTerm);
-      if (filterOTC !== "all") params.append("isOTC", filterOTC);
-      if (columnName) params.append("columnName", columnName);
-      if (sortBy) params.append("sortBy", sortBy);
-      const res = await fetch(`/api/categories?${params.toString()}`);
-      const data = await res.json();
-      setCategories(data.data || []);
-      setTotalCount(data.total || (data.data ? data.data.length : 0));
+      const body: any = {
+        limit: rowsPerPage,
+        offset: page * rowsPerPage,
+        sortBy,
+      };
+      if (searchTerm) body.name = searchTerm;
+      if (filterOTC !== "all") body.isOTC = filterOTC;
+      if (columnName) body.columnName = columnName;
+      await CategoriesPost(CategoriesPath, body);
     } catch (error) {
       setCategories([]);
       setTotalCount(0);
@@ -89,6 +90,23 @@ export default function CategoriesPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!CategoriesResp) return;
+    try {
+      const success = (CategoriesResp as any).success;
+      if (success) {
+        setCategories((CategoriesResp as any).data || []);
+        setTotalCount((CategoriesResp as any).total || ((CategoriesResp as any).data?.length || 0));
+      } else {
+        setCategories([]);
+        setTotalCount(0);
+      }
+    } catch (e) {
+      setCategories([]);
+      setTotalCount(0);
+    }
+  }, [CategoriesResp]);
 
   const handleToggleStatus = async (id: string, isActive: boolean) => {
     try {
@@ -138,7 +156,7 @@ export default function CategoriesPage() {
         showSearch={false}
         onSearchChange={setSearchTerm}
         addLabel="Add "
-        
+         
         addShow={true}
         handleAdd={handleAdd}
       />
@@ -164,7 +182,7 @@ export default function CategoriesPage() {
         onPageChange={setPage}
         onRowsPerPageChange={setRowsPerPage}
         onToggleStatus={handleToggleStatus}
-        loading={loading}
+        loading={loading || CategoriesLoading}
       />
     </div>
   );

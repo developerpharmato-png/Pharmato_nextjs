@@ -101,11 +101,14 @@ export default function FilterSearch({
     showApply,
   ]);
 
-  // Fetch categories on component mount
+  // Fetch categories on component mount and when OTC filter changes
   useEffect(() => {
-    // fetch categories via zustand
-    fetchCategories({ url: CategoriesPath });
-  }, [fetchCategories]);
+    // fetch categories via zustand with OTC filter
+    const url = filterOTC !== 'all'
+      ? `${CategoriesPath}?isOTC=${filterOTC}`
+      : CategoriesPath;
+    fetchCategories({ url });
+  }, [fetchCategories, filterOTC]);
 
   useEffect(() => {
     if (!categoriesData) return;
