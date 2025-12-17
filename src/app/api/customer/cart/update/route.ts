@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
             // Items array remains unchanged except for .toObject()
             const itemsWithoutCrossSell = cart.items.map((item: any) => item.toObject());
             const isPrescriptionRequired = itemsWithoutCrossSell.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
-            return NextResponse.json({ success: true, cart: { ...cart.toObject(), items: itemsWithoutCrossSell, crossSellProducts: allCrossSellProducts, isPrescriptionRequired } });
+            return NextResponse.json({ success: true,message: 'Cart Updated', cart: { ...cart.toObject(), items: itemsWithoutCrossSell, crossSellProducts: allCrossSellProducts, isPrescriptionRequired } });
         }
         // Only add if quantity is positive
         if (quantity > 0) {

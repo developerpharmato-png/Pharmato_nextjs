@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
+import Notification from '@/models/Notification';
+import User from '@/models/User';
+import { sendEmail } from '@/utils/sendEmail';
+import Store from '@/models/Store';
+import Admin from '@/models/Admin';
 import Razorpay from 'razorpay';
 
 const razorpayInstance = new Razorpay({
@@ -65,6 +70,88 @@ export async function POST(req: NextRequest) {
                         }
                     }
                 );
+
+                try {
+                    const updatedOrder = await Order.findById(checkOrder._id).lean();
+                    let user = null;
+                    if (updatedOrder && typeof updatedOrder === 'object' && !Array.isArray(updatedOrder) && 'userId' in updatedOrder) {
+                        user = await User.findById((updatedOrder as any).userId).lean();
+                    }
+                    const amountValue = typeof entity.amount === 'number' ? entity.amount / 100 : 0;
+                    const subject = `Payment received for Order ${checkOrder.order_id}`;
+                    let userName = 'Customer';
+                    let userEmail = '';
+                    if (user && typeof user === 'object' && !Array.isArray(user)) {
+                        userName = (user as any).name || 'Customer';
+                        userEmail = (user as any).email || '';
+                    }
+                    const html = `
+                        <div>
+                            <p>Dear ${userName},</p>
+                            <p>Your payment has been captured successfully.</p>
+                            <ul>
+                                <li>Order ID: ${checkOrder.order_id}</li>
+                                <li>Payment ID: ${entity.id}</li>
+                                <li>Amount: ${amountValue} ${entity.currency || ''}</li>
+                                <li>Method: ${entity.method || ''}</li>
+                                <li>Status: ${entity.status || ''}</li>
+                            </ul>
+                            <p>Thank you for shopping with us.</p>
+                        </div>
+                    `;
+                    if (userEmail) {
+                        await sendEmail({ to: userEmail, subject, html });
+                    }
+
+                    let notificationUserId = '';
+                    if (updatedOrder && typeof updatedOrder === 'object' && !Array.isArray(updatedOrder) && 'userId' in updatedOrder) {
+                        notificationUserId = (updatedOrder as any).userId?.toString() || '';
+                    }
+                    await Notification.create({
+                        userId: notificationUserId,
+                        role: 'customer',
+                        title: 'Payment received',
+                        message: `Payment captured for order ${checkOrder.order_id}`,
+                        type: 'payment',
+                        targetScreen: 'orders/detail',
+                        targetId: checkOrder._id.toString(),
+                        meta: {
+                            paymentId: entity.id,
+                            amount: amountValue,
+                            currency: entity.currency,
+                            method: entity.method,
+                            status: entity.status
+                        }
+                    });
+
+                    // Notify admin (store manager) if possible
+                    if (updatedOrder && typeof updatedOrder === 'object' && !Array.isArray(updatedOrder) && 'storeId' in updatedOrder) {
+                        const storeId = (updatedOrder as any).storeId;
+                        if (storeId) {
+                            const store = await Store.findById(storeId).lean();
+                            if (store && typeof store === 'object' && !Array.isArray(store) && 'adminManagerId' in store && store.adminManagerId) {
+                                await Notification.create({
+                                    userId: (store as any).adminManagerId.toString(),
+                                    role: 'admin',
+                                    title: 'New Order Payment Received',
+                                    message: `A new order has been paid! Please check and process order ${checkOrder.order_id}.`,
+                                    type: 'order',
+                                    targetScreen: 'orders/detail',
+                                    targetId: checkOrder._id.toString(),
+                                    meta: {
+                                        paymentId: entity.id,
+                                        amount: amountValue,
+                                        currency: entity.currency,
+                                        method: entity.method,
+                                        status: entity.status
+                                    }
+                                });
+                            }
+                        }
+                    }
+                } catch (notifyErr) {
+                    console.error('Notify/email error on payment captured:', notifyErr);
+                }
             }
 
             if (body.event === 'payment.failed') {
