@@ -1,5 +1,7 @@
+import mongoose from 'mongoose';
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
+import '@/models/Medicine';   // 🚨 MUST
 import Order from '@/models/Order';
 
 /**
@@ -37,37 +39,102 @@ import Order from '@/models/Order';
  */
 
 export async function POST(req: NextRequest) {
-    await dbConnect();
-    const { userId, orderId } = await req.json();
-    if (!userId || typeof userId !== 'string' || !orderId || typeof orderId !== 'string') {
-        return NextResponse.json({ status: false, message: 'userId and orderId are required' }, { status: 400 });
-    }
-    const order = await Order.findOne({ _id: orderId, userId }).populate({
-        path: 'medicineId',
-        select: '_id name manufacturer mrp price discount images coverImage'
-    });
-    if (!order) {
-        return NextResponse.json({ status: false, message: 'Order not found' }, { status: 404 });
-    }
+  await dbConnect();
 
-    // Attach medicineQuantity to each medicine in medicineId
-    const medicineQuantities = Array.isArray(order.medicineQuantity) ? order.medicineQuantity : [];
-    const medicineIdWithQuantity = Array.isArray(order.medicineId)
-        ? order.medicineId.map((med: any) => {
-            // Find the quantity object for this medicine
-            const q = medicineQuantities.find((qty: any) => {
-                // qty.medicineId may be string or ObjectId
-                return (qty.medicineId?.toString && med._id?.toString && qty.medicineId.toString() === med._id.toString());
-            });
-            return {
-                ...med.toObject(),
-                quantity: q?.quantity || 1 // fallback to 1 if not found
-            };
-        })
-        : [];
+  const { userId, orderId } = await req.json();
 
-    // Return order with updated medicineId array
-    const orderObj = order.toObject();
-    orderObj.medicineId = medicineIdWithQuantity;
-    return NextResponse.json({ status: true, data: orderObj });
+  if (
+    !userId ||
+    !orderId ||
+    !mongoose.Types.ObjectId.isValid(userId) ||
+    !mongoose.Types.ObjectId.isValid(orderId)
+  ) {
+    return NextResponse.json(
+      { status: false, message: 'Invalid userId or orderId' },
+      { status: 400 }
+    );
+  }
+
+  const orderObjectId = new mongoose.Types.ObjectId(orderId);
+  const userObjectId = new mongoose.Types.ObjectId(userId);
+
+  const orders = await Order.aggregate([
+    // 1️⃣ findOne equivalent
+    {
+      $match: {
+        _id: orderObjectId,
+        userId: userObjectId
+      }
+    },
+
+    // 2️⃣ join medicines
+    {
+      $lookup: {
+        from: 'medicines',
+        localField: 'medicineId',
+        foreignField: '_id',
+        as: 'medicineDetails'
+      }
+    },
+
+    // 3️⃣ attach quantity
+    {
+      $addFields: {
+        medicineDetails: {
+          $map: {
+            input: '$medicineDetails',
+            as: 'med',
+            in: {
+              _id: '$$med._id',
+              name: '$$med.name',
+              manufacturer: '$$med.manufacturer',
+              mrp: '$$med.mrp',
+              price: '$$med.price',
+              discount: '$$med.discount',
+              images: '$$med.images',
+              coverImage: '$$med.coverImage',
+              quantity: {
+                $let: {
+                  vars: {
+                    q: {
+                      $arrayElemAt: [
+                        {
+                          $filter: {
+                            input: '$medicineQuantity',
+                            as: 'mq',
+                            cond: { $eq: ['$$mq.medicineId', '$$med._id'] }
+                          }
+                        },
+                        0
+                      ]
+                    }
+                  },
+                  in: { $ifNull: ['$$q.quantity', 1] }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    // 4️⃣ optional cleanup
+    {
+      $project: {
+        medicineId: 0,
+        medicineQuantity: 0
+      }
+    }
+  ]);
+
+  if (!orders.length) {
+    return NextResponse.json(
+      { status: false, message: 'Order not found' },
+      { status: 404 }
+    );
+  }
+
+  return NextResponse.json({ status: true, data: orders[0] });
 }
+
+
