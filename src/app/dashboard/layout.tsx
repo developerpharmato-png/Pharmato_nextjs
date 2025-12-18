@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import DashboardTopHeader from "./components/DashboardTopHeader";
 import { useRouter, usePathname } from "next/navigation";
-import Swal from "sweetalert2";
 import { showConfirmStatusAlert } from "./components/ConfirmStatusAlert";
 import { CustomTooltip } from "./components/miniComponents";
 import logo from "./Images/Image 1.png";
@@ -20,19 +19,15 @@ import {
   MapPin,
   Store,
   Image,
-  X,
-  Menu,
   ChevronLeft,
   ChevronRight,
   LogOut,
   Hospital,
-  Icon,
+  ChevronDown,
 } from "lucide-react";
-import { IconBase } from "react-icons/lib";
 
 // 2. CREATE A MAPPING FOR ICONS
 const iconMap = {
-  // Material Name: Lucide Component
   dashboard: LayoutDashboard,
   medication: Pill,
   category: Tag,
@@ -43,17 +38,15 @@ const iconMap = {
   place: MapPin,
   store: Store,
   image: Image,
-  local_pharmacy: Hospital, // Used for the brand logo
+  local_pharmacy: Hospital,
   chevron_left: ChevronLeft,
   chevron_right: ChevronRight,
   logout: LogOut,
-  // Admin Permissions children icons
   role: Users,
   permission: FileText,
   management: User,
 };
 
-// Function to render the correct Lucide icon component
 const renderIcon = (
   iconName: keyof typeof iconMap,
   size: number | string,
@@ -61,10 +54,8 @@ const renderIcon = (
 ) => {
   const IconComponent = iconMap[iconName];
   if (IconComponent) {
-    // Render the Lucide React component
     return <IconComponent size={size} className={className} />;
   }
-  // Fallback for missing icon or if the name doesn't match
   return <span>{iconName}</span>;
 };
 
@@ -92,7 +83,6 @@ export default function DashboardLayout({
     }
   }, [router]);
 
-  // load permissions from localStorage (populated at login) or fetch if missing
   useEffect(() => {
     if (!admin) return;
     const p = localStorage.getItem("adminPermissions");
@@ -100,12 +90,9 @@ export default function DashboardLayout({
       try {
         setPermissions(JSON.parse(p));
         return;
-      } catch (e) {
-        // fallback to fetching
-      }
+      } catch (e) {}
     }
 
-    // fetch from server if admin has roleId
     if (admin?.roleId) {
       (async () => {
         try {
@@ -113,11 +100,7 @@ export default function DashboardLayout({
           const json = await res.json();
           const perms = json?.data?.permissions ?? json?.data ?? {};
           setPermissions(perms);
-          try {
-            localStorage.setItem("adminPermissions", JSON.stringify(perms));
-          } catch (e) {
-            /* ignore */
-          }
+          localStorage.setItem("adminPermissions", JSON.stringify(perms));
         } catch (err) {
           console.error("Failed to fetch role permissions", err);
         }
@@ -125,7 +108,6 @@ export default function DashboardLayout({
     }
   }, [admin]);
 
-  // keep admin permissions group open if current pathname is one of its children
   useEffect(() => {
     const childrenPaths = [
       "/dashboard/role",
@@ -145,9 +127,6 @@ export default function DashboardLayout({
       permissions["Admins"]?.view === true &&
       permissions["Admin Permissions"]?.view === true);
 
-  // NOTE: Material Icons Loader useEffect has been removed as per the previous interaction,
-  // and is no longer needed with Lucide Icons.
-
   const handleLogout = async () => {
     showConfirmStatusAlert({
       isActive: true,
@@ -165,28 +144,26 @@ export default function DashboardLayout({
         }
       },
     });
-  }; 
+  };
 
   const menuItems = [
     { name: "Dashboard", path: "/dashboard", icon: "dashboard" },
     { name: "Medicines", path: "/dashboard/medicines", icon: "medication" },
     { name: "Categories", path: "/dashboard/categories", icon: "category" },
     { name: "Subcategories", path: "/dashboard/subcategories", icon: "folder" },
-    // {
-    //   name: "Prescriptions",
-    //   path: "/dashboard/prescriptions",
-    //   icon: "receipt_long",
-    // }, 
     { name: "Orders", path: "/dashboard/orders", icon: "receipt_long" },
-    {   
-      name: " Customers",
-      path: "/dashboard/admin/customers",
-      icon: "person",
-    },
-  
+    { name: " Customers", path: "/dashboard/admin/customers", icon: "person" },
     { name: "Pincodes", path: "/dashboard/pincode", icon: "place" },
     { name: "Stores", path: "/dashboard/store", icon: "store" },
     { name: "Banner Images", path: "/dashboard/banner-images", icon: "image" },
+    {
+      name: "Data Analytics",
+      icon: "dashboard",
+      children: [
+        { name: "Product Analytics", path: "/dashboard/data-analytics/products", icon: "medication" },
+        { name: "Order Analytics", path: "/dashboard/data-analytics/orders", icon: "receipt_long" },
+      ],
+    },
     {
       name: "Admin Permissions",
       icon: "admin_panel_settings",
@@ -196,10 +173,8 @@ export default function DashboardLayout({
         { name: "Management", path: "/dashboard/management", icon: "management" },
       ],
     },
-    
   ];
 
- 
   const menuItemsWithPermission = menuItems.map((item: any) => {
     const key = item.name.trim();
     let ispermission = true;
@@ -207,7 +182,6 @@ export default function DashboardLayout({
       const perm = (permissions as any)[key];
       ispermission = perm ? Boolean(perm.view) : true;
     }
-    // Gate Admin Permissions group by super admin condition
     if (item.name === "Admin Permissions") {
       ispermission = isCurrentSuperAdmin;
     }
@@ -216,7 +190,7 @@ export default function DashboardLayout({
       const perm = (permissions as any)[child.name];
       return perm ? Boolean(perm.view) : true;
     });
-    return { ...(item as any), ispermission, children };
+    return { ...item, ispermission, children };
   });
 
   const visibleMenuItems = menuItemsWithPermission.filter(
@@ -233,152 +207,90 @@ export default function DashboardLayout({
       >
         <div className="flex flex-col h-full">
           {/* Logo/Brand */}
-          <div className=" border-b border-gray-200">
-            <div
-              className={`flex items-center ${
-                sidebarOpen ? "justify-between" : "justify-center"
-              }`}
-            >
+          <div className="p-4 border-b border-gray-200">
+            <div className={`flex items-center ${sidebarOpen ? "justify-between" : "justify-center"}`}>
               <div className="flex items-center gap-3">
-               
-                {renderIcon(
-                  "local_pharmacy",
-                  sidebarOpen ? 28 : 24,
-                  "text-green-600"
-                )}
-
-                {sidebarOpen && <img src={logo.src} alt="Pharmato Logo" />}
+                {renderIcon("local_pharmacy", sidebarOpen ? 28 : 24, "text-green-600")}
+                {sidebarOpen && <img src={logo.src} alt="Pharmato Logo" className="h-8" />}
               </div>
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className={`text-gray-500 hover:text-green-600 transition p-1 rounded-full ${
-                  !sidebarOpen ? "hidden" : ""
-                }`}
-                aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-              >
-                {/* CHEVRON ICON (chevron_left) */}
-                {renderIcon("chevron_left", 24)}
-              </button>
+              {sidebarOpen && (
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="text-gray-500 hover:text-green-600 transition p-1 rounded-full"
+                >
+                  {renderIcon("chevron_left", 24)}
+                </button>
+              )}
             </div>
-            {/* Collapse Button for closed state (centered icon) */}
             {!sidebarOpen && (
               <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
+                onClick={() => setSidebarOpen(true)}
                 className="text-gray-500 hover:text-green-600 transition p-1 rounded-full w-full mt-2"
-                aria-label="Expand sidebar"
               >
-                {/* CHEVRON ICON (chevron_right) */}
                 {renderIcon("chevron_right", 24)}
               </button>
             )}
           </div>
 
-          {/* Menu Items */}
-          <nav className="flex-1 p-3 space-y-2 overflow-y-auto">
+          {/* Navigation */}
+          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
             {visibleMenuItems.map((item: any) => {
-              const isActive =
-                pathname === item.path ||
-                (item.path !== "/dashboard" && pathname.startsWith(item.path));
-
-              // If item has children, render expandable group
-              if (item.children && item.children.length > 0) {
-                const childActive = item.children.some(
-                  (c: any) => pathname === c.path || pathname.startsWith(c.path)
-                );
-                return (
-                  <div key={item.name}>
-                    <button
-                      onClick={() => setAdminPermOpen((prev) => !prev)}
-                      className={`flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200 ${
-                        childActive
-                          ? "bg-green-600 text-white shadow-md"
-                          : "text-gray-700 hover:bg-green-100 hover:text-green-700"
-                      } ${!sidebarOpen ? "justify-center" : ""}`}
-                    >
-                      {renderIcon(
-                        item.icon as keyof typeof iconMap,
-                        sidebarOpen ? 20 : 24
-                      )}
-                      {sidebarOpen && (
-                        <span className="ml-3 font-medium flex-1 text-left">
-                          {item.name}
-                        </span>
-                      )}
-                      {sidebarOpen && (
-                        <span
-                          className={`transform transition-transform ${
-                            adminPermOpen || childActive ? "rotate-90" : ""
-                          }`}
-                        >
-                          {renderIcon("chevron_right", 18)}
-                        </span>
-                      )}
-                    </button>
-
-                    {sidebarOpen && (adminPermOpen || childActive) && (
-                      <div className="mt-2 space-y-1 pl-10 pr-2">
-                        {item.children.map((child: any) => (
-                          <Link
-                            key={child.path}
-                            href={child.path}
-                            className={`block px-3 py-2 rounded ${
-                              pathname.startsWith(child.path)
-                                ? "bg-green-600 text-white"
-                                : "text-gray-700 hover:bg-green-100"
-                            }`}
-                          >
-                            <span className="inline-flex items-center gap-2">
-                              {renderIcon(child.icon as keyof typeof iconMap, 16)}
-                              <span>{child.name}</span>
-                            </span>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-
-                    {!sidebarOpen && (
-                      <div className="flex flex-col items-center mt-2 gap-2">
-                        <CustomTooltip title={item.name}>
-                          <button
-                            onClick={() => setAdminPermOpen((prev) => !prev)}
-                            className="p-1"
-                          >
-                            {renderIcon("chevron_right", 18)}
-                          </button>
-                        </CustomTooltip>
-                      </div>
-                    )}
-                  </div>
-                );
-              }
+              const hasChildren = item.children && item.children.length > 0;
+              const isActive = pathname === item.path || (hasChildren && adminPermOpen);
 
               const MenuLink = (
-                <Link
-                  key={item.path}
-                  href={item.path}
-                  className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
-                    isActive
-                      ? "bg-green-600 text-white shadow-md"
-                      : "text-gray-700 hover:bg-green-100 hover:text-green-700"
-                  } ${!sidebarOpen ? "justify-center" : ""}`}
-                >
-                  {renderIcon(
-                    item.icon as keyof typeof iconMap,
-                    sidebarOpen ? 20 : 24,
-                    sidebarOpen ? "text-xl" : "text-2xl"
+                <div key={item.name}>
+                  {hasChildren ? (
+                    <button
+                      onClick={() => sidebarOpen && setAdminPermOpen(!adminPermOpen)}
+                      className={`w-full flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
+                        isActive ? "bg-green-50 text-green-700" : "text-gray-700 hover:bg-green-100"
+                      } ${!sidebarOpen ? "justify-center" : ""}`}
+                    >
+                      {renderIcon(item.icon, sidebarOpen ? 20 : 24)}
+                      {sidebarOpen && (
+                        <>
+                          <span className="ml-3 font-medium flex-1 text-left">{item.name}</span>
+                          <ChevronDown className={`w-4 h-4 transition-transform ${adminPermOpen ? "rotate-180" : ""}`} />
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <Link
+                      href={item.path}
+                      className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
+                        pathname === item.path ? "bg-green-600 text-white shadow-md" : "text-gray-700 hover:bg-green-100"
+                      } ${!sidebarOpen ? "justify-center" : ""}`}
+                    >
+                      {renderIcon(item.icon, sidebarOpen ? 20 : 24)}
+                      {sidebarOpen && <span className="ml-3 font-medium">{item.name}</span>}
+                    </Link>
                   )}
-                  {sidebarOpen && (
-                    <span className="ml-3 font-medium whitespace-nowrap">
-                      {item.name}
-                    </span>
+
+                  {/* Render Children */}
+                  {sidebarOpen && hasChildren && adminPermOpen && (
+                    <div className="mt-1 ml-6 space-y-1">
+                      {item.children.map((child: any) => (
+                        <Link
+                          key={child.path}
+                          href={child.path}
+                          className={`flex items-center px-4 py-2 rounded-lg text-sm transition-all ${
+                            pathname === child.path ? "text-green-600 font-bold" : "text-gray-600 hover:text-green-600"
+                          }`}
+                        >
+                          {renderIcon(child.icon, 16)}
+                          <span className="ml-3">{child.name}</span>
+                        </Link>
+                      ))}
+                    </div>
                   )}
-                </Link>
+                </div>
               );
 
               return sidebarOpen ? (
                 MenuLink
               ) : (
-                <CustomTooltip key={item.path} title={item.name}>
+                <CustomTooltip key={item.name} title={item.name}>
                   {MenuLink}
                 </CustomTooltip>
               );
@@ -387,22 +299,14 @@ export default function DashboardLayout({
 
           {/* User Profile & Logout */}
           <div className="p-4 border-t border-gray-200">
-            <div
-              className={`flex items-center ${
-                sidebarOpen ? "space-x-3" : "justify-center"
-              } mb-3`}
-            >
+            <div className={`flex items-center ${sidebarOpen ? "space-x-3" : "justify-center"} mb-3`}>
               <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-bold shrink-0">
                 {admin?.name?.charAt(0).toUpperCase()}
               </div>
               {sidebarOpen && (
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {admin?.name}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {admin?.email}
-                  </p>
+                  <p className="text-sm font-medium text-gray-900 truncate">{admin?.name}</p>
+                  <p className="text-xs text-gray-500 truncate">{admin?.email}</p>
                 </div>
               )}
             </div>
@@ -411,9 +315,7 @@ export default function DashboardLayout({
               className={`w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center ${
                 sidebarOpen ? "justify-center gap-2" : "justify-center"
               }`}
-              aria-label="Logout"
             >
-              {/* LOGOUT ICON */}
               {renderIcon("logout", 20)}
               {sidebarOpen && <span>Logout</span>}
             </button>
@@ -421,11 +323,10 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      {/* 2. Main Content Area (Header + Children) */}
-      <div className="flex flex-col flex-1 bg-linear-to-br from-green-50 to-teal-50 overflow-hidden">
+      {/* 2. Main Content Area */}
+      <div className="flex flex-col flex-1 bg-gradient-to-br from-green-50 to-teal-50 overflow-hidden">
         <DashboardTopHeader />
-
-        <main className={`p-6 flex-1 overflow-y-auto w-full`}>{children}</main>
+        <main className="p-6 flex-1 overflow-y-auto w-full">{children}</main>
       </div>
     </div>
   );

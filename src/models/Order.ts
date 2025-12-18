@@ -52,7 +52,7 @@ const OrderSchema = new Schema<IOrder>({
     medicineQuantity: { type: [Object], default: [] },
     calculationData: { type: Object, default: {} },
     paymentHistory: [{ type: Object, default: {} }],
-    isPrescriptionRequired: { type: Boolean, default: false },
+    isPrescriptionRequired: { type: Boolean, default: false }, 
     prescription_url: { type: String, default: '' },
     prescription_status: { type: String, default: '' },
     deliveredAddress: { type: Object, default: {} },
