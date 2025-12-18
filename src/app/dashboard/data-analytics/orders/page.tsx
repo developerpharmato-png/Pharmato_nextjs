@@ -17,7 +17,7 @@ import {
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 const fetchOrderAnalytics = async () => {
-  const res = await fetch("/api/data-analytics/orders");
+  const res = await fetch("/api/admin/data-analytics/orders");
   return res.json();
 };
 
