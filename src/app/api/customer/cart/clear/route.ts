@@ -15,6 +15,9 @@
  *               userId:
  *                 type: string
  *                 description: User's ObjectId
+ *               storeId:
+ *                 type: string
+ *                 description: Store's ObjectId
  *     responses:
  *       200:
  *         description: Cart cleared
@@ -38,10 +41,14 @@ export async function POST(request: NextRequest) {
     await dbConnect();
     const body = await request.json();
     const userId = body.userId || request.headers.get('x-user-id');
+    const storeId = body.storeId;
     if (!userId) {
         return NextResponse.json({ success: false, error: 'User not authenticated' }, { status: 401 });
     }
-    const cart = await Cart.findOne({ userId });
+    if (!storeId) {
+        return NextResponse.json({ success: false, error: 'storeId is required' }, { status: 400 });
+    }
+    const cart = await Cart.findOne({ userId, storeId });
     if (!cart) {
         return NextResponse.json({ success: false, error: 'Cart not found' }, { status: 404 });
     }

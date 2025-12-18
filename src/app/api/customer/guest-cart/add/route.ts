@@ -48,20 +48,33 @@ import Medicine from '@/models/Medicine';
 export async function POST(request: NextRequest) {
     await connectDB();
     const body = await request.json();
-    const { guestId, medicineId, quantity } = body;
+    const { guestId, storeId, medicineId, quantity } = body;
     if (!guestId || typeof guestId !== 'string') {
-        return NextResponse.json({ success: false, message: 'Invalid input', data: null }, { status: 401 });
+        return NextResponse.json({ success: false, message: 'guestId is required and must be a string', data: null }, { status: 401 });
+    }
+    if (!storeId || typeof storeId !== 'string') {
+        return NextResponse.json({ success: false, message: 'storeId is required and must be a string', data: null }, { status: 400 });
     }
     if (!medicineId || typeof medicineId !== 'string') {
-        return NextResponse.json({ success: false, message: 'Invalid input', data: null }, { status: 400 });
+        return NextResponse.json({ success: false, message: 'medicineId is required and must be a string', data: null }, { status: 400 });
     }
     if (typeof quantity !== 'number' || quantity === 0) {
-        return NextResponse.json({ success: false, message: 'Invalid input', data: null }, { status: 400 });
+        return NextResponse.json({ success: false, message: 'quantity must be a non-zero integer', data: null }, { status: 400 });
     }
-    let cart = await GuestCart.findOne({ guestId });
+    // Prevent mixing items from different stores in the same cart
+    const otherStoreCart = await GuestCart.findOne({ guestId, storeId: { $ne: storeId }, items: { $exists: true, $not: { $size: 0 } } });
+    if (otherStoreCart) {
+        return NextResponse.json({
+            success: false,
+            message: 'Cart contains items from another store. Please clear your cart before adding items from a new store.',
+            otherStoreId: otherStoreCart.storeId?.toString?.() || '',
+            cart: otherStoreCart
+        }, { status: 409 });
+    }
+    let cart = await GuestCart.findOne({ guestId, storeId });
     let medicineInCart: { medicineId: string, quantity: number } | null = null;
     if (!cart) {
-        cart = await GuestCart.create({ guestId, items: [{ medicineId, quantity }] });
+        cart = await GuestCart.create({ guestId, storeId, items: [{ medicineId, quantity }] });
     } else {
         const itemIndex = cart.items.findIndex((item: any) => item.medicineId.toString() === medicineId);
         if (itemIndex > -1) {

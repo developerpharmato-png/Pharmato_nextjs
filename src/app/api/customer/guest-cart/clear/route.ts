@@ -19,6 +19,9 @@ import GuestCart from '@/models/GuestCart';
  *               guestId:
  *                 type: string
  *                 example: "GUEST_ID"
+ *               storeId:
+ *                 type: string
+ *                 example: "STORE_ID"
  *     responses:
  *       200:
  *         description: Guest cart cleared
@@ -35,11 +38,14 @@ import GuestCart from '@/models/GuestCart';
 export async function POST(request: NextRequest) {
     await connectDB();
     const body = await request.json();
-    const { guestId } = body;
+    const { guestId, storeId } = body;
     if (!guestId || typeof guestId !== 'string') {
         return NextResponse.json({ success: false, message: 'Invalid input' }, { status: 401 });
     }
-    const cart = await GuestCart.findOne({ guestId });
+    if (!storeId || typeof storeId !== 'string') {
+        return NextResponse.json({ success: false, message: 'storeId is required' }, { status: 400 });
+    }
+    const cart = await GuestCart.findOne({ guestId, storeId });
     if (!cart) {
         return NextResponse.json({ success: false, message: 'Guest cart not found' }, { status: 404 });
     }

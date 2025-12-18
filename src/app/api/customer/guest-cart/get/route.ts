@@ -20,6 +20,9 @@ import mongoose from 'mongoose';
  *               guestId:
  *                 type: string
  *                 example: "GUEST_ID"
+ *               storeId:
+ *                 type: string
+ *                 example: "STORE_ID"
  *     responses:
  *       200:
  *         description: Guest cart fetched
@@ -42,15 +45,20 @@ export async function POST(request: NextRequest) {
         // If no body or invalid JSON, ignore
     }
     const guestId = body.guestId;
+    const storeId = body.storeId;
     if (!guestId) {
         return NextResponse.json({ success: false, error: 'Guest not authenticated' }, { status: 401 });
+    }
+    if (!storeId) {
+        return NextResponse.json({ success: false, error: 'storeId is required' }, { status: 400 });
     }
 
     // AGGREGATE PIPELINE (FULL GUEST CART WITH MEDICINE DETAILS, SELECTED FIELDS)
     const cartAgg = await GuestCart.aggregate([
         {
             $match: {
-                guestId: guestId
+                guestId: guestId,
+                storeId: new mongoose.Types.ObjectId(storeId)
             }
         },
         {

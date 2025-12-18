@@ -15,6 +15,9 @@
  *               userId:
  *                 type: string
  *                 example: "USER_OBJECT_ID"
+ *               storeId:
+ *                 type: string
+ *                 example: "STORE_OBJECT_ID"
  *     responses:
  *       200:
  *         description: Cart fetched
@@ -42,20 +45,21 @@ export async function POST(request: NextRequest) {
 
     try {
         const body = await request.json();
-        const { userId } = body;
+        const { userId, storeId } = body;
 
-        if (!userId) {
+        if (!userId || !storeId) {
             return NextResponse.json(
-                { success: false, error: "User not authenticated" },
+                { success: false, error: "User and storeId are required" },
                 { status: 401 }
             );
         }
 
-        // Get cart with medicine details
+        // Get cart with medicine details, store-based
         const cartAgg = await Cart.aggregate([
             {
                 $match: {
-                    userId: new mongoose.Types.ObjectId(userId)
+                    userId: new mongoose.Types.ObjectId(userId),
+                    storeId: new mongoose.Types.ObjectId(storeId)
                 }
             },
             {

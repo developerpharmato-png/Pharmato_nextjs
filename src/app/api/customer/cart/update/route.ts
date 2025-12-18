@@ -15,6 +15,9 @@
  *               userId:
  *                 type: string
  *                 example: "USER_OBJECT_ID"
+ *               storeId:
+ *                 type: string
+ *                 example: "STORE_OBJECT_ID"
  *               medicineId:
  *                 type: string
  *                 example: "MEDICINE_OBJECT_ID"
@@ -46,9 +49,12 @@ export async function POST(request: NextRequest) {
         // Ensure Medicine model is registered after dbConnect
         const Medicine = (await import('@/models/Medicine')).default;
         const body = await request.json();
-        const { userId, medicineId, quantity } = body;
+        const { userId, storeId, medicineId, quantity } = body;
         if (!userId || typeof userId !== 'string') {
             return NextResponse.json({ success: false, error: 'userId is required and must be a string' }, { status: 401 });
+        }
+        if (!storeId || typeof storeId !== 'string') {
+            return NextResponse.json({ success: false, error: 'storeId is required and must be a string' }, { status: 400 });
         }
         if (!medicineId || typeof medicineId !== 'string') {
             return NextResponse.json({ success: false, error: 'medicineId is required and must be a string' }, { status: 400 });
@@ -56,7 +62,7 @@ export async function POST(request: NextRequest) {
         if (typeof quantity !== 'number' || quantity === 0) {
             return NextResponse.json({ success: false, error: 'quantity must be a non-zero integer' }, { status: 400 });
         }
-        let cart = await Cart.findOne({ userId });
+        let cart = await Cart.findOne({ userId, storeId });
         if (!cart) {
             return NextResponse.json({ success: false, error: 'Cart not found' }, { status: 404 });
         }
@@ -68,7 +74,7 @@ export async function POST(request: NextRequest) {
                 cart.items.splice(itemIndex, 1);
             }
             await cart.save();
-            cart = await Cart.findOne({ userId }).populate({
+            cart = await Cart.findOne({ userId, storeId }).populate({
                 path: 'items.medicineId',
                 select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount images stock coverImage crossSellProducts'
             });
@@ -100,13 +106,13 @@ export async function POST(request: NextRequest) {
             // Items array remains unchanged except for .toObject()
             const itemsWithoutCrossSell = cart.items.map((item: any) => item.toObject());
             const isPrescriptionRequired = itemsWithoutCrossSell.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
-            return NextResponse.json({ success: true,message: 'Cart Updated', cart: { ...cart.toObject(), items: itemsWithoutCrossSell, crossSellProducts: allCrossSellProducts, isPrescriptionRequired } });
+            return NextResponse.json({ success: true, message: 'Cart Updated', cart: { ...cart.toObject(), items: itemsWithoutCrossSell, crossSellProducts: allCrossSellProducts, isPrescriptionRequired } });
         }
         // Only add if quantity is positive
         if (quantity > 0) {
             cart.items.push({ medicineId, quantity });
             await cart.save();
-            cart = await Cart.findOne({ userId }).populate({
+            cart = await Cart.findOne({ userId, storeId }).populate({
                 path: 'items.medicineId',
                 select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount stock images coverImage crossSellProducts'
             });

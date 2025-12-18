@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
+
 import Cart from '@/models/Cart';
+import GuestCart from '@/models/GuestCart';
 import Medicine from '@/models/Medicine';
 import Setting from '@/models/Setting';
 import mongoose from 'mongoose';
@@ -20,7 +22,13 @@ import mongoose from 'mongoose';
  *             properties:
  *               userId:
  *                 type: string
- *                 description: User's ObjectId
+ *                 description: User's ObjectId (required for logged-in users)
+ *               guestId:
+ *                 type: string
+ *                 description: Guest user's unique ID (required for guest users)
+ *               storeId:
+ *                 type: string
+ *                 description: Store's ObjectId (required)
  *               discount:
  *                 type: number
  *                 description: Discount amount to apply (optional)
@@ -68,44 +76,73 @@ import mongoose from 'mongoose';
  *                             type: number
  */
 
+
+
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { userId, discount } = await req.json();
-    if (!userId || typeof userId !== 'string') {
-        return NextResponse.json({ success: false, message: 'userId is required' }, { status: 400 });
+    const { userId, guestId, storeId, discount } = await req.json();
+    if (((!userId || typeof userId !== 'string') && (!guestId || typeof guestId !== 'string')) || !storeId || typeof storeId !== 'string') {
+        return NextResponse.json({ success: false, message: 'userId or guestId and storeId are required' }, { status: 400 });
     }
     const discountValue = typeof discount === 'number' && discount > 0 ? discount : 0;
-    // Aggregate cart data for user
-    const cartData = await Cart.aggregate([
-        { $match: { userId: new mongoose.Types.ObjectId(userId) } },
-        { $unwind: '$items' },
-        {
-            $lookup: {
-                from: 'users',
-                localField: 'userId',
-                foreignField: '_id',
-                as: 'user'
+
+    let cartData;
+    if (guestId) {
+        // Guest user cart calculation
+        cartData = await GuestCart.aggregate([
+            { $match: { guestId: guestId, storeId: new mongoose.Types.ObjectId(storeId) } },
+            { $unwind: '$items' },
+            {
+                $lookup: {
+                    from: 'medicines',
+                    localField: 'items.medicineId',
+                    foreignField: '_id',
+                    as: 'medicine'
+                }
+            },
+            { $unwind: { path: '$medicine', preserveNullAndEmptyArrays: true } },
+            {
+                $project: {
+                    _id: 1,
+                    guestId: '$guestId',
+                    medicine: 1,
+                    quantity: '$items.quantity',
+                }
             }
-        },
-        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
-        {
-            $lookup: {
-                from: 'medicines',
-                localField: 'items.medicineId',
-                foreignField: '_id',
-                as: 'medicine'
+        ]);
+    } else {
+        // Logged-in user cart calculation
+        cartData = await Cart.aggregate([
+            { $match: { userId: new mongoose.Types.ObjectId(userId), storeId: new mongoose.Types.ObjectId(storeId) } },
+            { $unwind: '$items' },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'userId',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: 'medicines',
+                    localField: 'items.medicineId',
+                    foreignField: '_id',
+                    as: 'medicine'
+                }
+            },
+            { $unwind: { path: '$medicine', preserveNullAndEmptyArrays: true } },
+            {
+                $project: {
+                    _id: 1,
+                    userId: '$user._id',
+                    medicine: 1,
+                    quantity: '$items.quantity',
+                }
             }
-        },
-        { $unwind: { path: '$medicine', preserveNullAndEmptyArrays: true } },
-        {
-            $project: {
-                _id: 1,
-                userId: '$user._id',
-                medicine: 1,
-                quantity: '$items.quantity',
-            }
-        }
-    ]);
+        ]);
+    }
 
     if (!cartData || cartData.length === 0) {
         return NextResponse.json({ success: true, message: 'Cart data not found' });

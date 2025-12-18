@@ -15,6 +15,9 @@
  *               userId:
  *                 type: string
  *                 example: "USER_OBJECT_ID"
+ *               storeId:
+ *                 type: string
+ *                 example: "STORE_OBJECT_ID"
  *               medicineId:
  *                 type: string
  *                 example: "MEDICINE_OBJECT_ID"
@@ -48,10 +51,14 @@ export async function POST(request: NextRequest) {
 
     try {
         const body = await request.json();
-        const { userId, medicineId, quantity } = body;
+
+        const { userId, storeId, medicineId, quantity } = body;
 
         if (!userId || typeof userId !== 'string') {
             return NextResponse.json({ success: false, error: 'userId is required and must be a string' }, { status: 400 });
+        }
+        if (!storeId || typeof storeId !== 'string') {
+            return NextResponse.json({ success: false, error: 'storeId is required and must be a string' }, { status: 400 });
         }
         if (!medicineId || typeof medicineId !== 'string') {
             return NextResponse.json({ success: false, error: 'medicineId is required and must be a string' }, { status: 400 });
@@ -68,17 +75,17 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'Medicine not found' }, { status: 404 });
         }
 
-        let cart = await Cart.findOne({ userId });
+        let cart = await Cart.findOne({ userId, storeId });
         let message = 'Cart Updated';
 
         if (!cart) {
             // Create cart and add item if quantity > 0
             if (quantity > 0) {
-                cart = await Cart.create({ userId, items: [{ medicineId, quantity }] });
+                cart = await Cart.create({ userId, storeId, items: [{ medicineId, quantity }] });
                 message = 'Added to Cart';
             } else {
                 // Negative quantity on empty cart is a no-op
-                cart = await Cart.create({ userId, items: [] });
+                cart = await Cart.create({ userId, storeId, items: [] });
                 message = 'Removed from Cart';
             }
         } else {
@@ -105,7 +112,8 @@ export async function POST(request: NextRequest) {
         const cartAgg = await Cart.aggregate([
             {
                 $match: {
-                    userId: new mongoose.Types.ObjectId(userId)
+                    userId: new mongoose.Types.ObjectId(userId),
+                    storeId: new mongoose.Types.ObjectId(storeId)
                 }
             },
             {

@@ -18,6 +18,9 @@
  *               medicineId:
  *                 type: string
  *                 example: "MEDICINE_OBJECT_ID"
+ *               storeId:
+ *                 type: string
+ *                 example: "STORE_OBJECT_ID"
  *               quantity:
  *                 type: integer
  *                 example: 2
@@ -50,9 +53,12 @@ import Medicine from '@/models/Medicine';
 export async function POST(request: NextRequest) {
     await dbConnect();
     const body = await request.json();
-    const { userId, medicineId, quantity } = body;
+    const { userId, storeId, medicineId, quantity } = body;
     if (!userId || typeof userId !== 'string') {
         return NextResponse.json({ success: false, error: 'userId is required and must be a string' }, { status: 401 });
+    }
+    if (!storeId || typeof storeId !== 'string') {
+        return NextResponse.json({ success: false, error: 'storeId is required and must be a string' }, { status: 400 });
     }
     if (!medicineId || typeof medicineId !== 'string') {
         return NextResponse.json({ success: false, error: 'medicineId is required and must be a string' }, { status: 400 });
@@ -60,10 +66,22 @@ export async function POST(request: NextRequest) {
     if (typeof quantity !== 'number' || quantity === 0) {
         return NextResponse.json({ success: false, error: 'quantity must be a non-zero integer' }, { status: 400 });
     }
-    let cart = await Cart.findOne({ userId });
+
+    // Check for other store carts with items
+    const otherStoreCart = await Cart.findOne({ userId, storeId: { $ne: storeId }, items: { $exists: true, $not: { $size: 0 } } });
+    if (otherStoreCart) {
+        return NextResponse.json({
+            success: false,
+            error: 'Cart contains items from another store. Please clear your cart before adding items from a new store.',
+            otherStoreId: otherStoreCart.storeId?.toString?.() || '',
+            cart: otherStoreCart
+        }, { status: 409 });
+    }
+
+    let cart = await Cart.findOne({ userId, storeId });
     let medicineInCart: { medicineId: string, quantity: number } | null = null;
     if (!cart) {
-        cart = await Cart.create({ userId, items: [{ medicineId, quantity }] });
+        cart = await Cart.create({ userId, storeId, items: [{ medicineId, quantity }] });
     } else {
         const itemIndex = cart.items.findIndex((item: any) => item.medicineId.toString() === medicineId);
         if (itemIndex > -1) {

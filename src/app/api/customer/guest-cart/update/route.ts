@@ -19,6 +19,8 @@ import GuestCart from '@/models/GuestCart';
  *             properties:
  *               guestId:
  *                 type: string
+ *               storeId:
+ *                 type: string
  *               medicineId:
  *                 type: string
  *               quantity:
@@ -40,9 +42,12 @@ export async function POST(request: NextRequest) {
     try {
         await connectDB();
         const body = await request.json();
-        const { guestId, medicineId, quantity } = body;
+        const { guestId, storeId, medicineId, quantity } = body;
         if (!guestId || typeof guestId !== 'string') {
             return NextResponse.json({ success: false, error: 'guestId is required and must be a string' }, { status: 401 });
+        }
+        if (!storeId || typeof storeId !== 'string') {
+            return NextResponse.json({ success: false, error: 'storeId is required and must be a string' }, { status: 400 });
         }
         if (!medicineId || typeof medicineId !== 'string') {
             return NextResponse.json({ success: false, error: 'medicineId is required and must be a string' }, { status: 400 });
@@ -50,7 +55,7 @@ export async function POST(request: NextRequest) {
         if (typeof quantity !== 'number' || quantity === 0) {
             return NextResponse.json({ success: false, error: 'quantity must be a non-zero integer' }, { status: 400 });
         }
-        let cart = await GuestCart.findOne({ guestId });
+        let cart = await GuestCart.findOne({ guestId, storeId });
         if (!cart) {
             return NextResponse.json({ success: false, error: 'Guest cart not found' }, { status: 404 });
         }

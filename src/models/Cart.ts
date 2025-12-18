@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ICart extends Document {
     userId: mongoose.Types.ObjectId;
+    storeId: mongoose.Types.ObjectId;
     items: Array<{
         medicineId: mongoose.Types.ObjectId;
         quantity: number;
@@ -12,6 +13,7 @@ export interface ICart extends Document {
 
 const CartSchema = new Schema<ICart>({
     userId: { type: Schema.Types.ObjectId, ref: 'User' },
+    storeId: { type: Schema.Types.ObjectId, ref: 'Store' },
     items: [
         {
             medicineId: { type: Schema.Types.ObjectId, ref: 'Medicine' },

@@ -20,6 +20,9 @@ import mongoose from 'mongoose';
  *               guestId:
  *                 type: string
  *                 example: "GUEST_ID"
+ *               storeId:
+ *                 type: string
+ *                 example: "STORE_ID"
  *               medicineId:
  *                 type: string
  *                 example: "MEDICINE_ID"
@@ -39,14 +42,17 @@ import mongoose from 'mongoose';
 export async function POST(request: NextRequest) {
     await connectDB();
     const body = await request.json();
-    const { guestId, medicineId } = body;
+    const { guestId, storeId, medicineId } = body;
     if (!guestId) {
         return NextResponse.json({ success: false, error: 'Guest not authenticated' }, { status: 401 });
+    }
+    if (!storeId || typeof storeId !== 'string') {
+        return NextResponse.json({ success: false, error: 'storeId is required and must be a string' }, { status: 400 });
     }
     if (!medicineId || typeof medicineId !== 'string') {
         return NextResponse.json({ success: false, error: 'medicineId is required and must be a string' }, { status: 400 });
     }
-    const cartDoc = await GuestCart.findOne({ guestId });
+    const cartDoc = await GuestCart.findOne({ guestId, storeId });
     if (!cartDoc) {
         return NextResponse.json({ success: false, error: 'Guest cart not found' }, { status: 404 });
     }
@@ -57,7 +63,8 @@ export async function POST(request: NextRequest) {
     const cartAgg = await GuestCart.aggregate([
         {
             $match: {
-                _id: cartDoc._id
+                _id: cartDoc._id,
+                storeId: new mongoose.Types.ObjectId(storeId)
             }
         },
         {

@@ -15,6 +15,9 @@
  *               guestId:
  *                 type: string
  *                 example: "GUEST_UUID_OR_TOKEN"
+ *               storeId:
+ *                 type: string
+ *                 example: "STORE_ID"
  *               medicineId:
  *                 type: string
  *                 example: "MEDICINE_OBJECT_ID"
@@ -47,10 +50,14 @@ export async function POST(request: NextRequest) {
         await connectDB();
 
         const body = await request.json();
-        const { guestId, medicineId, quantity } = body;
+
+        const { guestId, storeId, medicineId, quantity } = body;
 
         if (!guestId || typeof guestId !== 'string') {
             return NextResponse.json({ success: false, error: 'guestId is required and must be a string' }, { status: 400 });
+        }
+        if (!storeId || typeof storeId !== 'string') {
+            return NextResponse.json({ success: false, error: 'storeId is required and must be a string' }, { status: 400 });
         }
         if (!medicineId || typeof medicineId !== 'string') {
             return NextResponse.json({ success: false, error: 'medicineId is required and must be a string' }, { status: 400 });
@@ -69,16 +76,16 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'Medicine not found' }, { status: 404 });
         }
 
-        let cart = await GuestCart.findOne({ guestId });
+        let cart = await GuestCart.findOne({ guestId, storeId });
         let message = 'Cart Updated';
 
         if (!cart) {
             if (quantity > 0) {
-                cart = await GuestCart.create({ guestId, items: [{ medicineId, quantity }] });
+                cart = await GuestCart.create({ guestId, storeId, items: [{ medicineId, quantity }] });
                 message = 'Added to Cart';
             } else {
                 // Negative quantity on empty cart -> create empty cart so downstream flows work
-                cart = await GuestCart.create({ guestId, items: [] });
+                cart = await GuestCart.create({ guestId, storeId, items: [] });
                 message = 'Removed from Cart';
             }
         } else {
@@ -101,7 +108,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Populate medicines and compute crossSellProducts similar to guest-cart/update
-        cart = await GuestCart.findOne({ guestId }).populate({
+        cart = await GuestCart.findOne({ guestId, storeId }).populate({
             path: 'items.medicineId',
             select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount stock images coverImage crossSellProducts'
         });
