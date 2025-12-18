@@ -5,11 +5,43 @@ import HeaderWithAction from "../components/HeaderWithAction";
 import FilterSearch from "../components/FilterSearch";
 import { useRouter } from "next/navigation";
 
+import { MedicinesExportPath } from "../storeAPICall/API/BaseApi";
+import { CustomButton } from "../components/miniComponents";
+
 export default function MedicinesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [subCategoryId, setSubCategoryId] = useState<string | null>(null);
   const router = useRouter();
+
+  const [exportLoading, setExportLoading] = useState(false);
+  // No date fields needed for export
+
+  const handleExport = async () => {
+    setExportLoading(true);
+    try {
+      const res = await fetch(MedicinesExportPath, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) throw new Error("Failed to export medicines");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const filename = "medicines_export.xlsx";
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert("Export failed");
+    } finally {
+      setExportLoading(false);
+    }
+  };
 
   const handleAdd = () => {
     router.push("/dashboard/medicines/new");
@@ -26,8 +58,23 @@ export default function MedicinesPage() {
         showSearch={false}
         handleAdd={handleAdd}
         addShow={true}
-      />
+        ExportButton={
+          <>
+          <div className="flex items-center ">
+        <CustomButton
+          onClick={handleExport}
+          width="200px"
+          disabled={exportLoading}
+             >
+          {exportLoading ? "Exporting..." : "Export Medicines "}
+        </CustomButton>
+      </div>
   
+          </>
+        }
+      />
+      {/* Export Section */}
+      
       <div className="mt-4">
         <FilterSearch
           onChange={(f) => {

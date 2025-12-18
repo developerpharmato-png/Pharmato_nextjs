@@ -36,7 +36,7 @@ export default function OrdersPage() {
       offset: page * rowsPerPage,
       page,
     };
-
+ 
     if (searchTerm) body.search = searchTerm;
     if (customerId) body.customerId = customerId;
 
