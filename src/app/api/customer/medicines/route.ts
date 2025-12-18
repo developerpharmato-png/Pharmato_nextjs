@@ -109,32 +109,41 @@ export async function POST(req: NextRequest) {
         cartItems = guestCart && typeof guestCart === 'object' && 'items' in guestCart && Array.isArray((guestCart as any).items) ? (guestCart as any).items : [];
     }
 
+
     // Loop and populate category, subcategory, and cart info
-    const populatedMedicines = await Promise.all(
-        medicines.map(async (med: any) => {
-            let category = null;
-            let subcategory = null;
-            if (med.categoryId) {
-                const cat = await import('@/models/Category').then(m => m.default.findById(med.categoryId).lean());
-                category = cat || null;
-            }
-            if (med.subCategoryId) {
-                const subcat = await import('@/models/SubCategory').then(m => m.default.findById(med.subCategoryId).lean());
-                subcategory = subcat || null;
-            }
-            // Cart info
-            const cartItem = cartItems.find((item: any) => item.medicineId?.toString() === med._id?.toString());
-            const isInCart = !!cartItem;
-            const cartQuantity = cartItem ? cartItem.quantity : 0;
-            return {
-                ...med,
-                category,
-                subcategory,
-                isInCart,
-                cartQuantity,
-            };
-        })
-    );
+    const populatedMedicines = (
+        await Promise.all(
+            medicines.map(async (med: any) => {
+                let category = null;
+                let subcategory = null;
+                if (med.categoryId) {
+                    const cat = await import('@/models/Category').then(m => m.default.findById(med.categoryId).lean());
+                    category = cat || null;
+                }
+                if (med.subCategoryId) {
+                    const subcat = await import('@/models/SubCategory').then(m => m.default.findById(med.subCategoryId).lean());
+                    subcategory = subcat || null;
+                }
+                // Cart info
+                const cartItem = cartItems.find((item: any) => item.medicineId?.toString() === med._id?.toString());
+                const isInCart = !!cartItem;
+                const cartQuantity = cartItem ? cartItem.quantity : 0;
+                return {
+                    ...med,
+                    category,
+                    subcategory,
+                    isInCart,
+                    cartQuantity,
+                };
+            })
+        )
+    ).filter(med => {
+        // Exclude if category is inactive
+        if (med.categoryId && (!med.category || med.category.isActive === false)) return false;
+        // Exclude if subcategory is inactive
+        if (med.subCategoryId && (!med.subcategory || med.subcategory.isActive === false)) return false;
+        return true;
+    });
 
     // Get total count for pagination info
     const total = await Medicine.countDocuments(filter);
@@ -150,6 +159,7 @@ export async function POST(req: NextRequest) {
             status: 200,
         }
     );
+
 }
 
 // Swagger DTO Example

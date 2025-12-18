@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
 import mongoose from 'mongoose';
+import moment from 'moment';
 
 /**
  * @swagger
@@ -120,6 +121,12 @@ export async function POST(req: NextRequest) {
         // frontend ke kaam aa sakta hai
     ]);
 
-    return NextResponse.json({ status: true, data: orders });
+    // Format createdAt and deliveredDate for each order
+    const formattedOrders = orders.map(order => ({
+        ...order,
+        createdAt: order.createdAt ? moment(order.createdAt).format('D MMMM YYYY') : order.createdAt,
+        deliveredDate: order.deliveredDate ? moment(order.deliveredDate).format('D MMMM YYYY') : ""
+    }));
+    return NextResponse.json({ status: true, data: formattedOrders });
 }
 
