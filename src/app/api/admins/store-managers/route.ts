@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        // Find all admins with Store Manager role
-        const admins = await Admin.find({ roleId: storeManagerRole._id })
+        // Find all active admins with Store Manager role
+        const admins = await Admin.find({ roleId: storeManagerRole._id, isActive: true })
             .sort({ createdAt: -1 })
             .select('-password')
             .populate({ path: 'roleId', select: 'name', strictPopulate: false });

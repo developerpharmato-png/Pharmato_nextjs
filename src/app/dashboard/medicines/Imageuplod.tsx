@@ -1,11 +1,12 @@
 import React, { useState } from "react";
+import CircularProgress from "@mui/material/CircularProgress";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { CustomImage } from "../components/miniComponents";
 import "swiper/css";
 import "swiper/css/pagination";
 import { Pagination } from "swiper/modules";
-// --- 1. TYPE DEFINITIONS ---
-// Define the shape of the form data related to images
+import { LucideDelete } from "lucide-react";
+import DeleteIcon from "@mui/icons-material/Delete";
 interface ImageFormState {
   images: string[];
   coverImage: string;
@@ -43,33 +44,48 @@ const ErrorMessageCom: React.FC<{ error: string | string[] }> = ({ error }) => {
 
 // --- Reusable Component 1: ImageUploadButton ---
 
-const ImageUploadButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+interface ImageUploadButtonProps {
+  onClick: () => void;
+  loading?: boolean;
+}
+
+const ImageUploadButton: React.FC<ImageUploadButtonProps> = ({ onClick, loading }) => {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="h-28 w-28 flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-400 rounded-lg hover:bg-gray-100 transition duration-150 shadow-inner"
+      className="h-28 w-28 flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-400 rounded-lg hover:bg-gray-100 transition duration-150 shadow-inner relative"
       title="Upload photos"
+      disabled={loading}
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-        className="w-9 h-9 text-gray-500"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M8.25 12.75l2.25 3 3-4.5 4.5 6"
-        />
-      </svg>
+      {/* Loader overlay in center */}
+      {loading && (
+        <span className="absolute inset-0 flex items-center justify-center bg-white/70 z-10 rounded-lg">
+          <CircularProgress size={40} thickness={5} color="primary" />
+        </span>
+      )}
+      {/* Icon is faded when loading */}
+      <span className={loading ? "opacity-30" : "opacity-100"}>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="w-9 h-9 text-gray-500"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M8.25 12.75l2.25 3 3-4.5 4.5 6"
+          />
+        </svg>
+      </span>
     </button>
   );
 };
@@ -88,7 +104,7 @@ const ImageDisplayCard: React.FC<ImageDisplayCardProps> = ({
 
   return (
     // STYLED IMAGE CONTAINER
-    <div className="relative h-24 w-24 rounded-lg shadow-md border border-gray-300 overflow-hidden group">
+    <div className="relative h-44 w-44 rounded-lg shadow-md border border-gray-300 overflow-hidden group">
       <img
         src={url}
         alt="Medicine"
@@ -116,23 +132,10 @@ const ImageDisplayCard: React.FC<ImageDisplayCardProps> = ({
       <button
         type="button"
         onClick={() => handleDeleteImage(url)}
-        className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-lg transition duration-200 hover:bg-red-700 z-10"
+        className="absolute top-1 right-1  bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg transition duration-200 hover:bg-red-700 z-10"
         title="Delete image"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="currentColor"
-          className="w-4 h-4"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
+        <DeleteIcon />
       </button>
     </div>
   );
@@ -187,10 +190,8 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
           onClick={() =>
             document.getElementById("medicine-image-input")?.click()
           }
+          loading={uploading}
         />
-        {uploading && (
-          <span className="text-blue-600 font-medium">Uploading...</span>
-        )}
       </div>
 
       {/* Form Validation Error */}
@@ -215,11 +216,12 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
         </div>
       )}
 
-      {/* --- NEW: Image Slider / Viewer --- */}
-    {sliderOpen && (
-        // MODIFICATION: Overlay changed to black with opacity for better focus
+      
+      {sliderOpen && (
         <div className="fixed inset-0  bg-opacity-75 flex items-center justify-center z-[1000] p-4 backdrop-blur-sm">
-          <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl relative p-4"> {/* Increased general padding */}
+          <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl relative p-4">
+            {" "}
+          
             <button
               onClick={handleCloseSlider}
               // Close button position and color updated for a dark overlay
@@ -235,17 +237,20 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
               pagination={{ clickable: true }}
               modules={[Pagination]}
               // MODIFICATION: Increased Swiper container height for better visual impact
-              className="w-full h-[70vh] max-h-[700px] rounded-xl overflow-hidden" 
+              className="w-full h-[70vh] max-h-[700px] rounded-xl overflow-hidden"
             >
               {form.images.map((url, index) => (
                 // MODIFICATION: Added background to SwiperSlide for contrast
-                <SwiperSlide key={index} className="flex items-center justify-center bg-gray-100 rounded-xl">
+                <SwiperSlide
+                  key={index}
+                  className="flex items-center justify-center bg-gray-100 rounded-xl"
+                >
                   <img
                     src={url}
                     alt={`Slide ${index}`}
                     // CRITICAL MODIFICATION: object-contain ensures the full image is visible without cropping.
                     // Increased image container height to utilize more of the SwiperSlide area.
-                    className="max-w-full w-full h-full object-contain p-4" 
+                    className="max-w-full w-full h-full object-contain p-4"
                   />
                 </SwiperSlide>
               ))}

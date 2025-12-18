@@ -93,9 +93,9 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
     if (id) {
       setAddressLoading(true);
       fetch(`/api/admin/customers/address/${id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: id })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: id }),
       })
         .then((res) => res.json())
         .then((data) => {
@@ -152,7 +152,6 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
     }
   };
 
-
   // --- Helper Components and Functions ---
 
   const LoadingSpinner = () => (
@@ -168,12 +167,12 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
    * Converts address object to a single, URL-safe string for Google Maps search.
    */
   const formatAddressForMap = (addressObj: Record<string, any>) => {
-    if (!addressObj) return '';
+    if (!addressObj) return "";
     // Concatenate all defined address values
-    const components = Object.values(addressObj).filter(v => v);
-    return encodeURIComponent(components.join(', '));
+    const components = Object.values(addressObj).filter((v) => v);
+    return encodeURIComponent(components.join(", "));
   };
-  
+
   // Renders Customer Details
   const CustomerDetails = () => {
     if (loading) return <LoadingSpinner />;
@@ -211,6 +210,7 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
           </div>
           <div>
             <span className="font-semibold">Mobile:</span>{" "}
+            {customer.countryCode}{" "}
             {customer.mobile || <span className="text-gray-400">-</span>}
           </div>
           <div>
@@ -219,12 +219,7 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
               ₹{(customer.walletAmount ?? 0).toFixed(2)}
             </span>
           </div>
-          <div>
-            <span className="font-semibold">Country Code:</span>{" "}
-            {customer.countryCode || (
-              <span className="text-gray-400">-</span>
-            )}
-          </div>
+          <div></div>
           <div>
             <span className="font-semibold">Verified:</span>{" "}
             {customer.isVerified ? (
@@ -274,13 +269,16 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
               const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${formattedQuery}`;
 
               // Text representation of the address for display
-              const addressDisplayText = addr.address && Object.keys(addr.address).length > 0 ? (
-                Object.entries(addr.address).map(([k, v]) =>
-                  v ? <span key={k}>{v}, </span> : null
-                )
-              ) : (
-                <span className="text-gray-400">No address details available</span>
-              );
+              const addressDisplayText =
+                addr.address && Object.keys(addr.address).length > 0 ? (
+                  Object.entries(addr.address).map(([k, v]) =>
+                    v ? <span key={k}>{v}, </span> : null
+                  )
+                ) : (
+                  <span className="text-gray-400">
+                    No address details available
+                  </span>
+                );
 
               return (
                 <div
@@ -292,7 +290,9 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
                       {addr.addressType || "Other"}
                       {addr.is_primary ? " (Primary)" : ""}
                     </span>
-                    <span className="font-semibold text-gray-800">{addr.name}</span>
+                    <span className="font-semibold text-gray-800">
+                      {addr.name}
+                    </span>
                     <span className="text-gray-600 text-sm">
                       {addr.phone}
                       {addr.email && ` | ${addr.email}`}
@@ -309,9 +309,25 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
                         title="Click to view on Google Maps"
                       >
                         {addressDisplayText}
-                        <svg className="w-4 h-4 ml-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"></path>
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <svg
+                          className="w-4 h-4 ml-2 flex-shrink-0"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"
+                          ></path>
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                          ></path>
                         </svg>
                       </a>
                     ) : (
@@ -339,64 +355,65 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
         isunsaved={false}
       />
 
-     
-        <Tabs>
-          <TabList className="TabList">
-            <Tab className="Tab">Details</Tab>
-            <Tab className="Tab">Orders</Tab>
-          </TabList>
+      <Tabs>
+        <TabList className="TabList">
+          <Tab className="Tab">Details</Tab>
+          <Tab className="Tab">Orders</Tab>
+        </TabList>
 
-          <TabPanel className="TabPanel">
-            <div className="mt-8 space-y-8">
-              <CustomerDetails />
-              {!loading && customer && <CustomerAddresses />}
-            </div>
-          </TabPanel>
+        <TabPanel className="TabPanel">
+          <div className="mt-8 space-y-8">
+            <CustomerDetails />
+            {!loading && customer && <CustomerAddresses />}
+          </div>
+        </TabPanel>
 
-          <TabPanel className="TabPanel">
-            <div className="mt-8">
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">
-                  Customer Orders
-                </h2>
-                {!loading && customer && (
-                  <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-600">Customer:</span>{" "}
-                        <span className="font-medium">{customer.name || customer.email || "-"}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Email:</span>{" "}
-                        <span className="font-medium">{customer.email || "-"}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Mobile:</span>{" "}
-                        <span className="font-medium">{customer.mobile || "-"}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Wallet:</span>{" "}
-                        <span className="font-medium text-green-600">
-                          ₹{(customer.walletAmount ?? 0).toFixed(2)}
-                        </span>
-                      </div>
+        <TabPanel className="TabPanel">
+          <div className="">
+          
+             
+              {!loading && customer && (
+                <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Customer:</span>{" "}
+                      <span className="font-medium">
+                        {customer.name || customer.email || "-"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Email:</span>{" "}
+                      <span className="font-medium">
+                        {customer.email || "-"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Mobile:</span>{" "}
+                      <span className="font-medium">
+                       {customer.countryCode}   {customer.mobile || "-"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Wallet:</span>{" "}
+                      <span className="font-medium text-green-600">
+                        ₹{(customer.walletAmount ?? 0).toFixed(2)}
+                      </span>
                     </div>
                   </div>
-                )}
-                <OrdersTable
-                  data={orders}
-                  page={ordersPage}
-                  rowsPerPage={ordersRowsPerPage}
-                  totalCount={ordersTotalCount}
-                  onPageChange={setOrdersPage}
-                  onRowsPerPageChange={setOrdersRowsPerPage}
-                  loading={ordersLoading}
-                />
-              </div>
-            </div>
-          </TabPanel>
-        </Tabs>
-   
+                </div>
+              )}
+              <OrdersTable
+                data={orders}
+                page={ordersPage}
+                rowsPerPage={ordersRowsPerPage}
+                totalCount={ordersTotalCount}
+                onPageChange={setOrdersPage}
+                onRowsPerPageChange={setOrdersRowsPerPage}
+                loading={ordersLoading}
+              />
+          </div>
+        </TabPanel>
+      </Tabs>
     </div>
   );
 }

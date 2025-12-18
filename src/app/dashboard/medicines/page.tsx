@@ -44,7 +44,7 @@ export default function MedicinesPage() {
   };
 
   const handleAdd = () => {
-    router.push("/dashboard/medicines/new");
+    router.push("/dashboard/medicines/AddEdit");
   };
   return (
     <div className="containerStyle scrollbar-hide">

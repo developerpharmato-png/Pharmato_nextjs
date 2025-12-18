@@ -428,7 +428,7 @@ console.log(searchValue,"searchValue");
       selector: (row) => (
         <span
           style={{ cursor: "pointer", color: "var(--primary)", display: "flex", justifyContent: "center", alignItems: "center" }}
-          onClick={() => router.push(`/dashboard/medicines/${row._id}/edit`)}
+          onClick={() => router.push(`/dashboard/medicines/AddEdit/${row._id}`)}
         >
           <EditIcon fontSize="small" />
         </span>

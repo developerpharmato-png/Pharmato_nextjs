@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid";
+import GridLegacy from "@mui/material/GridLegacy";
 import { Bar, Pie } from "react-chartjs-2";
 
 const fetchOrderAnalytics = async () => {
@@ -20,18 +20,18 @@ export default function OrderAnalyticsPage() {
   return (
     <div>
       <Typography variant="h4" gutterBottom>Sales / Orders-Wise Dashboard</Typography>
-      <Grid container spacing={2}>
+      <GridLegacy container spacing={2}>
         {data.kpis.map((kpi: any) => (
-          <Grid item key={kpi.label} xs={12} sm={6} md={3}>
+          <GridLegacy item key={kpi.label} xs={12} sm={6} md={3}>
             <Card>
               <CardContent>
                 <Typography variant="h6">{kpi.label}</Typography>
                 <Typography variant="h5">{kpi.value}</Typography>
               </CardContent>
             </Card>
-          </Grid>
+          </GridLegacy>
         ))}
-      </Grid>
+      </GridLegacy>
       <div style={{ marginTop: 32 }}>
         <Typography variant="h6">Order Status Overview</Typography>
         <Pie data={data.statusGraph} />

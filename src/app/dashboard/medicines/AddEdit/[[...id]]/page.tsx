@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
-import { CustomButton, ErrorMessageCom } from "../../components/miniComponents";
+
 import {
   TextField,
   Select,
@@ -14,20 +14,77 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { MdArrowBack, MdSave } from "react-icons/md";
-import HeaderWithAction from "../../components/HeaderWithAction";
-import Swal from "sweetalert2";
-import {
-  initialMedicineFormValues,
-  medicineFormValidationSchema,
-} from "./medicineFormUtil";
-import DeleteIcon from "@mui/icons-material/Delete";
-import MedicineImageUploader from "../Imageuplod";
 
-export default function MedicineForm() {
+import Swal from "sweetalert2";
+
+import DeleteIcon from "@mui/icons-material/Delete";
+import MedicineImageUploader from "../../Imageuplod";
+import HeaderWithAction from "@/app/dashboard/components/HeaderWithAction";
+import {
+  CustomButton,
+  ErrorMessageCom,
+} from "@/app/dashboard/components/miniComponents";
+
+import { useParams } from "next/navigation";
+import { initialMedicineFormValues } from "@/utils/initCategory";
+import { medicineFormValidationSchema } from "@/utils/validateCategory";
+
+export default function MedicineAddEditForm({ id }: { id?: string }) {
   const router = useRouter();
-  // Removed duplicate uploading state declaration
+  const params = useParams();
+  const usedId = id && id !== "undefined" ? id : (params as any)?.id;
+
+  const [initialValues, setInitialValues] = useState(initialMedicineFormValues);
+  const [isEdit, setIsEdit] = useState(false);
+
+  // Fetch medicine if id is present
+  useEffect(() => {
+    if (usedId) {
+      setLoading(true);
+      setIsEdit(true);
+      fetch(`/api/medicines/${usedId}`)
+        .then(async (res) => {
+          const data = await res.json();
+          if (data.success && data.data) {
+            const med = data.data;
+            setInitialValues({
+              ...initialMedicineFormValues,
+              ...med,
+              expiryDate: med.expiryDate
+                ? new Date(med.expiryDate).toISOString().slice(0, 10)
+                : "",
+              images: Array.isArray(med.images) ? med.images : [],
+              coverImage:
+                med.coverImage ||
+                (Array.isArray(med.images) && med.images.length > 0
+                  ? med.images[0]
+                  : ""),
+              highlights: Array.isArray(med.highlights) ? med.highlights : [],
+              unitInput: med.unitInput || "",
+              unit: med.unit || "",
+            });
+            setComposition(
+              Array.isArray(med.composition)
+                ? med.composition
+                : [{ name: "", value: "" }]
+            );
+          } else {
+            setError("Medicine not found");
+          }
+        })
+        .catch(() => setError("Failed to fetch medicine"))
+        .finally(() => setLoading(false));
+    } else {
+      setIsEdit(false);
+      setInitialValues(initialMedicineFormValues);
+      setComposition([{ name: "", value: "" }]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usedId]);
+
   const formik = useFormik({
-    initialValues: initialMedicineFormValues,
+    enableReinitialize: true,
+    initialValues,
     validationSchema: medicineFormValidationSchema,
     onSubmit: async (values, { setSubmitting, setErrors }) => {
       setLoading(true);
@@ -60,8 +117,15 @@ export default function MedicineForm() {
           setSubmitting(false);
           return;
         }
-        const res = await fetch("/api/medicines", {
-          method: "POST",
+        // If editing, call PUT, else POST
+        let apiUrl = "/api/medicines";
+        let method = "POST";
+        if (isEdit && usedId) {
+          apiUrl = `/api/medicines/${usedId}`;
+          method = "PUT";
+        }
+        const res = await fetch(apiUrl, {
+          method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...values,
@@ -90,14 +154,18 @@ export default function MedicineForm() {
             toast: true,
             position: "top-end",
             icon: "success",
-            title: "Medicine created successfully",
+            title: isEdit
+              ? "Medicine updated successfully"
+              : "Medicine created successfully",
             showConfirmButton: false,
             timer: 2000,
           });
           setTimeout(() => router.push("/dashboard/medicines"), 1000);
         }
       } catch (err) {
-        setError("Failed to create medicine");
+        setError(
+          isEdit ? "Failed to update medicine" : "Failed to create medicine"
+        );
       } finally {
         setLoading(false);
         setSubmitting(false);
@@ -196,6 +264,8 @@ export default function MedicineForm() {
   };
 
   const handleDeleteImage = async (url: string) => {
+    setUploading(true);
+
     const res = await fetch("/api/cloudinary/delete-image", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -209,6 +279,8 @@ export default function MedicineForm() {
           ? remaining[0] ?? undefined
           : formik.values.coverImage;
       formik.setFieldValue("images", remaining);
+      setUploading(false);
+
       formik.setFieldValue("coverImage", nextCover);
       Swal.fire({
         toast: true,
@@ -459,8 +531,12 @@ export default function MedicineForm() {
     <>
       <div className="containerStyle scrollbar-hide">
         <HeaderWithAction
-          title="Add New Medicine"
-          subtitle="Enter medicine details to add to inventory"
+          title={isEdit ? "Edit Medicine" : "Add New Medicine"}
+          subtitle={
+            isEdit
+              ? "Update medicine details"
+              : "Enter medicine details to add to inventory"
+          }
           showBack={true}
           showSearch={false}
         />
@@ -568,6 +644,7 @@ export default function MedicineForm() {
                   onChange={handleChange}
                   onBlur={formik.handleBlur}
                   fullWidth
+                  disabled={isEdit}
                   variant="outlined"
                   placeholder="0"
                   error={formik.touched.stock && Boolean(formik.errors.stock)}
@@ -1074,8 +1151,15 @@ export default function MedicineForm() {
               {" "}
               <div className="flex justify-center w-full max-w-sm">
                 {" "}
-                 <CustomButton type="submit" disabled={loading} width="100%">
-                  <MdSave size={22} /> {loading ? "Saving..." : "Add Medicine"}
+                <CustomButton type="submit" disabled={loading} width="100%">
+                  <MdSave size={22} />{" "}
+                  {loading
+                    ? isEdit
+                      ? "Saving..."
+                      : "Saving..."
+                    : isEdit
+                    ? "Update Medicine"
+                    : "Add Medicine"}
                 </CustomButton>
               </div>
             </div>

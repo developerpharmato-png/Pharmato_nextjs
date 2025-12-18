@@ -47,6 +47,7 @@ interface FilterSearchProps {
   isShowCategory?: boolean; // Added prop to control category filter visibility
   isShowSub?: boolean; // Added prop to control subcategory filter visibility
   subcategories?: any[]; // Added subcategories prop
+  showclearAll?: boolean;
 }
 
 export default function FilterSearch({
@@ -62,6 +63,7 @@ export default function FilterSearch({
   showStatusFilter = false,
   isShowSub = false,
   isShowCategory = false,
+  showclearAll = true,
 }: FilterSearchProps) {
   const [search, setSearch] = useState<string>(initial.search || "");
   const [filterOTC, setFilterOTC] = useState<string>("all"); // Added state for OTC filter
@@ -418,76 +420,8 @@ export default function FilterSearch({
       )}
 
       <div style={{ display: "flex", gap: "12px", flexShrink: 0 }}>
-        {showApply ? (
-          <>
-            <button
-              type="button"
-              onClick={handleApply}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "12px 24px",
-                backgroundColor: "green",
-                color: "#ffffff",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "14px",
-                fontWeight: "600",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                fontFamily: "inherit",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "rgb(93, 172, 93)";
-                e.currentTarget.style.transform = "translateY(-1px)";
-                e.currentTarget.style.boxShadow =
-                  "0 4px 12px rgba(0,128,0,0.3)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "green";
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
-            >
-              <Filter size={16} />
-              Apply
-            </button>
-            <button
-              type="button"
-              onClick={handleReset}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "12px 24px",
-                backgroundColor: "#ffffff",
-                color: "#171717",
-                border: "1px solid #d1d5db",
-                borderRadius: "8px",
-                fontSize: "14px",
-                fontWeight: "600",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                fontFamily: "inherit",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgb(93, 172, 93)";
-                e.currentTarget.style.backgroundColor = "rgba(0,128,0,0.04)";
-                e.currentTarget.style.transform = "translateY(-1px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "#d1d5db";
-                e.currentTarget.style.backgroundColor = "#ffffff";
-                e.currentTarget.style.transform = "translateY(0)";
-              }}
-            >
-              <X size={16} />
-              Reset
-            </button>
-          </>
-        ) : (
-          <button
+     {showclearAll && (
+ <button
             type="button"
             onClick={handleReset}
             style={{
@@ -519,7 +453,9 @@ export default function FilterSearch({
             <X size={16} />
             Clear
           </button>
-        )}
+     )}
+         
+       
       </div>
     </div>
   );

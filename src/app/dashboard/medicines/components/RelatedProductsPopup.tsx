@@ -57,6 +57,14 @@ function RelatedProductsPopup({
       <div className="bg-white rounded-xl shadow-2xl p-6 md:p-8 w-full max-w-lg transform transition-all duration-300 ease-out">
         <h2 className="text-2xl font-bold text-gray-800 mb-5 border-b pb-3">
           Select Related Products
+           <div className="text-right text-xs text-gray-500 mt-2">
+              Selected: {checked.length} / 5
+            </div>
+            {checked.length >= 5 && (
+              <div className="text-red-600 text-sm mt-2 text-center font-medium">
+                ⚠️ Maximum 5 products can be selected.
+              </div>
+            )}
         </h2>
         {loading ? (
           <div className="p-4 text-center text-gray-600">
@@ -96,14 +104,8 @@ function RelatedProductsPopup({
                 No other products found in this category.
               </div>
             )}
-            <div className="text-right text-xs text-gray-500 mt-2">
-              Selected: {checked.length} / 5
-            </div>
-            {checked.length >= 5 && (
-              <div className="text-red-600 text-sm mt-2 text-center font-medium">
-                ⚠️ Maximum 5 products can be selected.
-              </div>
-            )}
+           
+          
           </div>
         )}
         <div className="flex gap-4 mt-6 justify-end pt-4 border-t">

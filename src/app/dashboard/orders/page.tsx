@@ -95,6 +95,7 @@ export default function OrdersPage() {
         showSearch={false}
         onSearchChange={setSearchTerm}
         addShow={false}
+       
       />
 
       <FilterSearch
@@ -106,6 +107,7 @@ export default function OrdersPage() {
         isShowCategory={false}
         isShowSub={false}
         isShowOTC={false}
+         showclearAll={false}
       />
 
       <OrdersTable
