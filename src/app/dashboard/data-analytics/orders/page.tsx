@@ -16,24 +16,55 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
-const fetchOrderAnalytics = async () => {
-  const res = await fetch("/api/admin/data-analytics/orders");
-  return res.json();
-};
+
+import { OrderAnalyticsPath } from "../../storeAPICall/API/BaseApi";
+import { OrderDAshboardStore } from "../../storeAPICall/useUserStore";
+import Skeleton from "@mui/material/Skeleton";
 
 export default function OrderAnalyticsPage() {
-  const [data, setData] = useState<any>(null);
+  const {
+    fetchData: fetchDetails,
+    data: detailsData,
+    loading: detailsLoading,
+  } = OrderDAshboardStore();
+
   useEffect(() => {
-    fetchOrderAnalytics().then(setData);
+    fetchDetails({ url: `${OrderAnalyticsPath}` });
   }, []);
 
-  if (!data) return <div>Loading...</div>;
+  if (detailsLoading || !detailsData) {
+    return (
+      <div className="containerStyle scrollbar-hide">
+        <Typography variant="h4" gutterBottom>
+          Sales / Orders-Wise Dashboard
+        </Typography>
+        <Grid container spacing={2}>
+          {[1,2,3,4].map((i) => (
+            <Grid item key={i} xs={12} sm={6} md={3}>
+              <Card>
+                <CardContent>
+                  <Skeleton variant="text" width={80} height={32} />
+                  <Skeleton variant="text" width={60} height={28} />
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+        <div style={{ marginTop: 32 }}>
+          <Skeleton variant="rectangular" width="100%" height={220} />
+        </div>
+        <div style={{ marginTop: 32 }}>
+          <Skeleton variant="rectangular" width="100%" height={220} />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div>
+    <div className="containerStyle scrollbar-hide"> 
       <Typography variant="h4" gutterBottom>Sales / Orders-Wise Dashboard</Typography>
       <Grid container spacing={2}>
-        {data.kpis.map((kpi: any) => (
+        {detailsData.kpis.map((kpi: any) => (
           <Grid item key={kpi.label} xs={12} sm={6} md={3}>
             <Card>
               <CardContent>
@@ -46,11 +77,11 @@ export default function OrderAnalyticsPage() {
       </Grid>
       <div style={{ marginTop: 32 }}>
         <Typography variant="h6">Order Status Overview</Typography>
-        <Pie data={data.statusGraph} />
+        <Pie data={detailsData.statusGraph} />
       </div>
       <div style={{ marginTop: 32 }}>
         <Typography variant="h6">Prescription vs OTC Orders</Typography>
-        <Bar data={data.prescriptionVsOtcGraph} />
+        <Bar data={detailsData.prescriptionVsOtcGraph} />
       </div>
     </div>
   );
