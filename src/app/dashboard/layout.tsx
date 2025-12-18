@@ -69,6 +69,7 @@ export default function DashboardLayout({
   const [admin, setAdmin] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [adminPermOpen, setAdminPermOpen] = useState(false);
+  const [dataAnalyticsOpen, setDataAnalyticsOpen] = useState(false);
   const [permissions, setPermissions] = useState<Record<
     string,
     { view: boolean; edit: boolean }
@@ -109,15 +110,20 @@ export default function DashboardLayout({
   }, [admin]);
 
   useEffect(() => {
-    const childrenPaths = [
+    // Only open Admin Permissions menu for its own children
+    const adminPermPaths = [
       "/dashboard/role",
       "/dashboard/permission",
       "/dashboard/management",
     ];
-    const isAnyActive = childrenPaths.some(
-      (p) => pathname === p || pathname.startsWith(p)
-    );
-    setAdminPermOpen(isAnyActive);
+    setAdminPermOpen(adminPermPaths.some((p) => pathname === p || pathname.startsWith(p)));
+
+    // Only open Data Analytics menu for its own children
+    const dataAnalyticsPaths = [
+      "/dashboard/data-analytics/products",
+      "/dashboard/data-analytics/orders",
+    ];
+    setDataAnalyticsOpen(dataAnalyticsPaths.some((p) => pathname === p || pathname.startsWith(p)));
   }, [pathname]);
 
   const isCurrentSuperAdmin =
@@ -160,8 +166,16 @@ export default function DashboardLayout({
       name: "Data Analytics",
       icon: "dashboard",
       children: [
-        { name: "Product Analytics", path: "/dashboard/data-analytics/products", icon: "medication" },
-        { name: "Order Analytics", path: "/dashboard/data-analytics/orders", icon: "receipt_long" },
+        {
+          name: "Product Analytics",
+          path: "/dashboard/data-analytics/products",
+          icon: "medication",
+        },
+        {
+          name: "Order Analytics",
+          path: "/dashboard/data-analytics/orders",
+          icon: "receipt_long",
+        },
       ],
     },
     {
@@ -169,8 +183,16 @@ export default function DashboardLayout({
       icon: "admin_panel_settings",
       children: [
         { name: "Role", path: "/dashboard/role", icon: "role" },
-        { name: "Permission", path: "/dashboard/permission", icon: "permission" },
-        { name: "Management", path: "/dashboard/management", icon: "management" },
+        {
+          name: "Permission",
+          path: "/dashboard/permission",
+          icon: "permission",
+        },
+        {
+          name: "Management",
+          path: "/dashboard/management",
+          icon: "management",
+        },
       ],
     },
   ];
@@ -208,10 +230,20 @@ export default function DashboardLayout({
         <div className="flex flex-col h-full">
           {/* Logo/Brand */}
           <div className="p-4 border-b border-gray-200">
-            <div className={`flex items-center ${sidebarOpen ? "justify-between" : "justify-center"}`}>
+            <div
+              className={`flex items-center ${
+                sidebarOpen ? "justify-between" : "justify-center"
+              }`}
+            >
               <div className="flex items-center gap-3">
-                {renderIcon("local_pharmacy", sidebarOpen ? 28 : 24, "text-green-600")}
-                {sidebarOpen && <img src={logo.src} alt="Pharmato Logo" className="h-8" />}
+                {renderIcon(
+                  "local_pharmacy",
+                  sidebarOpen ? 28 : 24,
+                  "text-green-600"
+                )}
+                {sidebarOpen && (
+                  <img src={logo.src} alt="Pharmato Logo" className="h-8" />
+                )}
               </div>
               {sidebarOpen && (
                 <button
@@ -236,22 +268,41 @@ export default function DashboardLayout({
           <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
             {visibleMenuItems.map((item: any) => {
               const hasChildren = item.children && item.children.length > 0;
-              const isActive = pathname === item.path || (hasChildren && adminPermOpen);
+              let isActive = pathname === item.path;
+              let isOpen = false;
+              let setOpen: (open: boolean) => void = () => {};
+              if (item.name === "Admin Permissions") {
+                isOpen = adminPermOpen;
+                setOpen = setAdminPermOpen;
+                isActive = isActive || adminPermOpen;
+              } else if (item.name === "Data Analytics") {
+                isOpen = dataAnalyticsOpen;
+                setOpen = setDataAnalyticsOpen;
+                isActive = isActive || dataAnalyticsOpen;
+              }
 
               const MenuLink = (
                 <div key={item.name}>
                   {hasChildren ? (
                     <button
-                      onClick={() => sidebarOpen && setAdminPermOpen(!adminPermOpen)}
+                      onClick={() => sidebarOpen && setOpen(!isOpen)}
                       className={`w-full flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
-                        isActive ? "bg-green-50 text-green-700" : "text-gray-700 hover:bg-green-100"
+                        isActive
+                          ? "bg-green-50 text-green-700"
+                          : "text-gray-700 hover:bg-green-100"
                       } ${!sidebarOpen ? "justify-center" : ""}`}
                     >
                       {renderIcon(item.icon, sidebarOpen ? 20 : 24)}
                       {sidebarOpen && (
                         <>
-                          <span className="ml-3 font-medium flex-1 text-left">{item.name}</span>
-                          <ChevronDown className={`w-4 h-4 transition-transform ${adminPermOpen ? "rotate-180" : ""}`} />
+                          <span className="ml-3 font-medium flex-1 text-left">
+                            {item.name}
+                          </span>
+                          <ChevronDown
+                            className={`w-4 h-4 transition-transform ${
+                              isOpen ? "rotate-180" : ""
+                            }`}
+                          />
                         </>
                       )}
                     </button>
@@ -259,23 +310,29 @@ export default function DashboardLayout({
                     <Link
                       href={item.path}
                       className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
-                        pathname === item.path ? "bg-green-600 text-white shadow-md" : "text-gray-700 hover:bg-green-100"
+                        pathname === item.path
+                          ? "bg-green-600 text-white shadow-md"
+                          : "text-gray-700 hover:bg-green-100"
                       } ${!sidebarOpen ? "justify-center" : ""}`}
                     >
                       {renderIcon(item.icon, sidebarOpen ? 20 : 24)}
-                      {sidebarOpen && <span className="ml-3 font-medium">{item.name}</span>}
+                      {sidebarOpen && (
+                        <span className="ml-3 font-medium">{item.name}</span>
+                      )}
                     </Link>
                   )}
 
                   {/* Render Children */}
-                  {sidebarOpen && hasChildren && adminPermOpen && (
+                  {sidebarOpen && hasChildren && isOpen && (
                     <div className="mt-1 ml-6 space-y-1">
                       {item.children.map((child: any) => (
                         <Link
                           key={child.path}
                           href={child.path}
                           className={`flex items-center px-4 py-2 rounded-lg text-sm transition-all ${
-                            pathname === child.path ? "text-green-600 font-bold" : "text-gray-600 hover:text-green-600"
+                            pathname === child.path
+                              ? "text-green-600 font-bold"
+                              : "text-gray-600 hover:text-green-600"
                           }`}
                         >
                           {renderIcon(child.icon, 16)}
@@ -299,14 +356,22 @@ export default function DashboardLayout({
 
           {/* User Profile & Logout */}
           <div className="p-4 border-t border-gray-200">
-            <div className={`flex items-center ${sidebarOpen ? "space-x-3" : "justify-center"} mb-3`}>
+            <div
+              className={`flex items-center ${
+                sidebarOpen ? "space-x-3" : "justify-center"
+              } mb-3`}
+            >
               <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-bold shrink-0">
                 {admin?.name?.charAt(0).toUpperCase()}
               </div>
               {sidebarOpen && (
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{admin?.name}</p>
-                  <p className="text-xs text-gray-500 truncate">{admin?.email}</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {admin?.name}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {admin?.email}
+                  </p>
                 </div>
               )}
             </div>
