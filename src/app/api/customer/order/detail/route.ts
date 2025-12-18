@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import '@/models/Medicine';   // 🚨 MUST
 import Order from '@/models/Order';
+import moment from 'moment';
 
 /**
  * @swagger
@@ -134,7 +135,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  return NextResponse.json({ status: true, data: orders[0] });
+  // Format createdAt and deliveredDate if present using moment
+  const orderData = { ...orders[0] };
+  if (orderData.createdAt) {
+    orderData.createdAt = moment(orderData.createdAt).format('MMM D, YYYY HH:mm');
+  }
+  if (orderData.deliveredDate) {
+    orderData.deliveredDate = moment(orderData.deliveredDate).format('MMM D, YYYY');
+  } else {
+    orderData.deliveredDate = "";
+  }
+  return NextResponse.json({ status: true, data: orderData });
 }
 
 

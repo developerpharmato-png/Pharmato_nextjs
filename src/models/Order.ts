@@ -26,6 +26,7 @@ export interface IOrder extends Document {
     prescription_url: string;
     prescription_status: string;
     deliveredAddress?: Record<string, any>;
+    deliveredDate?: Date;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -56,6 +57,7 @@ const OrderSchema = new Schema<IOrder>({
     prescription_url: { type: String, default: '' },
     prescription_status: { type: String, default: '' },
     deliveredAddress: { type: Object, default: {} },
+    deliveredDate: { type: Date },
 }, { timestamps: true });
 
 export default mongoose.models.Order || mongoose.model<IOrder>('Order', OrderSchema);
