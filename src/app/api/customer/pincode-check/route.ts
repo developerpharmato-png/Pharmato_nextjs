@@ -52,10 +52,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, message: 'pincode is required' }, { status: 400 });
     }
 
-    const pin = await Store.findOne({ servicePinCodes: { $in: [pincode] }, status: 1 }).lean();
+    const pin = await Store.findOne({ servicePinCodes: { $in: [pincode] }, status: 1 }).lean() as { _id?: unknown } | null;
 
-    if (pin) {
-        return NextResponse.json({ success: true, message: 'Area is serviceable.' });
+    if (pin && typeof pin === 'object' && !Array.isArray(pin) && pin._id) {
+        return NextResponse.json({ success: true, message: 'Area is serviceable.', storeId: String(pin._id) });
     } else {
         return NextResponse.json({ success: false, message: 'Area is unserviceable.' }, { status: 404 });
     }
