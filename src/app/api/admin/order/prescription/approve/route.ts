@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
 
         await order.save();
 
-        return NextResponse.json({ 
+        return NextResponse.json({  
             success: true, 
             message: 'Prescription approved successfully',
             data: order

@@ -394,7 +394,7 @@ export default function OrderDetailPage() {
                   {getPrescriptionStatusBadge(order.prescription_status)}
                 </div>
               </div>
-              {order.prescription_status === "Not Required" && (
+              {order.isPrescriptionRequired  && (
                 <div className="flex gap-2">
                   <button
                     onClick={handleApprovePrescription}
@@ -689,9 +689,9 @@ export default function OrderDetailPage() {
             color="error"
           >
             Reject
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </Button> 
+        </DialogActions> 
+      </Dialog> 
     </div>
   );
 }

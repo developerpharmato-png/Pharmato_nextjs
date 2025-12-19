@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
+import Notification from '@/models/Notification';
+import { sendEmail } from '@/utils/sendEmail';
 
 /**
  * @swagger
@@ -41,7 +43,7 @@ export async function POST(req: NextRequest) {
     await dbConnect();
     
     try {
-        const { orderId, adminId, rejectionReason } = await req.json();
+        const { orderId, adminId, rejectionReason, prescription_url } = await req.json();
         
         if (!orderId || !adminId || !rejectionReason) {
             return NextResponse.json(
@@ -50,7 +52,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const order = await Order.findById(orderId);
+        const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id name email mobile phone' });
         
         if (!order) {
             return NextResponse.json(
@@ -59,16 +61,55 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Update prescription status
+        // Update prescription status and optional prescription URL
         order.prescription_status = 'Rejected';
         order.prescription_rejected_by = adminId;
         order.prescription_rejected_at = new Date();
         order.prescription_rejection_reason = rejectionReason;
-        
+        if (prescription_url && typeof prescription_url === 'string') {
+            order.prescription_url = prescription_url;
+        }
         // Update order status to require re-upload
         order.order_status = 'Prescription Re-upload Required';
 
         await order.save();
+
+        // Create in-app notification for customer
+        try {
+            const userIdStr = order.userId && (order.userId._id ? order.userId._id.toString() : order.userId.toString());
+            if (userIdStr) {
+                await Notification.create({
+                    userId: userIdStr,
+                    role: 'customer',
+                    title: 'Prescription Rejected',
+                    message: `Your prescription for order ${order.order_id} was rejected. Reason: ${rejectionReason}`,
+                    type: 'prescription_rejected',
+                    targetScreen: 'orders',
+                    targetId: order._id.toString(),
+                    meta: { orderId: order._id.toString() }
+                });
+            }
+        } catch (notifErr) {
+            console.error('Notification create error:', notifErr);
+        }
+
+        // Send email to customer if email available
+        try {
+            const userEmail = order.userId && (order.userId.email || order.userId.email === '' ? order.userId.email : null);
+            if (userEmail) {
+                const subject = `Prescription Rejected - Order ${order.order_id}`;
+                const html = `
+                    <p>Hi ${order.userId.name || ''},</p>
+                    <p>Your prescription for order <strong>${order.order_id}</strong> has been <strong>rejected</strong> by the pharmacy team.</p>
+                    <p><strong>Reason:</strong> ${rejectionReason}</p>
+                    <p>Please re-upload your prescription by visiting your orders in the app.</p>
+                    <p>Regards,<br/>Pharmato Team</p>
+                `;
+                await sendEmail({ to: userEmail, subject, html });
+            }
+        } catch (emailErr) {
+            console.error('Email send error on reject:', emailErr);
+        }
 
         return NextResponse.json({ 
             success: true, 

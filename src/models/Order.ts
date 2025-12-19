@@ -25,6 +25,12 @@ export interface IOrder extends Document {
     isPrescriptionRequired?: boolean;
     prescription_url: string;
     prescription_status: string;
+    prescription_rejection_reason?: string;
+    prescription_rejected_by?: mongoose.Types.ObjectId;
+    prescription_rejected_at?: Date;
+    prescription_approval_notes?: string;
+    prescription_approved_by?: mongoose.Types.ObjectId;
+    prescription_approved_at?: Date;
     deliveredAddress?: Record<string, any>;
     deliveredDate?: Date;
     createdAt: Date;
@@ -56,8 +62,15 @@ const OrderSchema = new Schema<IOrder>({
     isPrescriptionRequired: { type: Boolean, default: false }, 
     prescription_url: { type: String, default: '' },
     prescription_status: { type: String, default: '' },
+    prescription_rejection_reason: { type: String, default: '' },
+    prescription_rejected_by: { type: Schema.Types.ObjectId, ref: 'Admin', default: null },
+    prescription_rejected_at: { type: Date },
+    prescription_approval_notes: { type: String, default: '' },
+    prescription_approved_by: { type: Schema.Types.ObjectId, ref: 'Admin', default: null },
+    prescription_approved_at: { type: Date },
     deliveredAddress: { type: Object, default: {} },
     deliveredDate: { type: Date },
 }, { timestamps: true });
+
 
 export default mongoose.models.Order || mongoose.model<IOrder>('Order', OrderSchema);
