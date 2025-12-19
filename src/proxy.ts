@@ -4,7 +4,11 @@ import { allowedOrigins } from '@/lib/allowedOrigins';
 
 // Proxy entry used by Next.js in place of middleware. This applies CORS headers
 // for API routes except when explicitly skipped (e.g. /api/customer/*).
-export function proxy(request: NextRequest) {
+
+
+export const PROTECTED_PATHS: string[] = ['/api/admin/*'];
+
+export async function proxy(request: NextRequest) {
     const origin = request.headers.get('origin') || '';
     const pathname = request.nextUrl.pathname;
 
@@ -31,6 +35,43 @@ export function proxy(request: NextRequest) {
     // Handle preflight OPTIONS requests
     if (request.method === 'OPTIONS') {
         return new NextResponse(null, { status: 204, headers: response.headers });
+    }
+
+    // Decide whether to protect this path
+    const shouldProtect = PROTECTED_PATHS.some((p) => {
+        if (p.endsWith('/*')) {
+            const prefix = p.slice(0, -1); // keep trailing '/'
+            return pathname.startsWith(prefix);
+        }
+        return pathname === p;
+    });
+
+    if (shouldProtect) {
+        // Call internal verify route which can safely use DB/jwt libs
+        const verifyUrl = `${request.nextUrl.origin}/api/internal/verify`;
+
+        // Forward the original request headers and body to the internal verify
+        // endpoint so it receives the request "as-is".
+        const forwardedHeaders = new Headers();
+        for (const [k, v] of request.headers) {
+            // copy all headers (including cookie)
+            if (v !== null) forwardedHeaders.set(k, v);
+        }
+
+        // Read original body (works for text/json; empty string for GET)
+        let body: BodyInit | undefined;
+        try {
+            body = await request.text();
+        } catch {
+            body = undefined;
+        }
+
+        const resp = await fetch(verifyUrl, { method: 'POST', headers: forwardedHeaders, body });
+        if (!resp.ok) {
+            const text = await resp.text();
+            // Forward verification failure as-is (don't inject headers)
+            return new NextResponse(text, { status: resp.status, headers: resp.headers });
+        }
     }
 
     return response;

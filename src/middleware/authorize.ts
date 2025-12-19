@@ -40,7 +40,7 @@ export async function authorize(request: NextRequest) {
     try {
         const payload = jwt.verify(token as string, JWT_SECRET as string) as any;
 
-        console.log('###########payload##########', payload);
+        // console.log('###########payload##########', payload);
 
         // If token role is customer, ensure user exists in DB and refreshToken matches
         if (payload && payload.role === 'customer') {
