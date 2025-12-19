@@ -473,27 +473,7 @@ export default function OrderDetailPage() {
               </div>
             )}
 
-            {order.prescription_approved_at && (
-              <div className="text-sm text-gray-600">
-                <p>
-                  Approved on:{" "}
-                  {new Date(order.prescription_approved_at).toLocaleString(
-                    "en-IN"
-                  )}
-                </p>
-              </div>
-            )}
-
-            {order.prescription_rejected_at && (
-              <div className="text-sm text-gray-600">
-                <p>
-                  Rejected on:{" "}
-                  {new Date(order.prescription_rejected_at).toLocaleString(
-                    "en-IN"
-                  )}
-                </p>
-              </div>
-            )}
+        
           </div>
         </div>
 

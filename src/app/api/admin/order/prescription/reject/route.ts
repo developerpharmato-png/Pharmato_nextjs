@@ -3,6 +3,8 @@ import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
 import Notification from '@/models/Notification';
 import { sendEmail } from '@/utils/sendEmail';
+import fs from 'fs';
+import path from 'path';
 
 /**
  * @swagger
@@ -93,18 +95,34 @@ export async function POST(req: NextRequest) {
             console.error('Notification create error:', notifErr);
         }
 
-        // Send email to customer if email available
+        // Send email to customer if email available using template
         try {
             const userEmail = order.userId && (order.userId.email || order.userId.email === '' ? order.userId.email : null);
             if (userEmail) {
+                const base = process.env.NEXT_PUBLIC_BASE_URL || '';
+                const orderUrl = `${base}/customer/orders/${order._id}`;
                 const subject = `Prescription Rejected - Order ${order.order_id}`;
-                const html = `
-                    <p>Hi ${order.userId.name || ''},</p>
-                    <p>Your prescription for order <strong>${order.order_id}</strong> has been <strong>rejected</strong> by the pharmacy team.</p>
-                    <p><strong>Reason:</strong> ${rejectionReason}</p>
-                    <p>Please re-upload your prescription by visiting your orders in the app.</p>
-                    <p>Regards,<br/>Pharmato Team</p>
-                `;
+                const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+                const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+                const contentPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/prescriptionRejected.html');
+                let html = '';
+                try {
+                    let header = fs.readFileSync(headerPath, 'utf8');
+                    // Replace baseUrl placeholder so images have absolute URL in email clients
+                    const baseForEmail = base || (process.env.NEXT_PUBLIC_BASE_URL || '');
+                    header = header.replace(/{{baseUrl}}/g, baseForEmail);
+                    const content = fs.readFileSync(contentPath, 'utf8')
+                        .replace(/{{name}}/g, (order.userId && order.userId.name) || '')
+                        .replace(/{{orderId}}/g, order.order_id || '')
+                        .replace(/{{reason}}/g, rejectionReason || '')
+                        .replace(/{{orderUrl}}/g, orderUrl);
+                    const footer = fs.readFileSync(footerPath, 'utf8');
+                    html = header + content + footer;
+                } catch (readErr) {
+                    console.error('Email template read error:', readErr);
+                    // fallback simple html
+                    html = `<p>Hi ${(order.userId && order.userId.name) || ''},</p><p>Your prescription for order <strong>${order.order_id}</strong> has been rejected. Reason: ${rejectionReason}</p>`;
+                }
                 await sendEmail({ to: userEmail, subject, html });
             }
         } catch (emailErr) {
