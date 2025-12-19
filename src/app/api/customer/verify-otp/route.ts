@@ -81,8 +81,8 @@ export async function POST(request: NextRequest) {
         user.deviceToken = undefined;
     }
     // Issue access and refresh tokens
-    const accessToken = signJwt({ userId: user._id, mobile: user.mobile }, '24h');
-    const refreshToken = signJwt({ userId: user._id, mobile: user.mobile }, undefined); // default: no expiry
+    const accessToken = signJwt({ userId: user._id, mobile: user.mobile, role: 'customer' }, '24h');
+    const refreshToken = signJwt({ userId: user._id, mobile: user.mobile, role: 'customer' }, undefined); // default: no expiry
     user.refreshToken = refreshToken;
     await user.save();
     return NextResponse.json({ success: true, message: 'Login successful', user, accessToken, refreshToken });

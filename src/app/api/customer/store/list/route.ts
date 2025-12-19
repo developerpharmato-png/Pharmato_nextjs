@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Store from '@/models/Store';
+import authorize from '@/middleware/authorize';
 
 /**
  * @swagger
@@ -52,9 +53,26 @@ import Store from '@/models/Store';
  *         description: Bad request
  *       500:
  *         description: Internal server error
+ *     parameters:
+ *       - in: header
+ *         name: accessToken
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Access token (send `accessToken` header)
+ *       - in: header
+ *         name: refreshToken
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Refresh token (optional)
  */
 
 export async function POST(req: NextRequest) {
+    // authorize customer (checks Authorization header or access_token cookie)
+    const authRes = await authorize(req);
+    if (authRes) return authRes;
+
     await dbConnect();
     const { limit = 10, offset = 0, search = "" } = await req.json();
     const query = search

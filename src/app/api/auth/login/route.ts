@@ -114,29 +114,46 @@ export async function POST(request: NextRequest) {
             adminObj.managedStores = (stores || []).map((s: any) => ({ storeId: s._id, storeName: s.name }));
         }
 
-        // Generate JWT token
-        const token = signJwt({
-            _id: adminObj._id,
+        // Issue access and refresh tokens (access: 24h, refresh: no expiry)
+        const accessToken = signJwt({
+            adminId: adminObj._id,
             email: adminObj.email,
             roleId: adminObj.roleId,
-            roleName: adminObj.roleName
-        });
+            roleName: adminObj.roleName,
+            role: 'admin'
+        }, '24h');
 
-        // Store token in admin document (single session)
-        await Admin.findByIdAndUpdate(adminObj._id, { sessionToken: token });
+        const refreshToken = signJwt({
+            adminId: adminObj._id,
+            email: adminObj.email,
+            roleId: adminObj.roleId,
+            roleName: adminObj.roleName,
+            role: 'admin'
+        }, undefined); // no expiry
 
-        // Set token in HTTP-only cookie
+        // Store refresh token in admin document (single session)
+        await Admin.findByIdAndUpdate(adminObj._id, { refreshToken: refreshToken });
+
+        // Return data and set access token cookie
         const response = NextResponse.json({
             success: true,
             data: adminObj,
             message: 'Login successful'
         });
-        response.cookies.set('access_token', token, {
+        response.cookies.set('accessToken', accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             path: '/',
             maxAge: 60 * 60 * 24 // 1 day
+        });
+        // Also set refresh token as HTTP-only cookie (longer expiry)
+        response.cookies.set('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 60 * 60 * 24 * 30 // 30 days
         });
         return response;
     } catch (error) {

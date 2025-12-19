@@ -55,6 +55,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, error: 'Invalid refresh token' }, { status: 401 });
     }
     // Issue new access token (24h)
-    const accessToken = signJwt({ userId: user._id, mobile: user.mobile }, '24h');
+    const accessToken = signJwt({ userId: user._id, mobile: user.mobile, role: 'customer' }, '24h');
     return NextResponse.json({ success: true, accessToken, user });
 }

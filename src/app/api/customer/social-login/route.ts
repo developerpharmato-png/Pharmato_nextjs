@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
                 console.error('Failed to send welcome email:', err);
             }
         }
-        
+
     } else {
         if (deviceToken) {
             user.deviceToken = deviceToken;
@@ -103,8 +103,8 @@ export async function POST(request: NextRequest) {
         await user.save();
     }
     // Issue access and refresh tokens
-    const accessToken = signJwt({ userId: user._id, mobile: user.mobile, provider }, '24h');
-    const refreshToken = signJwt({ userId: user._id, mobile: user.mobile, provider }, undefined); // default: no expiry
+    const accessToken = signJwt({ userId: user._id, mobile: user.mobile, provider, role: 'customer' }, '24h');
+    const refreshToken = signJwt({ userId: user._id, mobile: user.mobile, provider, role: 'customer' }, undefined); // default: no expiry
     user.refreshToken = refreshToken;
     await user.save();
     return NextResponse.json({ success: true, message: 'Social login successful', user, accessToken, refreshToken });
