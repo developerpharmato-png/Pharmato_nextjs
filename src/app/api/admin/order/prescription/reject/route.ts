@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
+import Notification from '@/models/Notification';
+import { sendEmail } from '@/utils/sendEmail';
+import fs from 'fs';
+import path from 'path';
 
 /**
  * @swagger
@@ -41,7 +45,7 @@ export async function POST(req: NextRequest) {
     await dbConnect();
     
     try {
-        const { orderId, adminId, rejectionReason } = await req.json();
+        const { orderId, adminId, rejectionReason, prescription_url } = await req.json();
         
         if (!orderId || !adminId || !rejectionReason) {
             return NextResponse.json(
@@ -50,7 +54,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const order = await Order.findById(orderId);
+        const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id name email mobile phone' });
         
         if (!order) {
             return NextResponse.json(
@@ -59,16 +63,71 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Update prescription status
+        // Update prescription status and optional prescription URL
         order.prescription_status = 'Rejected';
         order.prescription_rejected_by = adminId;
         order.prescription_rejected_at = new Date();
         order.prescription_rejection_reason = rejectionReason;
-        
+        if (prescription_url && typeof prescription_url === 'string') {
+            order.prescription_url = prescription_url;
+        }
         // Update order status to require re-upload
         order.order_status = 'Prescription Re-upload Required';
 
         await order.save();
+
+        // Create in-app notification for customer
+        try {
+            const userIdStr = order.userId && (order.userId._id ? order.userId._id.toString() : order.userId.toString());
+            if (userIdStr) {
+                await Notification.create({
+                    userId: userIdStr,
+                    role: 'customer',
+                    title: 'Prescription Rejected',
+                    message: `Your prescription for order ${order.order_id} was rejected. Reason: ${rejectionReason}`,
+                    type: 'prescription_rejected',
+                    targetScreen: 'orders',
+                    targetId: order._id.toString(),
+                    meta: { orderId: order._id.toString() }
+                });
+            }
+        } catch (notifErr) {
+            console.error('Notification create error:', notifErr);
+        }
+
+        // Send email to customer if email available using template
+        try {
+            const userEmail = order.userId && (order.userId.email || order.userId.email === '' ? order.userId.email : null);
+            if (userEmail) {
+                const base = process.env.NEXT_PUBLIC_BASE_URL || '';
+                const orderUrl = `${base}/customer/orders/${order._id}`;
+                const subject = `Prescription Rejected - Order ${order.order_id}`;
+                const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+                const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+                const contentPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/prescriptionRejected.html');
+                let html = '';
+                try {
+                    let header = fs.readFileSync(headerPath, 'utf8');
+                    // Replace baseUrl placeholder so images have absolute URL in email clients
+                    const baseForEmail = base || (process.env.NEXT_PUBLIC_BASE_URL || '');
+                    header = header.replace(/{{baseUrl}}/g, baseForEmail);
+                    const content = fs.readFileSync(contentPath, 'utf8')
+                        .replace(/{{name}}/g, (order.userId && order.userId.name) || '')
+                        .replace(/{{orderId}}/g, order.order_id || '')
+                        .replace(/{{reason}}/g, rejectionReason || '')
+                        .replace(/{{orderUrl}}/g, orderUrl);
+                    const footer = fs.readFileSync(footerPath, 'utf8');
+                    html = header + content + footer;
+                } catch (readErr) {
+                    console.error('Email template read error:', readErr);
+                    // fallback simple html
+                    html = `<p>Hi ${(order.userId && order.userId.name) || ''},</p><p>Your prescription for order <strong>${order.order_id}</strong> has been rejected. Reason: ${rejectionReason}</p>`;
+                }
+                await sendEmail({ to: userEmail, subject, html });
+            }
+        } catch (emailErr) {
+            console.error('Email send error on reject:', emailErr);
+        }
 
         return NextResponse.json({ 
             success: true, 

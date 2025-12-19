@@ -394,7 +394,7 @@ export default function OrderDetailPage() {
                   {getPrescriptionStatusBadge(order.prescription_status)}
                 </div>
               </div>
-              {order.prescription_status === "Not Required" && (
+              {order.isPrescriptionRequired  && (
                 <div className="flex gap-2">
                   <button
                     onClick={handleApprovePrescription}
@@ -473,27 +473,7 @@ export default function OrderDetailPage() {
               </div>
             )}
 
-            {order.prescription_approved_at && (
-              <div className="text-sm text-gray-600">
-                <p>
-                  Approved on:{" "}
-                  {new Date(order.prescription_approved_at).toLocaleString(
-                    "en-IN"
-                  )}
-                </p>
-              </div>
-            )}
-
-            {order.prescription_rejected_at && (
-              <div className="text-sm text-gray-600">
-                <p>
-                  Rejected on:{" "}
-                  {new Date(order.prescription_rejected_at).toLocaleString(
-                    "en-IN"
-                  )}
-                </p>
-              </div>
-            )}
+        
           </div>
         </div>
 
@@ -689,9 +669,9 @@ export default function OrderDetailPage() {
             color="error"
           >
             Reject
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </Button> 
+        </DialogActions> 
+      </Dialog> 
     </div>
   );
 }

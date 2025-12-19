@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
+// Ensure referenced models are registered for populate
+import '@/models/User';
+import '@/models/Medicine';
 
 /**
  * @swagger
