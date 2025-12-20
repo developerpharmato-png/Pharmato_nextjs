@@ -106,7 +106,7 @@ export default function EditCategoryPage() {
   useEffect(() => {
     async function fetchCategory() {
       try {
-        const res = await fetch(`/api/categories/${id}`);
+        const res = await fetch(`/api/admin/categories/${id}`);
         const data = await res.json();
         if (data.success && data.data) {
           setInitialCategoryData({
@@ -151,7 +151,7 @@ export default function EditCategoryPage() {
           return;
         }
 
-        const res = await fetch(`/api/categories/${id}`, {
+        const res = await fetch(`/api/admin/categories/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(values),

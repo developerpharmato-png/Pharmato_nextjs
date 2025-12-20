@@ -6,8 +6,8 @@ export const OrderDetailPath = `/api/admin/order/detail`;
 export const PrescriptionApprovePath = `/api/admin/order/prescription/approve`;
 export const PrescriptionRejectPath = `/api/admin/order/prescription/reject`;
 
-export const CategoriesPath = `/api/categories`;
-export const SubcategoriesPath = `/api/subcategories`;
+export const CategoriesPath = `/api/admin/categories`;
+export const SubcategoriesPath = `/api/admin/subcategories`;
 
 export const MedicinesExportPath = `/api/medicines/export`;
 
@@ -16,3 +16,10 @@ export const StorePath = `/api/admin/store`;
 
 // Analytics API paths
 export const ProductAnalyticsPath = `/api/admin/data-analytics/products`;
+
+// Medicines
+
+export const MedicinesListPath = `/api/admin/medicines`;
+export const MedicinesStatusPath = `/api/admin/medicines/status`;
+export const MedicinesGetBYIDPath = `/api/admin/medicines/`;
+export const updaterelatedPath = `/api/medicines/update-related`;

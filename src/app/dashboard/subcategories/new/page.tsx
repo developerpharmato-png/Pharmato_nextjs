@@ -26,7 +26,7 @@ export default function NewSubCategoryPage() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch("/api/categories");
+      const res = await fetch("/api/admin/categories");
       const data = await res.json();
       setCategories(data.data || []);
     } catch (error) {
@@ -56,7 +56,7 @@ export default function NewSubCategoryPage() {
     onSubmit: async (values, { setSubmitting, setErrors }) => {
       setLoading(true);
       try {
-        const res = await fetch("/api/subcategories", {
+        const res = await fetch("/api/admin/subcategories", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(values),

@@ -42,7 +42,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
     if (usedId) {
       setLoading(true);
       setIsEdit(true);
-      fetch(`/api/medicines/${usedId}`)
+      fetch(`/api/admin/medicines/${usedId}`)
         .then(async (res) => {
           const data = await res.json();
           if (data.success && data.data) {
@@ -121,7 +121,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
         let apiUrl = "/api/medicines";
         let method = "POST";
         if (isEdit && usedId) {
-          apiUrl = `/api/medicines/${usedId}`;
+          apiUrl = `/api/admin/medicines/${usedId}`;
           method = "PUT";
         }
         const res = await fetch(apiUrl, {
@@ -338,7 +338,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch("/api/categories");
+      const res = await fetch("/api/admin/categories");
       const data = await res.json();
       setCategories(data.data || []);
     } catch (error) {
@@ -348,7 +348,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
 
   const fetchSubcategories = async () => {
     try {
-      const res = await fetch("/api/subcategories");
+      const res = await fetch("/api/admin/subcategories");
       const data = await res.json();
       setSubcategories(data.data || []);
     } catch (error) {

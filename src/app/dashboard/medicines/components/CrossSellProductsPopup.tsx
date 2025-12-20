@@ -24,7 +24,7 @@ export default function CrossSellProductsPopup({
       : "";
 
   React.useEffect(() => {
-    fetch(`/api/medicines/by-category/${categoryId}`)
+    fetch(`/api/admin/medicines/by-category/${categoryId}`)
       .then((res) => res.json())
       .then((data) => {
         // Exclude current medicine from list

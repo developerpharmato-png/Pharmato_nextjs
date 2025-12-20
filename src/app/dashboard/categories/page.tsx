@@ -110,7 +110,7 @@ export default function CategoriesPage() {
 
   const handleToggleStatus = async (id: string, isActive: boolean) => {
     try {
-      const res = await fetch(`/api/categories/${id}/toggle-status`, {
+      const res = await fetch(`/api/admin/categories/${id}/toggle-status`, {
         method: "PATCH",
       });
       const data = await res.json();

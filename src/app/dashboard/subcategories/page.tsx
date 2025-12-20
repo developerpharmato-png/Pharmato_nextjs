@@ -74,7 +74,7 @@ function SubCategoriesTable() {
         body.isOTC = filterOTC === "true";
       }
 
-      const subRes = await fetch("/api/subcategories", {
+      const subRes = await fetch("/api/admin/subcategories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -105,7 +105,7 @@ function SubCategoriesTable() {
   // Direct status toggle for SweetAlert2
   const confirmToggleStatusDirect = async (id: string, isActive: boolean) => {
     try {
-      const res = await fetch(`/api/subcategories/${id}/toggle-status`, {
+      const res = await fetch(`/api/admin/subcategories/${id}/toggle-status`, {
         method: "PATCH",
       });
       const data = await res.json();

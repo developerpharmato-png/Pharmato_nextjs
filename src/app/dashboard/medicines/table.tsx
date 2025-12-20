@@ -8,6 +8,7 @@ import Avatar from "@mui/material/Avatar";
 import { useRouter } from "next/navigation";
 import { EditIcon } from "lucide-react";
 import { GetServerSideProps } from "next";
+import { MedicinesListPath, MedicinesStatusPath } from "../storeAPICall/API/BaseApi";
 
 type Props = {
   searchValue?: string;
@@ -25,7 +26,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   if (query.categoryId) params.set("categoryId", String(query.categoryId));
   if (query.subCategoryId) params.set("subCategoryId", String(query.subCategoryId));
 
-  const response = await fetch(`${process.env.API_BASE_URL}/api/medicines?${params.toString()}`);
+  const response = await fetch(`${process.env.API_BASE_URL}${MedicinesListPath}?${params.toString()}`);
   const data = await response.json();
 
   return {
@@ -66,7 +67,7 @@ console.log(searchValue,"searchValue");
 
     console.log("Fetching with params:", params.toString());
 
-    fetch(`/api/medicines?${params.toString()}`)
+    fetch(`${MedicinesListPath}?${params.toString()}`)
       .then((res) => res.json())
       .then((res) => {
         setData(res.data || []);
@@ -86,7 +87,7 @@ console.log(searchValue,"searchValue");
     if (searchValue) params.set('search', String(searchValue));
     if (categoryId) params.set('categoryId', String(categoryId));
     if (subCategoryId) params.set('subCategoryId', String(subCategoryId));
-    fetch(`/api/medicines?${params.toString()}`)
+    fetch(`${MedicinesListPath}?${params.toString()}`)
       .then((res) => res.json())
       .then((res) => {
         setData(res.data || []);
@@ -107,7 +108,7 @@ console.log(searchValue,"searchValue");
       onConfirm: async () => {
         try {
           // Use dedicated status endpoint to avoid sending full row payload
-          await axios.patch(`/api/medicines/status`, {
+          await axios.patch(`${MedicinesStatusPath}`, {
             id: row._id,
             isActive: !row.isActive,
           });
@@ -136,7 +137,7 @@ console.log(searchValue,"searchValue");
     if (categoryId) params.set("categoryId", String(categoryId));
     if (subCategoryId) params.set("subCategoryId", String(subCategoryId));
 
-    fetch(`/api/medicines?${params.toString()}`)
+    fetch(`${MedicinesListPath}?${params.toString()}`)
       .then((res) => res.json())
       .then((res) => {
         setData(res.data || []);

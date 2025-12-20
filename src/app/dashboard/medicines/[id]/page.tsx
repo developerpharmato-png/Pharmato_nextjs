@@ -11,6 +11,7 @@ import CrossSellProductsPopup from "../components/CrossSellProductsPopup";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import RelatedProductsPopup from "../components/RelatedProductsPopup";
+import { MedicinesGetBYIDPath } from "../../storeAPICall/API/BaseApi";
 
 export default function MedicineDetailPage() {
   const { id } = useParams();
@@ -35,7 +36,7 @@ export default function MedicineDetailPage() {
   useEffect(() => {
     async function fetchMedicine() {
       try {
-        const res = await fetch(`/api/medicines/${id}`);
+        const res = await fetch(`${MedicinesGetBYIDPath}${id}`);
         const data = await res.json();
         setMedicine(data.data);
       } catch (err) {
@@ -49,7 +50,7 @@ export default function MedicineDetailPage() {
 
   const handleUpdateRelatedProducts = async (ids: string[]) => {
     try {
-      await fetch("/api/medicines/update-related", {
+      await fetch("/api/admin/medicines/update-related", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ medicineId: id, relatedProductIds: ids }),
@@ -59,7 +60,7 @@ export default function MedicineDetailPage() {
     // Refetch medicine detail to update UI
     setLoading(true);
     try {
-      const res = await fetch(`/api/medicines/${id}`);
+      const res = await fetch(`/api/admin/medicines/${id}`);
       const data = await res.json();
       setMedicine(data.data);
     } catch (err) {
@@ -71,7 +72,7 @@ export default function MedicineDetailPage() {
 
   const handleUpdateCrossSellProducts = async (ids: string[]) => {
     try {
-      await fetch("/api/medicines/update-cross-sell", {
+      await fetch("/api/admin/medicines/update-cross-sell", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ medicineId: id, crossSellProductIds: ids }),
@@ -81,7 +82,7 @@ export default function MedicineDetailPage() {
     // Refetch medicine detail to update UI
     setLoading(true);
     try {
-      const res = await fetch(`/api/medicines/${id}`);
+      const res = await fetch(`/api/admin/medicines/${id}`);
       const data = await res.json();
       setMedicine(data.data);
     } catch (err) {
@@ -112,7 +113,7 @@ export default function MedicineDetailPage() {
         rightNode={
           <div className="flex items-center gap-3">
             <a
-              href={`/dashboard/medicines/${id}/edit`}
+              href={`/dashboard/medicines/AddEdit/${id}`}
               className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-sm font-medium shadow-md transition duration-150 ease-in-out"
             >
               <span className="material-icons text-base">edit</span>
@@ -153,47 +154,80 @@ export default function MedicineDetailPage() {
                     <span>{medicine.category || "Other"}</span>
                   </span>
                   <span className="inline-flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-semibold">
-                    <span className="material-icons text-sm">local_pharmacy</span>
+                    <span className="material-icons text-sm">
+                      local_pharmacy
+                    </span>
                     <span>OTC: {medicine.isOTC ? "Yes" : "No"}</span>
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-gray-50 p-3 rounded-md text-center">
-                    <span className="material-icons text-green-600">attach_money</span>
+                    <span className="material-icons text-green-600">
+                      attach_money
+                    </span>
                     <div className="text-xs text-gray-500">Price</div>
-                    <div className="text-lg font-bold text-green-700">₹{medicine.price ?? 0}</div>
+                    <div className="text-lg font-bold text-green-700">
+                      ₹{medicine.price ?? 0}
+                    </div>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-md text-center">
-                    <span className="material-icons text-gray-600">inventory_2</span>
+                    <span className="material-icons text-gray-600">
+                      inventory_2
+                    </span>
                     <div className="text-xs text-gray-500">Stock</div>
-                    <div className="text-sm font-semibold">{medicine.stock ?? 0} units</div>
+                    <div className="text-sm font-semibold">
+                      {medicine.stock ?? 0} units
+                    </div>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-md text-center">
-                    <span className="material-icons text-orange-500">event</span>
+                    <span className="material-icons text-orange-500">
+                      event
+                    </span>
                     <div className="text-xs text-gray-500">Expiry</div>
-                    <div className="text-sm">{medicine.expiryDate ? new Date(medicine.expiryDate).toLocaleDateString() : "-"}</div>
+                    <div className="text-sm">
+                      {medicine.expiryDate
+                        ? new Date(medicine.expiryDate).toLocaleDateString()
+                        : "-"}
+                    </div>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-md text-center">
-                    <span className="material-icons text-gray-600">local_offer</span>
+                    <span className="material-icons text-gray-600">
+                      local_offer
+                    </span>
                     <div className="text-xs text-gray-500">Batch</div>
                     <div className="text-sm">{medicine.batchNumber || "-"}</div>
                   </div>
                 </div>
                 <section className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
                   <h2 className="text-lg font-semibold text-gray-800 inline-flex items-center gap-2">
-                    <span className="material-icons text-base text-green-600">info</span>
+                    <span className="material-icons text-base text-green-600">
+                      info
+                    </span>
                     Overview
                   </h2>
-                  <div className="mt-3 text-gray-700">{medicine.description || medicine.margData?.remarks || "No overview available."}</div>
+                  <div className="mt-3 text-gray-700">
+                    {medicine.description ||
+                      medicine.margData?.remarks ||
+                      "No overview available."}
+                  </div>
                   <div className="mt-4">
-                    <div className="text-sm font-semibold text-gray-800 mb-2">Highlights</div>
+                    <div className="text-sm font-semibold text-gray-800 mb-2">
+                      Highlights
+                    </div>
                     <div className="flex flex-wrap gap-2">
-                      {(medicine.highlights && medicine.highlights.length > 0) ? (
+                      {medicine.highlights && medicine.highlights.length > 0 ? (
                         medicine.highlights.map((h: string, i: number) => (
-                          <div key={i} className="px-3 py-1 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded text-sm font-medium">{h}</div>
+                          <div
+                            key={i}
+                            className="px-3 py-1 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded text-sm font-medium"
+                          >
+                            {h}
+                          </div>
                         ))
                       ) : (
-                        <div className="px-3 py-1 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded text-sm font-medium">No highlights</div>
+                        <div className="px-3 py-1 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded text-sm font-medium">
+                          No highlights
+                        </div>
                       )}
                     </div>
                   </div>
@@ -201,76 +235,104 @@ export default function MedicineDetailPage() {
                 <section className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
                     <h3 className="text-base font-medium text-gray-700 inline-flex items-center gap-2">
-                      <span className="material-icons text-lg text-green-600">sell</span>
+                      <span className="material-icons text-lg text-green-600">
+                        sell
+                      </span>
                       Pricing
                     </h3>
                     <div className="mt-3 grid grid-cols-2 gap-4">
                       <div>
                         <div className="text-sm text-gray-500">MRP</div>
-                        <div className="text-lg font-semibold text-gray-800">₹{medicine.mrp ?? 0}</div>
+                        <div className="text-lg font-semibold text-gray-800">
+                          ₹{medicine.mrp ?? 0}
+                        </div>
                       </div>
                       <div>
-                        <div className="text-sm text-gray-500">Purchase Price</div>
-                        <div className="text-lg font-semibold text-red-600">₹{medicine.purchasePrice ?? 0}</div>
+                        <div className="text-sm text-gray-500">
+                          Purchase Price
+                        </div>
+                        <div className="text-lg font-semibold text-red-600">
+                          ₹{medicine.purchasePrice ?? 0}
+                        </div>
                       </div>
                     </div>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
                     <h3 className="text-base font-medium text-gray-700 inline-flex items-center gap-2">
-                      <span className="material-icons text-lg text-green-600">attach_money</span>
+                      <span className="material-icons text-lg text-green-600">
+                        attach_money
+                      </span>
                       Selling
                     </h3>
                     <div className="mt-3 grid grid-cols-2 gap-4">
                       <div>
                         <div className="text-sm text-gray-500">Price</div>
-                        <div className="text-2xl font-bold text-green-700">₹{medicine.price ?? 0}</div>
+                        <div className="text-2xl font-bold text-green-700">
+                          ₹{medicine.price ?? 0}
+                        </div>
                       </div>
                       <div>
                         <div className="text-sm text-gray-500">Discount</div>
-                        <div className="text-lg font-semibold text-blue-600">{medicine.discount ?? 0}%</div>
+                        <div className="text-lg font-semibold text-blue-600">
+                          {medicine.discount ?? 0}%
+                        </div>
                       </div>
                     </div>
                   </div>
                 </section>
                 <section className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
                   <h3 className="text-base font-medium text-gray-700 inline-flex items-center gap-2">
-                    <span className="material-icons text-lg text-green-600">inventory_2</span>
+                    <span className="material-icons text-lg text-green-600">
+                      inventory_2
+                    </span>
                     Inventory
                   </h3>
                   <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="bg-gray-50 p-3 rounded text-center border border-gray-200">
                       <div className="text-xs text-gray-500">Stock</div>
-                      <div className="text-lg font-semibold">{medicine.stock ?? 0} units</div>
+                      <div className="text-lg font-semibold">
+                        {medicine.stock ?? 0} units
+                      </div>
                     </div>
                     <div className="bg-gray-50 p-3 rounded text-center border border-gray-200">
                       <div className="text-xs text-gray-500">Expiry</div>
-                      <div className="text-sm">{medicine.expiryDate ? new Date(medicine.expiryDate).toLocaleDateString() : "-"}</div>
+                      <div className="text-sm">
+                        {medicine.expiryDate
+                          ? new Date(medicine.expiryDate).toLocaleDateString()
+                          : "-"}
+                      </div>
                     </div>
                     <div className="bg-gray-50 p-3 rounded text-center border border-gray-200">
                       <div className="text-xs text-gray-500">Batch</div>
-                      <div className="text-sm">{medicine.batchNumber || "-"}</div>
+                      <div className="text-sm">
+                        {medicine.batchNumber || "-"}
+                      </div>
                     </div>
                   </div>
                 </section>
                 <section className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
                   <h3 className="text-base font-medium text-gray-700 inline-flex items-center gap-2">
-                    <span className="material-icons text-lg text-green-600">science</span>
+                    <span className="material-icons text-lg text-green-600">
+                      science
+                    </span>
                     Composition
                   </h3>
                   <div className="mt-3 text-gray-700">
-                    {(medicine.composition && medicine.composition.length > 0)
-                      ? (
-                        <ul className="list-disc pl-5 space-y-1">
-                          {medicine.composition.map((c: any, i: number) => (
-                            (c.name || c.value) ? (
-                              <li key={c._id || i}>
-                                {c.name}{c.name && c.value ? ': ' : ''}{c.value}
-                              </li>
-                            ) : null
-                          ))}
-                        </ul>
-                      )
-                      : (medicine.margData?.Salt || "No composition info")}
+                    {medicine.composition && medicine.composition.length > 0 ? (
+                      <ul className="list-disc pl-5 space-y-1">
+                        {medicine.composition.map((c: any, i: number) =>
+                          c.name || c.value ? (
+                            <li key={c._id || i}>
+                              {c.name}
+                              {c.name && c.value ? ": " : ""}
+                              {c.value}
+                            </li>
+                          ) : null
+                        )}
+                      </ul>
+                    ) : (
+                      medicine.margData?.Salt || "No composition info"
+                    )}
                   </div>
                 </section>
               </div>

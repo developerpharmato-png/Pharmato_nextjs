@@ -49,7 +49,7 @@ export default function EditSubCategoryPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/subcategories/${id}`, {
+        const res = await fetch(`/api/admin/subcategories/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(values),
@@ -98,7 +98,7 @@ export default function EditSubCategoryPage() {
   useEffect(() => {
     async function fetchSubCategory() {
       try {
-        const res = await fetch(`/api/subcategories/${id}`);
+        const res = await fetch(`/api/admin/subcategories/${id}`);
         const data = await res.json();
         if (data.success && data.data) {
           formik.setValues({
