@@ -394,7 +394,7 @@ export default function OrderDetailPage() {
                   {getPrescriptionStatusBadge(order.prescription_status)}
                 </div>
               </div>
-              {order.isPrescriptionRequired  && (
+              {!order.isPrescriptionRequired  && (
                 <div className="flex gap-2">
                   <button
                     onClick={handleApprovePrescription}

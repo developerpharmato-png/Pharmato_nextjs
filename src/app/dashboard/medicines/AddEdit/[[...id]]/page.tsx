@@ -710,6 +710,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                     name="unitInput"
                     label="Unit"
                     value={formik.values.unitInput || ""}
+                    disabled={formik.values.category === "Other"}
                     onChange={(e) => {
                       let val = e.target.value;
                       let suffix = "";
@@ -1147,10 +1148,9 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                 <p className="text-sm font-medium text-red-800">{error}</p>
               </div>
             )}
-            <div className="mt-8 flex justify-center w-full">
+            <div className="mt-8 flex ButtonOuter w-full">
               {" "}
-              <div className="flex justify-center w-full max-w-sm">
-                {" "}
+              <div className="buttoninner  w-full max-w-sm">
                 <CustomButton type="submit" disabled={loading} width="100%">
                   <MdSave size={22} />{" "}
                   {loading

@@ -225,7 +225,15 @@ export default function EditSubCategoryPage() {
     }
   };
 
-  if (loading) return <FormSkeleton />;
+  if (loading)
+    return (
+      <>
+        <div className="containerStyle scrollbar-hide">
+          <FormSkeleton />;
+        </div>
+      </>
+    );
+
   if (error) return <div className="p-8 text-red-600">{error}</div>;
 
   return (
@@ -327,14 +335,17 @@ export default function EditSubCategoryPage() {
             label="Active Subcategory"
           /> */}
 
-          <div className="w-[200px] pt-4">
-            <CustomButton
-              type="submit"
-              disabled={loading || uploading || formik.isSubmitting}
-              width="100%"
-            >
-              {loading || formik.isSubmitting ? "Saving..." : "Save Changes"}
-            </CustomButton>
+          <div className="mt-8 flex ButtonOuter w-full">
+            {" "}
+            <div className="buttoninner  w-full max-w-sm">
+              <CustomButton
+                type="submit"
+                disabled={loading || uploading || formik.isSubmitting}
+                width="100%"
+              >
+                {loading || formik.isSubmitting ? "Saving..." : "Save Changes"}
+              </CustomButton>
+            </div>
           </div>
         </form>
       </div>

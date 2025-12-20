@@ -2,9 +2,9 @@
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import HeaderWithAction from "../../components/HeaderWithAction";
-import { CustomButton } from "../../components/miniComponents";
+import { CustomButton, CustomTooltip } from "../../components/miniComponents";
 import MedicineDetailSkeleton from "../skeleton/MedicineDetailSkeleton";
 import ProductImageSlider from "../../components/ProductImageSlider";
 import CrossSellProductsPopup from "../components/CrossSellProductsPopup";
@@ -15,6 +15,7 @@ import { MedicinesGetBYIDPath } from "../../storeAPICall/API/BaseApi";
 
 export default function MedicineDetailPage() {
   const { id } = useParams();
+  const router = useRouter();
   const [medicine, setMedicine] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [tabIndex, setTabIndex] = useState(0);
@@ -102,6 +103,10 @@ export default function MedicineDetailPage() {
     return <div className="p-6 text-red-600">Medicine not found.</div>;
 
   const images: string[] = medicine.images || [];
+
+  const mediumDetails = (id: string) => {
+    router.push(`/dashboard/medicines/${id}`);
+  };
 
   return (
     <div className="containerStyle scrollbar-hide">
@@ -206,9 +211,7 @@ export default function MedicineDetailPage() {
                     Overview
                   </h2>
                   <div className="mt-3 text-gray-700">
-                    {medicine.description ||
-                      medicine.margData?.remarks ||
-                      "No overview available."}
+                    {medicine.description }
                   </div>
                   <div className="mt-4">
                     <div className="text-sm font-semibold text-gray-800 mb-2">
@@ -339,10 +342,11 @@ export default function MedicineDetailPage() {
             )}
             {tabIndex === 2 && (
               <div>
-                <div className="flex justify-between items-center mb-4"></div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <div className="flex items-center mb-4"></div>
+                <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-2 gap-4">
                   {medicine.relatedProducts?.map((prod: any) => (
                     <div
+                      onClick={() => mediumDetails(prod._id)}
                       key={prod._id}
                       className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition"
                     >
@@ -360,9 +364,12 @@ export default function MedicineDetailPage() {
                         )}
                       </div>
                       <div className="p-3">
-                        <div className="text-sm font-semibold truncate text-gray-800">
-                          {prod.name}
+                        <div className="truncate">
+                          <CustomTooltip title={prod.name || "-"}>
+                            <span className="">{prod.name || "-"}</span>
+                          </CustomTooltip>
                         </div>
+
                         <div className="text-xs text-gray-500">
                           {prod.manufacturer}
                         </div>
@@ -405,10 +412,11 @@ export default function MedicineDetailPage() {
             )}
             {tabIndex === 3 && (
               <div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-2 gap-4">
                   {medicine.crossSellProducts?.map((prod: any) => (
                     <div
                       key={prod._id}
+                      onClick={() => mediumDetails(prod._id)}
                       className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition"
                     >
                       <div className="h-36 w-full bg-gray-100 flex items-center justify-center">
@@ -425,8 +433,10 @@ export default function MedicineDetailPage() {
                         )}
                       </div>
                       <div className="p-3">
-                        <div className="text-sm font-semibold truncate text-gray-800">
-                          {prod.name}
+                        <div className="truncate">
+                          <CustomTooltip title={prod.name || "-"}>
+                            <span className="">{prod.name || "-"}</span>
+                          </CustomTooltip>
                         </div>
                         <div className="text-xs text-gray-500">
                           {prod.manufacturer}

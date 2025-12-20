@@ -35,6 +35,7 @@ import {
   StandardFormCheckbox,
   StyledCheckboxWithDescription,
 } from "@/app/dashboard/components/StyledCheckboxWithDescription";
+import HeaderWithAction from "@/app/dashboard/components/HeaderWithAction";
 
 // --- Utility Functions (You'll need these if they are not shared) ---
 // Define the initial structure for Formik
@@ -309,46 +310,19 @@ export default function EditCategoryPage() {
   return (
     <div className="containerStyle scrollbar-hide">
       {toast && <Toast message={toast.message} type={toast.type} />}
-      <Box sx={{ mb: 4, position: "relative" }}>
-        <IconButton
-          onClick={() => router.back()}
-          sx={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            bgcolor: "white",
-            border: `1px solid ${theme.palette.grey[300]}`,
-            boxShadow: 1,
-            "&:hover": { bgcolor: theme.palette.grey[50] },
-            "&:focus": {
-              boxShadow: `0 0 0 4px ${theme.palette.success.light}`,
-              outline: "none",
-            },
-          }}
-          aria-label="Go back"
-        >
-          <ArrowBackIcon />
-        </IconButton>
-        <Box sx={{ pl: 7 }}>
-          <Typography
-            variant="h4"
-            component="h1"
-            fontWeight="bold"
-            gutterBottom
-            sx={{ color: theme.palette.grey[800] }}
-          >
-            Edit Category
-          </Typography>
-          <Typography
-            variant="body1"
-            color="text.secondary"
-            sx={{ mb: 2 }}
-          ></Typography>
-        </Box>
-      </Box>
 
-      <Card raised sx={{ borderRadius: 2 }}>
-        <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
+      <HeaderWithAction
+        title=" Edit Category
+"
+        subtitle="Update Category details, images, and status.
+
+
+"
+        showBack={true}
+        showSearch={false}
+      />
+
+     
           <Box
             component="form"
             onSubmit={formik.handleSubmit}
@@ -449,8 +423,7 @@ export default function EditCategoryPage() {
               </Box>
             </Box>
           </Box>
-        </CardContent>
-      </Card>
+        
     </div>
   );
 }

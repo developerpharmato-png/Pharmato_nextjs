@@ -197,8 +197,7 @@ export default function NewCategoryPage() {
         addShow={false}
       />
       {/* Form Card */}
-      <Card raised sx={{ borderRadius: 2 }}>
-        <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
+    
           <Box
             component="form"
             onSubmit={formik.handleSubmit}
@@ -291,8 +290,7 @@ export default function NewCategoryPage() {
               </div>
             </Box>
           </Box>
-        </CardContent>
-      </Card>
+                    
     </div>
   );
 }

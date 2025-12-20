@@ -235,3 +235,17 @@ display: inline-block;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+
+.ButtonOuter{
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+}
+.buttoninner{
+  /* flex justify-center w-full max-w-sm */
+  display: flex;
+  justify-content: center;
+   /* width: 100%; */
+
+  }

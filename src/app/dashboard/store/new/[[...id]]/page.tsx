@@ -26,6 +26,7 @@ import AddressFields from "../../AddressFields";
 import StoreMapComponent from "../../StoreMapComponent";
 import { StoreInitialValues } from "@/utils/initCategory";
 import { StoreValidationSchema } from "@/utils/validateCategory";
+import { MdSave } from "react-icons/md";
 
 export default function AddStorePage() {
   const router = useRouter();
@@ -213,28 +214,23 @@ export default function AddStorePage() {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div></div>
-          <div>
-            <PincodeSelect
-              pincodes={pincodes}
-              value={formik.values.servicePinCodes}
-              error={
-                formik.touched.servicePinCodes
-                  ? (formik.errors.servicePinCodes as string)
-                  : ""
-              }
-              onChange={(selected) =>
-                formik.setFieldValue("servicePinCodes", selected)
-              }
-            />
-            {formik.touched.servicePinCodes &&
-              formik.errors.servicePinCodes && (
-                <ErrorMessageCom
-                  error={formik.errors.servicePinCodes as string}
-                />
-              )}
-          </div>
+
+        <div>
+          <PincodeSelect
+            pincodes={pincodes}
+            value={formik.values.servicePinCodes}
+            error={
+              formik.touched.servicePinCodes
+                ? (formik.errors.servicePinCodes as string)
+                : ""
+            }
+            onChange={(selected) =>
+              formik.setFieldValue("servicePinCodes", selected)
+            }
+          />
+          {formik.touched.servicePinCodes && formik.errors.servicePinCodes && (
+            <ErrorMessageCom error={formik.errors.servicePinCodes as string} />
+          )}
         </div>
 
         <AddressFields
@@ -267,9 +263,9 @@ export default function AddStorePage() {
             <ErrorMessageCom error={formik.errors.address.gps as string} />
           )}
         </div>
-
-        <div className="flex flex-col md:flex-row gap-8 items-center">
-          <div className="w-full md:w-1/2 flex justify-end items-end mt-4 md:mt-0">
+        <div className="mt-8 flex ButtonOuter w-full">
+          {" "}
+          <div className="buttoninner  w-full max-w-sm">
             <CustomButton
               type="submit"
               disabled={
@@ -278,9 +274,10 @@ export default function AddStorePage() {
                 storeDetailLoading ||
                 updateStoreLoading
               }
-              width="140px"
+              width="100%"
             >
-              {isEditMode ? "Update" : "Add"}
+              {" "}
+              <MdSave size={22} /> {isEditMode ? "Update Store" : "Add Store"}
             </CustomButton>
           </div>
         </div>

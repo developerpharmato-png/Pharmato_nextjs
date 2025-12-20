@@ -309,7 +309,9 @@ export default function NewSubCategoryPage() {
             onChange={formik.handleChange}
             label="Active Subcategory"
           /> */}
-          <div className="w-[200px] pt-4">
+            <div className="mt-8 flex ButtonOuter w-full">
+          {" "}
+          <div className="buttoninner  w-full max-w-sm">
             <CustomButton
               type="submit"  
               disabled={loading || uploading || formik.isSubmitting}
@@ -321,6 +323,7 @@ export default function NewSubCategoryPage() {
                 "Create Category"
               )}
             </CustomButton>
+          </div>
           </div>
         </form>
       </div>
