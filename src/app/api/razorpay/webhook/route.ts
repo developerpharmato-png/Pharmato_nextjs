@@ -66,7 +66,8 @@ export async function POST(req: NextRequest) {
                         $set: {
                             payment_mode: entity.method || '',
                             payment_id: entity.id || '',
-                            payment_status: entity.status || ''
+                            payment_status: entity.status || '',
+                            order_status: 'Ordered'
                         }
                     }
                 );
@@ -110,8 +111,8 @@ export async function POST(req: NextRequest) {
                     await Notification.create({
                         userId: notificationUserId,
                         role: 'customer',
-                        title: 'Payment received',
-                        message: `Payment captured for order ${checkOrder.order_id}`,
+                        title: 'Order Placed',
+                        message: `Your Order ${checkOrder.order_id} has been placed successfully. It will be delievered to you soon.`,
                         type: 'payment',
                         targetScreen: 'orders/detail',
                         targetId: checkOrder._id.toString(),
@@ -150,7 +151,7 @@ export async function POST(req: NextRequest) {
                                         await Notification.create({
                                             userId: (store as any).adminManagerId.toString(),
                                             role: 'admin',
-                                            title: 'New Order Payment Received',
+                                            title: 'New Order Received',
                                             message: `Admin ${adminName} (${adminRoleName}) received a new order for store ${storeName}. Customer: ${customerName}. Order ID: ${checkOrder.order_id}.`,
                                             type: 'order',
                                             targetScreen: 'orders/detail',
@@ -179,7 +180,7 @@ export async function POST(req: NextRequest) {
                                     await Notification.create({
                                         userId: (superAdmin as any)._id.toString(),
                                         role: 'admin',
-                                        title: 'New Order Payment Received',
+                                        title: 'New Order Received',
                                         message: `Admin ${adminName} (${adminRoleName}) received a new order for store ${storeName}. Customer: ${customerName}. Order ID: ${checkOrder.order_id}.`,
                                         type: 'order',
                                         targetScreen: 'orders/detail',
@@ -208,7 +209,10 @@ export async function POST(req: NextRequest) {
                     { _id: checkOrder._id },
                     {
                         $push: { paymentHistory: paymentHistory },
-                        $set: { payment_status: 'Failure' }
+                        $set: {
+                            payment_status: 'Failure',
+                            order_status: 'Payment Failed'
+                        }
                     }
                 );
             }

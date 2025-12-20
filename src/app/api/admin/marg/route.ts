@@ -32,6 +32,13 @@ function convertExpiry(exp: string): Date | null {
     const day = expString.slice(6, 8);
     return new Date(`${year}-${month}-${day}`);
 }
+
+// Compute price as 15% less than MRP, rounded to 2 decimals
+function computePriceFromMrp(mrp: number | string): number {
+    const mrpNum = Number(mrp);
+    if (!isFinite(mrpNum) || isNaN(mrpNum)) return 0;
+    return Math.round(mrpNum * 0.85 * 100) / 100;
+}
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import crypto from 'crypto';
@@ -134,7 +141,7 @@ export async function POST(request: NextRequest) {
                     uniqueIdentity: p.rid,
                     name: p.name,
                     manufacturer: p.company,
-                    price: Number(p.MRP) || 0,
+                    price: computePriceFromMrp(p.MRP),
                     purchasePrice: Number(p.PRate) || 0,
                     mrp: Number(p.MRP) || 0,
                     stock: Number(p.stock) || 0,
@@ -158,9 +165,9 @@ export async function POST(request: NextRequest) {
                 const uniqueCode = `MED-${medCount}`;
                 bulkInsertArray.push({
                     uniqueIdentity: p.rid,
-                    name: p.name,
+                    name: p.name,                    
                     manufacturer: p.company,
-                    price: Number(p.MRP) || 0,
+                    price: computePriceFromMrp(p.MRP),
                     purchasePrice: Number(p.PRate) || 0,
                     mrp: Number(p.MRP) || 0,
                     stock: Number(p.stock) || 0,
