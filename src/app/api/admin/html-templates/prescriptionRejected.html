@@ -1,25 +1,33 @@
-<div style="padding:20px;font-family: Arial, sans-serif; color:#111;">
-  <h2 style="color:#111;">Prescription Rejected</h2>
-  <p>Hello {{name}},</p>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif;">
+    <tr>
+        <td style="padding: 40px 30px;">
+            <h2 style="color: #d9534f; margin-top: 0; font-size: 20px;">Prescription Rejected</h2>
+            <p style="font-size: 16px;">Hello <strong>{{name}}</strong>,</p>
+            <p style="font-size: 16px; color: #555; line-height: 1.6;">
+                The prescription for your order <strong style="color: #333;">#{{orderId}}</strong> has been rejected by the store manager.
+            </p>
 
-  <p>Were sorry to inform you that the prescription uploaded for your order <strong>#{{orderId}}</strong> has been
-    <strong>Rejected</strong> by the store manager.</p>
+            <div style="background-color: #fef2f2; border-left: 4px solid #d9534f; padding: 15px; margin: 25px 0;">
+                <p style="margin: 0; font-size: 14px; font-weight: bold; color: #333;">Reason for Rejection:</p>
+                <p style="margin: 5px 0 0; color: #b91c1c; font-style: italic;">"{{reason}}"</p>
+            </div>
 
-  <p><strong>Reason for Rejection:</strong><br />{{reason}}</p>
+            <div style="border: 1px solid #e0e0e0; border-radius: 6px; padding: 20px; margin-bottom: 30px;">
+                <p style="margin-top: 0; font-weight: bold; color: #5DAC5D;">Next Steps:</p>
+                <ul style="padding-left: 20px; font-size: 14px; line-height: 1.8; color: #555;">
+                    <li>Open <strong>My Orders</strong> in the Pharmato app</li>
+                    <li>Select order <strong>#{{orderId}}</strong></li>
+                    <li>Re-upload a valid prescription</li>
+                </ul>
+            </div>
 
-  <p>To proceed with your order, please upload a <strong>valid prescription</strong> as per the doctors guidelines.
-    Once you re-upload the prescription, our pharmacy team will review it and continue processing your order.</p>
-
-  <p><strong>Next Steps:</strong></p>
-  <ul>
-    <li>Open the <strong>Pharmato app or website</strong></li>
-    <li>Go to <strong>My Orders</strong></li>
-    <li>Select order <strong>#{{orderId}}</strong></li>
-    <li>Re-upload the prescription</li>
-  </ul>
-
-  <p>Thank you for your understanding and cooperation.<br />
-    Stay healthy,<br />
-    Team Pharmato<br />
-    Your trusted pharmacy partner</p>
-</div>
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                    <td align="center">
+                        <a href="#" style="background-color: #5DAC5D; color: #ffffff; padding: 15px 35px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 16px;">Re-upload Now</a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>

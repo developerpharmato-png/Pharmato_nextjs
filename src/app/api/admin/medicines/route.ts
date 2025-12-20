@@ -77,7 +77,14 @@ export async function GET(request: NextRequest) {
       : null;
 
     // Validate categoryId and subCategoryId
-    const baseFilter: any = { isActive: true };
+    // By default do NOT filter on isActive so both active/inactive are returned unless client specifies `isActive` query param
+    const baseFilter: any = {};
+    if (url.searchParams.has('isActive')) {
+      const isActiveParam = url.searchParams.get('isActive');
+      if (isActiveParam === 'true') baseFilter.isActive = true;
+      else if (isActiveParam === 'false') baseFilter.isActive = false;
+    }
+
     if (categoryId && mongoose.Types.ObjectId.isValid(categoryId)) {
       baseFilter.categoryId = categoryId;
     } else if (categoryId) {

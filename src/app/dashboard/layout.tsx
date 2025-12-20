@@ -116,14 +116,18 @@ export default function DashboardLayout({
       "/dashboard/permission",
       "/dashboard/management",
     ];
-    setAdminPermOpen(adminPermPaths.some((p) => pathname === p || pathname.startsWith(p)));
+    setAdminPermOpen(
+      adminPermPaths.some((p) => pathname === p || pathname.startsWith(p))
+    );
 
     // Only open Data Analytics menu for its own children
     const dataAnalyticsPaths = [
       "/dashboard/data-analytics/products",
       "/dashboard/data-analytics/orders",
     ];
-    setDataAnalyticsOpen(dataAnalyticsPaths.some((p) => pathname === p || pathname.startsWith(p)));
+    setDataAnalyticsOpen(
+      dataAnalyticsPaths.some((p) => pathname === p || pathname.startsWith(p))
+    );
   }, [pathname]);
 
   const isCurrentSuperAdmin =
@@ -235,14 +239,15 @@ export default function DashboardLayout({
                 sidebarOpen ? "justify-between" : "justify-center"
               }`}
             >
-              <div className="flex items-center gap-3">
-                {renderIcon(
-                  "local_pharmacy",
-                  sidebarOpen ? 28 : 24,
-                  "text-green-600"
-                )}
+              <div className="flex items-center">
                 {sidebarOpen && (
-                  <img src={logo.src} alt="Pharmato Logo" className="h-8" />
+                  <>
+                    <img
+                      src={logo.src}
+                      alt="Pharmato Logo"
+                      className="w-full"
+                    />
+                  </>
                 )}
               </div>
               {sidebarOpen && (

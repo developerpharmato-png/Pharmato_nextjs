@@ -45,6 +45,7 @@ export default function OrderDetailPage() {
     postData: approvePost,
     data: approveData,
     loading: approveLoading,
+    clearData:clearapproveData
   } = ApprovePrescriptionStore();
 
   const {
@@ -111,6 +112,7 @@ export default function OrderDetailPage() {
         showConfirmButton: false,
         timer: 2000,
       });
+      clearapproveData();
       setApprovalNotes("");
       fetchOrderDetail();
     } else {
@@ -119,6 +121,7 @@ export default function OrderDetailPage() {
         title: "Error",
         text: (approveData as any).message || "Failed to approve prescription",
       });
+      clearapproveData();
     }
   }, [approveData]);
 
