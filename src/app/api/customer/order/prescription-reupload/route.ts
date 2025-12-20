@@ -21,8 +21,12 @@ import mongoose from 'mongoose';
  *                 type: string
  *                 description: Order's ObjectId
  *               url:
- *                 type: string
- *                 description: URL of the uploaded prescription image/pdf
+ *                 oneOf:
+ *                   - type: string
+ *                   - type: array
+ *                     items:
+ *                       type: string
+ *                 description: URL or array of URLs of the uploaded prescription image/pdf
  *     responses:
  *       200:
  *         description: Prescription re-uploaded successfully
@@ -49,8 +53,15 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
 
-        // Update prescription fields
-        order.prescription_url = String(url);
+        // Normalize url to array of strings
+        let prescriptionUrlArr: string[] = [];
+        if (Array.isArray(url)) {
+            prescriptionUrlArr = url.filter((u) => typeof u === 'string');
+        } else if (typeof url === 'string' && url) {
+            prescriptionUrlArr = [url];
+        }
+
+        order.prescription_url = prescriptionUrlArr;
         order.prescription_status = 'Pending';
         order.prescription_rejection_reason = '';
         order.prescription_rejected_by = null;

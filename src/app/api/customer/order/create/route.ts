@@ -34,8 +34,10 @@ import mongoose from 'mongoose';
  *                 type: boolean
  *                 description: Whether a prescription is required for this order
  *               prescription_url:
- *                 type: string
- *                 description: URL of the uploaded prescription image/pdf
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of prescription image/pdf URLs
  *     responses:
  *       200:
  *         description: Order created successfully
@@ -88,6 +90,13 @@ import mongoose from 'mongoose';
 export async function POST(req: NextRequest) {
     await dbConnect();
     const { userId, storeId, calculationData, addressId, isPrescriptionRequired, prescription_url } = await req.json();
+    // Normalize prescription_url to array of strings
+    let prescriptionUrlArr: string[] = [];
+    if (Array.isArray(prescription_url)) {
+        prescriptionUrlArr = prescription_url.filter(url => typeof url === 'string');
+    } else if (typeof prescription_url === 'string' && prescription_url) {
+        prescriptionUrlArr = [prescription_url];
+    }
     if (!userId || typeof userId !== 'string') {
         return NextResponse.json({ success: false, message: 'userId is required' }, { status: 400 });
     }
@@ -162,7 +171,7 @@ export async function POST(req: NextRequest) {
         calculationData,
         paymentHistory: [{}],
         isPrescriptionRequired: isPrescriptionRequired || false,
-        prescription_url: prescription_url || '',
+        prescription_url: prescriptionUrlArr,
         prescription_status: isPrescriptionRequired ? 'Pending' : 'Not Required',
         deliveredAddress: addressDoc.toObject()
     });

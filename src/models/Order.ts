@@ -23,7 +23,7 @@ export interface IOrder extends Document {
     calculationData: Record<string, any>;
     paymentHistory: [{}];
     isPrescriptionRequired?: boolean;
-    prescription_url: string;
+    prescription_url: string[];
     prescription_status: string;
     prescription_rejection_reason?: string;
     prescription_rejected_by?: mongoose.Types.ObjectId;
@@ -60,7 +60,9 @@ const OrderSchema = new Schema<IOrder>({
     calculationData: { type: Object, default: {} },
     paymentHistory: [{ type: Object, default: {} }],
     isPrescriptionRequired: { type: Boolean, default: false }, 
-    prescription_url: { type: String, default: '' },
+    prescription_url: [
+        { type: String, default: '' }
+    ],
     prescription_status: { type: String, default: '' },
     prescription_rejection_reason: { type: String, default: '' },
     prescription_rejected_by: { type: Schema.Types.ObjectId, ref: 'Admin', default: null },
