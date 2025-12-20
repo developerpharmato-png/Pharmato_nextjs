@@ -1,12 +1,25 @@
 <div style="padding:20px;font-family: Arial, sans-serif; color:#111;">
-    <h2 style="color:#111;">Prescription Rejected</h2>
-    <p>Hi {{name}},</p>
-    <p>Your prescription for order <strong>{{orderId}}</strong> has been <strong>rejected</strong> by the pharmacy team.
-    </p>
-    <p><strong>Reason:</strong> {{reason}}</p>
-    <p>Please re-upload your prescription by visiting your orders in the app or clicking the button below.</p>
-    <!-- <p style="text-align:center;margin:20px 0;">
-    <a href="{{orderUrl}}" style="display:inline-block;padding:10px 18px;background:#10b981;color:#fff;border-radius:6px;text-decoration:none;">Re-upload Prescription</a>
-  </p> -->
-    <p>Regards,<br />Pharmato Team</p>
+  <h2 style="color:#111;">Prescription Rejected</h2>
+  <p>Hello {{name}},</p>
+
+  <p>Were sorry to inform you that the prescription uploaded for your order <strong>#{{orderId}}</strong> has been
+    <strong>Rejected</strong> by the store manager.</p>
+
+  <p><strong>Reason for Rejection:</strong><br />{{reason}}</p>
+
+  <p>To proceed with your order, please upload a <strong>valid prescription</strong> as per the doctors guidelines.
+    Once you re-upload the prescription, our pharmacy team will review it and continue processing your order.</p>
+
+  <p><strong>Next Steps:</strong></p>
+  <ul>
+    <li>Open the <strong>Pharmato app or website</strong></li>
+    <li>Go to <strong>My Orders</strong></li>
+    <li>Select order <strong>#{{orderId}}</strong></li>
+    <li>Re-upload the prescription</li>
+  </ul>
+
+  <p>Thank you for your understanding and cooperation.<br />
+    Stay healthy,<br />
+    Team Pharmato<br />
+    Your trusted pharmacy partner</p>
 </div>
