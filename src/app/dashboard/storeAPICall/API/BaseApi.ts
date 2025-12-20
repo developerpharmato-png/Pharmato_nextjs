@@ -7,9 +7,10 @@ export const PrescriptionApprovePath = `/api/admin/order/prescription/approve`;
 export const PrescriptionRejectPath = `/api/admin/order/prescription/reject`;
 
 export const CategoriesPath = `/api/admin/categories`;
+export const dropdownCategoriesPath = `/api/admin/categories/dropdown`;
 export const SubcategoriesPath = `/api/admin/subcategories`;
 
-export const MedicinesExportPath = `/api/medicines/export`;
+export const MedicinesExportPath = `/api/admin/medicines/export`;
 
 export const StoreManagersPath = `/api/admins/store-managers`;
 export const StorePath = `/api/admin/store`;

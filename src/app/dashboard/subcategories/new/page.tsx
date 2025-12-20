@@ -12,6 +12,7 @@ import {
   StandardFormCheckbox,
   StyledCheckboxWithDescription,
 } from "../../components/StyledCheckboxWithDescription";
+import { dropdownCategoriesPath } from "../../storeAPICall/API/BaseApi";
 
 export default function NewSubCategoryPage() {
   const router = useRouter();
@@ -26,7 +27,7 @@ export default function NewSubCategoryPage() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch("/api/admin/categories");
+      const res = await fetch(dropdownCategoriesPath);
       const data = await res.json();
       setCategories(data.data || []);
     } catch (error) {

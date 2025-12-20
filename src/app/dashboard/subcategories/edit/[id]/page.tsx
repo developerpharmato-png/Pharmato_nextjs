@@ -17,6 +17,7 @@ import {
   StandardFormCheckbox,
   StyledCheckboxWithDescription,
 } from "@/app/dashboard/components/StyledCheckboxWithDescription";
+import { dropdownCategoriesPath } from "@/app/dashboard/storeAPICall/API/BaseApi";
 
 export default function EditSubCategoryPage() {
   const { id } = useParams();
@@ -120,7 +121,7 @@ export default function EditSubCategoryPage() {
     }
     async function fetchCategories() {
       try {
-        const res = await fetch("/api/categories");
+        const res = await fetch(dropdownCategoriesPath);
         const data = await res.json();
         setCategories(data.data || []);
       } catch {}

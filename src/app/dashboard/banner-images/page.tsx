@@ -15,6 +15,7 @@ import { showConfirmStatusAlert } from "../components/ConfirmStatusAlert";
 import { CustomTable } from "../components/CustomTable";
 import BannerImageModal from "./BannerImageModal";
 import { Delete, DeleteIcon, Edit, EditIcon } from "lucide-react";
+import { dropdownCategoriesPath } from "../storeAPICall/API/BaseApi";
 
 export default function BannerImagesDashboard() {
   const [modal, setModal] = useState<{ open: boolean; editIdx: number | null }>(
@@ -130,7 +131,7 @@ export default function BannerImagesDashboard() {
     // Fetch active categories
     (async () => {
       try {
-        const res = await axios.get("/api/categories?isActive=true");
+        const res = await axios.get(dropdownCategoriesPath);
         setCategories(res.data.data || []);
       } catch {
         setCategories([]);
