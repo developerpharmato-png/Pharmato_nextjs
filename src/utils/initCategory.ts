@@ -47,7 +47,7 @@ export const initialMedicineFormValues = {
   expiryDate: '',
   batchNumber: '',
   isOTC: false,
-  requiresPrescription: true,
+  isPrescription: true,
   images: [],
   coverImage: undefined,
   highlights: [] as string[],

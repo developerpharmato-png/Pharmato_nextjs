@@ -138,6 +138,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
             mrp: Number(values.mrp),
             discount: Number(values.discount),
             stock: Number(values.stock),
+
             expiryDate: new Date(values.expiryDate),
             categoryId: values.categoryId || undefined,
             subCategoryId: values.subCategoryId || undefined,
@@ -328,7 +329,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
     );
     const derivedOTC = sub?.isOTC ?? cat?.isOTC ?? false;
     formik.setFieldValue("isOTC", derivedOTC);
-    formik.setFieldValue("requiresPrescription", !derivedOTC);
+    // formik.setFieldValue("isPrescription", !derivedOTC);
   }, [
     formik.values.categoryId,
     formik.values.subCategoryId,
@@ -484,6 +485,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
           discount: Number(formik.values.discount),
           stock: Number(formik.values.stock),
           expiryDate: new Date(formik.values.expiryDate),
+          isPrescription: formik.values.isPrescription,
           categoryId: formik.values.categoryId || undefined,
           subCategoryId: formik.values.subCategoryId || undefined,
           coverImage:
@@ -506,7 +508,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
         });
         setTimeout(() => {
           try {
-            router.back();
+            // router.back();
           } catch (e) {
             if (typeof window !== "undefined") window.history.back();
           }
@@ -1121,15 +1123,15 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                   {" "}
                   <input
                     type="checkbox"
-                    id="requiresPrescription"
-                    name="requiresPrescription"
-                    checked={formik.values.requiresPrescription}
+                    id="isPrescription"
+                    name="isPrescription"
+                    checked={formik.values.isPrescription}
                     onChange={handleChange}
                     onBlur={formik.handleBlur}
                     className="w-6 h-6 text-orange-600 bg-white border-gray-300 rounded focus:ring-orange-500"
                   />
                   <label
-                    htmlFor="requiresPrescription"
+                    htmlFor="isPrescription"
                     className="text-base font-medium text-gray-900 cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
