@@ -10,6 +10,8 @@ export interface IAdmin extends Document {
     resetPasswordToken?: string | null;
     resetPasswordExpires?: Date | null;
     sessionToken?: string | null;
+    sessionId?: string | null;
+    refreshToken?: string | null;
     managedStores?: {
         storeId: mongoose.Types.ObjectId;
         storeName: string;
@@ -38,6 +40,8 @@ const AdminSchema = new Schema<IAdmin>({
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
     sessionToken: { type: String, default: null },
+    sessionId: { type: String, default: null },
+    refreshToken: { type: String, default: null },
     managedStores: [
         {
             storeId: { type: Schema.Types.ObjectId, ref: 'Store' },

@@ -49,10 +49,17 @@ export async function authorize(request: NextRequest) {
             if (!dbUser) {
                 return NextResponse.json({ success: false, error: 'Unauthorized: User not found' }, { status: 401 });
             }
-            // If DB has a refreshToken, ensure provided refresh token matches
-            if (dbUser.refreshToken) {
-                if (!refreshTokenValue || dbUser.refreshToken !== refreshTokenValue) {
+            // Prefer sessionId check (invalidates old access tokens immediately)
+            if (dbUser.sessionId) {
+                if (!payload.sessionId || payload.sessionId !== dbUser.sessionId) {
                     return NextResponse.json({ success: false, error: 'Auth error: Session expired or logged in elsewhere' }, { status: 401 });
+                }
+            } else {
+                // Fallback: if DB has a refreshToken, ensure provided refresh token matches
+                if (dbUser.refreshToken) {
+                    if (!refreshTokenValue || dbUser.refreshToken !== refreshTokenValue) {
+                        return NextResponse.json({ success: false, error: 'Auth error: Session expired or logged in elsewhere' }, { status: 401 });
+                    }
                 }
             }
         } else if (payload && payload.role === 'admin') {
@@ -62,10 +69,17 @@ export async function authorize(request: NextRequest) {
             if (!dbAdmin) {
                 return NextResponse.json({ success: false, error: 'Unauthorized: Admin not found' }, { status: 401 });
             }
-            // If DB has a refreshToken/session token, ensure provided refresh token matches
-            if (dbAdmin.refreshToken) {
-                if (!refreshTokenValue || dbAdmin.refreshToken !== refreshTokenValue) {
+            // Prefer sessionId check (invalidates old access tokens immediately)
+            if (dbAdmin.sessionId) {
+                if (!payload.sessionId || payload.sessionId !== dbAdmin.sessionId) {
                     return NextResponse.json({ success: false, error: 'Auth error: Session expired or logged in elsewhere' }, { status: 401 });
+                }
+            } else {
+                // If DB has a refreshToken/session token, ensure provided refresh token matches
+                if (dbAdmin.refreshToken) {
+                    if (!refreshTokenValue || dbAdmin.refreshToken !== refreshTokenValue) {
+                        return NextResponse.json({ success: false, error: 'Auth error: Session expired or logged in elsewhere' }, { status: 401 });
+                    }
                 }
             }
             // Optional: check admin active flags

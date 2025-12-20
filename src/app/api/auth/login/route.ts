@@ -44,6 +44,7 @@ import Role from '@/models/Role';
 import bcrypt from 'bcryptjs';
 import { signJwt } from '@/lib/jwt';
 import Store from '@/models/Store';
+import crypto from 'crypto';
 
 
 export async function POST(request: NextRequest) {
@@ -114,13 +115,17 @@ export async function POST(request: NextRequest) {
             adminObj.managedStores = (stores || []).map((s: any) => ({ storeId: s._id, storeName: s.name }));
         }
 
+        // Create a per-session id so logging in elsewhere invalidates previous tokens
+        const sessionId = crypto.randomBytes(16).toString('hex');
+
         // Issue access and refresh tokens (access: 24h, refresh: no expiry)
         const accessToken = signJwt({
             adminId: adminObj._id,
             email: adminObj.email,
             roleId: adminObj.roleId,
             roleName: adminObj.roleName,
-            role: 'admin'
+            role: 'admin',
+            sessionId
         }, '24h');
 
         const refreshToken = signJwt({
@@ -128,11 +133,17 @@ export async function POST(request: NextRequest) {
             email: adminObj.email,
             roleId: adminObj.roleId,
             roleName: adminObj.roleName,
-            role: 'admin'
+            role: 'admin',
+            sessionId
         }, undefined); // no expiry
 
-        // Store refresh token in admin document (single session)
-        await Admin.findByIdAndUpdate(adminObj._id, { refreshToken: refreshToken });
+        // Store session token, refresh token and sessionId in admin document (single session)
+        await Admin.findByIdAndUpdate(adminObj._id, { sessionToken: accessToken, refreshToken: refreshToken, sessionId });
+
+        // Reflect the new session values in the returned object so client sees them
+        adminObj.sessionToken = accessToken;
+        adminObj.refreshToken = refreshToken;
+        adminObj.sessionId = sessionId;
 
         // Return data and set access token cookie
         const response = NextResponse.json({
