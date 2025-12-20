@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Search, Filter, X } from "lucide-react";
 import axios from "axios";
 import { CategoriesStore, SubcategoriesStore } from "../storeAPICall/useUserStore";
-import { CategoriesPath, dropdownCategoriesPath, SubcategoriesPath } from "../storeAPICall/API/BaseApi";
+import { CategoriesPath, SubcategoriesPath } from "../storeAPICall/API/BaseApi";
 
 // Define types for categories and subcategories
 interface Category {
@@ -107,8 +107,8 @@ export default function FilterSearch({
   useEffect(() => {
     // fetch categories via zustand with OTC filter
     const url = filterOTC !== 'all'
-      ? `${dropdownCategoriesPath}?isOTC=${filterOTC}`
-      : dropdownCategoriesPath;
+      ? `${CategoriesPath}?isOTC=${filterOTC}`
+      : CategoriesPath;
     fetchCategories({ url });
   }, [fetchCategories, filterOTC]);
 
