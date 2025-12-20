@@ -179,7 +179,7 @@ export default function PermissionPage() {
             
             </>
           )}
-        </div>
+        </div> 
         {/* --- */}
 
         {/* Permissions Table Skeleton or Table */}

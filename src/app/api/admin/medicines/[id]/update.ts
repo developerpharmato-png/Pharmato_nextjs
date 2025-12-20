@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '../../../../lib/mongodb';
-import Medicine from '../../../../models/Medicine';
+import connectDB from '@/lib/mongodb';
+import Medicine from '@/models/Medicine';
 
 import type { NextRequest } from 'next/server';
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-    await dbConnect();
+    await connectDB();
     const { id } = params;
     try {
         const body = await req.json();
