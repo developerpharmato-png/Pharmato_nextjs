@@ -14,6 +14,7 @@ interface Order {
     phone?: string;
     mobile?: string;
   };
+  prescription_status?: string;
   total_order_amount: number;
   payment_status: string;
   order_status: string;
@@ -72,6 +73,22 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
     }
   };
 
+    const getPrescriptionColor = (status: string) => {
+      const s = (status || "").toLowerCase();
+      switch (s) {
+        case "pending":
+          return "status-pending";
+        case "approved":
+          return "status-success";
+        case "rejected":
+          return "status-danger";
+        case "not required":
+          return "status-default";
+        default:
+          return "status-default";
+      }
+    };
+
   const columns: Column<Order>[] = [
     {
       id: "order_id",
@@ -93,7 +110,10 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       label: "Customer",
       minWidth: 150,
       selector: (row: Order) => (
-        <div onClick={() => router.push(`/dashboard/admin/customers/${row.userId?._id}`)}
+        <div
+          onClick={() =>
+            router.push(`/dashboard/admin/customers/${row.userId?._id}`)
+          }
           className="cursor-pointer "
         >
           <CustomTooltip title={row.userId?.mobile || row.userId?.phone || "-"}>
@@ -197,6 +217,22 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
             )}`}
           >
             {row.order_status || "Pending"}
+          </span>
+        </CustomTooltip>
+      ),
+    },
+    {
+      id: "prescription_status",
+      label: "Prescription",
+      minWidth: 140,
+      selector: (row: Order) => (
+        <CustomTooltip title={row.prescription_status || "Not Required"}>
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-medium customTooltip ${getPrescriptionColor(
+              row.prescription_status || ""
+            )}`}
+          >
+            {row.prescription_status || "Not Required"}
           </span>
         </CustomTooltip>
       ),

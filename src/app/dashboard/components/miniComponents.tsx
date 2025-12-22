@@ -153,13 +153,18 @@ export const CustomImage: React.FC<CustomImageProps> = ({
 }) => {
   const [open, setOpen] = React.useState(false);
   const [current, setCurrent] = React.useState(0);
+  const [zoom, setZoom] = React.useState(1);
 
   const handleOpen = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (images.length > 0) setOpen(true);
     setCurrent(0);
+    setZoom(1);
   };
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setOpen(false);
+    setZoom(1);
+  };
 
   const handleStep = (step: number) => setCurrent(step);
 
@@ -175,13 +180,52 @@ export const CustomImage: React.FC<CustomImageProps> = ({
       {open && (
         <div className="fixed inset-0 bg-opacity-75 flex items-center justify-center z-1000 p-4 backdrop-blur-sm">
           <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl relative p-4">
-            <button
-              onClick={handleClose}
-              className="absolute top-0 right-0 m-4 bg-white/70 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold hover:bg-white hover:text-red-600 transition duration-150 z-10"
-              title="Close"
-            >
-              &times;
-            </button>
+            <div className="absolute top-0 right-0 m-4 flex items-center gap-2 z-10">
+              <button
+                onClick={() => {
+                  // download current image
+                  const url = images[current];
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = url.split("/").pop() || `image_${current + 1}`;
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                }}
+                className="bg-white/80 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold hover:opacity-90"
+                title="Download"
+              >
+                ⬇
+              </button>
+              <button
+                onClick={() => setZoom((z) => Math.min(3, +(z + 0.25).toFixed(2)))}
+                className="bg-white/80 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold hover:opacity-90"
+                title="Zoom In"
+              >
+                +
+              </button>
+              <button
+                onClick={() => setZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))}
+                className="bg-white/80 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold hover:opacity-90"
+                title="Zoom Out"
+              >
+                −
+              </button>
+              <button
+                onClick={() => setZoom(1)}
+                className="bg-white/80 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold hover:opacity-90"
+                title="Reset Zoom"
+              >
+                1x
+              </button>
+              <button
+                onClick={handleClose}
+                className="bg-white/80 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold hover:opacity-90"
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
             <Swiper
               initialSlide={current}
               spaceBetween={10}
@@ -195,16 +239,20 @@ export const CustomImage: React.FC<CustomImageProps> = ({
                   key={index}
                   className="flex items-center justify-center bg-gray-100 rounded-xl"
                 >
-                  <img
-                    src={url}
-                    alt={`Slide ${index}`}
-                    className="max-w-full w-full h-full object-contain p-4"
-                  />
+                  <div className="w-full h-full flex items-center justify-center p-4">
+                    <img
+                      src={url}
+                      alt={`Slide ${index}`}
+                      className="max-w-full w-full h-full object-contain"
+                      style={{ transform: `scale(${zoom})`, transition: "transform 0.15s" }}
+                    />
+                  </div>
                 </SwiperSlide>
               ))}
             </Swiper>
-            <div className="text-center py-2 text-gray-700 font-semibold border-t border-gray-200 mt-2">
-              Viewing Image {current + 1} of {images.length}
+            <div className="flex items-center justify-between text-gray-700 font-semibold border-t border-gray-200 mt-2 px-3 py-2">
+              <div>Viewing Image {current + 1} of {images.length}</div>
+              <div className="text-sm text-gray-600">Zoom: {zoom.toFixed(2)}x</div>
             </div>
           </div>
         </div>

@@ -77,7 +77,9 @@ export async function POST(req: NextRequest) {
             search = '', 
             customerId,
             storeId,
-            roleName 
+            roleName,
+            prescription_status,
+            order_status
         } = body || {};
 
         // Coerce numeric inputs safely
@@ -100,6 +102,16 @@ export async function POST(req: NextRequest) {
         // Filter by customerId if provided
         if (customerId && typeof customerId === 'string') {
             query.userId = customerId;
+        }
+
+        // Filter by prescription_status if provided
+        if (prescription_status && typeof prescription_status === 'string') {
+            query.prescription_status = prescription_status;
+        }
+
+        // Filter by order_status if provided
+        if (order_status && typeof order_status === 'string') {
+            query.order_status = order_status;
         }
         
         // Search by order_id, payment_id, or user details (name/email/mobile)
