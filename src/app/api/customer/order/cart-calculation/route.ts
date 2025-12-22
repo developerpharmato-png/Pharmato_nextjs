@@ -170,20 +170,20 @@ export async function POST(req: NextRequest) {
     const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
     const mrpTotalSum = cartData.reduce((sum, item) => sum + (item.medicine.mrp * item.quantity), 0);
     const platformFee = Number(calculationData.platformFeeInRupees) + (Number(calculationData.platformFeeInRupees) * Number(calculationData.platformFeeGstInPercent)) / 100;
-    calculationData.priceTotalSumBeforeDiscount = priceTotalSumBeforeDiscount;
-    calculationData.mrpTotalSum = mrpTotalSum.toFixed(2);
-    calculationData.platformFee = platformFee.toFixed(2);
-    calculationData.discount = discountValue.toFixed(2);
+    calculationData.priceTotalSumBeforeDiscount = Number(priceTotalSumBeforeDiscount.toFixed(2));
+    calculationData.mrpTotalSum = Number(mrpTotalSum.toFixed(2));
+    calculationData.platformFee = Number(platformFee.toFixed(2));
+    calculationData.discount = Number(discountValue.toFixed(2));
     // Apply discount to priceTotalSum
     const priceTotalSumAfterDiscount = Math.max(0, priceTotalSumBeforeDiscount - discountValue);
-    calculationData.priceTotalSumAfterDiscount = priceTotalSumAfterDiscount.toFixed(2);
+    calculationData.priceTotalSumAfterDiscount = Number(priceTotalSumAfterDiscount.toFixed(2));
     const userTotalCharged = priceTotalSumAfterDiscount + platformFee;
     const razorPayCommissionAmount = (userTotalCharged * Number(calculationData.razorPayCommissionInPercent)) / 100;
     const razorPayCommissionGstAmount = (razorPayCommissionAmount * Number(calculationData.razorPayCommissionGstInPercent)) / 100;
-    calculationData.razorPayCommissionAmount = razorPayCommissionAmount.toFixed(2);
-    calculationData.razorPayCommissionGstAmount = razorPayCommissionGstAmount;
+    calculationData.razorPayCommissionAmount = Number(razorPayCommissionAmount.toFixed(2));
+    calculationData.razorPayCommissionGstAmount = Number(razorPayCommissionGstAmount.toFixed(2));
     let totalOrderAmount = userTotalCharged + razorPayCommissionAmount + razorPayCommissionGstAmount;
-    calculationData.totalOrderAmount = totalOrderAmount.toFixed(2);
+    calculationData.totalOrderAmount = Number(totalOrderAmount.toFixed(2));
     calculationData.medicineId = medicineId;
     calculationData.medicineQuantity = medicineQuantity;
 
