@@ -45,7 +45,7 @@ export default function OrderDetailPage() {
     postData: approvePost,
     data: approveData,
     loading: approveLoading,
-    clearData:clearapproveData
+    clearData: clearapproveData,
   } = ApprovePrescriptionStore();
 
   const {
@@ -269,6 +269,10 @@ export default function OrderDetailPage() {
     return null;
   }
 
+  const medidetails = (_id: String) => {
+    router.push(`/dashboard/medicines/${_id}`);
+  };
+
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
@@ -283,375 +287,682 @@ export default function OrderDetailPage() {
 
       <div className="space-y-6">
         {/* Order Summary Card */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">
-            Order Summary
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm text-gray-500">Order ID</p>
-              <p className="font-medium text-gray-900">{order?.order_id}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Payment ID</p>
-              <p className="font-medium text-gray-900 text-xs font-mono">
-                {order?.payment_id || "-"}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Order Date & Time</p>
-              <p className="font-medium text-gray-900">
-                {new Date(order?.createdAt).toLocaleString("en-IN", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Payment Mode</p>
-              <p className="font-medium text-gray-900 capitalize">
-                {order?.payment_mode || "-"}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Payment Status</p>
-              <span
-                className={`inline-block mt-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                  order?.payment_status
-                )}`}
-              >
-                {order?.payment_status || "Pending"}
-              </span>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Order Status</p>
-              <span
-                className={`inline-block mt-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                  order?.order_status
-                )}`}
-              >
-                {order?.order_status || "Pending"}
-              </span>
+        {/* Order Summary Card */}
+        <div className="bg-[var(--background)] rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-6">
+            <h2 className="text-xl font-bold mb-6 text-[var(--foreground)] border-b border-gray-100 pb-3">
+              Order Summary
+            </h2>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Column 1: Core Order Details */}
+              <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      Order ID
+                    </p>
+                    <p className="font-mono text-sm text-[var(--primary)] font-bold">
+                      {order?.order_id}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      Payment ID
+                    </p>
+                    <p className="font-mono text-xs text-gray-600 break-all bg-gray-50 p-1 rounded">
+                      {order?.payment_id || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      Date & Time
+                    </p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {new Date(order?.createdAt).toLocaleString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      Payment Mode
+                    </p>
+                    <p className="text-sm font-semibold capitalize text-gray-900 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[var(--secondary)]"></span>
+                      {order?.payment_mode || "Not Selected"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                      Payment Status
+                    </p>
+                    <span
+                      className={`inline-flex px-3 py-1 rounded-full text-xs font-bold uppercase tracking-tighter ${getStatusColor(
+                        order?.payment_status
+                      )}`}
+                    >
+                      {order?.payment_status || "Pending"}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                      Order Status
+                    </p>
+                    <span
+                      className={`inline-flex px-3 py-1 rounded-full text-xs font-bold uppercase tracking-tighter ${getStatusColor(
+                        order?.order_status
+                      )}`}
+                    >
+                      {order?.order_status || "Pending"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 2: Delivery Address with Map Navigation */}
+              <div className="bg-gray-50 rounded-xl p-5 border border-gray-100 relative group">
+                <div className="flex justify-between items-start mb-3">
+                  <p className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-wider">
+                    Delivery Address
+                  </p>
+                  <span className="text-[10px] px-2 py-0.5 bg-white border border-gray-200 rounded text-gray-500 font-bold uppercase">
+                    {order?.deliveredAddress?.addressType || "Home"}
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="font-bold text-gray-900">
+                    {order?.deliveredAddress?.name}
+                  </p>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {order?.deliveredAddress?.address?.houseNumber},{" "}
+                    {order?.deliveredAddress?.address?.street}
+                    <br />
+                    {order?.deliveredAddress?.address?.locality &&
+                      `${order?.deliveredAddress?.address?.locality}, `}
+                    {order?.deliveredAddress?.address?.city} -{" "}
+                    {order?.deliveredAddress?.address?.pinCode}
+                    <br />
+                    {order?.deliveredAddress?.address?.state}
+                  </p>
+                  {order?.deliveredAddress?.address?.landmark && (
+                    <p className="text-xs text-gray-400 mt-2 italic">
+                      Landmark: {order?.deliveredAddress?.address?.landmark}
+                    </p>
+                  )}
+                  <p className="text-sm font-medium text-gray-900 mt-2">
+                    📞 {order?.deliveredAddress?.phone}
+                  </p>
+                </div>
+
+                {/* Map Navigation Button */}
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                    `${order?.deliveredAddress?.address?.houseNumber} ${order?.deliveredAddress?.address?.street} ${order?.deliveredAddress?.address?.city} ${order?.deliveredAddress?.address?.pinCode}`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 flex items-center justify-center gap-2 w-full py-2 bg-white border border-[var(--secondary)] text-[var(--primary)] rounded-lg text-xs font-bold hover:bg-[var(--primary)] hover:text-white transition-all shadow-sm"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  Navigate on Maps
+                </a>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Customer Information */}
+        {/* Customer Information */}
         {order?.userId && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">
-              Customer Details
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-500">Customer Name</p>
-                <p className="font-medium text-gray-900">
-                  {order?.userId.name || "-"}
-                </p>
+          <div className="bg-[var(--background)] rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-6">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-3">
+                <div className="p-2 bg-[var(--status-info-bg)] rounded-lg">
+                  <svg
+                    className="w-5 h-5 text-[var(--status-info-text)]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-bold text-[var(--foreground)]">
+                  Customer Details
+                </h2>
               </div>
-              <div>
-                <p className="text-sm text-gray-500">Email ID</p>
-                <p className="font-medium text-gray-900">
-                  {order?.userId.email || "-"}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">
-                  Registered Mobile Number
-                </p>
-                <p className="font-medium text-gray-900">
-                  {order?.userId.phone || order?.userId.mobile || "-"}
-                </p>
-              </div>
-              {order?.delivery_address &&
-                Object.keys(order?.delivery_address).length > 0 && (
-                  <div className="md:col-span-2">
-                    <p className="text-sm text-gray-500 mb-1">
-                      Delivery Address
-                    </p>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900">
-                        {Object.values(order?.delivery_address)
-                          .filter(Boolean)
-                          .join(", ")}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Name */}
+                <div className="group">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                    Customer Name
+                  </p>
+                  <p className="font-bold text-gray-900 group-hover:text-[var(--primary)] transition-colors italic">
+                    {order?.userId.name || "Anonymous User"}
+                  </p>
+                </div>
+
+                {/* Email */}
+                <div className="group">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                    Email ID
+                  </p>
+                  <a
+                    href={`mailto:${order?.userId.email}`}
+                    className="text-sm font-medium text-[var(--status-info-text)] hover:underline flex items-center gap-1"
+                  >
+                    {order?.userId.email || "No email provided"}
+                    {order?.userId.email && (
+                      <svg
+                        className="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                    )}
+                  </a>
+                </div>
+
+                {/* Phone */}
+                <div className="group">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                    Mobile Number
+                  </p>
+                  <a
+                    href={`tel:${order?.userId.phone || order?.userId.mobile}`}
+                    className="text-sm font-bold text-gray-900 hover:text-[var(--primary)] flex items-center gap-1"
+                  >
+                    {order?.userId.phone || order?.userId.mobile || "N/A"}
+                    <span className="text-[10px] px-1.5 py-0.5 bg-[var(--status-success-bg)] text-[var(--status-success-text)] rounded ml-2">
+                      Verified
+                    </span>
+                  </a>
+                </div>
+
+                {/* Delivery Address (Secondary Check) */}
+                {order?.delivery_address &&
+                  Object.keys(order?.delivery_address).length > 0 && (
+                    <div className="md:col-span-2 lg:col-span-3 mt-2">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                        Primary Shipping Reference
                       </p>
+                      <div className="p-4 bg-gray-50 border border-dashed border-gray-200 rounded-xl flex items-start gap-3">
+                        <svg
+                          className="w-5 h-5 text-gray-400 mt-0.5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                          />
+                        </svg>
+                        <p className="text-sm text-gray-600 leading-relaxed italic">
+                          {Object.values(order?.delivery_address)
+                            .filter(Boolean)
+                            .join(", ")}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+              </div>
             </div>
+
+            {/* Subtle footer accent */}
+            <div className="h-1 w-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] opacity-20"></div>
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">
+        {/* Prescription Management */}
+        <div className="bg-[var(--background)] rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
+          <h2 className="text-xl font-bold mb-6 text-[var(--foreground)] border-b border-gray-100 pb-3">
             Prescription Management
           </h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
+
+          <div className="space-y-6">
+            {/* Status and Action Header */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
               <div>
-                <p className="text-sm text-gray-500">Prescription Status</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                  Current Status
+                </p>
                 <div className="mt-1">
                   {getPrescriptionStatusBadge(order?.prescription_status)}
                 </div>
               </div>
-              {order?.isPrescriptionRequired  && (
-                <div className="flex gap-2">
+
+              {order?.isPrescriptionRequired && (
+                <div className="flex gap-3 w-full sm:w-auto">
                   <button
                     onClick={handleApprovePrescription}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                    className="flex-1 sm:flex-none px-6 py-2.5 bg-[var(--primary)] text-white text-sm font-bold rounded-lg hover:opacity-90 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
                   >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
                     Approve
                   </button>
                   <button
                     onClick={() => setShowRejectModal(true)}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                    className="flex-1 sm:flex-none px-6 py-2.5 bg-white border-2 border-[var(--status-danger-text)] text-[var(--status-danger-text)] text-sm font-bold rounded-lg hover:bg-[var(--status-danger-bg)] transition-all flex items-center justify-center gap-2"
                   >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
                     Reject
                   </button>
                 </div>
               )}
             </div>
 
-          {order?.prescription_url && order.prescription_url.length > 0 && (
-  <div className="bg-[var(--background)] rounded-xl border border-gray-100 p-6 shadow-sm mt-6">
-    <div className="flex items-center gap-2 mb-4">
-      <div className="p-2 bg-[var(--status-purple-bg)] rounded-lg">
-        <svg className="w-5 h-5 text-[var(--status-purple-text)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-      </div>
-      <h3 className="font-bold text-gray-900">Medical Prescriptions</h3>
-    </div>
-
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {order.prescription_url.map((url: string, idx: number) => {
-        const isPdf = url.toLowerCase().endsWith(".pdf");
-
-        return (
-          <div key={idx} className="group relative border border-gray-100 rounded-xl overflow-hidden bg-gray-50 hover:border-[var(--secondary)] transition-all">
-            {isPdf ? (
-              /* PDF UI */
-              <div className="flex flex-col items-center justify-center p-8 h-48">
-                <div className="text-[var(--status-danger-text)] mb-3">
-                   <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A1 1 0 0111.293 2.707l3 3a1 1 0 01.293.707V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" /></svg>
-                </div>
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-[var(--primary)] hover:text-white transition-colors shadow-sm"
-                >
-                  View Prescription PDF
-                </a>
-              </div>
-            ) : (
-              /* Image UI */
-              <div className="relative h-48 w-full group">
-                <img
-                  src={url}
-                  alt={`Prescription ${idx + 1}`}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <a
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 bg-white rounded-full text-gray-900 shadow-xl scale-90 group-hover:scale-100 transition-transform"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            {/* Prescription Documents Grid */}
+            {order?.prescription_url && order.prescription_url.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-[var(--status-purple-bg)] rounded-md">
+                    <svg
+                      className="w-4 h-4 text-[var(--status-purple-text)]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 00-2 2z"
+                      />
                     </svg>
-                  </a>
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-700 uppercase tracking-tight">
+                    Attached Documents
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {order.prescription_url.map((url: string, idx: number) => {
+                    const isPdf = url.toLowerCase().endsWith(".pdf");
+                    return (
+                      <div
+                        key={idx}
+                        className="group relative border border-gray-200 rounded-xl overflow-hidden bg-white hover:border-[var(--secondary)] transition-all shadow-sm"
+                      >
+                        {isPdf ? (
+                          <div className="flex flex-col items-center justify-center p-6 h-40 bg-gray-50">
+                            <svg
+                              className="w-10 h-10 text-[var(--status-danger-text)] mb-2"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path d="M4 4a2 2 0 012-2h4.586A1 1 0 0111.293 2.707l3 3a1 1 0 01.293.707V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                            </svg>
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs font-bold text-[var(--primary)] hover:underline"
+                            >
+                              VIEW PDF
+                            </a>
+                          </div>
+                        ) : (
+                          <div className="relative h-40 w-full">
+                            <img
+                              src={url}
+                              alt={`Prescription ${idx + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                            >
+                              <span className="bg-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+                                View Image
+                              </span>
+                            </a>
+                          </div>
+                        )}
+                        <div className="p-2.5 bg-white border-t border-gray-100 text-center">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase">
+                            Page {idx + 1}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
-            <div className="p-3 bg-white border-t border-gray-100 flex justify-between items-center">
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Document {idx + 1}</span>
-                </div>
-          </div>
-        );
-      })}
-    </div>
-  </div>
-)}
+
+            {/* Rejection Notes */}
             {order?.prescription_rejection_reason && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-sm font-semibold text-red-900 mb-1">
-                  Rejection Reason:
-                </p>
-                <p className="text-red-800">
+              <div className="bg-[var(--status-danger-bg)] border-l-4 border-[var(--status-danger-text)] rounded-r-lg p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <svg
+                    className="w-4 h-4 text-[var(--status-danger-text)]"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <p className="text-xs font-black text-[var(--status-danger-text)] uppercase tracking-widest">
+                    Rejection Reason
+                  </p>
+                </div>
+                <p className="text-sm text-[var(--status-danger-text)] font-medium leading-relaxed">
                   {order?.prescription_rejection_reason}
                 </p>
               </div>
             )}
 
+            {/* Approval Notes */}
             {order?.prescription_approval_notes && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-sm font-semibold text-green-900 mb-1">
-                  Approval Notes:
-                </p>
-                <p className="text-green-800">
+              <div className="bg-[var(--status-success-bg)] border-l-4 border-[var(--status-success-text)] rounded-r-lg p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <svg
+                    className="w-4 h-4 text-[var(--status-success-text)]"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <p className="text-xs font-black text-[var(--status-success-text)] uppercase tracking-widest">
+                    Approval Notes
+                  </p>
+                </div>
+                <p className="text-sm text-[var(--status-success-text)] font-medium leading-relaxed">
                   {order?.prescription_approval_notes}
                 </p>
               </div>
             )}
-
-        
           </div>
         </div>
 
-  {/* Order Items */}
-<div className="bg-[var(--background)] rounded-xl shadow-sm border border-gray-100 p-6">
-  <h2 className="text-xl font-bold mb-5 text-[var(--foreground)] border-b border-gray-100 pb-3 flex justify-between items-center">
-    Items in Order 
-    <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium">
-      {order?.medicineId?.length || 0} {order?.medicineId?.length === 1 ? 'item' : 'items'}
-    </span>
-  </h2>
+        {/* Order Items */}
+        <div className="bg-[var(--background)] rounded-xl shadow-sm border border-gray-100 p-6">
+          <h2 className="text-xl font-bold mb-5 text-[var(--foreground)] border-b border-gray-100 pb-3 flex justify-between items-center">
+            Items in Order
+            <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium">
+              {order?.medicineId?.length || 0}{" "}
+              {order?.medicineId?.length === 1 ? "item" : "items"}
+            </span>
+          </h2>
 
-  {order?.coupon_code && (
-    <div className="mb-6 p-4 bg-[var(--status-success-bg)] border border-[var(--secondary)]/20 rounded-xl flex items-center gap-2">
-      <div className="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse" />
-      <p className="text-sm text-[var(--status-success-text)]">
-        <span className="font-bold uppercase tracking-wider">Coupon Applied:</span>{" "}
-        <span className="font-mono bg-white/50 px-2 py-0.5 rounded border border-[var(--primary)]/10">
-          {order?.coupon_code}
-        </span>
-      </p>
-    </div>
-  )}
+          {order?.coupon_code && (
+            <div className="mb-6 p-4 bg-[var(--status-success-bg)] border border-[var(--secondary)]/20 rounded-xl flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse" />
+              <p className="text-sm text-[var(--status-success-text)]">
+                <span className="font-bold uppercase tracking-wider">
+                  Coupon Applied:
+                </span>{" "}
+                <span className="font-mono bg-white/50 px-2 py-0.5 rounded border border-[var(--primary)]/10">
+                  {order?.coupon_code}
+                </span>
+              </p>
+            </div>
+          )}
 
-  <div className="space-y-4">
-    {order?.medicineId && order?.medicineId.length > 0 ? (
-      order?.medicineId.map((medicine: any, index: number) => (
-        <div
-          key={index}
-          className="group flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border border-gray-100 rounded-xl transition-all duration-200 hover:border-[var(--secondary)]/30 hover:shadow-md hover:bg-gray-50/50"
-        >
-          {/* Image Container */}
-          <div className="shrink-0 mx-auto sm:mx-0">
-            {medicine.coverImage || (medicine.images && medicine.images[0]) ? (
-              <div className="ring-1 ring-gray-100 rounded-lg overflow-hidden group-hover:ring-[var(--secondary)]/30 transition-all">
-                <CustomImage
-                  coverImage={medicine.coverImage || medicine.images[0]}
-                  images={medicine.images || []}
-                  alt={medicine.name}
-                  style={{
-                    height: 80,
-                    width: 80,
-                    objectFit: "cover",
-                  }}
-                />
-              </div>
+          <div className="space-y-4">
+            {order?.medicineId && order?.medicineId.length > 0 ? (
+              order?.medicineId.map((medicine: any, index: number) => (
+                <div
+                  key={index}
+                  onClick={() => medidetails(medicine._id)}
+                  className="group flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border border-gray-100 rounded-xl transition-all duration-200 hover:border-[var(--secondary)]/30 hover:shadow-md hover:bg-gray-50/50"
+                >
+                  {/* Image Container */}
+                  <div className="shrink-0 mx-auto sm:mx-0">
+                    {medicine.coverImage ||
+                    (medicine.images && medicine.images[0]) ? (
+                      <div className="ring-1 ring-gray-100 rounded-lg overflow-hidden group-hover:ring-[var(--secondary)]/30 transition-all">
+                        <CustomImage
+                          coverImage={medicine.coverImage || medicine.images[0]}
+                          images={medicine.images || []}
+                          alt={medicine.name}
+                          style={{
+                            height: 80,
+                            width: 80,
+                            objectFit: "cover",
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-20 h-20 bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center">
+                        <span className="text-gray-400 text-[10px] font-medium uppercase">
+                          No Image
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Product Info */}
+                  <div className="flex-1 space-y-1 text-center sm:text-left">
+                    <h3 className="font-bold text-gray-900 group-hover:text-[var(--primary)] transition-colors">
+                      {medicine.name}
+                    </h3>
+                    <p className="text-xs font-medium text-gray-400 uppercase tracking-tight">
+                      {medicine.manufacturer || "Unknown Manufacturer"}
+                    </p>
+                    <div className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-[var(--status-info-bg)] text-[var(--status-info-text)] mt-2">
+                      Qty: {medicine.quantity || 1}
+                    </div>
+                  </div>
+
+                  {/* Pricing Section */}
+                  <div className="w-full sm:w-auto text-center sm:text-right pt-4 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+                    <div className="flex flex-row sm:flex-col justify-between items-center sm:items-end gap-1">
+                      <div>
+                        <p className="text-[10px] text-gray-400 uppercase font-bold">
+                          Price per unit
+                        </p>
+                        <div className="flex items-center gap-2 sm:justify-end">
+                          <span className="text-sm text-gray-400 line-through">
+                            ₹{medicine.mrp?.toFixed(2)}
+                          </span>
+                          <span className="font-bold text-[var(--foreground)]">
+                            ₹{medicine.price?.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="sm:mt-3">
+                        <p className="text-[10px] text-[var(--primary)] uppercase font-bold">
+                          Subtotal
+                        </p>
+                        <p className="text-lg font-black text-[var(--primary)]">
+                          ₹{calculateItemSubtotal(medicine).toFixed(2)}
+                        </p>
+                        {medicine.discount > 0 && (
+                          <span className="inline-block px-2 py-0.5 bg-[var(--status-success-bg)] text-[var(--status-success-text)] text-[10px] font-bold rounded uppercase">
+                            {medicine.discount}% Saved
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
             ) : (
-              <div className="w-20 h-20 bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center">
-                <span className="text-gray-400 text-[10px] font-medium uppercase">No Image</span>
+              <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                <p className="text-gray-400 font-medium">
+                  No items found in this order
+                </p>
               </div>
             )}
           </div>
-
-          {/* Product Info */}
-          <div className="flex-1 space-y-1 text-center sm:text-left">
-            <h3 className="font-bold text-gray-900 group-hover:text-[var(--primary)] transition-colors">
-              {medicine.name}
-            </h3>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-tight">
-              {medicine.manufacturer || "Unknown Manufacturer"}
-            </p>
-            <div className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-[var(--status-info-bg)] text-[var(--status-info-text)] mt-2">
-              Qty: {medicine.quantity || 1}
-            </div>
-          </div>
-
-          {/* Pricing Section */}
-          <div className="w-full sm:w-auto text-center sm:text-right pt-4 sm:pt-0 border-t sm:border-t-0 border-gray-100">
-            <div className="flex flex-row sm:flex-col justify-between items-center sm:items-end gap-1">
-               <div>
-                  <p className="text-[10px] text-gray-400 uppercase font-bold">Price per unit</p>
-                  <div className="flex items-center gap-2 sm:justify-end">
-                    <span className="text-sm text-gray-400 line-through">₹{medicine.mrp?.toFixed(2)}</span>
-                    <span className="font-bold text-[var(--foreground)]">₹{medicine.price?.toFixed(2)}</span>
-                  </div>
-               </div>
-               
-               <div className="sm:mt-3">
-                  <p className="text-[10px] text-[var(--primary)] uppercase font-bold">Subtotal</p>
-                  <p className="text-lg font-black text-[var(--primary)]">
-                    ₹{calculateItemSubtotal(medicine).toFixed(2)}
-                  </p>
-                  {medicine.discount > 0 && (
-                    <span className="inline-block px-2 py-0.5 bg-[var(--status-success-bg)] text-[var(--status-success-text)] text-[10px] font-bold rounded uppercase">
-                      {medicine.discount}% Saved
-                    </span>
-                  )}
-               </div>
-            </div>
-          </div>
         </div>
-      ))
-    ) : (
-      <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-        <p className="text-gray-400 font-medium">No items found in this order</p>
-      </div>
-    )}
-  </div>
-</div>
 
         {/* Order Amount Summary */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">
+        <div className="bg-[var(--background)] rounded-xl shadow-sm border border-gray-100 p-6">
+          <h2 className="text-xl font-bold mb-6 text-[var(--foreground)] border-b border-gray-100 pb-3">
             Order Amount Summary
           </h2>
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Total MRP</span>
-              <span className="font-medium">
+
+          <div className="space-y-4">
+            {/* Line Items */}
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-500 font-medium">
+                Total MRP
+              </span>
+              <span className="text-sm font-bold text-gray-900">
                 ₹{calculateTotalMRP().toFixed(2)}
               </span>
             </div>
-            <div className="flex justify-between text-green-600">
-              <span>Total Discount</span>
-              <span className="font-medium">
+
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500 font-medium">
+                  Total Discount
+                </span>
+                <span className="text-[10px] px-2 py-0.5 bg-[var(--status-success-bg)] text-[var(--status-success-text)] font-bold rounded-full uppercase tracking-tighter">
+                  Savings
+                </span>
+              </div>
+              <span className="text-sm font-bold text-[var(--primary)]">
                 -₹{calculateTotalDiscount().toFixed(2)}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Subtotal (After Discount)</span>
-              <span className="font-medium">
+
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-500 font-medium">
+                Subtotal
+              </span>
+              <span className="text-sm font-bold text-gray-900">
                 ₹{order?.actual_amount?.toFixed(2) || "0.00"}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Delivery Charges</span>
-              <span className="font-medium">
+
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-500 font-medium">
+                Delivery Charges
+              </span>
+              <span
+                className={`text-sm font-bold ${
+                  order?.delivery_charges > 0
+                    ? "text-gray-900"
+                    : "text-[var(--primary)]"
+                }`}
+              >
                 {order?.delivery_charges !== undefined &&
                 order?.delivery_charges > 0
                   ? `₹${order?.delivery_charges?.toFixed(2)}`
                   : "FREE"}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Platform Fee</span>
-              <span className="font-medium">
+
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-500 font-medium">
+                Platform Fee
+              </span>
+              <span className="text-sm font-bold text-gray-900">
                 ₹{order?.platform_fee?.toFixed(2) || "0.00"}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Taxes (GST)</span>
-              <span className="font-medium">
-                ₹{order?.user_total_tax_charged?.toFixed(2) || "0.00"}
-              </span>
+
+            {/* Divider */}
+            <div className="border-t border-dashed border-gray-200 my-2"></div>
+
+            {/* Grand Total */}
+            <div className="flex justify-between items-center pt-2">
+              <div>
+                <p className="text-lg font-black text-gray-900">
+                  Final Payable
+                </p>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                  Inclusive of all taxes
+                </p>
+              </div>
+              <div className="text-right">
+                <span className="text-2xl font-black text-[var(--primary)]">
+                  ₹{order?.total_order_amount?.toFixed(2) || "0.00"}
+                </span>
+              </div>
             </div>
-            <div className="border-t pt-3 flex justify-between text-lg font-semibold">
-              <span>Final Payable Amount</span>
-              <span className="text-green-600">
-                ₹{order?.total_order_amount?.toFixed(2) || "0.00"}
-              </span>
+
+            {/* Payment Status Footer */}
+            <div
+              className={`mt-4 p-3 rounded-lg text-center text-xs font-bold uppercase tracking-widest border ${
+                order?.payment_status === "paid"
+                  ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--primary)]/20"
+                  : "bg-[var(--status-pending-bg)] text-[var(--status-pending-text)] border-[var(--status-pending-text)]/10"
+              }`}
+            >
+              {order?.payment_status === "paid"
+                ? "✨ Payment Received"
+                : "⌛ Awaiting Payment"}
             </div>
           </div>
         </div>
@@ -669,11 +980,12 @@ export default function OrderDetailPage() {
         PaperProps={{
           sx: {
             overflow: "visible",
-            borderRadius: 2,
+            borderRadius: "16px", // Softer, modern corners
+            padding: "8px",
           },
         }}
       >
-        <DialogTitle sx={{ p: 2 }}>
+        <DialogTitle sx={{ p: 2, pb: 1 }}>
           <ModalHeader
             title="Reject Prescription"
             onClose={() => {
@@ -682,27 +994,53 @@ export default function OrderDetailPage() {
             }}
           />
         </DialogTitle>
+
         <DialogContent sx={{ overflow: "visible" }}>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            Please provide a reason for rejecting this prescription. The
-            customer will be notified and can re-upload a new prescription.
-          </Typography>
+          <div className="bg-[var(--status-danger-bg)] p-3 rounded-lg mb-4 border border-[var(--status-danger-text)]/10">
+            <p className="text-xs font-semibold text-[var(--status-danger-text)] leading-relaxed">
+              <span className="font-bold">⚠️ Notice:</span> Please provide a
+              clear reason for rejection. This message will be sent directly to
+              the customer to help them correct their upload.
+            </p>
+          </div>
+
           <TextField
             multiline
             minRows={4}
             fullWidth
+            autoFocus
             value={rejectionReason}
             onChange={(e) => setRejectionReason(e.target.value)}
-            placeholder="Enter rejection reason..."
+            placeholder="e.g., The prescription has expired or the doctor's signature is not visible..."
             variant="outlined"
             margin="normal"
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+                fontSize: "0.9rem",
+                "&.Mui-focused fieldset": {
+                  borderColor: "var(--status-danger-text)", // Brand-danger color for focus
+                },
+              },
+              "& .MuiInputBase-input::placeholder": {
+                fontSize: "0.85rem",
+                opacity: 0.6,
+              },
+            }}
           />
         </DialogContent>
-        <DialogActions>
+
+        <DialogActions sx={{ p: 3, pt: 1, gap: 1 }}>
           <Button
             onClick={() => {
               setShowRejectModal(false);
               setRejectionReason("");
+            }}
+            sx={{
+              color: "gray",
+              fontWeight: "bold",
+              textTransform: "none",
+              "&:hover": { backgroundColor: "#f5f5f5" },
             }}
           >
             Cancel
@@ -710,12 +1048,27 @@ export default function OrderDetailPage() {
           <Button
             onClick={handleRejectPrescription}
             variant="contained"
-            color="error"
+            disabled={!rejectionReason.trim()} // Prevent accidental empty rejections
+            sx={{
+              backgroundColor: "var(--status-danger-text)",
+              textTransform: "none",
+              fontWeight: "bold",
+              borderRadius: "8px",
+              px: 4,
+              "&:hover": {
+                backgroundColor: "#7f1d1d", // Slightly darker than danger text
+                boxShadow: "0 4px 12px rgba(153, 27, 27, 0.2)",
+              },
+              "&.Mui-disabled": {
+                backgroundColor: "#f3f4f6",
+                color: "#9ca3af",
+              },
+            }}
           >
-            Reject
-          </Button> 
-        </DialogActions> 
-      </Dialog> 
+            Reject Document
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
