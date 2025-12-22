@@ -12,6 +12,7 @@ interface Order {
     name: string;
     email: string;
     phone?: string;
+    mobile?: string;
   };
   total_order_amount: number;
   payment_status: string;
@@ -92,10 +93,12 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       label: "Customer",
       minWidth: 150,
       selector: (row: Order) => (
-        <div>
-          <CustomTooltip title={row.userId?.name || "-"}>
+        <div onClick={() => router.push(`/dashboard/admin/customers/${row.userId?._id}`)}
+          className="cursor-pointer "
+        >
+          <CustomTooltip title={row.userId?.mobile || row.userId?.phone || "-"}>
             <div className="font-medium text-gray-900 customTooltip">
-              {row.userId?.name || "-"}
+              {row.userId?.mobile || row.userId?.phone || "-"}
             </div>
           </CustomTooltip>
           <CustomTooltip title={row.userId?.email || "-"}>
