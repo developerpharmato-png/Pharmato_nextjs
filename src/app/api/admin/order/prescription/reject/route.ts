@@ -72,8 +72,6 @@ export async function POST(req: NextRequest) {
         if (prescription_url && typeof prescription_url === 'string') {
             order.prescription_url = prescription_url;
         }
-        // Update order status to require re-upload
-        order.order_status = 'Prescription Re-upload Required';
 
         await order.save();
 
@@ -87,9 +85,12 @@ export async function POST(req: NextRequest) {
                     title: 'Prescription Rejected',
                     message: `Your prescription for order ${order.order_id} was rejected. Reason: ${rejectionReason}`,
                     type: 'prescription_rejected',
-                    targetScreen: 'orders/detail',
+                    targetScreen: 'orders/detail/prescription_reupload',
                     targetId: order._id.toString(),
-                    meta: { orderId: order._id.toString() }
+                    meta: {
+                        orderId: order._id.toString(),
+                        rejectionReason
+                    }
                 });
             }
         } catch (notifErr) {
