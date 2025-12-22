@@ -27,6 +27,9 @@ import mongoose from 'mongoose';
  *                     items:
  *                       type: string
  *                 description: URL or array of URLs of the uploaded prescription image/pdf
+ *             example:
+ *               orderId: "string"
+ *               url: ["string", "string"]
  *     responses:
  *       200:
  *         description: Prescription re-uploaded successfully
