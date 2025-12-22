@@ -85,8 +85,11 @@ export async function POST(req: NextRequest) {
             userId: user._id.toString(),
             role: 'customer',
             title: 'Email Updated',
-            message: 'Your email has been updated successfully.',
+            message: `Your email has been updated from ${user.email} to ${email}.`,
             type: 'email-update',
+            targetScreen: 'account',
+            targetId: user._id.toString(),
+            meta: { oldEmail: user.email, newEmail: email },
             isRead: false,
             createdAt: new Date(),
         });

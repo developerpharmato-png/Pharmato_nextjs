@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
     if (user.otp !== otp || !user.otpExpires || user.otpExpires < new Date()) {
         return NextResponse.json({ success: false, message: 'Invalid or expired OTP' }, { status: 400 });
     }
+    const oldMobile = user.mobile;
     user.mobile = mobile;
     user.countryCode = countryCode;
     user.otp = undefined;
@@ -90,8 +91,11 @@ export async function POST(req: NextRequest) {
             userId: user._id.toString(),
             role: 'customer',
             title: 'Mobile Number Updated',
-            message: 'Your mobile number has been updated successfully.',
+            message: `Your mobile number has been updated from ${oldMobile} to ${mobile}.`,
             type: 'mobile-update',
+            targetScreen: 'account',
+            targetId: user._id.toString(),
+            meta: { oldMobile, newMobile: mobile },
             isRead: false,
             createdAt: new Date(),
         });
