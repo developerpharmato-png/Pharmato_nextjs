@@ -72,8 +72,6 @@ export async function POST(req: NextRequest) {
         if (prescription_url && typeof prescription_url === 'string') {
             order.prescription_url = prescription_url;
         }
-        // Update order status to require re-upload
-        order.order_status = 'Prescription Re-upload Required';
 
         await order.save();
 
