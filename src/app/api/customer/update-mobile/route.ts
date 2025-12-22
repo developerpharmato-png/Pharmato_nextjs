@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import User from '@/models/User';
 import dbConnect from '@/lib/mongodb';
+import { sendPushNotification } from '@/utils/firebase.helper';
 
 /**
  * @swagger
@@ -68,5 +69,35 @@ export async function POST(req: NextRequest) {
     user.otp = undefined;
     user.otpExpires = undefined;
     await user.save();
+
+    // Send notification if deviceToken exists
+    if (user.deviceToken) {
+        try {
+            await sendPushNotification({
+                token: user.deviceToken,
+                title: 'Pharmato',
+                body: 'Your mobile number has been updated successfully.'
+            });
+        } catch (err) {
+            console.error('Failed to send notification:', err);
+        }
+    }
+
+    // Create in-app notification
+    try {
+        const Notification = (await import('@/models/Notification')).default;
+        await Notification.create({
+            userId: user._id.toString(),
+            role: 'customer',
+            title: 'Mobile Number Updated',
+            message: 'Your mobile number has been updated successfully.',
+            type: 'mobile-update',
+            isRead: false,
+            createdAt: new Date(),
+        });
+    } catch (err) {
+        console.error('Failed to create mobile update notification:', err);
+    }
+
     return NextResponse.json({ success: true, message: 'Mobile Number Updated Successfully.' });
 }
