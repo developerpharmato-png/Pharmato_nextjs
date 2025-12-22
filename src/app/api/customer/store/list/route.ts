@@ -58,8 +58,8 @@ import authorize from '@/middleware/authorize';
  *         name: accessToken
  *         schema:
  *           type: string
- *         required: true
- *         description: Access token (send `accessToken` header)
+ *         required: false
+ *         description: Access token (send `accessToken` header, optional)
  *       - in: header
  *         name: refreshToken
  *         schema:
