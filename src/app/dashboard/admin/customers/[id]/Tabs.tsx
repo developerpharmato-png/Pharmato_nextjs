@@ -375,12 +375,7 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
               {!loading && customer && (
                 <div className="mb-4 p-4 bg-gray-50 rounded-lg">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-600">Customer:</span>{" "}
-                      <span className="font-medium">
-                        {customer.name || customer.email || "-"}
-                      </span>
-                    </div>
+                    
                     <div>
                       <span className="text-gray-600">Email:</span>{" "}
                       <span className="font-medium">
