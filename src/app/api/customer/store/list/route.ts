@@ -69,9 +69,9 @@ import authorize from '@/middleware/authorize';
  */
 
 export async function POST(req: NextRequest) {
-    // authorize customer (checks Authorization header or access_token cookie)
-    const authRes = await authorize(req);
-    if (authRes) return authRes;
+    // // authorize customer (checks Authorization header or access_token cookie)
+    // const authRes = await authorize(req);
+    // if (authRes) return authRes;
 
     await dbConnect();
     const { limit = 10, offset = 0, search = "" } = await req.json();

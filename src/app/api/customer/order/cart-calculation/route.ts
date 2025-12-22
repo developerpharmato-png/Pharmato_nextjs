@@ -171,19 +171,19 @@ export async function POST(req: NextRequest) {
     const mrpTotalSum = cartData.reduce((sum, item) => sum + (item.medicine.mrp * item.quantity), 0);
     const platformFee = Number(calculationData.platformFeeInRupees) + (Number(calculationData.platformFeeInRupees) * Number(calculationData.platformFeeGstInPercent)) / 100;
     calculationData.priceTotalSumBeforeDiscount = priceTotalSumBeforeDiscount;
-    calculationData.mrpTotalSum = mrpTotalSum;
-    calculationData.platformFee = platformFee;
-    calculationData.discount = discountValue;
+    calculationData.mrpTotalSum = mrpTotalSum.toFixed(2);
+    calculationData.platformFee = platformFee.toFixed(2);
+    calculationData.discount = discountValue.toFixed(2);
     // Apply discount to priceTotalSum
     const priceTotalSumAfterDiscount = Math.max(0, priceTotalSumBeforeDiscount - discountValue);
-    calculationData.priceTotalSumAfterDiscount = priceTotalSumAfterDiscount;
+    calculationData.priceTotalSumAfterDiscount = priceTotalSumAfterDiscount.toFixed(2);
     const userTotalCharged = priceTotalSumAfterDiscount + platformFee;
     const razorPayCommissionAmount = (userTotalCharged * Number(calculationData.razorPayCommissionInPercent)) / 100;
     const razorPayCommissionGstAmount = (razorPayCommissionAmount * Number(calculationData.razorPayCommissionGstInPercent)) / 100;
-    calculationData.razorPayCommissionAmount = razorPayCommissionAmount;
+    calculationData.razorPayCommissionAmount = razorPayCommissionAmount.toFixed(2);
     calculationData.razorPayCommissionGstAmount = razorPayCommissionGstAmount;
     let totalOrderAmount = userTotalCharged + razorPayCommissionAmount + razorPayCommissionGstAmount;
-    calculationData.totalOrderAmount = totalOrderAmount;
+    calculationData.totalOrderAmount = totalOrderAmount.toFixed(2);
     calculationData.medicineId = medicineId;
     calculationData.medicineQuantity = medicineQuantity;
 
