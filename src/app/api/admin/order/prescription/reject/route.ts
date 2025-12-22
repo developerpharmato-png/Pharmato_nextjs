@@ -5,6 +5,7 @@ import Notification from '@/models/Notification';
 import { sendEmail } from '@/utils/sendEmail';
 import fs from 'fs';
 import path from 'path';
+import { sendPushNotification } from '@/utils/firebase.helper';
 
 /**
  * @swagger
@@ -43,10 +44,10 @@ import path from 'path';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    
+
     try {
         const { orderId, adminId, rejectionReason, prescription_url } = await req.json();
-        
+
         if (!orderId || !adminId || !rejectionReason) {
             return NextResponse.json(
                 { success: false, message: 'orderId, adminId, and rejectionReason are required' },
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
         }
 
         const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id name email mobile phone' });
-        
+
         if (!order) {
             return NextResponse.json(
                 { success: false, message: 'Order not found' },
@@ -86,13 +87,27 @@ export async function POST(req: NextRequest) {
                     title: 'Prescription Rejected',
                     message: `Your prescription for order ${order.order_id} was rejected. Reason: ${rejectionReason}`,
                     type: 'prescription_rejected',
-                    targetScreen: 'orders',
+                    targetScreen: 'orders/detail',
                     targetId: order._id.toString(),
                     meta: { orderId: order._id.toString() }
                 });
             }
         } catch (notifErr) {
             console.error('Notification create error:', notifErr);
+        }
+
+        // Send notification if deviceToken exists
+        const user = order.userId;
+        if (user && user.deviceToken) {
+            try {
+                await sendPushNotification({
+                    token: user.deviceToken,
+                    title: 'Pharmato',
+                    body: `Your prescription for order ${order.order_id} has been rejected.`
+                });
+            } catch (err) {
+                console.error('Failed to send notification:', err);
+            }
         }
 
         // Send email to customer if email available using template
@@ -129,8 +144,8 @@ export async function POST(req: NextRequest) {
             console.error('Email send error on reject:', emailErr);
         }
 
-        return NextResponse.json({ 
-            success: true, 
+        return NextResponse.json({
+            success: true,
             message: 'Prescription rejected successfully',
             data: order
         });

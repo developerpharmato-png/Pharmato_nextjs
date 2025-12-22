@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
 import Notification from '@/models/Notification';
 import { sendEmail } from '@/utils/sendEmail';
+import { sendPushNotification } from '@/utils/firebase.helper';
 import fs from 'fs';
 import path from 'path';
 
@@ -39,10 +40,10 @@ import path from 'path';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    
+
     try {
         const { orderId, adminId, approvalNotes } = await req.json();
-        
+
         if (!orderId || !adminId) {
             return NextResponse.json(
                 { success: false, message: 'orderId and adminId are required' },
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
         }
 
         const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id name email mobile phone' });
-        
+
         if (!order) {
             return NextResponse.json(
                 { success: false, message: 'Order not found' },
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
         order.prescription_approved_at = new Date();
         order.prescription_approval_notes = approvalNotes || '';
         order.prescription_rejection_reason = '';
-        
+
         // Update order status if it was in re-upload required state
         if (order.order_status === 'Prescription Re-upload Required') {
             order.order_status = 'Confirmed';
@@ -118,7 +119,7 @@ export async function POST(req: NextRequest) {
                     title: 'Prescription Approved',
                     message: `Your prescription for order ${order.order_id} was approved.`,
                     type: 'prescription_approved',
-                    targetScreen: 'orders',
+                    targetScreen: 'orders/detail',
                     targetId: order._id.toString(),
                     meta: { orderId: order._id.toString() }
                 });
@@ -127,8 +128,22 @@ export async function POST(req: NextRequest) {
             console.error('Notification create error (approve):', notifErr);
         }
 
-        return NextResponse.json({  
-            success: true, 
+        // Send notification if deviceToken exists
+        const user = order.userId;
+        if (user && user.deviceToken) {
+            try {
+                await sendPushNotification({
+                    token: user.deviceToken,
+                    title: 'Pharmato',
+                    body: `Your prescription for order ${order.order_id} has been approved.`
+                });
+            } catch (err) {
+                console.error('Failed to send notification:', err);
+            }
+        }
+
+        return NextResponse.json({
+            success: true,
             message: 'Prescription approved successfully',
             data: order,
             mail: mailRes,
