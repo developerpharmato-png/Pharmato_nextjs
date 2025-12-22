@@ -21,6 +21,8 @@ import Cart from '@/models/Cart';
  *                 type: string
  *               userId:
  *                 type: string
+ *               storeId:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Guest cart merged into user cart
@@ -40,19 +42,20 @@ export async function POST(request: NextRequest) {
     try {
         await connectDB();
         const body = await request.json();
-        const { guestId, userId } = body;
-        if (!guestId || !userId) {
+        const { guestId, userId, storeId } = body;
+        if (!guestId || !userId || !storeId) {
             return NextResponse.json({ success: false, message: 'Invalid input', data: null }, { status: 400 });
         }
-        const guestCart = await GuestCart.findOne({ guestId });
-        if (!guestCart || guestCart.items.length === 0) {
+        // Only merge guest cart for the given storeId
+        const guestCart = await GuestCart.findOne({ guestId, storeId });
+        if (!guestCart || !guestCart.items || guestCart.items.length === 0) {
             return NextResponse.json({ success: true, message: 'No items to merge', data: null });
         }
-        let userCart = await Cart.findOne({ userId });
+        let userCart = await Cart.findOne({ userId, storeId });
         if (!userCart) {
-            userCart = await Cart.create({ userId, items: [] });
+            userCart = await Cart.create({ userId, storeId, items: [] });
         }
-        // Merge logic: add/merge quantities
+        // Merge logic: add/merge quantities for this store only
         guestCart.items.forEach((guestItem: any) => {
             const userItemIndex = userCart.items.findIndex((item: any) => item.medicineId.toString() === guestItem.medicineId.toString());
             if (userItemIndex > -1) {
@@ -63,7 +66,8 @@ export async function POST(request: NextRequest) {
         });
         await userCart.save();
         await userCart.populate('items.medicineId');
-        await GuestCart.deleteOne({ guestId });
+        // Only delete the guest cart for this store
+        await GuestCart.deleteOne({ guestId, storeId });
         return NextResponse.json({ success: true, message: 'Guest cart merged into user cart', data: userCart });
     } catch (error) {
         let errorMessage = 'Error merging carts';

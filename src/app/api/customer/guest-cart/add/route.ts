@@ -19,6 +19,8 @@ import Medicine from '@/models/Medicine';
  *             properties:
  *               guestId:
  *                 type: string
+ *               storeId:
+ *                 type: string
  *               medicineId:
  *                 type: string
  *               quantity:
