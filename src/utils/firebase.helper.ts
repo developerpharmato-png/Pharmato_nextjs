@@ -3,12 +3,22 @@ import admin from 'firebase-admin';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || '{}');
+const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_JSON
+  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
+  : null;
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: process.env.FIREBASE_DATABASE_URL,
-});
+function initFirebase() {
+  if (!admin.apps.length) {
+    if (serviceAccount && typeof serviceAccount === 'object' && serviceAccount.project_id) {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount as any),
+        databaseURL: process.env.FIREBASE_DATABASE_URL,
+      });
+    } else {
+      console.warn('Firebase service account not configured - skipping initialization');
+    }
+  }
+}
 
 export async function sendPushNotification({
   token,
@@ -19,20 +29,22 @@ export async function sendPushNotification({
   title: string;
   body: string;
 }) {
+  initFirebase();
 
   const message = {
-    notification: {
-      "title": title,
-      "body": body
-    },
-    token: token,
+    notification: { title, body },
+    token,
   };
 
-  console.log('Notification sent successfully', message);
+  console.log('Notification payload', message);
 
+  if (!admin.apps.length) {
+    console.warn('Firebase not initialized; skipping sendPushNotification');
+    return;
+  }
 
   try {
-    await admin.messaging().send(message)
+    await admin.messaging().send(message);
     console.log('Notification sent successfully');
   } catch (error) {
     console.log('error', error);
@@ -52,28 +64,34 @@ export async function sendPushNotificationWithData({
   data: Record<string, any>;
 }) {
 
+  initFirebase();
+
   const message = {
-    notification: {
-      "title": title,
-      "body": body
-    },
-    token: token,
-    data: data
+    notification: { title, body },
+    token,
+    data,
   };
 
-  console.log('Notification sent successfully', message);
+  console.log('Notification payload', message);
 
+  if (!admin.apps.length) {
+    console.warn('Firebase not initialized; skipping sendPushNotificationWithData');
+    return;
+  }
 
   try {
-    await admin.messaging().send(message)
+    await admin.messaging().send(message);
     console.log('Notification sent successfully');
   } catch (error) {
     console.log('error', error);
-
   }
 
 }
 
-const db = admin.database();
+export function getDb() {
+  initFirebase();
+  if (!admin.apps.length) throw new Error('Firebase not configured');
+  return admin.database();
+}
 
-export { db };
+export { initFirebase };

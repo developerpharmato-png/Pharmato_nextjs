@@ -37,7 +37,7 @@ const UserSchema = new Schema<IUser>({
     deviceToken: { type: String },
     socialProvider: { type: String },
     socialId: { type: String },
-    isVerified: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: false }, 
     walletAmount: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },
     isDelete: { type: Boolean, default: false },

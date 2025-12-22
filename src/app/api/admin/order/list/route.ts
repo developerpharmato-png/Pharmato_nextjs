@@ -3,7 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
 // Ensure referenced models are registered for populate
 import '@/models/Medicine';
-import '@/models/User';
+import User from '@/models/User';
 import { log } from '@/lib/logger';
 
 /**
@@ -102,12 +102,35 @@ export async function POST(req: NextRequest) {
             query.userId = customerId;
         }
         
-        // Search by order_id or user details
+        // Search by order_id, payment_id, or user details (name/email/mobile)
         if (search && search.trim()) {
-            query.$or = [
-                { order_id: { $regex: search, $options: 'i' } },
-                { payment_id: { $regex: search, $options: 'i' } }
+            const regex = { $regex: search, $options: 'i' };
+
+            // base OR conditions for order fields
+            const orConditions: any[] = [
+                { order_id: regex },
+                { payment_id: regex }
             ];
+
+            // find users matching the search (name, email, mobile)
+            try {
+                const matchingUsers = await User.find({
+                    $or: [
+                        { name: regex },
+                        { email: regex },
+                        { mobile: regex }
+                    ]
+                }).select('_id').lean();
+
+                const userIds = Array.isArray(matchingUsers) ? matchingUsers.map(u => u._id) : [];
+                if (userIds.length > 0) {
+                    orConditions.push({ userId: { $in: userIds } });
+                }
+            } catch (e: any) {
+                log.error('AdminOrderList: user lookup failed', e?.message || e);
+            }
+
+            query.$or = orConditions;
         }
 
         // Get total count
@@ -121,7 +144,7 @@ export async function POST(req: NextRequest) {
             .limit(parsedLimit)
             .populate({
                 path: 'userId',
-                select: '_id name email phone'
+                select: '_id name email mobile'
             })
             .populate({
                 path: 'medicineId',

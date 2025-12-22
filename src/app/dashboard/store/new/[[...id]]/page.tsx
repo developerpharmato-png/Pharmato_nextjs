@@ -13,6 +13,7 @@ import {
   StoreManagersStore,
 } from "@/app/dashboard/storeAPICall/useUserStore";
 import {
+  PincodeActiveListPath,
   StoreManagersPath,
   StorePath,
 } from "@/app/dashboard/storeAPICall/API/BaseApi";
@@ -101,7 +102,7 @@ export default function AddStorePage() {
   React.useEffect(() => {
     async function fetchPincodes() {
       try {
-        const res = await axios.get("/api/admin/pincode");
+        const res = await axios.get(PincodeActiveListPath);
         setPincodes(res.data.data || []);
       } catch {
         setPincodes([]);

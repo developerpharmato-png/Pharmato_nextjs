@@ -24,3 +24,6 @@ export const MedicinesListPath = `/api/admin/medicines`;
 export const MedicinesStatusPath = `/api/admin/medicines/status`;
 export const MedicinesGetBYIDPath = `/api/admin/medicines/`;
 export const updaterelatedPath = `/api/medicines/update-related`;
+
+export const PincodeListPath = `/api/admin/pincode/list`;
+export const PincodeActiveListPath = `/api/admin/pincode/active-list`;
