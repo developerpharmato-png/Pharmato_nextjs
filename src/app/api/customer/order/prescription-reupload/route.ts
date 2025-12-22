@@ -51,8 +51,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, message: 'Invalid orderId' }, { status: 400 });
         }
 
-        const order = await Order.findById(orderId);
-        if (!order) {
+        const orderDoc = await Order.findById(orderId).lean();
+        if (!orderDoc) {
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
 
@@ -64,18 +64,111 @@ export async function POST(req: NextRequest) {
             prescriptionUrlArr = [url];
         }
 
-        order.prescription_url = prescriptionUrlArr;
-        order.prescription_status = 'Pending';
-        order.prescription_rejection_reason = '';
-        order.prescription_rejected_by = null;
-        order.prescription_rejected_at = undefined;
+        // Update order fields
+        const OrderModel = (await import('@/models/Order')).default;
+        await OrderModel.updateOne(
+            { _id: orderId },
+            {
+                $set: {
+                    prescription_url: prescriptionUrlArr,
+                    prescription_status: 'Pending',
+                    prescription_rejection_reason: '',
+                    prescription_rejected_by: null,
+                    prescription_rejected_at: undefined
+                }
+            }
+        );
 
-        // // Ensure order_status indicates re-upload required so admin knows
-        // order.order_status = 'Prescription Re-upload Required';
+        // Notification logic for store manager and superadmin
+        try {
+            const Store = (await import('@/models/Store')).default;
+            const Admin = (await import('@/models/Admin')).default;
+            const Notification = (await import('@/models/Notification')).default;
+            const Role = (await import('@/models/Role')).default;
+            const User = (await import('@/models/User')).default;
 
-        await order.save();
+            // Get store and admin manager
+            let storeName = '';
+            let adminName = '';
+            let adminRoleName = '';
+            let customerName = '';
+            let storeId = (orderDoc as any).storeId;
+            let userId = (orderDoc as any).userId;
+            if (userId) {
+                const user = await User.findById(userId).lean();
+                if (user && typeof user === 'object' && !Array.isArray(user)) {
+                    customerName = user.name || 'Customer';
+                }
+            }
+            if (storeId) {
+                const store = await Store.findById(storeId).lean();
+                if (store && typeof store === 'object' && !Array.isArray(store)) {
+                    storeName = store.name || '';
+                    if ('adminManagerId' in store && store.adminManagerId) {
+                        const admin = await Admin.findById(store.adminManagerId).lean();
+                        if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+                            adminName = admin.name || '';
+                            // Try to get admin's role name
+                            if ('roleId' in admin && admin.roleId) {
+                                const roleDoc = await Role.findById(admin.roleId).lean();
+                                if (roleDoc && typeof roleDoc === 'object' && !Array.isArray(roleDoc)) {
+                                    adminRoleName = roleDoc.name || '';
+                                }
+                            }
+                            // Notify store admin (manager)
+                            await Notification.create({
+                                userId: store.adminManagerId.toString(),
+                                role: 'admin',
+                                title: 'Prescription Re-uploaded',
+                                message: `Customer ${customerName} has re-uploaded prescription for order ${(orderDoc as any).order_id} in store ${storeName}.`,
+                                type: 'prescription',
+                                targetScreen: 'orders/detail',
+                                targetId: (orderDoc as any)._id.toString(),
+                                meta: {
+                                    prescriptionUrlArr,
+                                    customerName,
+                                    storeName,
+                                    orderId: (orderDoc as any)._id.toString(),
+                                    order_id: (orderDoc as any).order_id
+                                }
+                            });
+                        }
+                    }
+                }
+            }
 
-        return NextResponse.json({ success: true, message: 'Prescription re-uploaded', data: order });
+            // Notify all superadmins
+            const superAdminRole = await Role.findOne({ name: /superadmin/i });
+            if (superAdminRole && superAdminRole._id) {
+                const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+                for (const superAdmin of superAdmins) {
+                    if (superAdmin && typeof superAdmin === 'object' && !Array.isArray(superAdmin) && '_id' in superAdmin) {
+                        await Notification.create({
+                            userId: (superAdmin as any)._id.toString(),
+                            role: 'admin',
+                            title: 'Prescription Re-uploaded',
+                            message: `Customer ${customerName} has re-uploaded prescription for order ${(orderDoc as any).order_id} in store ${storeName}.`,
+                            type: 'prescription',
+                            targetScreen: 'orders/detail',
+                            targetId: (orderDoc as any)._id.toString(),
+                            meta: {
+                                prescriptionUrlArr,
+                                customerName,
+                                storeName,
+                                orderId: (orderDoc as any)._id.toString(),
+                                order_id: (orderDoc as any).order_id
+                            }
+                        });
+                    }
+                }
+            }
+        } catch (notifyErr) {
+            console.error('Notification error on prescription re-upload:', notifyErr);
+        }
+
+        // Return updated order
+        const updatedOrder = await OrderModel.findById(orderId).lean();
+        return NextResponse.json({ success: true, message: 'Prescription re-uploaded', data: updatedOrder });
     } catch (err: any) {
         console.error('Prescription reupload error:', err);
         return NextResponse.json({ success: false, message: 'Failed to re-upload prescription', error: err?.message || String(err) }, { status: 500 });

@@ -87,9 +87,12 @@ export async function POST(req: NextRequest) {
                     title: 'Prescription Rejected',
                     message: `Your prescription for order ${order.order_id} was rejected. Reason: ${rejectionReason}`,
                     type: 'prescription_rejected',
-                    targetScreen: 'orders/detail',
+                    targetScreen: 'orders/detail/prescription_reupload',
                     targetId: order._id.toString(),
-                    meta: { orderId: order._id.toString() }
+                    meta: {
+                        orderId: order._id.toString(),
+                        rejectionReason
+                    }
                 });
             }
         } catch (notifErr) {
