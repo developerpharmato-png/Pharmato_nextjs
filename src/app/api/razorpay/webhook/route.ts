@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
                             payment_mode: entity.method || '',
                             payment_id: entity.id || '',
                             payment_status: entity.status || '',
-                            order_status: 'Ordered'
+                            order_status: checkOrder.isPrescriptionRequired == true ? 'Ordered' : 'Confirmed'
                         }
                     }
                 );
