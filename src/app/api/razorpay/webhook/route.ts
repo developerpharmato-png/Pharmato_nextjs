@@ -210,8 +210,8 @@ export async function POST(req: NextRequest) {
                     {
                         $push: { paymentHistory: paymentHistory },
                         $set: {
-                            payment_status: 'Failure',
-                            order_status: 'Payment Failed'
+                            payment_status: 'Failed',
+                            order_status: 'Pending'
                         }
                     }
                 );
