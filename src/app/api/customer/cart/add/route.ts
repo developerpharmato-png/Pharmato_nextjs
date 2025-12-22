@@ -118,10 +118,15 @@ export async function POST(request: NextRequest) {
             };
         }
     }
+    // Calculate totalCartQuantity
+    const totalCartQuantity = cart && Array.isArray(cart.items)
+        ? cart.items.reduce((sum: number, item: any) => sum + (typeof item.quantity === 'number' ? item.quantity : 0), 0)
+        : 0;
     return NextResponse.json({
         success: true,
         cart,
         medicineInCart,
-        message
+        message,
+        totalCartQuantity
     });
 }
