@@ -5,7 +5,7 @@ import Notification from '@/models/Notification';
 import { sendEmail } from '@/utils/sendEmail';
 import fs from 'fs';
 import path from 'path';
-import { sendPushNotification } from '@/utils/firebase.helper';
+import { sendPushNotificationWithData } from '@/utils/firebase.helper';
 
 /**
  * @swagger
@@ -69,9 +69,8 @@ export async function POST(req: NextRequest) {
         order.prescription_rejected_by = adminId;
         order.prescription_rejected_at = new Date();
         order.prescription_rejection_reason = rejectionReason;
-        if (prescription_url && typeof prescription_url === 'string') {
-            order.prescription_url = prescription_url;
-        }
+        order.prescription_url = prescription_url;
+        order.order_status = 'Pending';
 
         await order.save();
 
@@ -101,10 +100,16 @@ export async function POST(req: NextRequest) {
         const user = order.userId;
         if (user && user.deviceToken) {
             try {
-                await sendPushNotification({
+                await sendPushNotificationWithData({
                     token: user.deviceToken,
                     title: 'Pharmato',
-                    body: `Your prescription for order ${order.order_id} has been rejected.`
+                    body: `Your prescription for order ${order.order_id} has been rejected.`,
+                    data: {
+                        orderId: order._id.toString(),
+                        type: 'prescription_rejected',
+                        targetScreen: 'orders/detail/prescription_reupload',
+                        rejectionReason
+                    }
                 });
             } catch (err) {
                 console.error('Failed to send notification:', err);
