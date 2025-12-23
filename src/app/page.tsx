@@ -1,9 +1,14 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect } from "react";
 import LoginPage from "./login/page";
 import Head from "next/head";
 
+import { requestPermissionAndGetToken } from "./firebase/firebaseConfig";
 
 export default function Home() {
+  
 
   return (
     <>

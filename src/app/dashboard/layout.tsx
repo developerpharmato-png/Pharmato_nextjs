@@ -25,6 +25,7 @@ import {
   Hospital,
   ChevronDown,
 } from "lucide-react";
+import { requestPermissionAndGetToken } from "../firebase/firebaseConfig";
 
 // 2. CREATE A MAPPING FOR ICONS
 const iconMap = {
@@ -74,6 +75,13 @@ export default function DashboardLayout({
     string,
     { view: boolean; edit: boolean }
   > | null>(null);
+
+
+useEffect(() => {
+    
+    requestPermissionAndGetToken();
+  }, []);
+
 
   useEffect(() => {
     const adminData = localStorage.getItem("admin");
