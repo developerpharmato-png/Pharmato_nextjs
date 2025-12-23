@@ -22,3 +22,7 @@ export const StoreUpdateStore = createApiStore<any>();
 export const ProductDAshboardStore = createApiStore<any>();
 export const OrderDAshboardStore = createApiStore<any>();
   
+
+export const unreadNotificationStore = createApiStore<any>();
+export const NotificationsListStore = createApiStore<any>();
+export const markreadNotificationsStore = createApiStore<any>();

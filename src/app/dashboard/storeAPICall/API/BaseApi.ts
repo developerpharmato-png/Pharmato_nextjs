@@ -18,7 +18,7 @@ export const StorePath = `/api/admin/store`;
 // Analytics API paths
 export const ProductAnalyticsPath = `/api/admin/data-analytics/products`;
 
-// Medicines
+// Medicines 
 
 export const MedicinesListPath = `/api/admin/medicines`;
 export const MedicinesStatusPath = `/api/admin/medicines/status`;
@@ -27,3 +27,8 @@ export const updaterelatedPath = `/api/medicines/update-related`;
 
 export const PincodeListPath = `/api/admin/pincode/list`;
 export const PincodeActiveListPath = `/api/admin/pincode/active-list`;
+
+
+export const markreadNotificationsPath = `/api/notifications/mark-read`;
+export const NotificationsListPath = `/api/notifications`;
+export const unreadNotificationPath = `/api/notifications/unread-count`;

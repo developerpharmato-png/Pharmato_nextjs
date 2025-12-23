@@ -22,6 +22,8 @@ export default function OrdersPage() {
   const [customerId, setCustomerId] = useState("");
   const [prescriptionStatus, setPrescriptionStatus] = useState<string>("all");
   const [orderStatus, setOrderStatus] = useState<string>("all");
+  const [dayFilter, setDayFilter] = useState<string>("all");
+console.log(dayFilter,"dayFilter");
 
   const {
     postData: ListPost,
@@ -39,6 +41,7 @@ export default function OrdersPage() {
     customerId,
     prescriptionStatus,
     orderStatus,
+    dayFilter
   ]);
 
   const fetchOrders = async () => {
@@ -46,6 +49,8 @@ export default function OrdersPage() {
       limit: rowsPerPage,
       offset: page * rowsPerPage,
       page,
+      day:dayFilter
+      
     };
 
     if (searchTerm) body.search = searchTerm;
@@ -53,6 +58,7 @@ export default function OrdersPage() {
     if (prescriptionStatus && prescriptionStatus !== "all")
       body.prescription_status = prescriptionStatus;
     if (orderStatus && orderStatus !== "all") body.order_status = orderStatus;
+    
 
     // Add storeId and roleName from localStorage
     const roleName = localStorage.getItem("roleName");
@@ -117,18 +123,20 @@ export default function OrdersPage() {
         orderStatus={orderStatus}
         setOrderStatus={setOrderStatus}
         setPage={setPage}
-      />
+      /> 
 
       <Box mb={2}>
         <FilterSearch
-          onChange={(f) => setSearchTerm(f.search || "")}
+            onChange={(f) => setSearchTerm(f.search || "")}
           placeholder="Search by order ID or payment ID..."
           isSearchShow={true}
           isShowCategory={false}
           isShowSub={false}
           isShowOTC={false}
-          showclearAll={true}
-          showOrderFilters={true}
+            showclearAll={true}
+            showOrderFilters={true}
+            dayFilter={true}
+            setDayFilter={setDayFilter}
           prescriptionStatus={prescriptionStatus}
           setPrescriptionStatus={setPrescriptionStatus}
           orderStatus={orderStatus}
