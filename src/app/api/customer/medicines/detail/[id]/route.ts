@@ -19,11 +19,11 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     let medicine = await Medicine.findById(id)
         .populate({
             path: 'relatedProducts',
-            select: '_id name manufacturer mrp price images discount'
+            select: '_id name manufacturer mrp price images stock discount'
         })
         .populate({
             path: 'crossSellProducts',
-            select: '_id name manufacturer mrp price images discount'
+            select: '_id name manufacturer mrp price images stock discount'
         })
         .lean();
     if (Array.isArray(medicine)) {

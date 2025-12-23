@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
 
     for (const element of cartData) {
         medicineId.push(new mongoose.Types.ObjectId(element.medicine._id));
-        medicineQuantity.push({ medicineId: `${element.medicine._id}`, quantity: Number(element.quantity) });
+        medicineQuantity.push({ medicineId: `${element.medicine._id}`, quantity: Number(element.quantity) , status: 'pending' });
     }
 
     const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
