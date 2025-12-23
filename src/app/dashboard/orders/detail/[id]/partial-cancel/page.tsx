@@ -3,7 +3,18 @@ import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Swal from "sweetalert2";
 import HeaderWithAction from "../../../../components/HeaderWithAction";
-import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+} from "@mui/material";
+import { ModalHeader } from "@/app/dashboard/components/miniComponents";
+import { modalStyles } from "@/utils/style";
+import { Box } from "@mui/system";
 
 export default function PartialCancelPage() {
   const router = useRouter();
@@ -92,12 +103,17 @@ export default function PartialCancelPage() {
             {order.medicineId && order.medicineId.length > 0 ? (
               order.medicineId.map((med: any, idx: number) => {
                 // Find status from medicineQuantity
-                const q = order.medicineQuantity.find((x: any) =>
-                  x.medicineId === med._id || x.medicineId?.toString() === med._id?.toString()
+                const q = order.medicineQuantity.find(
+                  (x: any) =>
+                    x.medicineId === med._id ||
+                    x.medicineId?.toString() === med._id?.toString()
                 );
                 const status = q?.status || "pending";
                 return (
-                  <div key={med._id} className="flex items-center gap-4 p-3 border rounded-lg">
+                  <div
+                    key={med._id}
+                    className="flex items-center gap-4 p-3 border rounded-lg"
+                  >
                     <Checkbox
                       checked={selected.includes(med._id)}
                       onChange={() => handleSelect(med._id)}
@@ -105,12 +121,25 @@ export default function PartialCancelPage() {
                     />
                     <div className="flex-1">
                       <div className="font-bold">{med.name}</div>
-                      <div className="text-xs text-gray-500">Qty: {q?.quantity || 1}</div>
-                      <div className={`text-xs font-semibold ${status === "cancelled" ? "text-red-500" : status === "delivered" ? "text-green-600" : "text-yellow-600"}`}>
-                        Status: {status.charAt(0).toUpperCase() + status.slice(1)}
+                      <div className="text-xs text-gray-500">
+                        Qty: {q?.quantity || 1}
+                      </div>
+                      <div
+                        className={`text-xs font-semibold ${
+                          status === "cancelled"
+                            ? "text-red-500"
+                            : status === "delivered"
+                            ? "text-green-600"
+                            : "text-yellow-600"
+                        }`}
+                      >
+                        Status:{" "}
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
                       </div>
                       {status === "cancelled" && q?.cancelReason && (
-                        <div className="text-xs text-red-400 mt-1 italic">Reason: {q.cancelReason}</div>
+                        <div className="text-xs text-red-400 mt-1 italic">
+                          Reason: {q.cancelReason}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -125,31 +154,61 @@ export default function PartialCancelPage() {
             variant="contained"
             color="error"
             disabled={selected.length === 0}
+            sx={modalStyles.confirmBtn}
           >
             Cancel Selected
           </Button>
         </form>
       </div>
-      <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
-        <DialogTitle>Cancel Selected Medicines</DialogTitle>
-        <DialogContent>
+      <Dialog
+        open={showDialog}
+        onClose={() => setShowDialog(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: modalStyles.paper }}
+      >
+        <DialogTitle>
+          <ModalHeader
+            title="Cancel Selected Medicines"
+            onClose={() => setShowDialog(false)}
+          />
+        </DialogTitle>
+
+        <DialogContent sx={modalStyles.content}>
+          {/* Reusable Notice Box using the constant */}
+          <Box sx={modalStyles.noticeBox}>
+            <p className="text-xs font-semibold text-[var(--status-danger-text)] leading-relaxed">
+              <span className="font-bold">⚠️ Notice:</span> Please provide a
+              clear reason for Cancel.
+            </p>
+          </Box>
+
           <TextField
-            label="Reason for cancellation"
+            multiline
+            minRows={4}
+            fullWidth
+            autoFocus
             value={cancelReason}
             onChange={(e) => setCancelReason(e.target.value)}
-            fullWidth
-            multiline
-            minRows={2}
-            sx={{ mt: 2 }}
+            placeholder="Reason for cancellation"
+            variant="outlined"
+            margin="normal"
+            sx={modalStyles.textField}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowDialog(false)}>Back</Button>
+
+        <DialogActions sx={modalStyles.actions}>
+          <Button
+            onClick={() => setShowDialog(false)}
+            sx={modalStyles.cancelBtn}
+          >
+            Cancel
+          </Button>
           <Button
             onClick={handleCancel}
             variant="contained"
-            color="error"
             disabled={!cancelReason.trim()}
+            sx={modalStyles.confirmBtn}
           >
             Confirm Cancel
           </Button>
