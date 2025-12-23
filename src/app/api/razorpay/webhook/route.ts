@@ -56,15 +56,15 @@ export async function POST(req: NextRequest) {
                 const currency = entity.currency;
 
                 // Update paymentStatus in Firebase Realtime Database
-                try {
+                if (checkOrder?.order_id && entity?.status) {
                     const db = getDb();
-                    // Use orderId as the key under 'orders' node
-                    if (checkOrder && checkOrder.order_id) {
-                        await db.ref(`orders/${checkOrder.order_id}/paymentStatus`).set(entity.status || '');
-                    }
-                } catch (firebaseErr) {
-                    console.error('Failed to update paymentStatus in Firebase DB:', firebaseErr);
+                    await db
+                        .ref(`orders/${checkOrder.order_id}`)
+                        .update({
+                            paymentStatus: entity.status
+                        });
                 }
+
 
                 try {
                     const captureResponse = await razorpayInstance.payments.capture(entity.id, amount, currency);
@@ -86,14 +86,13 @@ export async function POST(req: NextRequest) {
                 );
 
                 // Update paymentStatus in Firebase Realtime Database
-                try {
+                if (checkOrder?.order_id && entity?.status) {
                     const db = getDb();
-                    // Use orderId as the key under 'orders' node
-                    if (checkOrder && checkOrder.order_id) {
-                        await db.ref(`orders/${checkOrder.order_id}/paymentStatus`).set(entity.status || '');
-                    }
-                } catch (firebaseErr) {
-                    console.error('Failed to update paymentStatus in Firebase DB:', firebaseErr);
+                    await db
+                        .ref(`orders/${checkOrder.order_id}`)
+                        .update({
+                            paymentStatus: entity.status
+                        });
                 }
 
                 try {
@@ -136,7 +135,7 @@ export async function POST(req: NextRequest) {
                         userId: notificationUserId,
                         role: 'customer',
                         title: 'Order Placed',
-                        message: checkOrder.isPrescriptionRequired == true ? `Your Order ${checkOrder.order_id} has been placed successfully. It will be delievered to you soon.` : `Your Order ${checkOrder.order_id} has been placed successfully. We will Notify you when your prescription is approved.`,
+                        message: checkOrder.isPrescriptionRequired !== true ? `Your Order ${checkOrder.order_id} has been placed successfully. It will be delievered to you soon.` : `Your Order ${checkOrder.order_id} has been placed successfully. We will Notify you when your prescription is approved.`,
                         type: 'payment',
                         targetScreen: 'orders/detail',
                         targetId: checkOrder._id.toString(),
@@ -155,7 +154,7 @@ export async function POST(req: NextRequest) {
                             await sendPushNotificationWithData({
                                 token: (user as any).deviceToken,
                                 title: 'Pharmato',
-                                body: checkOrder.isPrescriptionRequired == true ? `Your Order ${checkOrder.order_id} has been placed successfully. It will be delievered to you soon.` : `Your Order ${checkOrder.order_id} has been placed successfully. We will Notify you when your prescription is approved.`,
+                                body: checkOrder.isPrescriptionRequired !== true ? `Your Order ${checkOrder.order_id} has been placed successfully. It will be delievered to you soon.` : `Your Order ${checkOrder.order_id} has been placed successfully. We will Notify you when your prescription is approved.`,
                                 data: {
                                     orderId: checkOrder._id.toString(),
                                     type: 'order_placed',
@@ -264,14 +263,13 @@ export async function POST(req: NextRequest) {
                 );
 
                 // Update paymentStatus in Firebase Realtime Database
-                try {
+                if (checkOrder?.order_id && entity?.status) {
                     const db = getDb();
-                    // Use orderId as the key under 'orders' node
-                    if (checkOrder && checkOrder.order_id) {
-                        await db.ref(`orders/${checkOrder.order_id}/paymentStatus`).set(entity.status || '');
-                    }
-                } catch (firebaseErr) {
-                    console.error('Failed to update isPaymentCaptured in Firebase DB:', firebaseErr);
+                    await db
+                        .ref(`orders/${checkOrder.order_id}`)
+                        .update({
+                            paymentStatus: entity.status
+                        });
                 }
 
             }
