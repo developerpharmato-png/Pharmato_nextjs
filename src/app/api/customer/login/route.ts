@@ -153,9 +153,6 @@ export async function POST(request: NextRequest) {
                 title: 'Welcome to Pharmato!',
                 message: 'Thank you for registering. Enjoy your experience!',
                 type: 'welcome',
-                targetScreen: 'account',
-                targetId: user._id.toString(),
-                meta: { mobile, countryCode },
                 isRead: false,
                 createdAt: new Date(),
             });

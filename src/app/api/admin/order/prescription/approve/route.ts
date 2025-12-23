@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
                     userId: userIdStr,
                     role: 'customer',
                     title: 'Prescription Approved',
-                    message: `Your prescription for order ${order.order_id} was approved.`,
+                    message: `Your prescription for order ${order.order_id} has been approved by the store. Your order is confirmed and will be delivered soon.`,
                     type: 'prescription_approved',
                     targetScreen: 'orders/detail',
                     targetId: order._id.toString(),
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
                 await sendPushNotificationWithData({
                     token: user.deviceToken,
                     title: 'Pharmato',
-                    body: `Your prescription for order ${order.order_id} has been approved.`,
+                    body: `Your prescription for order ${order.order_id} has been approved by the store. Your order is confirmed and will be delivered soon.`,
                     data: {
                         orderId: order._id.toString(),
                         type: 'prescription_approved',
