@@ -24,6 +24,8 @@ import {
   PrescriptionRejectPath,
 } from "../../../storeAPICall/API/BaseApi";
 import { downloadImageByUrl } from "@/utils/function";
+import { modalStyles } from "@/utils/style";
+import { Box } from "@mui/system";
 
 export default function OrderDetailPage() {
   const router = useRouter();
@@ -278,7 +280,6 @@ export default function OrderDetailPage() {
 
   return (
     <div className="containerStyle scrollbar-hide">
-
       <HeaderWithAction
         title="Order Details"
         subtitle={`Order ID: ${order?.order_id}`}
@@ -290,7 +291,9 @@ export default function OrderDetailPage() {
         rightNode={
           <button
             className="ml-2 px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition"
-            onClick={() => router.push(`/dashboard/orders/detail/${orderId}/partial-cancel`)}
+            onClick={() =>
+              router.push(`/dashboard/orders/detail/${orderId}/partial-cancel`)
+            }
           >
             Partial Cancel
           </button>
@@ -411,11 +414,10 @@ export default function OrderDetailPage() {
                     </p>
                   )}
                   <p className="text-sm font-medium text-gray-900 mt-2">
-                    📞 {order?.deliveredAddress?.countryCode || "+91"} {order?.deliveredAddress?.phone}
+                    📞 {order?.deliveredAddress?.countryCode || "+91"}{" "}
+                    {order?.deliveredAddress?.phone}
                   </p>
                 </div>
-
-
               </div>
             </div>
           </div>
@@ -448,16 +450,6 @@ export default function OrderDetailPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Name */}
-                <div className="group">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                    Customer Name
-                  </p>
-                  <p className="font-bold text-gray-900 group-hover:text-[var(--primary)] transition-colors italic">
-                    {order?.userId.name || "Anonymous User"}
-                  </p>
-                </div>
-
                 {/* Email */}
                 <div className="group">
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
@@ -746,124 +738,124 @@ export default function OrderDetailPage() {
 
           <div className="space-y-4">
             {order?.medicineId && order?.medicineId.length > 0 ? (
-              order?.medicineId.map((medicine: any, index: number) => (
-                <div
-                  key={index}
-                  onClick={() => medidetails(medicine._id)}
-                  className="group flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border border-gray-100 rounded-xl transition-all duration-200 hover:border-[var(--secondary)]/30 hover:shadow-md hover:bg-gray-50/50"
-                  style={{ position: 'relative' }}
-                >
-                  {/* Stylish Status Badge - Floating Top Right */}
-                  {(() => {
-                    const status = medicine.status || "pending";
-                    let badgeColor = "bg-yellow-100 text-yellow-800 border-yellow-300";
-                    if (status === "cancelled") badgeColor = "bg-red-50 text-red-600 border-red-200";
-                    if (status === "delivered") badgeColor = "bg-green-50 text-green-700 border-green-200";
-                    return (
-                      <div
-                        className={`absolute -top-3 right-4 flex flex-col items-end z-20`}
-                        style={{ minWidth: 110 }}
-                      >
+              order?.medicineId.map((medicine: any, index: number) => {
+                const status = medicine.status || "pending";
+                let badgeColor =
+                  "bg-yellow-50 text-yellow-700 border-yellow-200";
+                let dot = "#facc15";
+
+                if (status === "cancelled") {
+                  badgeColor = "bg-red-50 text-red-600 border-red-200";
+                  dot = "#f87171";
+                } else if (status === "delivered") {
+                  badgeColor = "bg-green-50 text-green-700 border-green-200";
+                  dot = "#22c55e";
+                }
+
+                return (
+                  <div
+                    key={index}
+                    onClick={() => medidetails(medicine._id)}
+                    className="group flex flex-col p-4 border border-gray-100 rounded-xl transition-all duration-200 hover:border-[var(--secondary)]/30 hover:shadow-md hover:bg-gray-50/50 cursor-pointer"
+                  >
+                    {/* Top Row: Product Info & Status */}
+                    <div className="flex justify-between items-start gap-4 mb-4">
+                      <div className="flex gap-4">
+                        {/* Image */}
+                        <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-gray-100 bg-white">
+                          {medicine.coverImage ||
+                          (medicine.images && medicine.images[0]) ? (
+                            <CustomImage
+                              coverImage={
+                                medicine.coverImage || medicine.images[0]
+                              }
+                              images={medicine.images || []}
+                              alt={medicine.name}
+                              style={{
+                                height: "100%",
+                                width: "100%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400 font-bold uppercase">
+                              No Image
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Name & Manufacturer */}
+                        <div className="flex-1">
+                          <h3 className="font-bold text-gray-900 leading-tight group-hover:text-[var(--primary)]">
+                            {medicine.name}
+                          </h3>
+                          <p className="text-[11px] text-gray-500 font-medium uppercase mt-1">
+                            {medicine.manufacturer}
+                          </p>
+                          <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] font-bold">
+                            Qty: {medicine.quantity || 1}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Status Badge - Now part of the flex flow, NO OVERLAP */}
+                      <div className="flex flex-col items-end gap-1 shrink-0">
                         <span
-                          className={`px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wide shadow-md ${badgeColor} drop-shadow-sm flex items-center gap-1`}
-                          style={{ letterSpacing: 1, fontFamily: 'inherit' }}
+                          className={`px-2.5 py-1 rounded-full border text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm ${badgeColor}`}
                         >
-                          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" className="inline-block mr-1">
-                            <circle cx="10" cy="10" r="8" fill={status === "cancelled" ? '#f87171' : status === "delivered" ? '#22c55e' : '#facc15'} />
-                          </svg>
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                          <div
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: dot }}
+                          />
+                          {status}
                         </span>
                         {status === "cancelled" && medicine.cancelReason && (
-                          <span className="mt-1 text-[11px] text-red-500 italic font-medium bg-red-50 border border-red-100 rounded px-2 py-0.5 shadow-sm max-w-xs text-right">
+                          <span className="text-[10px] text-red-500 italic bg-red-50 px-2 py-0.5 rounded border border-red-100 text-right max-w-[120px]">
                             {medicine.cancelReason}
                           </span>
                         )}
                       </div>
-                    );
-                  })()}
-                  {/* Image Container */}
-                  <div className="shrink-0 mx-auto sm:mx-0">
-                    {medicine.coverImage ||
-                      (medicine.images && medicine.images[0]) ? (
-                      <div className="ring-1 ring-gray-100 rounded-lg overflow-hidden group-hover:ring-[var(--secondary)]/30 transition-all">
-                        <CustomImage
-                          coverImage={medicine.coverImage || medicine.images[0]}
-                          images={medicine.images || []}
-                          alt={medicine.name}
-                          style={{
-                            height: 80,
-                            width: 80,
-                            objectFit: "cover",
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-20 h-20 bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center">
-                        <span className="text-gray-400 text-[10px] font-medium uppercase">
-                          No Image
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Product Info */}
-                  <div className="flex-1 space-y-1 text-center sm:text-left">
-                    <h3 className="font-bold text-gray-900 group-hover:text-[var(--primary)] transition-colors">
-                      {medicine.name}
-                    </h3>
-                    <p className="text-xs font-medium text-gray-400 uppercase tracking-tight">
-                      {medicine.manufacturer || "Unknown Manufacturer"}
-                    </p>
-                    <div className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-[var(--status-info-bg)] text-[var(--status-info-text)] mt-2">
-                      Qty: {medicine.quantity || 1}
                     </div>
-                  </div>
 
-                  {/* Pricing Section */}
-                  <div className="w-full sm:w-auto text-center sm:text-right pt-4 sm:pt-0 border-t sm:border-t-0 border-gray-100">
-                    <div className="flex flex-row sm:flex-col justify-between items-center sm:items-end gap-1">
+                    {/* Bottom Row: Pricing */}
+                    <div className="flex justify-between items-end pt-3 border-t border-gray-50">
                       <div>
-                        <p className="text-[10px] text-gray-400 uppercase font-bold">
-                          Price per unit
+                        <p className="text-[10px] text-gray-400 font-bold uppercase">
+                          Price Per Unit
                         </p>
-                        <div className="flex items-center gap-2 sm:justify-end">
-                          <span className="text-sm text-gray-400 line-through">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-400 line-through">
                             ₹{medicine.mrp?.toFixed(2)}
                           </span>
-                          <span className="font-bold text-[var(--foreground)]">
+                          <span className="text-sm font-bold text-gray-900">
                             ₹{medicine.price?.toFixed(2)}
                           </span>
                         </div>
                       </div>
 
-                      <div className="sm:mt-3">
-                        <p className="text-[10px] text-[var(--primary)] uppercase font-bold">
+                      <div className="text-right">
+                        <p className="text-[10px] text-[var(--primary)] font-bold uppercase">
                           Subtotal
                         </p>
-                        <p className="text-lg font-black text-[var(--primary)]">
+                        <p className="text-xl font-black text-[var(--primary)] leading-none">
                           ₹{calculateItemSubtotal(medicine).toFixed(2)}
                         </p>
                         {medicine.discount > 0 && (
-                          <span className="inline-block px-2 py-0.5 bg-[var(--status-success-bg)] text-[var(--status-success-text)] text-[10px] font-bold rounded uppercase">
-                            {medicine.discount}% Saved
+                          <span className="mt-1 inline-block px-1.5 py-0.5 bg-green-100 text-green-700 text-[9px] font-bold rounded">
+                            {medicine.discount}% SAVED
                           </span>
                         )}
                       </div>
                     </div>
                   </div>
-
-                </div>
-              ))
+                );
+              })
             ) : (
-              <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                <p className="text-gray-400 font-medium">
-                  No items found in this order
-                </p>
+              <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 text-gray-400 font-medium">
+                No items found in this order
               </div>
             )}
           </div>
-
-
         </div>
 
         {/* Order Amount Summary */}
@@ -911,13 +903,14 @@ export default function OrderDetailPage() {
                 Delivery Charges
               </span>
               <span
-                className={`text-sm font-bold ${order?.delivery_charges > 0
-                  ? "text-gray-900"
-                  : "text-[var(--primary)]"
-                  }`}
+                className={`text-sm font-bold ${
+                  order?.delivery_charges > 0
+                    ? "text-gray-900"
+                    : "text-[var(--primary)]"
+                }`}
               >
                 {order?.delivery_charges !== undefined &&
-                  order?.delivery_charges > 0
+                order?.delivery_charges > 0
                   ? `₹${order?.delivery_charges?.toFixed(2)}`
                   : "FREE"}
               </span>
@@ -954,10 +947,11 @@ export default function OrderDetailPage() {
 
             {/* Payment Status Footer */}
             <div
-              className={`mt-4 p-3 rounded-lg text-center text-xs font-bold uppercase tracking-widest border ${order?.payment_status === "paid"
-                ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--primary)]/20"
-                : "bg-[var(--status-pending-bg)] text-[var(--status-pending-text)] border-[var(--status-pending-text)]/10"
-                }`}
+              className={`mt-4 p-3 rounded-lg text-center text-xs font-bold uppercase tracking-widest border ${
+                order?.payment_status === "paid"
+                  ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--primary)]/20"
+                  : "bg-[var(--status-pending-bg)] text-[var(--status-pending-text)] border-[var(--status-pending-text)]/10"
+              }`}
             >
               {order?.payment_status == "captured"
                 ? "✨ Payment Received"
@@ -967,7 +961,6 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      {/* Reject Prescription Modal (MUI) */}
       <Dialog
         open={showRejectModal}
         onClose={() => {
@@ -976,13 +969,7 @@ export default function OrderDetailPage() {
         }}
         maxWidth="sm"
         fullWidth
-        PaperProps={{
-          sx: {
-            overflow: "visible",
-            borderRadius: "16px", // Softer, modern corners
-            padding: "8px",
-          },
-        }}
+        PaperProps={{ sx: modalStyles.paper }}
       >
         <DialogTitle sx={{ p: 2, pb: 1 }}>
           <ModalHeader
@@ -994,15 +981,17 @@ export default function OrderDetailPage() {
           />
         </DialogTitle>
 
-        <DialogContent sx={{ overflow: "visible" }}>
-          <div className="bg-[var(--status-danger-bg)] p-3 rounded-lg mb-4 border border-[var(--status-danger-text)]/10">
+        <DialogContent sx={modalStyles.content}>
+          {/* Notice Box */}
+          <Box sx={modalStyles.noticeBox}>
             <p className="text-xs font-semibold text-[var(--status-danger-text)] leading-relaxed">
               <span className="font-bold">⚠️ Notice:</span> Please provide a
               clear reason for rejection. This message will be sent directly to
               the customer to help them correct their upload.
             </p>
-          </div>
+          </Box>
 
+          {/* TextField using extracted styles */}
           <TextField
             multiline
             minRows={4}
@@ -1013,56 +1002,25 @@ export default function OrderDetailPage() {
             placeholder="e.g., The prescription has expired or the doctor's signature is not visible..."
             variant="outlined"
             margin="normal"
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "12px",
-                fontSize: "0.9rem",
-                "&.Mui-focused fieldset": {
-                  borderColor: "var(--status-danger-text)", // Brand-danger color for focus
-                },
-              },
-              "& .MuiInputBase-input::placeholder": {
-                fontSize: "0.85rem",
-                opacity: 0.6,
-              },
-            }}
+            sx={modalStyles.textField}
           />
         </DialogContent>
 
-        <DialogActions sx={{ p: 3, pt: 1, gap: 1 }}>
+        <DialogActions sx={modalStyles.actions}>
           <Button
             onClick={() => {
               setShowRejectModal(false);
               setRejectionReason("");
             }}
-            sx={{
-              color: "gray",
-              fontWeight: "bold",
-              textTransform: "none",
-              "&:hover": { backgroundColor: "#f5f5f5" },
-            }}
+            sx={modalStyles.cancelBtn}
           >
             Cancel
           </Button>
           <Button
             onClick={handleRejectPrescription}
             variant="contained"
-            disabled={!rejectionReason.trim()} // Prevent accidental empty rejections
-            sx={{
-              backgroundColor: "var(--status-danger-text)",
-              textTransform: "none",
-              fontWeight: "bold",
-              borderRadius: "8px",
-              px: 4,
-              "&:hover": {
-                backgroundColor: "#7f1d1d", // Slightly darker than danger text
-                boxShadow: "0 4px 12px rgba(153, 27, 27, 0.2)",
-              },
-              "&.Mui-disabled": {
-                backgroundColor: "#f3f4f6",
-                color: "#9ca3af",
-              },
-            }}
+            disabled={!rejectionReason.trim()}
+            sx={modalStyles.confirmBtn}
           >
             Reject Document
           </Button>
