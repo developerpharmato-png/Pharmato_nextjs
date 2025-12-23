@@ -3,7 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
 import Notification from '@/models/Notification';
 import { sendEmail } from '@/utils/sendEmail';
-import { sendPushNotification } from '@/utils/firebase.helper';
+import { sendPushNotificationWithData } from '@/utils/firebase.helper';
 import fs from 'fs';
 import path from 'path';
 
@@ -132,10 +132,15 @@ export async function POST(req: NextRequest) {
         const user = order.userId;
         if (user && user.deviceToken) {
             try {
-                await sendPushNotification({
+                await sendPushNotificationWithData({
                     token: user.deviceToken,
                     title: 'Pharmato',
-                    body: `Your prescription for order ${order.order_id} has been approved.`
+                    body: `Your prescription for order ${order.order_id} has been approved.`,
+                    data: {
+                        orderId: order._id.toString(),
+                        type: 'prescription_approved',
+                        targetScreen: 'orders/detail'
+                    }
                 });
             } catch (err) {
                 console.error('Failed to send notification:', err);

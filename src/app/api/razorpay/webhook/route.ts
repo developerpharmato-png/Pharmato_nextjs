@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
 import Notification from '@/models/Notification';
+import { sendPushNotificationWithData } from '@/utils/firebase.helper';
 import User from '@/models/User';
 import { sendEmail } from '@/utils/sendEmail';
 import Store from '@/models/Store';
@@ -124,6 +125,29 @@ export async function POST(req: NextRequest) {
                             status: entity.status
                         }
                     });
+
+                    // Send push notification to customer if deviceToken exists
+                    if (user && (user as any).deviceToken) {
+                        try {
+                            await sendPushNotificationWithData({
+                                token: (user as any).deviceToken,
+                                title: 'Pharmato',
+                                body: `Your Order ${checkOrder.order_id} has been placed successfully.`,
+                                data: {
+                                    orderId: checkOrder._id.toString(),
+                                    type: 'order_placed',
+                                    targetScreen: 'orders/detail',
+                                    paymentId: entity.id,
+                                    amount: amountValue,
+                                    currency: entity.currency,
+                                    method: entity.method,
+                                    status: entity.status
+                                }
+                            });
+                        } catch (err) {
+                            console.error('Failed to send push notification:', err);
+                        }
+                    }
 
                     // Notify admin (store manager) and superadmins with detailed message
                     let storeName = '';

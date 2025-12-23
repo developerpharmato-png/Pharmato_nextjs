@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import User from '@/models/User';
 import dbConnect from '@/lib/mongodb';
-import { sendPushNotification } from '@/utils/firebase.helper';
+import { sendPushNotification, sendPushNotificationWithData } from '@/utils/firebase.helper';
 
 /**
  * @swagger
@@ -74,10 +74,17 @@ export async function POST(req: NextRequest) {
     // Send notification if deviceToken exists
     if (user.deviceToken) {
         try {
-            await sendPushNotification({
+            await sendPushNotificationWithData({
                 token: user.deviceToken,
                 title: 'Pharmato',
-                body: 'Your mobile number has been updated successfully.'
+                body: 'Your mobile number has been updated successfully.',
+                data: {
+                    type: 'mobile-update',
+                    targetScreen: 'account',
+                    userId: user._id.toString(),
+                    oldMobile: user.mobile,
+                    newMobile: mobile
+                }
             });
         } catch (err) {
             console.error('Failed to send notification:', err);
