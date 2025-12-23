@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
   const userObjectId = new mongoose.Types.ObjectId(userId);
 
   const orders = await Order.aggregate([
-    // 1️⃣ findOne equivalent
+    // 1️⃣ Match order (findOne equivalent)
     {
       $match: {
         _id: orderObjectId,
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
       }
     },
 
-    // 2️⃣ join medicines
+    // 2️⃣ Lookup medicines
     {
       $lookup: {
         from: 'medicines',
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
       }
     },
 
-    // 3️⃣ attach quantity
+    // 3️⃣ Merge medicineQuantity into medicineDetails
     {
       $addFields: {
         medicineDetails: {
@@ -86,31 +86,40 @@ export async function POST(req: NextRequest) {
             input: '$medicineDetails',
             as: 'med',
             in: {
-              _id: '$$med._id',
-              name: '$$med.name',
-              manufacturer: '$$med.manufacturer',
-              mrp: '$$med.mrp',
-              price: '$$med.price',
-              discount: '$$med.discount',
-              images: '$$med.images',
-              coverImage: '$$med.coverImage',
-              quantity: {
-                $let: {
-                  vars: {
-                    q: {
-                      $arrayElemAt: [
-                        {
-                          $filter: {
-                            input: '$medicineQuantity',
-                            as: 'mq',
-                            cond: { $eq: ['$$mq.medicineId', '$$med._id'] }
+              $let: {
+                vars: {
+                  mq: {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: '$medicineQuantity',
+                          as: 'item',
+                          cond: {
+                            $eq: [
+                              { $toString: '$$item.medicineId' },
+                              { $toString: '$$med._id' }
+                            ]
                           }
-                        },
-                        0
-                      ]
-                    }
-                  },
-                  in: { $ifNull: ['$$q.quantity', 1] }
+                        }
+                      },
+                      0
+                    ]
+                  }
+                },
+                in: {
+                  _id: '$$med._id',
+                  name: '$$med.name',
+                  manufacturer: '$$med.manufacturer',
+                  mrp: '$$med.mrp',
+                  price: '$$med.price',
+                  discount: '$$med.discount',
+                  images: '$$med.images',
+                  coverImage: '$$med.coverImage',
+
+                  // ✅ ACTUAL VALUES (fallback only if not present)
+                  quantity: { $ifNull: ['$$mq.quantity', 1] },
+                  status: { $ifNull: ['$$mq.status', 'pending'] },
+                  cancelReason: { $ifNull: ['$$mq.cancelReason', ''] }
                 }
               }
             }
@@ -119,7 +128,7 @@ export async function POST(req: NextRequest) {
       }
     },
 
-    // 4️⃣ optional cleanup
+    // 4️⃣ Cleanup unwanted fields
     {
       $project: {
         medicineId: 0,
@@ -127,6 +136,7 @@ export async function POST(req: NextRequest) {
       }
     }
   ]);
+
 
   if (!orders.length) {
     return NextResponse.json(

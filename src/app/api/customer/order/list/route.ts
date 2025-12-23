@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
             }
         },
 
-        // 2️⃣ Sort latest first
+        // 2️⃣ Latest orders first
         {
             $sort: { createdAt: -1 }
         },
@@ -67,14 +67,14 @@ export async function POST(req: NextRequest) {
         // 3️⃣ Lookup medicines
         {
             $lookup: {
-                from: 'medicines', // 🔥 collection name (plural, lowercase)
+                from: 'medicines',
                 localField: 'medicineId',
                 foreignField: '_id',
                 as: 'medicineDetails'
             }
         },
 
-        // 4️⃣ Attach quantity to each medicine
+        // 4️⃣ Attach quantity properly (ObjectId vs String FIX)
         {
             $addFields: {
                 medicineDetails: {
@@ -82,33 +82,40 @@ export async function POST(req: NextRequest) {
                         input: '$medicineDetails',
                         as: 'med',
                         in: {
-                            _id: '$$med._id',
-                            name: '$$med.name',
-                            manufacturer: '$$med.manufacturer',
-                            mrp: '$$med.mrp',
-                            price: '$$med.price',
-                            discount: '$$med.discount',
-                            images: '$$med.images',
-                            coverImage: '$$med.coverImage',
-                            quantity: {
-                                $let: {
-                                    vars: {
-                                        q: {
-                                            $arrayElemAt: [
-                                                {
-                                                    $filter: {
-                                                        input: '$medicineQuantity',
-                                                        as: 'mq',
-                                                        cond: {
-                                                            $eq: ['$$mq.medicineId', '$$med._id']
-                                                        }
+                            $let: {
+                                vars: {
+                                    mq: {
+                                        $arrayElemAt: [
+                                            {
+                                                $filter: {
+                                                    input: '$medicineQuantity',
+                                                    as: 'item',
+                                                    cond: {
+                                                        $eq: [
+                                                            { $toString: '$$item.medicineId' },
+                                                            { $toString: '$$med._id' }
+                                                        ]
                                                     }
-                                                },
-                                                0
-                                            ]
-                                        }
-                                    },
-                                    in: { $ifNull: ['$$q.quantity', 1] }
+                                                }
+                                            },
+                                            0
+                                        ]
+                                    }
+                                },
+                                in: {
+                                    _id: '$$med._id',
+                                    name: '$$med.name',
+                                    manufacturer: '$$med.manufacturer',
+                                    mrp: '$$med.mrp',
+                                    price: '$$med.price',
+                                    discount: '$$med.discount',
+                                    images: '$$med.images',
+                                    coverImage: '$$med.coverImage',
+
+                                    // ✅ Correct quantity
+                                    quantity: { $ifNull: ['$$mq.quantity', 1] },
+                                    status: { $ifNull: ['$$mq.status', 'pending'] },
+                                    cancelReason: { $ifNull: ['$$mq.cancelReason', ''] }
                                 }
                             }
                         }
@@ -117,9 +124,13 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // ❌ medicineId remove nahi kar raha
+        // ❌ medicineId intentionally kept
         // frontend ke kaam aa sakta hai
     ]);
+
+
+
+
 
     // Format createdAt and deliveredDate for each order
     const formattedOrders = orders.map(order => ({
