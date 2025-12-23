@@ -674,7 +674,7 @@ export default function OrderDetailPage() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <p className="text-xs font-black text-[var(--status-danger-text)] uppercase tracking-widest">
+                  <p className="text-xs font- text-[var(--status-danger-text)] uppercase tracking-widest">
                     Rejection Reason
                   </p>
                 </div>
