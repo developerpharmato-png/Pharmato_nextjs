@@ -82,6 +82,11 @@ export async function POST(req: NextRequest) {
             order_status
         } = body || {};
 
+            // Accept several names for day filter: `day`, `dayFilter`, or `days`.
+            // Supported values: 'all' | 'today' | 'last7' | 'last30' or a numeric N to mean last N days.
+            const rawDay = (body && (body.day ?? body.dayFilter ?? body.days)) || 'all';
+            const dayFilter = typeof rawDay === 'string' || typeof rawDay === 'number' ? rawDay : 'all';
+
         // Coerce numeric inputs safely
         let parsedLimit = Number.isFinite(Number(limit)) ? Number(limit) : 10;
         if (parsedLimit <= 0) parsedLimit = 10;
@@ -144,6 +149,38 @@ export async function POST(req: NextRequest) {
 
             query.$or = orConditions;
         }
+
+            // Day filter: limit by createdAt
+            if (dayFilter && dayFilter !== 'all') {
+                const now = new Date();
+                let start: Date | null = null;
+                let end: Date = now;
+
+                if (String(dayFilter) === 'today') {
+                    start = new Date(now);
+                    start.setHours(0,0,0,0);
+                    end = new Date(now);
+                    end.setHours(23,59,59,999);
+                } else if (String(dayFilter) === 'last7') {
+                    start = new Date(now);
+                    start.setDate(start.getDate() - 6);
+                    start.setHours(0,0,0,0);
+                } else if (String(dayFilter) === 'last30') {
+                    start = new Date(now);
+                    start.setDate(start.getDate() - 29);
+                    start.setHours(0,0,0,0);
+                } else if (!Number.isNaN(Number(dayFilter))) {
+                    // numeric N days (last N days including today)
+                    const n = Math.max(1, Math.floor(Number(dayFilter)));
+                    start = new Date(now);
+                    start.setDate(start.getDate() - (n - 1));
+                    start.setHours(0,0,0,0);
+                }
+
+                if (start) {
+                    query.createdAt = { $gte: start, $lte: end };
+                }
+            }
 
         // Get total count
         const total = await Order.countDocuments(query);

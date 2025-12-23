@@ -29,6 +29,7 @@ interface FilterSearchProps {
     subCategoryId?: string | null;
     isOTC?: string; // Added `isOTC` to the filters type
     status?: string; // Added `status` to the filters type
+    day?: string;
   }) => void;
   showApply?: boolean;
   onApply?: (filters: {
@@ -37,6 +38,7 @@ interface FilterSearchProps {
     subCategoryId?: string | null;
     isOTC?: string; // Added `isOTC` to the filters type
     status?: string; // Added `status` to the filters type
+    day?: string;
   }) => void;
   debounceMs?: number;
   className?: string;
@@ -45,6 +47,7 @@ interface FilterSearchProps {
     search?: string;
     categoryId?: string | null;
     subCategoryId?: string | null;
+    day?: string;
   };
   isSearchShow?: boolean;
   isShowOTC?: boolean; // Added `isShowOTC` to the props
@@ -59,6 +62,8 @@ interface FilterSearchProps {
   orderStatus?: string;
   setOrderStatus?: (val: string) => void;
   setPage?: (val: number) => void;
+  dayFilter?: boolean;
+  setDayFilter?: (val: string) => void;
 }
 
 export default function FilterSearch({
@@ -81,7 +86,10 @@ export default function FilterSearch({
   orderStatus = "all",
   setOrderStatus,
   setPage,
+  dayFilter = false,
+  setDayFilter,
 }: FilterSearchProps) {
+  const [dayFilterValue, setDayFilterValue] = useState<string>("all");
   const [search, setSearch] = useState<string>(initial.search || "");
   const [filterOTC, setFilterOTC] = useState<string>("all"); // Added state for OTC filter
   const [statusFilter, setStatusFilter] = useState<string>("all"); // Added state for status filter
@@ -103,6 +111,7 @@ export default function FilterSearch({
         search: search || undefined,
         isOTC: filterOTC !== "all" ? filterOTC : undefined,
         status: statusFilter !== "all" ? statusFilter : undefined,
+        day: dayFilterValue && dayFilterValue !== "all" ? dayFilterValue : undefined,
         categoryId: categoryFilter !== "all" ? categoryFilter : undefined,
         subCategoryId:
           subcategoryFilter !== "all" ? subcategoryFilter : undefined,
@@ -169,10 +178,12 @@ export default function FilterSearch({
     setStatusFilter("all");
     setCategoryFilter("all");
     setSubcategoryFilter("all");
+    setDayFilterValue("all");
     // Reset MUI filters if they exist
     setPrescriptionStatus?.("all");
     setOrderStatus?.("all");
     setPage?.(0);
+    setDayFilter?.("all");
     if (!showApply) onChange?.({});
   }
 
@@ -181,6 +192,7 @@ export default function FilterSearch({
       search: search || undefined,
       isOTC: filterOTC !== "all" ? filterOTC : undefined, // Include OTC filter in onApply
       status: statusFilter !== "all" ? statusFilter : undefined, // Include status filter in onApply
+        day: dayFilterValue && dayFilterValue !== "all" ? dayFilterValue : undefined,
       categoryId: categoryFilter !== "all" ? categoryFilter : undefined, // Include category filter in onApply
       subCategoryId:
         subcategoryFilter !== "all" ? subcategoryFilter : undefined, // Include subcategory filter in onApply
@@ -415,17 +427,50 @@ export default function FilterSearch({
         </Box>
       )}
 
-      {/* Clear Button Section */}
-      {showclearAll && (
-        <button
-          type="button"
-          onClick={handleReset}
-          className="flex items-center gap-2 px-6 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg text-sm font-semibold transition-all hover:border-green-500 hover:bg-green-50 hover:-translate-y-0.5"
-        >
-          <X size={16} />
-          Clear
-        </button>
+      {dayFilter && (
+        <div style={{ flex: "0 1 220px", minWidth: "180px" }}>
+          <div style={{ position: "relative" }}>
+            <select
+              id="day-filter"
+              value={dayFilterValue}
+              onChange={(e) => {
+                setDayFilterValue(e.target.value);
+                setDayFilter?.(e.target.value);
+                setPage?.(0);
+              }}
+              style={{
+                width: "100%",
+                padding: "12px 36px 12px 16px",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                fontSize: "14px",
+                outline: "none",
+                backgroundColor: "#ffffff",
+                cursor: "pointer",
+                appearance: "none",
+                transition: "all 0.2s",
+                fontFamily: "inherit",
+                color: dayFilterValue !== "all" ? "#171717" : "#6b7280",
+              }}
+            >
+              <option value="all" style={{ color: "#6b7280" }}>
+                All Dates
+              </option>
+              <option value="today" style={{ color: "#171717" }}>
+                Today
+              </option>
+              <option value="last7" style={{ color: "#171717" }}>
+                Last 7 Days
+              </option>
+              <option value="last30" style={{ color: "#171717" }}>
+                Last 30 Days
+              </option>
+            </select>
+          </div>
+        </div>
       )}
+
+     
       {/* Category Filter Dropdown */}
 
       {isShowSub && (
@@ -522,7 +567,17 @@ export default function FilterSearch({
           </div>
         </div>
       )}
-
+ {/* Clear Button Section */}
+      {showclearAll && (
+        <button
+          type="button"
+          onClick={handleReset}
+          className="flex items-center gap-2 px-6 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg text-sm font-semibold transition-all hover:border-green-500 hover:bg-green-50 hover:-translate-y-0.5"
+        >
+          <X size={16} />
+          Clear
+        </button>
+      )}
       <div style={{ display: "flex", gap: "12px", flexShrink: 0 }}></div>
     </div>
   );
