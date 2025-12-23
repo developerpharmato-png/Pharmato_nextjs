@@ -127,9 +127,8 @@ export default function OrdersPage() {
           isShowCategory={false}
           isShowSub={false}
           isShowOTC={false}
-          showclearAll={false}
-          showOrderFilters={true}
           showclearAll={true}
+          showOrderFilters={true}
           prescriptionStatus={prescriptionStatus}
           setPrescriptionStatus={setPrescriptionStatus}
           orderStatus={orderStatus}

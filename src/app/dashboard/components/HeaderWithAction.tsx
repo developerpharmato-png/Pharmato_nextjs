@@ -22,6 +22,12 @@ type Props = {
   onBack?: () => void;
   ExportButton?: React.ReactNode;
   showclearAll?: boolean;
+  showOrderFilters?: boolean;
+  prescriptionStatus?: any;
+  setPrescriptionStatus?: (value: any) => void;
+  orderStatus?: any;
+  setOrderStatus?: (value: any) => void;
+  setPage?: (value: any) => void;
 };
 
 import React from "react";
@@ -89,7 +95,7 @@ export default function HeaderWithAction({
   handleAdd,
   isunsaved = true,
   onBack,
-  ExportButton,showclearAll=true
+  ExportButton, showclearAll = true
 }: Props) {
   const router = useRouter();
 
