@@ -7,6 +7,7 @@ import * as Yup from "yup";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import Toast from "@/utils/Toast";
 import { LoginSchema } from "@/utils/validateCategory";
+import { requestPermissionAndGetToken } from "@/app/firebase/firebaseConfig";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -151,10 +152,12 @@ export default function LoginPage() {
                 validationSchema={LoginSchema}
                 onSubmit={async (values, { setSubmitting }) => {
                   try {
+                    // attempt to get FCM device token (may return undefined)
+                    const deviceToken = await requestPermissionAndGetToken();
                     const res = await fetch("/api/auth/login", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(values),
+                      body: JSON.stringify({ ...values, deviceToken }),
                     });
 
                     const data = await res.json();
@@ -175,6 +178,9 @@ export default function LoginPage() {
                       localStorage.setItem("roleId", data.data.roleId);
                       localStorage.setItem("roleName", data.data.roleName);
                       localStorage.setItem("sessionToken", data.data.sessionToken);
+                      if (data.data.deviceToken) {
+                        localStorage.setItem("deviceToken", data.data.deviceToken);
+                      }
                       localStorage.setItem("managedStores", JSON.stringify(data.data.managedStores || []));
                       
                       // fetch role permissions and store them locally for the UI

@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     try {
         await connectDB();
         const body = await request.json();
-        const { email, password } = body;
+        const { email, password, deviceToken } = body;
 
         // Validate input
         if (!email || !password) {
@@ -137,13 +137,16 @@ export async function POST(request: NextRequest) {
             sessionId
         }, undefined); // no expiry
 
-        // Store session token, refresh token and sessionId in admin document (single session)
-        await Admin.findByIdAndUpdate(adminObj._id, { sessionToken: accessToken, refreshToken: refreshToken, sessionId });
+        // Store session token, refresh token, sessionId and deviceToken in admin document (single session)
+        const updateFields: any = { sessionToken: accessToken, refreshToken: refreshToken, sessionId };
+        if (deviceToken) updateFields.deviceToken = deviceToken;
+        await Admin.findByIdAndUpdate(adminObj._id, updateFields);
 
         // Reflect the new session values in the returned object so client sees them
         adminObj.sessionToken = accessToken;
         adminObj.refreshToken = refreshToken;
         adminObj.sessionId = sessionId;
+        adminObj.deviceToken = deviceToken || null;
 
         // Return data and set access token cookie
         const response = NextResponse.json({
