@@ -3,8 +3,13 @@
 import React, { useEffect, useState } from "react";
 import { Search, Filter, X } from "lucide-react";
 import axios from "axios";
-import { CategoriesStore, SubcategoriesStore } from "../storeAPICall/useUserStore";
+import {
+  CategoriesStore,
+  SubcategoriesStore,
+} from "../storeAPICall/useUserStore";
 import { CategoriesPath, SubcategoriesPath } from "../storeAPICall/API/BaseApi";
+import { Box } from "@mui/system";
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
 // Define types for categories and subcategories
 interface Category {
@@ -48,6 +53,12 @@ interface FilterSearchProps {
   isShowSub?: boolean; // Added prop to control subcategory filter visibility
   subcategories?: any[]; // Added subcategories prop
   showclearAll?: boolean;
+  showOrderFilters?: boolean;
+  prescriptionStatus?: string;
+  setPrescriptionStatus?: (val: string) => void;
+  orderStatus?: string;
+  setOrderStatus?: (val: string) => void;
+  setPage?: (val: number) => void;
 }
 
 export default function FilterSearch({
@@ -64,6 +75,12 @@ export default function FilterSearch({
   isShowSub = false,
   isShowCategory = false,
   showclearAll = true,
+  showOrderFilters = false,
+  prescriptionStatus = "all",
+  setPrescriptionStatus,
+  orderStatus = "all",
+  setOrderStatus,
+  setPage,
 }: FilterSearchProps) {
   const [search, setSearch] = useState<string>(initial.search || "");
   const [filterOTC, setFilterOTC] = useState<string>("all"); // Added state for OTC filter
@@ -74,7 +91,8 @@ export default function FilterSearch({
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
 
   // Zustand stores for categories and subcategories
-  const { fetchData: fetchCategories, data: categoriesData } = CategoriesStore();
+  const { fetchData: fetchCategories, data: categoriesData } =
+    CategoriesStore();
   const { fetchData: fetchSubs, data: subsData } = SubcategoriesStore();
 
   // Debounce onChange when showApply is false
@@ -106,9 +124,10 @@ export default function FilterSearch({
   // Fetch categories on component mount and when OTC filter changes
   useEffect(() => {
     // fetch categories via zustand with OTC filter
-    const url = filterOTC !== 'all'
-      ? `${CategoriesPath}?isOTC=${filterOTC}`
-      : CategoriesPath;
+    const url =
+      filterOTC !== "all"
+        ? `${CategoriesPath}?isOTC=${filterOTC}`
+        : CategoriesPath;
     fetchCategories({ url });
   }, [fetchCategories, filterOTC]);
 
@@ -127,7 +146,9 @@ export default function FilterSearch({
     // fetch subcategories via zustand; filter by selected category when applicable
     const url =
       categoryFilter !== "all"
-        ? `${SubcategoriesPath}?categoryId=${encodeURIComponent(categoryFilter)}`
+        ? `${SubcategoriesPath}?categoryId=${encodeURIComponent(
+            categoryFilter
+          )}`
         : SubcategoriesPath;
     fetchSubs({ url });
   }, [fetchSubs, categoryFilter]);
@@ -144,10 +165,14 @@ export default function FilterSearch({
 
   function handleReset() {
     setSearch("");
-    setFilterOTC("all"); // Reset OTC filter
-    setStatusFilter("all"); // Reset status filter
-    setCategoryFilter("all"); // Reset category filter
-    setSubcategoryFilter("all"); // Reset subcategory filter
+    setFilterOTC("all");
+    setStatusFilter("all");
+    setCategoryFilter("all");
+    setSubcategoryFilter("all");
+    // Reset MUI filters if they exist
+    setPrescriptionStatus?.("all");
+    setOrderStatus?.("all");
+    setPage?.(0);
     if (!showApply) onChange?.({});
   }
 
@@ -321,7 +346,86 @@ export default function FilterSearch({
           </div>
         </div>
       )}
+      {showOrderFilters && (
+        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+          <FormControl
+            size="small"
+            sx={{
+              minWidth: 200,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "8px",
+                "&.Mui-focused fieldset": { borderColor: "var(--primary)" },
+              },
+              "& .MuiInputLabel-root.Mui-focused": { color: "var(--primary)" },
+            }}
+          >
+            <InputLabel id="prescription-status-label">
+              Prescription Status
+            </InputLabel>
+            <Select
+              labelId="prescription-status-label"
+              value={prescriptionStatus}
+              label="Prescription Status"
+              onChange={(e) => {
+                setPrescriptionStatus?.(e.target.value);
+                setPage?.(0);
+              }}
+            >
+              <MenuItem value="all">
+                <em>All Statuses</em>
+              </MenuItem>
+              <MenuItem value="Pending">Pending</MenuItem>
+              <MenuItem value="Approved">Approved</MenuItem>
+              <MenuItem value="Rejected">Rejected</MenuItem>
+              <MenuItem value="Not Required">Not Required</MenuItem>
+            </Select>
+          </FormControl>
 
+          <FormControl
+            size="small"
+            sx={{
+              minWidth: 200,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "8px",
+                "&.Mui-focused fieldset": { borderColor: "var(--primary)" },
+              },
+              "& .MuiInputLabel-root.Mui-focused": { color: "var(--primary)" },
+            }}
+          >
+            <InputLabel id="order-status-label">Order Status</InputLabel>
+            <Select
+              labelId="order-status-label"
+              value={orderStatus}
+              label="Order Status"
+              onChange={(e) => {
+                setOrderStatus?.(e.target.value);
+                setPage?.(0);
+              }}
+            >
+              <MenuItem value="all">
+                <em>All Statuses</em>
+              </MenuItem>
+              <MenuItem value="Pending">Pending</MenuItem>
+              <MenuItem value="Confirmed">Confirmed</MenuItem>
+              <MenuItem value="Dispatched">Dispatched</MenuItem>
+              <MenuItem value="Delivered">Delivered</MenuItem>
+              <MenuItem value="Cancelled">Cancelled</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+      )}
+
+      {/* Clear Button Section */}
+      {showclearAll && (
+        <button
+          type="button"
+          onClick={handleReset}
+          className="flex items-center gap-2 px-6 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg text-sm font-semibold transition-all hover:border-green-500 hover:bg-green-50 hover:-translate-y-0.5"
+        >
+          <X size={16} />
+          Clear
+        </button>
+      )}
       {/* Category Filter Dropdown */}
 
       {isShowSub && (
@@ -419,44 +523,7 @@ export default function FilterSearch({
         </div>
       )}
 
-      <div style={{ display: "flex", gap: "12px", flexShrink: 0 }}>
-     {showclearAll && (
- <button
-            type="button"
-            onClick={handleReset}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "12px 24px",
-              backgroundColor: "#ffffff",
-              color: "#171717",
-              border: "1px solid #d1d5db",
-              borderRadius: "8px",
-              fontSize: "14px",
-              fontWeight: "600",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              fontFamily: "inherit",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "rgb(93, 172, 93)";
-              e.currentTarget.style.backgroundColor = "rgba(0,128,0,0.04)";
-              e.currentTarget.style.transform = "translateY(-1px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "#d1d5db";
-              e.currentTarget.style.backgroundColor = "#ffffff";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
-          >
-            <X size={16} />
-            Clear
-          </button>
-     )}
-         
-       
-      </div>
+      <div style={{ display: "flex", gap: "12px", flexShrink: 0 }}></div>
     </div>
   );
 }

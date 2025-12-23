@@ -23,6 +23,7 @@ import {
   PrescriptionApprovePath,
   PrescriptionRejectPath,
 } from "../../../storeAPICall/API/BaseApi";
+import { downloadImageByUrl } from "@/utils/function";
 
 export default function OrderDetailPage() {
   const router = useRouter();
@@ -70,6 +71,8 @@ export default function OrderDetailPage() {
       setLoading(false);
     }
   };
+
+  // Download image by fetching blob (works for cross-origin URLs when allowed)
 
   useEffect(() => {
     if (!detailsData) return;
@@ -574,73 +577,55 @@ export default function OrderDetailPage() {
                 </div>
               </div>
 
-              {order?.isPrescriptionRequired && (
-                <div className="flex gap-3 w-full sm:w-auto">
-                  <button
-                    onClick={handleApprovePrescription}
-                    className="flex-1 sm:flex-none px-6 py-2.5 bg-[var(--primary)] text-white text-sm font-bold rounded-lg hover:opacity-90 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+              {order?.isPrescriptionRequired &&
+                order?.prescription_status != "Approved" && (
+                  <div className="flex gap-3 w-full sm:w-auto">
+                    <button
+                      onClick={handleApprovePrescription}
+                      className="flex-1 sm:flex-none px-6 py-2.5 bg-[var(--primary)] text-white text-sm font-bold rounded-lg hover:opacity-90 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => setShowRejectModal(true)}
-                    className="flex-1 sm:flex-none px-6 py-2.5 bg-white border-2 border-[var(--status-danger-text)] text-[var(--status-danger-text)] text-sm font-bold rounded-lg hover:bg-[var(--status-danger-bg)] transition-all flex items-center justify-center gap-2"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => setShowRejectModal(true)}
+                      className="flex-1 sm:flex-none px-6 py-2.5 bg-white border-2 border-[var(--status-danger-text)] text-[var(--status-danger-text)] text-sm font-bold rounded-lg hover:bg-[var(--status-danger-bg)] transition-all flex items-center justify-center gap-2"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                    Reject
-                  </button>
-                </div>
-              )}
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                      Reject
+                    </button>
+                  </div>
+                )}
             </div>
 
             {/* Prescription Documents Grid */}
             {order?.prescription_url && order.prescription_url.length > 0 && (
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-[var(--status-purple-bg)] rounded-md">
-                    <svg
-                      className="w-4 h-4 text-[var(--status-purple-text)]"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 00-2 2z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-sm font-bold text-gray-700 uppercase tracking-tight">
-                    Attached Documents
-                  </h3>
-                </div>
+                <div className="flex items-center gap-2"></div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {order.prescription_url.map((url: string, idx: number) => {
@@ -670,21 +655,25 @@ export default function OrderDetailPage() {
                           </div>
                         ) : (
                           <div className="relative h-40 w-full">
-                            <img
-                              src={url}
+                            <CustomImage
+                              coverImage={url}
+                              images={[url]}
                               alt={`Prescription ${idx + 1}`}
-                              className="w-full h-full object-cover"
+                              style={{
+                                height: "100%",
+                                width: "100%",
+                                objectFit: "cover",
+                              }}
                             />
-                            <a
-                              href={url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                            >
-                              <span className="bg-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
-                                View Image
-                              </span>
-                            </a>
+                            <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => downloadImageByUrl(url)}
+                                className="bg-white/90 px-2 py-1 rounded text-xs font-bold shadow"
+                                title="Download"
+                              >
+                                Download
+                              </button>
+                            </div>
                           </div>
                         )}
                         <div className="p-2.5 bg-white border-t border-gray-100 text-center">

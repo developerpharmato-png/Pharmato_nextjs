@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import FilterSearch from "../components/FilterSearch";
 import { OrderListStore } from "../storeAPICall/useUserStore";
 import { OrderLIstPath } from "../storeAPICall/API/BaseApi";
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import { Box } from "@mui/system";
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -18,6 +20,8 @@ export default function OrdersPage() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [customerId, setCustomerId] = useState("");
+  const [prescriptionStatus, setPrescriptionStatus] = useState<string>("all");
+  const [orderStatus, setOrderStatus] = useState<string>("all");
 
   const {
     postData: ListPost,
@@ -28,7 +32,14 @@ export default function OrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-  }, [page, rowsPerPage, searchTerm, customerId]);
+  }, [
+    page,
+    rowsPerPage,
+    searchTerm,
+    customerId,
+    prescriptionStatus,
+    orderStatus,
+  ]);
 
   const fetchOrders = async () => {
     const body: any = {
@@ -36,16 +47,19 @@ export default function OrdersPage() {
       offset: page * rowsPerPage,
       page,
     };
- 
+
     if (searchTerm) body.search = searchTerm;
     if (customerId) body.customerId = customerId;
+    if (prescriptionStatus && prescriptionStatus !== "all")
+      body.prescription_status = prescriptionStatus;
+    if (orderStatus && orderStatus !== "all") body.order_status = orderStatus;
 
     // Add storeId and roleName from localStorage
     const roleName = localStorage.getItem("roleName");
     const managedStoresStr = localStorage.getItem("managedStores");
-    
+
     if (roleName) body.roleName = roleName;
-    
+
     // Get storeId from managedStores array
     if (managedStoresStr) {
       try {
@@ -64,7 +78,7 @@ export default function OrdersPage() {
     } catch (err) {
       console.error("Order list fetch failed", err);
     }
-  };  
+  };
 
   // Map store response to local table state
   useEffect(() => {
@@ -95,20 +109,34 @@ export default function OrdersPage() {
         showSearch={false}
         onSearchChange={setSearchTerm}
         addShow={false}
-       
+        // New props to enable the MUI dropdowns inside
+        showOrderFilters={true}
+        showclearAll={true}
+        prescriptionStatus={prescriptionStatus}
+        setPrescriptionStatus={setPrescriptionStatus}
+        orderStatus={orderStatus}
+        setOrderStatus={setOrderStatus}
+        setPage={setPage}
       />
 
-      <FilterSearch
-        onChange={(f) => {
-          setSearchTerm(f.search || "");
-        }}
-        placeholder="Search by order ID or payment ID..."
-        isSearchShow={true}
-        isShowCategory={false}
-        isShowSub={false}
-        isShowOTC={false}
-         showclearAll={false}
-      />
+      <Box mb={2}>
+        <FilterSearch
+          onChange={(f) => setSearchTerm(f.search || "")}
+          placeholder="Search by order ID or payment ID..."
+          isSearchShow={true}
+          isShowCategory={false}
+          isShowSub={false}
+          isShowOTC={false}
+          showclearAll={false}
+          showOrderFilters={true}
+          showclearAll={true}
+          prescriptionStatus={prescriptionStatus}
+          setPrescriptionStatus={setPrescriptionStatus}
+          orderStatus={orderStatus}
+          setOrderStatus={setOrderStatus}
+          setPage={setPage}
+        />
+      </Box>
 
       <OrdersTable
         data={orders}
