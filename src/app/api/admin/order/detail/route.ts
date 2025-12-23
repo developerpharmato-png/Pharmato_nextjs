@@ -81,7 +81,9 @@ export async function POST(req: NextRequest) {
                 });
                 return {
                     ...med.toObject(),
-                    quantity: q?.quantity || 1
+                    quantity: q?.quantity || 1,
+                    status: q?.status || 'pending',
+                    cancelReason: q?.cancelReason || '',
                 };
             })
             : [];

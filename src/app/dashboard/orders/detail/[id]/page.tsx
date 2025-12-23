@@ -751,7 +751,36 @@ export default function OrderDetailPage() {
                   key={index}
                   onClick={() => medidetails(medicine._id)}
                   className="group flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border border-gray-100 rounded-xl transition-all duration-200 hover:border-[var(--secondary)]/30 hover:shadow-md hover:bg-gray-50/50"
+                  style={{ position: 'relative' }}
                 >
+                  {/* Stylish Status Badge - Floating Top Right */}
+                  {(() => {
+                    const status = medicine.status || "pending";
+                    let badgeColor = "bg-yellow-100 text-yellow-800 border-yellow-300";
+                    if (status === "cancelled") badgeColor = "bg-red-50 text-red-600 border-red-200";
+                    if (status === "delivered") badgeColor = "bg-green-50 text-green-700 border-green-200";
+                    return (
+                      <div
+                        className={`absolute -top-3 right-4 flex flex-col items-end z-20`}
+                        style={{ minWidth: 110 }}
+                      >
+                        <span
+                          className={`px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wide shadow-md ${badgeColor} drop-shadow-sm flex items-center gap-1`}
+                          style={{ letterSpacing: 1, fontFamily: 'inherit' }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" className="inline-block mr-1">
+                            <circle cx="10" cy="10" r="8" fill={status === "cancelled" ? '#f87171' : status === "delivered" ? '#22c55e' : '#facc15'} />
+                          </svg>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </span>
+                        {status === "cancelled" && medicine.cancelReason && (
+                          <span className="mt-1 text-[11px] text-red-500 italic font-medium bg-red-50 border border-red-100 rounded px-2 py-0.5 shadow-sm max-w-xs text-right">
+                            {medicine.cancelReason}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
                   {/* Image Container */}
                   <div className="shrink-0 mx-auto sm:mx-0">
                     {medicine.coverImage ||
@@ -822,6 +851,7 @@ export default function OrderDetailPage() {
                       </div>
                     </div>
                   </div>
+
                 </div>
               ))
             ) : (
@@ -832,6 +862,8 @@ export default function OrderDetailPage() {
               </div>
             )}
           </div>
+
+
         </div>
 
         {/* Order Amount Summary */}
@@ -880,8 +912,8 @@ export default function OrderDetailPage() {
               </span>
               <span
                 className={`text-sm font-bold ${order?.delivery_charges > 0
-                    ? "text-gray-900"
-                    : "text-[var(--primary)]"
+                  ? "text-gray-900"
+                  : "text-[var(--primary)]"
                   }`}
               >
                 {order?.delivery_charges !== undefined &&
@@ -923,8 +955,8 @@ export default function OrderDetailPage() {
             {/* Payment Status Footer */}
             <div
               className={`mt-4 p-3 rounded-lg text-center text-xs font-bold uppercase tracking-widest border ${order?.payment_status === "paid"
-                  ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--primary)]/20"
-                  : "bg-[var(--status-pending-bg)] text-[var(--status-pending-text)] border-[var(--status-pending-text)]/10"
+                ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--primary)]/20"
+                : "bg-[var(--status-pending-bg)] text-[var(--status-pending-text)] border-[var(--status-pending-text)]/10"
                 }`}
             >
               {order?.payment_status == "captured"
