@@ -69,9 +69,8 @@ export async function POST(req: NextRequest) {
         order.prescription_rejected_by = adminId;
         order.prescription_rejected_at = new Date();
         order.prescription_rejection_reason = rejectionReason;
-        if (prescription_url && typeof prescription_url === 'string') {
-            order.prescription_url = prescription_url;
-        }
+        order.prescription_url = prescription_url;
+        order.order_status = 'Pending';
 
         await order.save();
 

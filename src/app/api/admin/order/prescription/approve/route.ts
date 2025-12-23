@@ -66,11 +66,7 @@ export async function POST(req: NextRequest) {
         order.prescription_approved_at = new Date();
         order.prescription_approval_notes = approvalNotes || '';
         order.prescription_rejection_reason = '';
-
-        // Update order status if it was in re-upload required state
-        if (order.order_status === 'Prescription Re-upload Required') {
-            order.order_status = 'Confirmed';
-        }
+        order.order_status = 'Confirmed';
 
         await order.save();
 
