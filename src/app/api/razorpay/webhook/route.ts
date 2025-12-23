@@ -8,6 +8,7 @@ import { sendEmail } from '@/utils/sendEmail';
 import Store from '@/models/Store';
 import Admin from '@/models/Admin';
 import Razorpay from 'razorpay';
+import { getDb } from '@/utils/firebase.helper';
 
 const razorpayInstance = new Razorpay({
     key_id: process.env.razorPay_Key_Id || '',
@@ -72,6 +73,18 @@ export async function POST(req: NextRequest) {
                         }
                     }
                 );
+
+                // Update payment_status in Firebase Realtime Database
+                // Update isPaymentCaptured in Firebase Realtime Database
+                try {
+                    const db = getDb();
+                    // Use orderId as the key under 'orders' node
+                    if (checkOrder && checkOrder.order_id) {
+                        await db.ref(`orders/${checkOrder.order_id}/isPaymentCaptured`).set(true);
+                    }
+                } catch (firebaseErr) {
+                    console.error('Failed to update isPaymentCaptured in Firebase DB:', firebaseErr);
+                }
 
                 try {
                     const updatedOrder = await Order.findById(checkOrder._id).lean();
