@@ -39,7 +39,7 @@ import { getDb } from '@/utils/firebase.helper';
 export async function POST(req: NextRequest) {
     await dbConnect();
     try {
-        const { orderId, medicineIds } = await req.json();
+        const { orderId, medicineIds, cancelReason } = await req.json();
         if (!orderId || !Array.isArray(medicineIds)) {
             return NextResponse.json({ success: false, message: 'orderId and medicineIds are required' }, { status: 400 });
         }
@@ -48,10 +48,12 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
         order.medicineQuantity = order.medicineQuantity.map((item: any) => {
+            // Only update pending medicines
+            if (item.status !== 'pending') return item;
             if (medicineIds.includes(item.medicineId.toString())) {
                 return { ...item, status: 'accepted', cancelReason: '' };
             } else {
-                return { ...item, status: 'cancelled', cancelReason: 'Cancelled by admin (not selected for acceptance)' };
+                return { ...item, status: 'cancelled', cancelReason: cancelReason || 'Cancelled by admin (not selected for acceptance)' };
             }
         });
         await order.save();
