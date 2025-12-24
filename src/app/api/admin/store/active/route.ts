@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
         if (pincode) {
             // prefer matching by Pincode doc _id if exists, otherwise try string match
-            const pinDoc = await Pincode.findOne({ pincode: String(pincode).trim(), isActive: true }).lean();
+            const pinDoc: any = await Pincode.findOne({ pincode: String(pincode).trim(), isActive: true }).lean();
             const orClauses: any[] = [];
             if (pinDoc && pinDoc._id) {
                 orClauses.push({ servicePinCodes: { $in: [pinDoc._id] } });
@@ -22,21 +22,21 @@ export async function POST(req: NextRequest) {
             // also try raw string match in case servicePinCodes stores strings
             orClauses.push({ servicePinCodes: { $in: [String(pincode).trim()] } });
 
-            const store = await Store.findOne({ $or: orClauses, status: 1 }).lean();
+            const store: any = await Store.findOne({ $or: orClauses, status: 1 }).lean();
             if (!store) {
                 return NextResponse.json({ success: false, message: 'No active store found for pincode' }, { status: 404 });
             }
-            return NextResponse.json({ success: true, data: { _id: store._id, name: store.name } });
+            return NextResponse.json({ success: true, data: { _id: store._id, name: store.name } }, { status: 200 });
         }
 
         if (search) {
             const s = String(search).trim();
             const regex = { $regex: s, $options: 'i' };
-            const store = await Store.findOne({ name: regex, status: 1 }).lean();
+            const store: any = await Store.findOne({ name: regex, status: 1 }).lean();
             if (!store) {
                 return NextResponse.json({ success: false, message: 'No active store found for search' }, { status: 404 });
             }
-            return NextResponse.json({ success: true, data: { _id: store._id, name: store.name } });
+            return NextResponse.json({ success: true, data: { _id: store._id, name: store.name } }, { status: 200 });
         }
 
         return NextResponse.json({ success: false, message: 'pincode or search is required' }, { status: 400 });

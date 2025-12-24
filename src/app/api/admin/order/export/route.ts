@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
         // Convert Node Buffer to ArrayBuffer for Response
         const arrayBuffer = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
 
-        return NextResponse.arrayBuffer(arrayBuffer, {
+        return new NextResponse(arrayBuffer, {
             status: 200,
             headers: {
                 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

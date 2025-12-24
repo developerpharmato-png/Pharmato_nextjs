@@ -136,14 +136,14 @@ console.log(dayFilter,"dayFilter");
         <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enGB}>
           <DatePicker
             label="Start date"
-            inputFormat="dd:MM:yyyy"
+            format="dd:MM:yyyy"
             value={exportStartDate}
             onChange={(d) => setExportStartDate(d)}
             slotProps={{ textField: { size: 'small' } }}
           />
           <DatePicker
             label="End date"
-            inputFormat="dd:MM:yyyy"
+            format="dd:MM:yyyy"
             value={exportEndDate}
             onChange={(d) => setExportEndDate(d)}
             slotProps={{ textField: { size: 'small' } }}
