@@ -247,7 +247,7 @@ export default function PartialCancelPage() {
       {/* --- End Prescription Management --- */}
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
-        <h2 className="text-xl font-bold mb-4">Select Medicines to Cancel</h2>
+        <h2 className="text-xl font-bold mb-4">Ordered Medicines List</h2>
         <form
           onSubmit={(e) => {
             e.preventDefault();
