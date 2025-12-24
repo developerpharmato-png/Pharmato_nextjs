@@ -171,7 +171,7 @@ useEffect(() => {
     { name: "Subcategories", path: "/dashboard/subcategories", icon: "folder" },
     { name: "Orders", path: "/dashboard/orders", icon: "receipt_long" },
     { name: " Customers", path: "/dashboard/admin/customers", icon: "person" },
-    { name: "Pincodes", path: "/dashboard/pincode", icon: "place" },
+    // { name: "Pincodes", path: "/dashboard/pincode", icon: "place" },
     { name: "Stores", path: "/dashboard/store", icon: "store" },
     { name: "Banner Images", path: "/dashboard/banner-images", icon: "image" },
     {

@@ -25,4 +25,4 @@ export const OrderDAshboardStore = createApiStore<any>();
 
 export const unreadNotificationStore = createApiStore<any>();
 export const NotificationsListStore = createApiStore<any>();
-export const markreadNotificationsStore = createApiStore<any>();
+export const markreadNotificationsStore = createApiStore<any>(); 

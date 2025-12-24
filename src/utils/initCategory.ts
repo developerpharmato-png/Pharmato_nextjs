@@ -39,6 +39,7 @@ export const initialMedicineFormValues = {
   category: 'Tablet',
   categoryId: '',
   subCategoryId: '',
+  storeId: '',
   price: '',
   purchasePrice: '',
   mrp: '',

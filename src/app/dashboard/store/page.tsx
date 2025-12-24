@@ -230,7 +230,7 @@ export default function StoreDashboard() {
         showBack={false}
         showSearch={false}
         addLabel="Add "
-        addShow={true}
+        addShow={false}
         handleAdd={() => router.push(`/dashboard/store/new/`)}
       />
 
