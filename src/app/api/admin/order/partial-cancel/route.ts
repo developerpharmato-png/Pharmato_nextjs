@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
+import { getDb } from '@/utils/firebase.helper';
 
 /**
  * @swagger
@@ -52,11 +53,24 @@ export async function POST(req: NextRequest) {
         order.medicineQuantity = order.medicineQuantity.map((item: any) => {
             if (medicineIds.includes(item.medicineId.toString())) {
                 return { ...item, status: 'cancelled', cancelReason: cancelReason || '' };
-            }else{
-                 return { ...item, status: 'accepted', cancelReason: '' };
+            } else {
+                return { ...item, status: 'accepted', cancelReason: '' };
             }
         });
         await order.save();
+
+        // Update orderStatus in Firebase Realtime Database
+        if (order?.order_id) {
+            const db = getDb();
+            //Firebase realtime data update
+            const firebaseRef = db.ref(`orders/${order.order_id}`);
+            const snapshot = await firebaseRef.once('value');
+            const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+            await firebaseRef.update({
+                isOrderStatusChanged: isOrderStatusChanged
+            });
+        }
+
         return NextResponse.json({ success: true, message: 'Selected medicines cancelled successfully', data: order });
     } catch (error) {
         console.error('Partial cancel error:', error);

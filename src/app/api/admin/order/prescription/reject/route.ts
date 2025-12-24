@@ -5,7 +5,7 @@ import Notification from '@/models/Notification';
 import { sendEmail } from '@/utils/sendEmail';
 import fs from 'fs';
 import path from 'path';
-import { sendPushNotificationWithData } from '@/utils/firebase.helper';
+import { getDb, sendPushNotificationWithData } from '@/utils/firebase.helper';
 
 /**
  * @swagger
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id name email mobile phone' });
+        const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id order_id name email mobile phone' });
 
         if (!order) {
             return NextResponse.json(
@@ -71,7 +71,19 @@ export async function POST(req: NextRequest) {
         order.prescription_rejection_reason = rejectionReason;
         order.prescription_url = prescription_url;
 
-        await order.save();
+        await order.save();        
+
+        // Update orderStatus in Firebase Realtime Database
+        if (order?.order_id) {
+            const db = getDb();
+            //Firebase realtime data update
+            const firebaseRef = db.ref(`orders/${order.order_id}`);
+            const snapshot = await firebaseRef.once('value');
+            const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+            await firebaseRef.update({
+                isOrderStatusChanged: isOrderStatusChanged
+            });
+        }
 
         // Create in-app notification for customer
         try {
