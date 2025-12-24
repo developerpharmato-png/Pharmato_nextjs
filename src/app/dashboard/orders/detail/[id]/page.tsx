@@ -548,9 +548,9 @@ export default function OrderDetailPage() {
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                   Current Status
                 </p>
-                <div className="mt-1">
-                  {getPrescriptionStatusBadge(order?.prescription_status)}
-                </div>
+                <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                  {order?.prescription_status || "Pending"}
+                </span>
               </div>
             </div>
 

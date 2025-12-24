@@ -192,7 +192,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
               <ErrorMessageCom error={formik.errors.url} />
             )}
           </Box>
-
+{/* 
           <TextareaField
             id="targetScreen"
             name="alt"
@@ -212,8 +212,8 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
                 : undefined
             }
             className="mb-4"
-          />
-
+          /> */}
+<div className="mt-5"></div>
           <TextField
             name="targetId"
             select

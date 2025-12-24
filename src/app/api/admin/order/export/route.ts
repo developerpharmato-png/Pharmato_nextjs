@@ -5,6 +5,7 @@ import User from '@/models/User';
 import '@/models/Medicine';
 import { log } from '@/lib/logger';
 import * as xlsx from 'xlsx';
+import { format } from 'date-fns';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
@@ -104,7 +105,7 @@ export async function POST(req: NextRequest) {
                 delivery_charges: o.delivery_charges || 0,
                 payment_status: o.payment_status || '',
                 order_status: o.order_status || '',
-                createdAt: o.createdAt ? new Date(o.createdAt).toISOString() : ''
+                createdAt: o.createdAt ? format(new Date(o.createdAt), 'dd-MM-yyyy') : ''
             };
         });
 

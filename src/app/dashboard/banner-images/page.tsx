@@ -298,26 +298,26 @@ export default function BannerImagesDashboard() {
                 </CustomTooltip>
               ),
             },
-            {
-              id: "alt",
-              label: "Alt Text",
-              minWidth: 120,
-              selector: (row: any) => (
-                <CustomTooltip title={row.alt || "-"}>
-                  <span
-                    style={{
-                      display: "inline-block",
-                      width: 140,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {row.alt || "-"}
-                  </span>
-                </CustomTooltip>
-              ),
-            },
+            // {
+            //   id: "alt",
+            //   label: "Alt Text",
+            //   minWidth: 120,
+            //   selector: (row: any) => (
+            //     <CustomTooltip title={row.alt || "-"}>
+            //       <span
+            //         style={{
+            //           display: "inline-block",
+            //           width: 140,
+            //           overflow: "hidden",
+            //           textOverflow: "ellipsis",
+            //           whiteSpace: "nowrap",
+            //         }}
+            //       >
+            //         {row.alt || "-"}
+            //       </span>
+            //     </CustomTooltip>
+            //   ),
+            // },
 
             {
               id: "targetId",

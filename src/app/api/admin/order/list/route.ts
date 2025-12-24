@@ -5,6 +5,7 @@ import Order from '@/models/Order';
 import '@/models/Medicine';
 import User from '@/models/User';
 import { log } from '@/lib/logger';
+import { format } from 'date-fns';
 
 /**
  * @swagger
@@ -261,10 +262,16 @@ export async function POST(req: NextRequest) {
             };
         });
 
+        // Also include a human-friendly createdAt string in DD-MM-YYYY
+        const ordersWithFormattedDates = ordersWithQuantities.map(o => ({
+            ...o,
+            createdAtFormatted: o.createdAt ? format(new Date(o.createdAt), 'dd-MM-yyyy') : ''
+        }));
+
         log.success('AdminOrderList: success', { count: ordersWithQuantities.length, total });
         return NextResponse.json({ 
             success: true, 
-            data: ordersWithQuantities,
+            data: ordersWithFormattedDates,
             total 
         });
 

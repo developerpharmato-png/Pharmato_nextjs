@@ -12,6 +12,9 @@ export const SubcategoriesStore = createApiStore<any>();
 
 export const MedicinesExportStore = createApiStore<any>();
 
+// Dedicated store for order export (returns blobs)
+export const OrderExportStore = createApiStore<any>();
+
 export const StoreManagersStore = createApiStore<any>();
 export const StoreListStore = createApiStore<any>();
 export const StoreDetailStore = createApiStore<any>();

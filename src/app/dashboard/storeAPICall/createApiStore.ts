@@ -109,6 +109,27 @@ export function createApiStore<T>() {
         throw error;
       }
     },
+    // POST expecting binary/blob response (e.g., file export)
+    postBlob: async (url: string, body: any) => {
+      set({ loading: true, error: null });
+      try {
+        const isAbsolute = /^https?:\/\//i.test(url);
+        const isPath = url.startsWith("/");
+        const finalUrl = isAbsolute
+          ? url
+          : isPath && typeof window !== "undefined"
+            ? `${window.location.origin}${url}`
+            : url;
+
+        const response = await api.post(finalUrl, body, { responseType: 'blob' });
+        set({ loading: false });
+        return response.data as Blob;
+      } catch (error: any) {
+        handleUnauthorizedError(error);
+        set({ error: error?.message || String(error), loading: false });
+        throw error;
+      }
+    },
 
     putData: async (url, body) => {
       set({ loading: true, error: null });
