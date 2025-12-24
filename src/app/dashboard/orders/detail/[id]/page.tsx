@@ -293,7 +293,7 @@ export default function OrderDetailPage() {
             className="ml-2 px-4 py-2 rounded-lg font-bold transition"
             style={{
               background: "var(--primary)",
-              color: "#fff"
+              color: "#fff",
             }}
             onClick={() =>
               router.push(`/dashboard/orders/detail/${orderId}/partial-cancel`)
@@ -552,50 +552,6 @@ export default function OrderDetailPage() {
                   {getPrescriptionStatusBadge(order?.prescription_status)}
                 </div>
               </div>
-
-              {order?.isPrescriptionRequired &&
-                order?.prescription_status != "Approved" && (
-                  <div className="flex gap-3 w-full sm:w-auto">
-                    <button
-                      onClick={handleApprovePrescription}
-                      className="flex-1 sm:flex-none px-6 py-2.5 bg-[var(--primary)] text-white text-sm font-bold rounded-lg hover:opacity-90 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => setShowRejectModal(true)}
-                      className="flex-1 sm:flex-none px-6 py-2.5 bg-white border-2 border-[var(--status-danger-text)] text-[var(--status-danger-text)] text-sm font-bold rounded-lg hover:bg-[var(--status-danger-bg)] transition-all flex items-center justify-center gap-2"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                      Reject
-                    </button>
-                  </div>
-                )}
             </div>
 
             {/* Prescription Documents Grid */}
@@ -661,31 +617,6 @@ export default function OrderDetailPage() {
                     );
                   })}
                 </div>
-              </div>
-            )}
-
-            {/* Rejection Notes */}
-            {order?.prescription_rejection_reason && (
-              <div className="bg-[var(--status-danger-bg)] border-l-4 border-[var(--status-danger-text)] rounded-r-lg p-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <svg
-                    className="w-4 h-4 text-[var(--status-danger-text)]"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <p className="text-xs font- text-[var(--status-danger-text)] uppercase tracking-widest">
-                    Rejection Reason
-                  </p>
-                </div>
-                <p className="text-sm text-[var(--status-danger-text)] font-medium leading-relaxed">
-                  {order?.prescription_rejection_reason}
-                </p>
               </div>
             )}
 
@@ -768,7 +699,7 @@ export default function OrderDetailPage() {
                         {/* Image */}
                         <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-gray-100 bg-white">
                           {medicine.coverImage ||
-                            (medicine.images && medicine.images[0]) ? (
+                          (medicine.images && medicine.images[0]) ? (
                             <CustomImage
                               coverImage={
                                 medicine.coverImage || medicine.images[0]
@@ -907,13 +838,14 @@ export default function OrderDetailPage() {
                 Delivery Charges
               </span>
               <span
-                className={`text-sm font-bold ${order?.delivery_charges > 0
-                  ? "text-gray-900"
-                  : "text-[var(--primary)]"
-                  }`}
+                className={`text-sm font-bold ${
+                  order?.delivery_charges > 0
+                    ? "text-gray-900"
+                    : "text-[var(--primary)]"
+                }`}
               >
                 {order?.delivery_charges !== undefined &&
-                  order?.delivery_charges > 0
+                order?.delivery_charges > 0
                   ? `₹${order?.delivery_charges?.toFixed(2)}`
                   : "FREE"}
               </span>
@@ -950,10 +882,11 @@ export default function OrderDetailPage() {
 
             {/* Payment Status Footer */}
             <div
-              className={`mt-4 p-3 rounded-lg text-center text-xs font-bold uppercase tracking-widest border ${order?.payment_status === "paid"
-                ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--primary)]/20"
-                : "bg-[var(--status-pending-bg)] text-[var(--status-pending-text)] border-[var(--status-pending-text)]/10"
-                }`}
+              className={`mt-4 p-3 rounded-lg text-center text-xs font-bold uppercase tracking-widest border ${
+                order?.payment_status === "paid"
+                  ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--primary)]/20"
+                  : "bg-[var(--status-pending-bg)] text-[var(--status-pending-text)] border-[var(--status-pending-text)]/10"
+              }`}
             >
               {order?.payment_status == "captured"
                 ? "✨ Payment Received"
