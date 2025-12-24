@@ -319,12 +319,24 @@ export default function PartialCancelPage() {
               disabled={!hasPending}
               onClick={async (e) => {
                 e.preventDefault();
-                // Accept selected, cancel rest
+                // Prompt for reason for non-selected cancellation
+                const { value: reason } = await Swal.fire({
+                  title: 'Reason for cancelling non-selected medicines',
+                  input: 'textarea',
+                  inputPlaceholder: 'Enter reason for cancellation...',
+                  inputValidator: (value) => {
+                    if (!value.trim()) return 'Reason is required!';
+                  },
+                  showCancelButton: true,
+                  confirmButtonText: 'Proceed',
+                  cancelButtonText: 'Cancel',
+                });
+                if (!reason) return;
                 try {
                   const res = await fetch("/api/admin/order/partial-accept", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ orderId, medicineIds: selected }),
+                    body: JSON.stringify({ orderId, medicineIds: selected, cancelReason: reason }),
                   });
                   const data = await res.json();
                   if (data.success) {
