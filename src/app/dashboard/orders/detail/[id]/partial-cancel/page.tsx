@@ -160,7 +160,7 @@ export default function PartialCancelPage() {
 
 
 
-      
+
       {/* Prescription Management (similar to Order Details) */}
       <div className="bg-[var(--background)] rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
         <h2 className="text-xl font-bold mb-6 text-[var(--foreground)] border-b border-gray-100 pb-3">
@@ -206,7 +206,7 @@ export default function PartialCancelPage() {
                     <div key={idx} className="group relative border border-gray-200 rounded-xl overflow-hidden bg-white hover:border-[var(--secondary)] transition-all shadow-sm">
                       {isPdf ? (
                         <div className="flex flex-col items-center justify-center p-6 h-40 bg-gray-50">
-                          <svg className="w-10 h-10 text-[var(--status-danger-text)] mb-2" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A1 1 0 0111.293 2.707l3 3a1 1 0 01.293.707V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/></svg>
+                          <svg className="w-10 h-10 text-[var(--status-danger-text)] mb-2" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A1 1 0 0111.293 2.707l3 3a1 1 0 01.293.707V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" /></svg>
                           <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[var(--primary)] hover:underline">VIEW PDF</a>
                         </div>
                       ) : (
@@ -303,15 +303,46 @@ export default function PartialCancelPage() {
               <div>No medicines found in this order.</div>
             )}
           </div>
-          <Button
-            type="submit"
-            variant="contained"
-            color="error"
-            sx={modalStyles.confirmBtn}
-            disabled={!hasPending}
-          >
-            Cancel Selected
-          </Button>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <Button
+              type="submit"
+              variant="contained"
+              color="error"
+              disabled={!hasPending}
+            >
+              Cancel Selected
+            </Button>
+            <Button
+              type="button"
+              variant="contained"
+              color="success"
+              disabled={!hasPending}
+              onClick={async (e) => {
+                e.preventDefault();
+                // Accept selected, cancel rest
+                try {
+                  const res = await fetch("/api/admin/order/partial-accept", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ orderId, medicineIds: selected }),
+                  });
+                  const data = await res.json();
+                  if (data.success) {
+                    Swal.fire("Success", "Selected medicines accepted", "success");
+                    setSelected([]);
+                    setCancelReason("");
+                    fetchOrder();
+                  } else {
+                    Swal.fire("Error", data.message || "Failed to accept", "error");
+                  }
+                } catch (e) {
+                  Swal.fire("Error", "Failed to accept", "error");
+                }
+              }}
+            >
+              Accept Selected
+            </Button>
+          </div>
         </form>
       </div>
       <Dialog
