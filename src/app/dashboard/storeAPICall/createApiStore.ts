@@ -53,6 +53,7 @@ export function createApiStore<T>() {
     ApiState<T> & {
       fetchData: (params?: Record<string, any>) => Promise<T | undefined>;
       postData: (url: string, body: any) => Promise<T | undefined>;
+      postBlob: (url: string, body: any) => Promise<Blob | undefined>;
       putData: (url: string, body: any) => Promise<T | undefined>;
       patchData: (url: string, body: any) => Promise<T | undefined>;
       clearData: () => void;

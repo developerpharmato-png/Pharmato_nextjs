@@ -265,7 +265,7 @@ export async function POST(req: NextRequest) {
         // Also include a human-friendly createdAt string in DD-MM-YYYY
         const ordersWithFormattedDates = ordersWithQuantities.map(o => ({
             ...o,
-            createdAtFormatted: o.createdAt ? format(new Date(o.createdAt), 'dd-MM-yyyy') : ''
+            createdAtFormatted: (o as any).createdAt ? format(new Date((o as any).createdAt), 'dd-MM-yyyy') : ''
         }));
 
         log.success('AdminOrderList: success', { count: ordersWithQuantities.length, total });
