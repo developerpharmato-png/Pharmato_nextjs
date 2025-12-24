@@ -146,6 +146,10 @@ export default function PartialCancelPage() {
 
   // Check if at least one medicine has status 'pending'
   const hasPending = order?.medicineQuantity?.some((q: any) => q?.status === "pending");
+  // collect ids of medicines that are pending
+  const pendingMedicineIds: string[] = (order?.medicineQuantity || [])
+    .filter((q: any) => q?.status === "pending")
+    .map((q: any) => (q.medicineId?.toString ? q.medicineId.toString() : q.medicineId));
 
   return (
     <div className="containerStyle">
@@ -255,6 +259,31 @@ export default function PartialCancelPage() {
           }}
         >
           <div className="space-y-3 mb-6">
+            {/* Select all pending checkbox */}
+            <div className="flex items-center gap-2 mb-2">
+              <Checkbox
+                checked={
+                  pendingMedicineIds.length > 0 &&
+                  pendingMedicineIds.every((id) => selected.includes(id))
+                }
+                indeterminate={
+                  pendingMedicineIds.length > 0 &&
+                  pendingMedicineIds.some((id) => selected.includes(id)) &&
+                  !pendingMedicineIds.every((id) => selected.includes(id))
+                }
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    // add all pending ids to selected
+                    setSelected((prev) => Array.from(new Set([...prev, ...pendingMedicineIds])));
+                  } else {
+                    // remove all pending ids from selected
+                    setSelected((prev) => prev.filter((id) => !pendingMedicineIds.includes(id)));
+                  }
+                }}
+                disabled={pendingMedicineIds.length === 0}
+              />
+              <div className="text-sm font-medium">Select all pending</div>
+            </div>
             {order.medicineId && order.medicineId.length > 0 ? (
               order.medicineId.map((med: any, idx: number) => {
                 // Find status from medicineQuantity
