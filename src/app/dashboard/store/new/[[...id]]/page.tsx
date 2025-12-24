@@ -164,7 +164,7 @@ export default function AddStorePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <TextField
-              name="name"
+              name="name" 
               label="Store Name *"
               value={formik.values.name}
               onChange={formik.handleChange}
@@ -220,11 +220,7 @@ export default function AddStorePage() {
           <PincodeSelect
             pincodes={pincodes}
             value={formik.values.servicePinCodes}
-            error={
-              formik.touched.servicePinCodes
-                ? (formik.errors.servicePinCodes as string)
-                : ""
-            }
+           
             onChange={(selected) =>
               formik.setFieldValue("servicePinCodes", selected)
             }

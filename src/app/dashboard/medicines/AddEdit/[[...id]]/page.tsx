@@ -303,12 +303,14 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
   const [categories, setCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [filteredSubcategories, setFilteredSubcategories] = useState<any[]>([]);
+  const [stores, setStores] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCategories();
     fetchSubcategories();
+    fetchStores();
   }, []);
 
   useEffect(() => {
@@ -354,6 +356,27 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
       setSubcategories(data.data || []);
     } catch (error) {
       console.error("Failed to fetch subcategories:", error);
+    }
+  };
+
+  const fetchStores = async () => {
+    try {
+      const res = await fetch("/api/admin/store", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isListRequest: true }),
+      });
+      const data = await res.json();
+      if (data && data.success && Array.isArray(data.data)) {
+        // only active stores (status === 1)
+        const active = data.data.filter((s: any) => Number(s.status) === 1);
+        setStores(active);
+      } else {
+        setStores([]);
+      }
+    } catch (e) {
+      console.error("Failed to fetch stores", e);
+      setStores([]);
     }
   };
 
@@ -488,6 +511,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
           isPrescription: formik.values.isPrescription,
           categoryId: formik.values.categoryId || undefined,
           subCategoryId: formik.values.subCategoryId || undefined,
+          storeId: formik.values.storeId || undefined,
           coverImage:
             formik.values.coverImage || (formik.values.images[0] ?? undefined),
         }),
@@ -582,7 +606,41 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                   <ErrorMessageCom error={formik.errors.name} />
                 )}
               </div>
+
+              <div>
+                <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                  <InputLabel id="store-select-label">Store</InputLabel>
+                  <Select
+                    labelId="store-select-label"
+                    name="storeId"
+                    value={formik.values.storeId}
+                    label="Store"
+                    onChange={(e) => {
+                      handleChange({
+                        target: {
+                          name: "storeId",
+                          value: e.target.value,
+                          type: "select-one",
+                        },
+                      } as React.ChangeEvent<HTMLSelectElement>);
+                    }}
+                  >
+                    <MenuItem value="">
+                      <em>Default / None</em>
+                    </MenuItem>
+                    {stores.map((s) => (
+                      <MenuItem key={String(s._id)} value={String(s._id)}>
+                        {s.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {formik.touched.storeId && formik.errors.storeId && (
+                    <ErrorMessageCom error={formik.errors.storeId} />
+                  )}
+                </FormControl>
+              </div>
             </div>
+
             <div>
               <TextField
                 name="description"

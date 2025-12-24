@@ -92,7 +92,7 @@ export const medicineFormValidationSchema = Yup.object().shape({
   manufacturer: Yup.string().required('Manufacturer is required'),
   category: Yup.string().required('Form type is required'),
   categoryId: Yup.string().required('Category is required'),
-  // subCategoryId: Yup.string().required('Subcategory is required'),
+  storeId: Yup.string().required('Store is required'),
   price: Yup.number()
     .typeError('Price must be a number')
     .required('Selling price is required')

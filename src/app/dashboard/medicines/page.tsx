@@ -60,21 +60,20 @@ export default function MedicinesPage() {
         addShow={true}
         ExportButton={
           <>
-          <div className="flex items-center ">
-        <CustomButton
-          onClick={handleExport}
-          width="200px"
-          disabled={exportLoading}
-             >
-          {exportLoading ? "Exporting..." : "Export Medicines "}
-        </CustomButton>
-      </div>
-  
+            <div className="flex items-center ">
+              <CustomButton
+                onClick={handleExport}
+                width="200px"
+                disabled={exportLoading}
+              >
+                {exportLoading ? "Exporting..." : "Export Medicines "}
+              </CustomButton>
+            </div>
           </>
         }
       />
       {/* Export Section */}
-      
+
       <div className="mt-4">
         <FilterSearch
           onChange={(f) => {

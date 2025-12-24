@@ -150,8 +150,45 @@ export async function POST(req: NextRequest) {
             query.$or = orConditions;
         }
 
-            // Day filter: limit by createdAt
-            if (dayFilter && dayFilter !== 'all') {
+            // If client provided explicit startDate/endDate use that (overrides day filter)
+            const { startDate, endDate } = body || {};
+            let createdAtSet = false;
+            function parseDateFlexible(ds: any) {
+                if (!ds) return null;
+                if (typeof ds !== 'string') return null;
+                const ddmmyyyy = /^\s*(\d{2})[:\-\/](\d{2})[:\-\/](\d{4})\s*$/; // matches 11:12:2025 or 11-12-2025 or 11/12/2025
+                const ymd = /^\s*(\d{4})-(\d{2})-(\d{2})\s*$/; // 2025-12-11
+                let m = ds.match(ddmmyyyy);
+                if (m) {
+                    const day = Number(m[1]);
+                    const month = Number(m[2]) - 1;
+                    const year = Number(m[3]);
+                    return new Date(year, month, day);
+                }
+                m = ds.match(ymd);
+                if (m) {
+                    const year = Number(m[1]);
+                    const month = Number(m[2]) - 1;
+                    const day = Number(m[3]);
+                    return new Date(year, month, day);
+                }
+                // fallback to Date parsing
+                const parsed = new Date(ds);
+                if (isNaN(parsed.getTime())) return null;
+                return parsed;
+            }
+            if (startDate || endDate) {
+                const start = parseDateFlexible(startDate) || new Date(0);
+                const end = parseDateFlexible(endDate) || new Date();
+                if (endDate && typeof endDate === 'string' && endDate.trim().length === 10) {
+                    end.setHours(23,59,59,999);
+                }
+                query.createdAt = { $gte: start, $lte: end };
+                createdAtSet = true;
+            }
+
+            // Day filter: limit by createdAt (only if explicit dates not provided)
+            if (!createdAtSet && dayFilter && dayFilter !== 'all') {
                 const now = new Date();
                 let start: Date | null = null;
                 let end: Date = now;

@@ -6,9 +6,15 @@ import OrdersTable from "./OrdersTable";
 import { useRouter } from "next/navigation";
 import FilterSearch from "../components/FilterSearch";
 import { OrderListStore } from "../storeAPICall/useUserStore";
-import { OrderLIstPath } from "../storeAPICall/API/BaseApi";
+import { OrderLIstPath, OrderExportPath } from "../storeAPICall/API/BaseApi";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { Box } from "@mui/system";
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { enGB } from 'date-fns/locale';
+import { format } from 'date-fns';
+import { CustomButton } from "../components/miniComponents";
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -23,6 +29,9 @@ export default function OrdersPage() {
   const [prescriptionStatus, setPrescriptionStatus] = useState<string>("all");
   const [orderStatus, setOrderStatus] = useState<string>("all");
   const [dayFilter, setDayFilter] = useState<string>("all");
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportStartDate, setExportStartDate] = useState<Date | null>(null);
+  const [exportEndDate, setExportEndDate] = useState<Date | null>(null);
 console.log(dayFilter,"dayFilter");
 
   const {
@@ -41,11 +50,14 @@ console.log(dayFilter,"dayFilter");
     customerId,
     prescriptionStatus,
     orderStatus,
-    dayFilter
+    dayFilter,
+    exportStartDate,
+    exportEndDate
   ]);
 
   const fetchOrders = async () => {
     const body: any = {
+    
       limit: rowsPerPage,
       offset: page * rowsPerPage,
       page,
@@ -58,6 +70,9 @@ console.log(dayFilter,"dayFilter");
     if (prescriptionStatus && prescriptionStatus !== "all")
       body.prescription_status = prescriptionStatus;
     if (orderStatus && orderStatus !== "all") body.order_status = orderStatus;
+    // include explicit date range if selected
+    if (exportStartDate) body.startDate = exportStartDate.toISOString().slice(0,10);
+    if (exportEndDate) body.endDate = exportEndDate.toISOString().slice(0,10);
     
 
     // Add storeId and roleName from localStorage
@@ -115,22 +130,71 @@ console.log(dayFilter,"dayFilter");
         showSearch={false}
         onSearchChange={setSearchTerm}
         addShow={false}
-        // New props to enable the MUI dropdowns inside
-        showOrderFilters={true}
-        showclearAll={true}
-        prescriptionStatus={prescriptionStatus}
-        setPrescriptionStatus={setPrescriptionStatus}
-        orderStatus={orderStatus}
-        setOrderStatus={setOrderStatus}
-        setPage={setPage}
+        ExportButton={
+          <>
+              <div className="mb-2 flex items-center justify-end gap-2">
+        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enGB}>
+          <DatePicker
+            label="Start date"
+            inputFormat="dd:MM:yyyy"
+            value={exportStartDate}
+            onChange={(d) => setExportStartDate(d)}
+            slotProps={{ textField: { size: 'small' } }}
+          />
+          <DatePicker
+            label="End date"
+            inputFormat="dd:MM:yyyy"
+            value={exportEndDate}
+            onChange={(d) => setExportEndDate(d)}
+            slotProps={{ textField: { size: 'small' } }}
+          />
+        </LocalizationProvider>
+        <CustomButton
+          onClick={async () => {
+            setExportLoading(true);
+            try {
+              const body: any = {
+                startDate: exportStartDate ? format(exportStartDate, 'dd:MM:yyyy') : undefined,
+                endDate: exportEndDate ? format(exportEndDate, 'dd:MM:yyyy') : undefined
+              };
+              // include current filters if desired
+              if (searchTerm) body.search = searchTerm;
+              if (customerId) body.customerId = customerId;
+              const res = await fetch(OrderExportPath, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+              });
+              if (!res.ok) throw new Error('Export failed');
+              const blob = await res.blob();
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `orders_export_${Date.now()}.xlsx`;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              window.URL.revokeObjectURL(url);
+            } catch (e) {
+              console.error(e);
+              alert('Export failed');
+            } finally {
+              setExportLoading(false);
+            }
+          }}
+          disabled={exportLoading}
+        >
+          {exportLoading ? 'Exporting...' : 'Export Orders'}
+        </CustomButton>
+      </div>
+          </>
+        }
       /> 
 
       <Box mb={2}>
         <FilterSearch
             onChange={(f) => setSearchTerm(f.search || "")}
           placeholder="Search by order ID or payment ID..."
-          isSearchShow={true}
-          isShowCategory={false}
           isShowSub={false}
           isShowOTC={false}
             showclearAll={true}
@@ -144,6 +208,8 @@ console.log(dayFilter,"dayFilter");
           setPage={setPage}
         />
       </Box>
+
+   
 
       <OrdersTable
         data={orders}
