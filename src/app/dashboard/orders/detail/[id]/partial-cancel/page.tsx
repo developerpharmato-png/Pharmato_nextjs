@@ -56,7 +56,7 @@ export default function PartialCancelPage() {
   };
 
   const handleCancel = async () => {
-    if (selected.length === 0) return;
+    // Allow API call even if selected is empty
     setShowDialog(false);
     try {
       const res = await fetch("/api/admin/order/partial-cancel", {
@@ -81,10 +81,13 @@ export default function PartialCancelPage() {
   if (loading) return <div className="p-8">Loading...</div>;
   if (!order) return null;
 
+  // Check if at least one medicine has status 'pending'
+  const hasPending = order?.medicineQuantity?.some((q: any) => q?.status === "pending");
+
   return (
     <div className="containerStyle">
       <HeaderWithAction
-        title="Partial Cancel Order"
+        title="Manage Order"
         subtitle={`Order ID: ${order.order_id}`}
         showBack={true}
         onBack={() => router.push(`/dashboard/orders/detail/${orderId}`)}
@@ -125,13 +128,12 @@ export default function PartialCancelPage() {
                         Qty: {q?.quantity || 1}
                       </div>
                       <div
-                        className={`text-xs font-semibold ${
-                          status === "cancelled"
-                            ? "text-red-500"
-                            : status === "delivered"
+                        className={`text-xs font-semibold ${status === "cancelled"
+                          ? "text-red-500"
+                          : status === "accepted"
                             ? "text-green-600"
                             : "text-yellow-600"
-                        }`}
+                          }`}
                       >
                         Status:{" "}
                         {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -153,8 +155,8 @@ export default function PartialCancelPage() {
             type="submit"
             variant="contained"
             color="error"
-            disabled={selected.length === 0}
             sx={modalStyles.confirmBtn}
+            disabled={!hasPending}
           >
             Cancel Selected
           </Button>

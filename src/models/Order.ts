@@ -32,6 +32,7 @@ export interface IOrder extends Document {
     prescription_approved_by?: mongoose.Types.ObjectId;
     prescription_approved_at?: Date;
     deliveredAddress?: Record<string, any>;
+    expectedDeliveryDate?: Date;
     deliveredDate?: Date;
     createdAt: Date;
     updatedAt: Date;
@@ -71,6 +72,7 @@ const OrderSchema = new Schema<IOrder>({
     prescription_approved_by: { type: Schema.Types.ObjectId, ref: 'Admin', default: null },
     prescription_approved_at: { type: Date },
     deliveredAddress: { type: Object, default: {} },
+    expectedDeliveryDate: { type: Date },
     deliveredDate: { type: Date },
 }, { timestamps: true });
 

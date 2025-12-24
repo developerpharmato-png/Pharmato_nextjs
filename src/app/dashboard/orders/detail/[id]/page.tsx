@@ -290,12 +290,16 @@ export default function OrderDetailPage() {
         isunsaved={false}
         rightNode={
           <button
-            className="ml-2 px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition"
+            className="ml-2 px-4 py-2 rounded-lg font-bold transition"
+            style={{
+              background: "var(--primary)",
+              color: "#fff"
+            }}
             onClick={() =>
               router.push(`/dashboard/orders/detail/${orderId}/partial-cancel`)
             }
           >
-            Partial Cancel
+            Manage Order
           </button>
         }
       />
@@ -764,7 +768,7 @@ export default function OrderDetailPage() {
                         {/* Image */}
                         <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-gray-100 bg-white">
                           {medicine.coverImage ||
-                          (medicine.images && medicine.images[0]) ? (
+                            (medicine.images && medicine.images[0]) ? (
                             <CustomImage
                               coverImage={
                                 medicine.coverImage || medicine.images[0]
@@ -903,14 +907,13 @@ export default function OrderDetailPage() {
                 Delivery Charges
               </span>
               <span
-                className={`text-sm font-bold ${
-                  order?.delivery_charges > 0
-                    ? "text-gray-900"
-                    : "text-[var(--primary)]"
-                }`}
+                className={`text-sm font-bold ${order?.delivery_charges > 0
+                  ? "text-gray-900"
+                  : "text-[var(--primary)]"
+                  }`}
               >
                 {order?.delivery_charges !== undefined &&
-                order?.delivery_charges > 0
+                  order?.delivery_charges > 0
                   ? `₹${order?.delivery_charges?.toFixed(2)}`
                   : "FREE"}
               </span>
@@ -947,11 +950,10 @@ export default function OrderDetailPage() {
 
             {/* Payment Status Footer */}
             <div
-              className={`mt-4 p-3 rounded-lg text-center text-xs font-bold uppercase tracking-widest border ${
-                order?.payment_status === "paid"
-                  ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--primary)]/20"
-                  : "bg-[var(--status-pending-bg)] text-[var(--status-pending-text)] border-[var(--status-pending-text)]/10"
-              }`}
+              className={`mt-4 p-3 rounded-lg text-center text-xs font-bold uppercase tracking-widest border ${order?.payment_status === "paid"
+                ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--primary)]/20"
+                : "bg-[var(--status-pending-bg)] text-[var(--status-pending-text)] border-[var(--status-pending-text)]/10"
+                }`}
             >
               {order?.payment_status == "captured"
                 ? "✨ Payment Received"

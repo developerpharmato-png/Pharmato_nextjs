@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
 import mongoose from 'mongoose';
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 /**
  * @swagger
@@ -132,11 +132,12 @@ export async function POST(req: NextRequest) {
 
 
 
-    // Format createdAt and deliveredDate for each order
+    // Format createdAt, deliveredDate, and expectedDeliveryDate for each order with Asia/Kolkata timezone
     const formattedOrders = orders.map(order => ({
         ...order,
-        createdAt: order.createdAt ? moment(order.createdAt).format('D MMMM YYYY') : order.createdAt,
-        deliveredDate: order.deliveredDate ? moment(order.deliveredDate).format('D MMMM YYYY') : ""
+        createdAt: order.createdAt ? moment(order.createdAt).tz('Asia/Kolkata').format('MMM D, YYYY HH:mm z') : order.createdAt,
+        deliveredDate: order.deliveredDate ? moment(order.deliveredDate).tz('Asia/Kolkata').format('MMM D, YYYY HH:mm z') : "",
+        expectedDeliveryDate: order.expectedDeliveryDate ? moment(order.expectedDeliveryDate).tz('Asia/Kolkata').format('MMM D, YYYY') : ""
     }));
     return NextResponse.json({ status: true, data: formattedOrders });
 }

@@ -3,7 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
 import Notification from '@/models/Notification';
 import { sendEmail } from '@/utils/sendEmail';
-import { sendPushNotificationWithData } from '@/utils/firebase.helper';
+import { getDb, sendPushNotificationWithData } from '@/utils/firebase.helper';
 import fs from 'fs';
 import path from 'path';
 
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id name email mobile phone' });
+        const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id order_id name email mobile phone' });
 
         if (!order) {
             return NextResponse.json(
@@ -69,6 +69,18 @@ export async function POST(req: NextRequest) {
         order.order_status = 'Confirmed';
 
         await order.save();
+
+        // Update orderStatus in Firebase Realtime Database
+        if (order?.order_id) {
+            const db = getDb();
+            //Firebase realtime data update
+            const firebaseRef = db.ref(`orders/${order.order_id}`);
+            const snapshot = await firebaseRef.once('value');
+            const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+            await firebaseRef.update({
+                isOrderStatusChanged: isOrderStatusChanged
+            });
+        }
 
         // Send email to customer if email available using template
         let mailRes: any = null;

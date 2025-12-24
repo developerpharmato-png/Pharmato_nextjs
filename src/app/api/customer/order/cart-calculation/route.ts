@@ -7,6 +7,17 @@ import Medicine from '@/models/Medicine';
 import Setting from '@/models/Setting';
 import mongoose from 'mongoose';
 
+function calculateDeliveryFee(
+    orderAmount: number,
+    deliveryFeeThreshold: number,
+    deliveryFee: number
+): number {
+    if (orderAmount >= deliveryFeeThreshold) {
+        return 0;
+    }
+    return deliveryFee;
+}
+
 /**
  * @swagger
  * /api/customer/order/cart-calculation:
@@ -153,7 +164,8 @@ export async function POST(req: NextRequest) {
     const calculationData: any = {};
     const medicineId: any[] = [];
     const medicineQuantity: any[] = [];
-    const deliveryFee = 0;
+    let deliveryFee = 0;
+    let deliveryFeeThreshold = 0;
 
     for (const setting of settings) {
         if (setting.type === 'gst') calculationData.gstInPercent = Number(setting.data);
@@ -161,11 +173,13 @@ export async function POST(req: NextRequest) {
         if (setting.type === 'platform fee gst') calculationData.platformFeeGstInPercent = Number(setting.data);
         if (setting.type === 'razorPay comission') calculationData.razorPayCommissionInPercent = Number(setting.data);
         if (setting.type === 'razorPay gst') calculationData.razorPayCommissionGstInPercent = Number(setting.data);
+        if (setting.type === 'deliveryFee') deliveryFee = Number(setting.data);
+        if (setting.type === 'deliveryFeeThreshold') deliveryFeeThreshold = Number(setting.data);
     }
 
     for (const element of cartData) {
         medicineId.push(new mongoose.Types.ObjectId(element.medicine._id));
-        medicineQuantity.push({ medicineId: `${element.medicine._id}`, quantity: Number(element.quantity) , status: 'pending' });
+        medicineQuantity.push({ medicineId: `${element.medicine._id}`, quantity: Number(element.quantity), status: 'pending' });
     }
 
     const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
@@ -188,7 +202,12 @@ export async function POST(req: NextRequest) {
     calculationData.totalOrderAmount = Number(totalOrderAmount.toFixed(2));
     calculationData.medicineId = medicineId;
     calculationData.medicineQuantity = medicineQuantity;
-    calculationData.deliveryFee = deliveryFee;
+
+    calculationData.deliveryFee = calculateDeliveryFee(
+        priceTotalSumAfterDiscount,
+        deliveryFeeThreshold,
+        deliveryFee
+    );
 
     return NextResponse.json({
         success: true,

@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
                             payment_mode: entity.method || '',
                             payment_id: entity.id || '',
                             payment_status: entity.status || '',
-                            order_status: checkOrder.isPrescriptionRequired == true ? 'Ordered' : 'Confirmed'
+                            order_status: 'Order Placed'
                         }
                     }
                 );
@@ -88,11 +88,14 @@ export async function POST(req: NextRequest) {
                 // Update paymentStatus in Firebase Realtime Database
                 if (checkOrder?.order_id && entity?.status) {
                     const db = getDb();
-                    await db
-                        .ref(`orders/${checkOrder.order_id}`)
-                        .update({
-                            paymentStatus: entity.status
-                        });
+                    //Firebase realtime data update
+                    const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
+                    const snapshot = await firebaseRef.once('value');
+                    const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+                    await firebaseRef.update({
+                        isOrderStatusChanged: isOrderStatusChanged,
+                        paymentStatus: entity.status
+                    });
                 }
 
                 try {
@@ -257,7 +260,7 @@ export async function POST(req: NextRequest) {
                         $push: { paymentHistory: paymentHistory },
                         $set: {
                             payment_status: 'Failed',
-                            order_status: 'Pending'
+                            order_status: 'pending'
                         }
                     }
                 );
@@ -265,11 +268,14 @@ export async function POST(req: NextRequest) {
                 // Update paymentStatus in Firebase Realtime Database
                 if (checkOrder?.order_id && entity?.status) {
                     const db = getDb();
-                    await db
-                        .ref(`orders/${checkOrder.order_id}`)
-                        .update({
-                            paymentStatus: entity.status
-                        });
+                    //Firebase realtime data update
+                    const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
+                    const snapshot = await firebaseRef.once('value');
+                    const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+                    await firebaseRef.update({
+                        isOrderStatusChanged: isOrderStatusChanged,
+                        paymentStatus: entity.status
+                    });
                 }
 
             }

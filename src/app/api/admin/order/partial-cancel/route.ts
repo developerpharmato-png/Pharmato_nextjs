@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
+import { getDb } from '@/utils/firebase.helper';
 
 /**
  * @swagger
@@ -42,25 +43,34 @@ export async function POST(req: NextRequest) {
     await dbConnect();
     try {
         const { orderId, medicineIds, cancelReason } = await req.json();
-        if (!orderId || !Array.isArray(medicineIds) || medicineIds.length === 0) {
+        if (!orderId || !Array.isArray(medicineIds)) {
             return NextResponse.json({ success: false, message: 'orderId and medicineIds are required' }, { status: 400 });
         }
         const order = await Order.findOne({ _id: orderId });
         if (!order) {
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
-        let updated = false;
         order.medicineQuantity = order.medicineQuantity.map((item: any) => {
-            if (medicineIds.includes(item.medicineId.toString()) && item.status === 'pending') {
-                updated = true;
+            if (medicineIds.includes(item.medicineId.toString())) {
                 return { ...item, status: 'cancelled', cancelReason: cancelReason || '' };
+            } else {
+                return { ...item, status: 'accepted', cancelReason: '' };
             }
-            return item;
         });
-        if (!updated) {
-            return NextResponse.json({ success: false, message: 'No medicines updated (already cancelled or not found)' }, { status: 400 });
-        }
         await order.save();
+
+        // Update orderStatus in Firebase Realtime Database
+        if (order?.order_id) {
+            const db = getDb();
+            //Firebase realtime data update
+            const firebaseRef = db.ref(`orders/${order.order_id}`);
+            const snapshot = await firebaseRef.once('value');
+            const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+            await firebaseRef.update({
+                isOrderStatusChanged: isOrderStatusChanged
+            });
+        }
+
         return NextResponse.json({ success: true, message: 'Selected medicines cancelled successfully', data: order });
     } catch (error) {
         console.error('Partial cancel error:', error);
