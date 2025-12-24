@@ -177,9 +177,11 @@ export async function POST(req: NextRequest) {
         if (setting.type === 'deliveryFeeThreshold') deliveryFeeThreshold = Number(setting.data);
     }
 
+    console.log("$$$$$$$$$cartData$$$$$$$$$",cartData);
+
     for (const element of cartData) {
         medicineId.push(new mongoose.Types.ObjectId(element.medicine._id));
-        medicineQuantity.push({ medicineId: `${element.medicine._id}`, quantity: Number(element.quantity), status: 'pending' });
+        medicineQuantity.push({ medicineId: `${element.medicine._id}`, quantity: Number(element.quantity), price: Number(element.medicine.price), status: 'pending' });
     }
 
     const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);

@@ -107,13 +107,14 @@ export async function POST(req: NextRequest) {
                                     name: '$$med.name',
                                     manufacturer: '$$med.manufacturer',
                                     mrp: '$$med.mrp',
-                                    price: '$$med.price',
+                                    // price: '$$med.price',
                                     discount: '$$med.discount',
                                     images: '$$med.images',
                                     coverImage: '$$med.coverImage',
 
                                     // ✅ Correct quantity
                                     quantity: { $ifNull: ['$$mq.quantity', 1] },
+                                    price: { $ifNull: ['$$mq.price', '$$med.price'] },
                                     status: { $ifNull: ['$$mq.status', 'pending'] },
                                     cancelReason: { $ifNull: ['$$mq.cancelReason', ''] }
                                 }
