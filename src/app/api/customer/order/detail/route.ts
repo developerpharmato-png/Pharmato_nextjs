@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import '@/models/Medicine';   // 🚨 MUST
 import Order from '@/models/Order';
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 /**
  * @swagger
@@ -148,12 +148,24 @@ export async function POST(req: NextRequest) {
   // Format createdAt and deliveredDate if present using moment
   const orderData = { ...orders[0] };
   if (orderData.createdAt) {
-    orderData.createdAt = moment(orderData.createdAt).format('MMM D, YYYY HH:mm');
+    orderData.createdAt = moment(orderData.createdAt)
+      .tz('Asia/Kolkata')
+      .format('MMM D, YYYY HH:mm z');
   }
   if (orderData.deliveredDate) {
-    orderData.deliveredDate = moment(orderData.deliveredDate).format('MMM D, YYYY');
+    orderData.deliveredDate = moment(orderData.deliveredDate)
+      .tz('Asia/Kolkata')
+      .format('MMM D, YYYY HH:mm z');
   } else {
     orderData.deliveredDate = "";
+  }
+  // Format expectedDeliveryDate with Asia/Kolkata timezone
+  if (orderData.expectedDeliveryDate) {
+    orderData.expectedDeliveryDate = moment(orderData.expectedDeliveryDate)
+      .tz('Asia/Kolkata')
+      .format('MMM D, YYYY');
+  } else {
+    orderData.expectedDeliveryDate = "";
   }
   return NextResponse.json({ status: true, data: orderData });
 }

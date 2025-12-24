@@ -112,8 +112,7 @@ export async function POST(req: NextRequest) {
     if (!mongoose.Types.ObjectId.isValid(addressId)) {
         return NextResponse.json({ success: false, message: 'Invalid addressId' }, { status: 400 });
     }
-    // Check user exists
-    const userCheck = await User.findOne({ _id: userId });
+    const userCheck = await User.findOne({ _id: new mongoose.Types.ObjectId(userId) });
     if (!userCheck) {
         return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
@@ -150,6 +149,13 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, message: 'Invalid storeId' }, { status: 400 });
     }
 
+    // Calculate expectedDeliveryDate (only date, no time)
+    let expectedDeliveryDate = new Date(now);
+    if (now.getHours() >= 22) {
+        expectedDeliveryDate.setDate(now.getDate() + 1);
+    }
+    expectedDeliveryDate.setHours(0, 0, 0, 0); // Set to midnight, so only date part is used
+
     const createOrder = await Order.create({
         userId: userCheck._id,
         storeId: storeObjectId,
@@ -173,7 +179,8 @@ export async function POST(req: NextRequest) {
         isPrescriptionRequired: isPrescriptionRequired || false,
         prescription_url: prescriptionUrlArr,
         prescription_status: isPrescriptionRequired ? 'Pending' : 'Not Required',
-        deliveredAddress: addressDoc.toObject()
+        deliveredAddress: addressDoc.toObject(),
+        expectedDeliveryDate
     });
     if (createOrder) {
         return NextResponse.json({

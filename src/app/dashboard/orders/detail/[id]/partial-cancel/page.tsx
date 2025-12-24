@@ -153,7 +153,7 @@ export default function PartialCancelPage() {
             type="submit"
             variant="contained"
             color="error"
-            disabled={selected.length === 0}
+            // disabled={selected.length === 0}
             sx={modalStyles.confirmBtn}
           >
             Cancel Selected
