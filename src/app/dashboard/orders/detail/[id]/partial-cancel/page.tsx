@@ -180,7 +180,7 @@ export default function PartialCancelPage() {
               </div>
             </div>
 
-            {order?.isPrescriptionRequired && order?.prescription_status?.toLowerCase() !== 'approved' && (
+            {order?.isPrescriptionRequired && order?.prescription_status?.toLowerCase() == 'pending' && (
               <div className="flex gap-3 w-full sm:w-auto">
                 <button
                   onClick={handleApprovePrescription}
