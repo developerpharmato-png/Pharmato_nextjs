@@ -157,7 +157,7 @@ export default function PartialCancelPage() {
     .filter((q: any) => q?.status === "pending")
     .map((q: any) => (q.medicineId?.toString ? q.medicineId.toString() : q.medicineId));
 
-    console.log("$$$$$$$pendingMedicineIds$$$$$$$$",pendingMedicineIds);
+  console.log("$$$$$$$pendingMedicineIds$$$$$$$$", pendingMedicineIds);
 
   return (
     <div className="containerStyle">
@@ -348,13 +348,42 @@ export default function PartialCancelPage() {
               disabled={!hasPending}
               onClick={async (e) => {
                 e.preventDefault();
-                // Prompt for reason for non-selected cancellation
+                // Prepare medicine name lists
+
+                const selectedMedsArr = order.medicineId.filter((med: any) => selected.includes(med._id));
+                const unselectedMedsArr = order.medicineId.filter((med: any) => !selected.includes(med._id));
+
+                const renderMedList = (arr: any[], badgeColor: string) =>
+                  arr.length
+                    ? `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">${arr
+                      .map(
+                        (med) =>
+                          `<span style="background:${badgeColor};color:#fff;padding:4px 10px;border-radius:16px;font-size:13px;">${med.name}</span>`
+                      )
+                      .join('')}</div>`
+                    : `<div style="margin-top:6px;color:#888;font-size:13px;"><i>None</i></div>`;
+
+                const htmlContent = `
+                  <div style="text-align:left;max-width:480px;margin:0 auto;">
+                    <div style="font-weight:600;font-size:15px;margin-bottom:4px;">Selected Medicines</div>
+                    <div style="background:#e8f5e9;padding:10px 12px;border-radius:10px;box-shadow:0 1px 4px #0001;">
+                      ${renderMedList(selectedMedsArr, '#43a047')}
+                    </div>
+                    <div style="font-weight:600;font-size:15px;margin:18px 0 4px 0;">Unselected Medicines</div>
+                    <div style="background:#fff3e0;padding:10px 12px;border-radius:10px;box-shadow:0 1px 4px #0001;">
+                      ${renderMedList(unselectedMedsArr, '#fb8c00')}
+                    </div>
+                  </div>
+                `;
+
                 const { value: reason } = await Swal.fire({
                   title: 'Reason for cancelling non-selected medicines',
-                  input: 'textarea',
-                  inputPlaceholder: 'Enter reason for cancellation...',
-                  inputValidator: (value) => {
-                    if (!value.trim()) return 'Reason is required!';
+                  html: htmlContent + '<textarea id="swal-input1" class="swal2-textarea" placeholder="Enter reason for cancellation..."></textarea>',
+                  focusConfirm: false,
+                  preConfirm: () => {
+                    const val = (document.getElementById('swal-input1') as HTMLTextAreaElement)?.value;
+                    if (!val || !val.trim()) return Swal.showValidationMessage('Reason is required!');
+                    return val;
                   },
                   showCancelButton: true,
                   confirmButtonText: 'Proceed',
