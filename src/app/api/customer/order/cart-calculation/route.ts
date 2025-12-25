@@ -212,6 +212,7 @@ export async function POST(req: NextRequest) {
 
     calculationData.totalOrderAmount = Number(totalOrderAmount.toFixed(2));
     calculationData.medicineId = medicineId;
+    calculationData.medicineQuantity = medicineQuantity;
 
     return NextResponse.json({
         success: true,

@@ -157,6 +157,8 @@ export default function PartialCancelPage() {
     .filter((q: any) => q?.status === "pending")
     .map((q: any) => (q.medicineId?.toString ? q.medicineId.toString() : q.medicineId));
 
+    console.log("$$$$$$$pendingMedicineIds$$$$$$$$",pendingMedicineIds);
+
   return (
     <div className="containerStyle">
       <HeaderWithAction
