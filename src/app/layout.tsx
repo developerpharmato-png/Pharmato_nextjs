@@ -34,6 +34,8 @@ export default function RootLayout({
           integrity="sha256-o9U0V1gu0t7f3kUmV6RbsZMNwlg36sRq9iUpvS8+0XY="
           crossOrigin=""
         />
+        {/* Custom favicon for dashboard */}
+        <link rel="icon" type="image/png" href="/_next/static/media/Image%201.583fdd61.png" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
