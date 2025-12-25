@@ -119,6 +119,7 @@ export async function POST(req: NextRequest) {
                   // ✅ ACTUAL VALUES (fallback only if not present)
                   quantity: { $ifNull: ['$$mq.quantity', 1] },
                   price: { $ifNull: ['$$mq.price', '$$med.price'] },
+                  isPrescription: { $ifNull: ['$$mq.isPrescription', '$$med.isPrescription'] },
                   status: { $ifNull: ['$$mq.status', 'pending'] },
                   cancelReason: { $ifNull: ['$$mq.cancelReason', ''] }
                 }

@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
 
     let cartData;
     if (guestId) {
+
         // Guest user cart calculation
         cartData = await GuestCart.aggregate([
             { $match: { guestId: guestId, storeId: new mongoose.Types.ObjectId(storeId) } },
@@ -121,7 +122,9 @@ export async function POST(req: NextRequest) {
                 }
             }
         ]);
+
     } else {
+
         // Logged-in user cart calculation
         cartData = await Cart.aggregate([
             { $match: { userId: new mongoose.Types.ObjectId(userId), storeId: new mongoose.Types.ObjectId(storeId) } },
@@ -153,6 +156,7 @@ export async function POST(req: NextRequest) {
                 }
             }
         ]);
+
     }
 
     if (!cartData || cartData.length === 0) {
@@ -181,7 +185,7 @@ export async function POST(req: NextRequest) {
 
     for (const element of cartData) {
         medicineId.push(new mongoose.Types.ObjectId(element.medicine._id));
-        medicineQuantity.push({ medicineId: `${element.medicine._id}`, quantity: Number(element.quantity), price: Number(element.medicine.price), status: 'pending' });
+        medicineQuantity.push({ medicineId: `${element.medicine._id}`, quantity: Number(element.quantity), price: Number(element.medicine.price), isPrescription: element.isPrescription , status: 'pending' });
     }
 
     const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
@@ -193,7 +197,7 @@ export async function POST(req: NextRequest) {
     calculationData.discount = Number(discountValue.toFixed(2));
     // Apply discount to priceTotalSum
     const priceTotalSumAfterDiscount = Math.max(0, priceTotalSumBeforeDiscount - discountValue);
-    calculationData.priceTotalSumAfterDiscount = Number(priceTotalSumAfterDiscount.toFixed(2));  
+    calculationData.priceTotalSumAfterDiscount = Number(priceTotalSumAfterDiscount.toFixed(2));
     calculationData.deliveryFee = calculateDeliveryFee(
         priceTotalSumAfterDiscount,
         deliveryFeeThreshold,
