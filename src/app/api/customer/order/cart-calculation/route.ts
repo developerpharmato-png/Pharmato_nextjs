@@ -177,7 +177,7 @@ export async function POST(req: NextRequest) {
         if (setting.type === 'deliveryFeeThreshold') deliveryFeeThreshold = Number(setting.data);
     }
 
-    console.log("$$$$$$$$$cartData$$$$$$$$$",cartData);
+    // console.log("$$$$$$$$$cartData$$$$$$$$$",cartData);
 
     for (const element of cartData) {
         medicineId.push(new mongoose.Types.ObjectId(element.medicine._id));
@@ -193,7 +193,12 @@ export async function POST(req: NextRequest) {
     calculationData.discount = Number(discountValue.toFixed(2));
     // Apply discount to priceTotalSum
     const priceTotalSumAfterDiscount = Math.max(0, priceTotalSumBeforeDiscount - discountValue);
-    calculationData.priceTotalSumAfterDiscount = Number(priceTotalSumAfterDiscount.toFixed(2));
+    calculationData.priceTotalSumAfterDiscount = Number(priceTotalSumAfterDiscount.toFixed(2));  
+    calculationData.deliveryFee = calculateDeliveryFee(
+        priceTotalSumAfterDiscount,
+        deliveryFeeThreshold,
+        deliveryFee
+    );
     const userTotalCharged = priceTotalSumAfterDiscount + platformFee;
     const razorPayCommissionAmount = (userTotalCharged * Number(calculationData.razorPayCommissionInPercent)) / 100;
     const razorPayCommissionGstAmount = (razorPayCommissionAmount * Number(calculationData.razorPayCommissionGstInPercent)) / 100;
@@ -203,13 +208,6 @@ export async function POST(req: NextRequest) {
 
     calculationData.totalOrderAmount = Number(totalOrderAmount.toFixed(2));
     calculationData.medicineId = medicineId;
-    calculationData.medicineQuantity = medicineQuantity;
-
-    calculationData.deliveryFee = calculateDeliveryFee(
-        priceTotalSumAfterDiscount,
-        deliveryFeeThreshold,
-        deliveryFee
-    );
 
     return NextResponse.json({
         success: true,
