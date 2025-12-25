@@ -491,7 +491,7 @@ export default function OrderDetailPage() {
                     href={`tel:${order?.userId.phone || order?.userId.mobile}`}
                     className="text-sm font-bold text-gray-900 hover:text-[var(--primary)] flex items-center gap-1"
                   >
-                    {order?.userId.phone || order?.userId.mobile || "N/A"}
+                    {order?.userId?.mobile ? `📞 +91 ${order.userId.mobile}` : "N/A"}
                     <span className="text-[10px] px-1.5 py-0.5 bg-[var(--status-success-bg)] text-[var(--status-success-text)] rounded ml-2">
                       Verified
                     </span>

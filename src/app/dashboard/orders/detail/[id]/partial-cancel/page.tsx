@@ -46,8 +46,14 @@ export default function PartialCancelPage() {
         body: JSON.stringify({ orderId }),
       });
       const data = await res.json();
-      if (data.success) setOrder(data.data);
-      else {
+      if (data.success) {
+        setOrder(data.data);
+        // Auto-select all pending medicines
+        const pendingIds = (data.data?.medicineQuantity || [])
+          .filter((q: any) => q?.status === "pending")
+          .map((q: any) => (q.medicineId?.toString ? q.medicineId.toString() : q.medicineId));
+        setSelected(pendingIds);
+      } else {
         Swal.fire("Error", data.message || "Order not found", "error");
         router.push("/dashboard/orders");
       }
@@ -334,14 +340,6 @@ export default function PartialCancelPage() {
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
             <Button
-              type="submit"
-              variant="contained"
-              color="error"
-              disabled={!hasPending}
-            >
-              Cancel Selected
-            </Button>
-            <Button
               type="button"
               variant="contained"
               color="success"
@@ -386,60 +384,7 @@ export default function PartialCancelPage() {
           </div>
         </form>
       </div>
-      <Dialog
-        open={showDialog}
-        onClose={() => setShowDialog(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: modalStyles.paper }}
-      >
-        <DialogTitle>
-          <ModalHeader
-            title="Cancel Selected Medicines"
-            onClose={() => setShowDialog(false)}
-          />
-        </DialogTitle>
-
-        <DialogContent sx={modalStyles.content}>
-          {/* Reusable Notice Box using the constant */}
-          <Box sx={modalStyles.noticeBox}>
-            <p className="text-xs font-semibold text-[var(--status-danger-text)] leading-relaxed">
-              <span className="font-bold">⚠️ Notice:</span> Please provide a
-              clear reason for Cancel.
-            </p>
-          </Box>
-
-          <TextField
-            multiline
-            minRows={4}
-            fullWidth
-            autoFocus
-            value={cancelReason}
-            onChange={(e) => setCancelReason(e.target.value)}
-            placeholder="Reason for cancellation"
-            variant="outlined"
-            margin="normal"
-            sx={modalStyles.textField}
-          />
-        </DialogContent>
-
-        <DialogActions sx={modalStyles.actions}>
-          <Button
-            onClick={() => setShowDialog(false)}
-            sx={modalStyles.cancelBtn}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleCancel}
-            variant="contained"
-            disabled={!cancelReason.trim()}
-            sx={modalStyles.confirmBtn}
-          >
-            Confirm Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Cancel Selected dialog removed as per request */}
     </div>
   );
 }
