@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import UserAddress from '@/models/UserAddress';
 import Store from '@/models/Store';
 import dbConnect from '@/lib/mongodb';
+import Order from '@/models/Order';
+import { Types } from 'mongoose';
 
 /**
  * @swagger
@@ -64,10 +66,27 @@ export async function POST(req: NextRequest) {
             } else {
                 address.storeList = [];
             }
+
+            const recentOrder = await Order.findOne({
+                userId: new Types.ObjectId(userId)
+            })
+                .sort({ createdAt: -1 })
+                .lean();
+
+            if (recentOrder && !Array.isArray(recentOrder)) {
+                if (recentOrder?.deliveredAddress?._id?.toString() === String(address._id)) {
+                    address.lastUsed = true;
+                } else {
+                    address.lastUsed = false;
+                }
+            } else {
+                address.lastUsed = false;
+            }
+
         }
 
         // Filter out addresses that have no matching store
-        const filteredAddressList = addressList.filter((a: any) => Array.isArray(a.storeList) && a.storeList.length > 0);        
+        const filteredAddressList = addressList.filter((a: any) => Array.isArray(a.storeList) && a.storeList.length > 0);
 
         return NextResponse.json({ success: true, message: 'Address list fetched successfully', addressList: filteredAddressList });
     } catch (error: any) {
