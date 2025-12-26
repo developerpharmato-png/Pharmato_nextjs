@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
         .limit(limit)
         .lean();
 
+
     // Get user's cart or guest cart
     let cartItems: any[] = [];
     if (userId && typeof userId === 'string' && userId.trim() !== "") {
@@ -141,7 +142,7 @@ export async function POST(req: NextRequest) {
         // Exclude if category is inactive
         if (med.categoryId && (!med.category || med.category.isActive === false)) return false;
         // Exclude if subcategory is inactive
-        if (med.subCategoryId && (!med.subcategory || med.subcategory.isActive === false)) return false;
+        // if (med.subCategoryId && (!med.subcategory || med.subcategory.isActive === false)) return false;
         return true;
     });
 
