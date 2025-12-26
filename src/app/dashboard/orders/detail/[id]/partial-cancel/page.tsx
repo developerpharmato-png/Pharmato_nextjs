@@ -11,6 +11,10 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import { ModalHeader, CustomImage } from "@/app/dashboard/components/miniComponents";
 import { modalStyles } from "@/utils/style";
@@ -32,6 +36,13 @@ export default function PartialCancelPage() {
   const [approvalNotesPresc, setApprovalNotesPresc] = useState("");
   const [approveLoading, setApproveLoading] = useState(false);
   const [rejectLoading, setRejectLoading] = useState(false);
+  // Order status update dialog
+  const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [statusToUpdate, setStatusToUpdate] = useState("");
+  const statusOptions = [
+    { value: "Out for Delivery", label: "Out for Delivery" },
+    { value: "Delivered", label: "Delivered" },
+  ];
 
   useEffect(() => {
     if (orderId) fetchOrder();
@@ -161,17 +172,115 @@ export default function PartialCancelPage() {
 
   return (
     <div className="containerStyle">
-      <HeaderWithAction
-        title="Manage Order"
-        subtitle={`Order ID: ${order.order_id}`}
-        showBack={true}
-        onBack={() => router.push(`/dashboard/orders/detail/${orderId}`)}
-        showSearch={false}
-        addShow={false}
-      />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <HeaderWithAction
+          title="Manage Order"
+          showBack={true}
+          onBack={() => router.push(`/dashboard/orders/detail/${orderId}`)}
+          showSearch={false}
+          addShow={false}
+        />
+        <Button
+          variant="contained"
+          color="primary"
+          size="small"
+          onClick={() => setShowStatusDialog(true)}
+        >
+          Update Order
+        </Button>
+      </div>
+      {/* Order ID and Status block below header */}
+      <div style={{ marginBottom: 16, marginTop: -4 }}>
+        <div style={{ fontSize: 15, fontWeight: 500 }}>
+          Order ID: {order.order_id}
+        </div>
+        {/* Modern status badge */}
+        <div style={{ marginTop: 8 }}>
+          <span style={{
+            display: 'inline-block',
+            padding: '6px 18px',
+            borderRadius: 20,
+            fontWeight: 600,
+            fontSize: 15,
+            letterSpacing: 0.2,
+            background:
+              order.order_status === 'Delivered'
+                ? '#e8f5e9'
+                : order.order_status === 'Out For Delivery'
+                  ? '#e3f2fd'
+                  : order.order_status === 'Cancelled'
+                    ? '#ffebee'
+                    : '#f3f4f6',
+            color:
+              order.order_status === 'Delivered'
+                ? '#388e3c'
+                : order.order_status === 'Out For Delivery'
+                  ? '#1565c0'
+                  : order.order_status === 'Cancelled'
+                    ? '#d32f2f'
+                    : '#555',
+            border:
+              order.order_status === 'Delivered'
+                ? '1px solid #a5d6a7'
+                : order.order_status === 'Out For Delivery'
+                  ? '1px solid #90caf9'
+                  : order.order_status === 'Cancelled'
+                    ? '1px solid #ef9a9a'
+                    : '1px solid #e0e0e0',
+            boxShadow: '0 1px 4px #0001',
+            textTransform: 'capitalize',
+          }}>
+            {order.order_status
+              ? order.order_status.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
+              : 'Status Unknown'}
+          </span>
+        </div>
+      </div>
 
-
-
+      <Dialog open={showStatusDialog} onClose={() => setShowStatusDialog(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Update Order Status</DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel id="order-status-label">Select Status</InputLabel>
+            <Select
+              labelId="order-status-label"
+              value={statusToUpdate}
+              label="Select Status"
+              onChange={(e) => setStatusToUpdate(e.target.value)}
+            >
+              {statusOptions.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowStatusDialog(false)} color="inherit">Cancel</Button>
+          <Button
+            variant="contained"
+            color="success"
+            disabled={!statusToUpdate}
+            onClick={async () => {
+              const res = await fetch('/api/admin/order/update-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId, status: statusToUpdate }),
+              });
+              const data = await res.json();
+              if (data.success) {
+                Swal.fire('Success', 'Order status updated', 'success');
+                setShowStatusDialog(false);
+                setStatusToUpdate("");
+                fetchOrder();
+              } else {
+                Swal.fire('Error', data.message || 'Failed to update status', 'error');
+              }
+            }}
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Prescription Management (similar to Order Details) */}
       <div className="bg-[var(--background)] rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
