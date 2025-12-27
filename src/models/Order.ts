@@ -34,6 +34,7 @@ export interface IOrder extends Document {
     deliveredAddress?: Record<string, any>;
     expectedDeliveryDate?: Date;
     deliveredDate?: Date;
+    refunds: Record<string, any>[];
     createdAt: Date;
     updatedAt: Date;
 }
@@ -74,6 +75,7 @@ const OrderSchema = new Schema<IOrder>({
     deliveredAddress: { type: Object, default: {} },
     expectedDeliveryDate: { type: Date },
     deliveredDate: { type: Date },
+    refunds: { type: [Object], default: [] },
 }, { timestamps: true });
 
 

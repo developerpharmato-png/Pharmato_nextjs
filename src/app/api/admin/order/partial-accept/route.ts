@@ -51,12 +51,36 @@ export async function POST(req: NextRequest) {
             // Only update pending medicines
             if (item.status !== 'pending') return item;
             if (medicineIds.includes(item.medicineId.toString())) {
-                return { ...item, status: 'accepted', cancelReason: '' };
+                const cancelDetail = {
+                    is_cancelled: false,
+                    quantity: 0,
+                    reason: "",
+                    cancelled_at: new Date()
+                };
+                return { ...item, status: 'accepted', cancelReason: '', cancelDetail };
             } else {
-                return { ...item, status: 'cancelled', cancelReason: cancelReason || 'Cancelled by admin (not selected for acceptance)' };
+                const cancelDetail = {
+                    is_cancelled: true,
+                    quantity: item.quantity,
+                    reason: cancelReason || 'Cancelled by admin (not selected for acceptance)',
+                    cancelled_at: new Date()
+                };
+                return { ...item, status: 'cancelled', cancelReason: cancelReason || 'Cancelled by admin (not selected for acceptance)', cancelDetail };
             }
         });
         await order.save();
+
+        // console.log(order.medicineQuantity);
+
+        const cancelledItems = order.medicineQuantity.filter((item: any) => item.status === 'cancelled');
+
+        if (cancelledItems.length > 0) {
+
+            const refundAmount = cancelledItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+
+            console.log("$$$$$refundAmount$$$$$$", refundAmount);
+
+        }
 
         // Update orderStatus in Firebase Realtime Database
         if (order?.order_id) {
