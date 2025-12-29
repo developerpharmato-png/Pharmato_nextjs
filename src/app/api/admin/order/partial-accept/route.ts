@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
                 return { ...item, status: 'cancelled', cancelReason: cancelReason || 'Cancelled by admin (not selected for acceptance)', cancelDetail };
             }
         });
+        order.status = 'Confirmed';
         await order.save();
 
         // console.log(order.medicineQuantity);

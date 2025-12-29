@@ -156,7 +156,8 @@ export async function POST(req: NextRequest) {
         matchStage.name = { $regex: search, $options: 'i' };
     }
 
-    const skip = Number(offset);
+    const page: number = Number(offset) || 1;
+    const skip = (Number(page) - 1) * limit;
     const lim = Number(limit);
 
     const pipeline: any[] = [
@@ -185,6 +186,8 @@ export async function POST(req: NextRequest) {
     if (lim > 0) {
         pipeline.push({ $limit: lim });
     }
+    // Get total count before pagination
+    const totalCount = await Medicine.countDocuments(matchStage);
     const medicines = await Medicine.aggregate(pipeline);
 
     // Get user's cart or guest cart
@@ -214,6 +217,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
         status: true,
         data: medicinesWithCart,
-        manufacturerList
+        manufacturerList,
+        totalCount
     });
 }

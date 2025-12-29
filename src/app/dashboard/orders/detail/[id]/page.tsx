@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import { OrderDetailsStore } from "../../../storeAPICall/useUserStore";
 import { OrderDetailPath } from "../../../storeAPICall/API/BaseApi";
 import { downloadImageByUrl, getStatusColor } from "@/utils/function";
+import PartialCancel from "@/app/dashboard/components/skeleton/PartialCancel";
 
 export default function OrderDetailPage() {
   const router = useRouter();
@@ -59,18 +60,8 @@ export default function OrderDetailPage() {
 
   if (loading) {
     return (
-      <div className="containerStyle">
-        <HeaderWithAction
-          title="Order Details"
-          subtitle="Loading order information..."
-          showBack={true}
-          onBack={() => router.push("/dashboard/orders")}
-          showSearch={false}
-          addShow={false}
-        />
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-        </div>
+        <div className="scrollbar-hide containerStyle">
+        <PartialCancel />
       </div>
     );
   }
@@ -82,6 +73,11 @@ export default function OrderDetailPage() {
   const medidetails = (_id: String) => {
     router.push(`/dashboard/medicines/${_id}`);
   };
+
+  const acceptedCount =
+    order?.medicineId?.filter((m: any) => m.status !== "cancelled").length || 0;
+  const rejectedCount =
+    order?.medicineId?.filter((m: any) => m.status === "cancelled").length || 0;
 
   return (
     <div className="containerStyle scrollbar-hide">
@@ -391,7 +387,13 @@ export default function OrderDetailPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div
+            className={
+              acceptedCount > 0 && rejectedCount > 0
+                ? "grid grid-cols-1 lg:grid-cols-2 gap-8"
+                : "grid grid-cols-1 gap-8"
+            }
+          >
             {/* Left Column: Accepted Items */}
             <div className="space-y-4">
               <div className="flex justify-between items-center mb-2">
@@ -499,7 +501,8 @@ export default function OrderDetailPage() {
             </div>
 
             {/* Right Column: Rejected Items */}
-            <div className="space-y-4">
+            {rejectedCount > 0 && (
+              <div className="space-y-4">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="font-bold text-gray-800">Rejected Items</h3>
                 <span className="text-xs text-gray-400 font-medium">
@@ -598,7 +601,8 @@ export default function OrderDetailPage() {
                   No rejected items
                 </div>
               )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
 
