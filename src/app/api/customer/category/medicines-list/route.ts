@@ -156,7 +156,8 @@ export async function POST(req: NextRequest) {
         matchStage.name = { $regex: search, $options: 'i' };
     }
 
-    const skip = Number(offset);
+    const page: number = Number(offset) || 1;
+    const skip = (Number(page) - 1) * limit;
     const lim = Number(limit);
 
     const pipeline: any[] = [
