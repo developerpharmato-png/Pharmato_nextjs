@@ -17,3 +17,34 @@ export  const downloadImageByUrl = async (url: string) => {
       window.open(url, '_blank');
     }
   };
+
+
+   
+ export   const getStatusColor = (status: string) => {
+      switch (status?.toLowerCase()) {
+        case "pending":
+        case "placed":
+          return "status-pending";
+        case "completed":
+        case "success":
+        case "delivered":
+        case "approved":
+          return "status-success";
+        case "failed":
+        case "cancelled":
+        case "rejected":
+          return "status-danger";
+        case "processing":
+        case "confirmed":
+        case "packed":
+          return "status-info";
+        case "dispatched":
+          return "status-purple";
+        case "prescription re-upload required":
+        case "re-upload required":
+          return "status-warning";
+        default:
+          return "status-default";
+      }
+    };
+  
