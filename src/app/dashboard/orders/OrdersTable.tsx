@@ -118,7 +118,7 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
         >
           <CustomTooltip title={row.userId?.mobile || row.userId?.phone || "-"}>
             <div className="font-medium text-gray-900 customTooltip">
-              {row.userId?.mobile || row.userId?.phone || "-"}
+            +91 {row.userId?.mobile || "-"}
             </div>
           </CustomTooltip>
           <CustomTooltip title={row.userId?.email || "-"}>
