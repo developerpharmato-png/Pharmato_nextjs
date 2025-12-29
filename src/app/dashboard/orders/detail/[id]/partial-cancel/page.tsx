@@ -16,7 +16,7 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import { ModalHeader, CustomImage } from "@/app/dashboard/components/miniComponents";
+import { ModalHeader, CustomImage, CustomButton } from "@/app/dashboard/components/miniComponents";
 import { modalStyles } from "@/utils/style";
 import { Box } from "@mui/system";
 import { downloadImageByUrl } from '@/utils/function';
@@ -39,10 +39,18 @@ export default function PartialCancelPage() {
   // Order status update dialog
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [statusToUpdate, setStatusToUpdate] = useState("");
+  const [showCancelReasonDialog, setShowCancelReasonDialog] = useState(false);
+  const [previewSelectedMeds, setPreviewSelectedMeds] = useState<any[]>([]);
+  const [previewUnselectedMeds, setPreviewUnselectedMeds] = useState<any[]>([]);
   const statusOptions = [
     { value: "Out for Delivery", label: "Out for Delivery" },
     { value: "Delivered", label: "Delivered" },
   ];
+
+
+   const medidetails = (_id: String) => {
+    router.push(`/dashboard/medicines/${_id}`);
+  };
 
   useEffect(() => {
     if (orderId) fetchOrder();
@@ -180,14 +188,12 @@ export default function PartialCancelPage() {
           showSearch={false}
           addShow={false}
         />
-        <Button
-          variant="contained"
-          color="primary"
-          size="small"
+        <CustomButton
+         width="250px"
           onClick={() => setShowStatusDialog(true)}
         >
           Update Order
-        </Button>
+        </CustomButton>
       </div>
       {/* Order ID and Status block below header */}
       <div style={{ marginBottom: 16, marginTop: -4 }}>
@@ -401,7 +407,7 @@ export default function PartialCancelPage() {
               />
               <div className="text-sm font-medium">Select all pending</div>
             </div>
-            {order.medicineId && order.medicineId.length > 0 ? (
+            {/* {order.medicineId && order.medicineId.length > 0 ? (
               order.medicineId.map((med: any, idx: number) => {
                 // Find status from medicineQuantity
                 const q = order.medicineQuantity.find(
@@ -424,7 +430,7 @@ export default function PartialCancelPage() {
                       <div className="font-bold">{med.name}</div>
                       <div className="text-xs text-gray-500">
                         Qty: {q?.quantity || 1}
-                      </div>
+                      </div> 
                       <div
                         className={`text-xs font-semibold ${status === "cancelled"
                           ? "text-red-500"
@@ -447,7 +453,123 @@ export default function PartialCancelPage() {
               })
             ) : (
               <div>No medicines found in this order.</div>
-            )}
+            )} */}
+
+
+            <div className="mt-8">
+  <div className="flex justify-between items-center mb-6">
+    <h2 className="text-xl font-bold text-[var(--foreground)]">Items in Order</h2>
+    <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-bold">
+      {order?.medicineId?.length || 0} Items
+    </span>
+  </div>
+
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    {order.medicineId && order.medicineId.length > 0 ? (
+      order.medicineId.map((med: any, idx: number) => {
+        // Finding quantity and status logic from your first snippet
+        const q = order.medicineQuantity?.find(
+          (x: any) =>
+            x.medicineId === med._id ||
+            x.medicineId?.toString() === med._id?.toString()
+        );
+        const status = q?.status || med.status || "pending";
+
+        // Dynamic badge colors
+        let badgeColor = "bg-yellow-50 text-yellow-700 border-yellow-200";
+        let dot = "#facc15";
+        if (status === "accepted" || status === "delivered") {
+          badgeColor = "bg-green-50 text-green-700 border-green-200";
+          dot = "#22c55e";
+        } else if (status === "cancelled" || status === "rejected") {
+          badgeColor = "bg-red-50 text-red-600 border-red-200";
+          dot = "#f87171";
+        }
+
+        return (
+          <div
+            key={med._id}
+            className="group relative flex items-start gap-4 p-4 border border-gray-100 rounded-xl transition-all duration-200 hover:shadow-md hover:bg-gray-50/50 bg-white"
+          >
+            {/* Checkbox - Logic preserved exactly as requested */}
+            <div className="mt-1">
+              <Checkbox
+                checked={selected.includes(med._id)}
+                onChange={() => handleSelect(med._id)}
+                disabled={status !== "pending"}
+              />
+            </div>
+
+            <div className="flex-1 cursor-pointer" onClick={() => medidetails(med._id)}>
+              {/* Top Row: Image and Info */}
+              <div className="flex gap-4">
+                <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-gray-100 bg-white">
+                  {med.coverImage || (med.images && med.images[0]) ? (
+                    <CustomImage
+                      coverImage={med.coverImage || med.images[0]}
+                      images={med.images || []}
+                      alt={med.name}
+                      style={{ height: "100%", width: "100%", objectFit: "cover" }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[8px] text-gray-400 font-bold uppercase">
+                      No Image
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1">
+                  <h3 className="font-bold text-gray-900 leading-tight group-hover:text-[var(--primary)] line-clamp-1">
+                    {med.name}
+                  </h3>
+                  <p className="text-[10px] text-gray-500 font-medium uppercase mt-0.5 line-clamp-1">
+                    {med.manufacturer}
+                  </p>
+                  <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] font-bold">
+                    Qty: {q?.quantity || med.quantity || 1}
+                  </div>
+                </div>
+
+                {/* Status Badge */}
+                <div className="shrink-0">
+                  <span className={`px-2 py-1 rounded-full border text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm ${badgeColor}`}>
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: dot }} />
+                    {status}
+                  </span>
+                </div>
+              </div>
+
+              {/* Bottom Row: Pricing and Reasons */}
+              <div className="mt-4 pt-3 border-t border-gray-50 flex justify-between items-end">
+                <div>
+                  <p className="text-[9px] text-gray-400 font-bold uppercase">Price Per Unit</p>
+                  <div className="flex items-center gap-2">
+                    {med.mrp > med.price && (
+                       <span className="text-xs text-gray-400 line-through">₹{med.mrp?.toFixed(2)}</span>
+                    )}
+                    <p className={`text-lg font-black leading-none ${status === 'cancelled' ? 'text-red-600' : 'text-[var(--primary)]'}`}>
+                      ₹{med.price?.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+
+                {status === "cancelled" && q?.cancelReason && (
+                  <div className="text-[10px] text-red-500 italic bg-red-50 px-2 py-1 rounded border border-red-100 max-w-[150px] truncate">
+                    Reason: {q.cancelReason}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })
+    ) : (
+      <div className="col-span-full text-center py-10 bg-gray-50 rounded-xl border border-dashed text-gray-400 text-sm">
+        No medicines found in this order.
+      </div>
+    )}
+  </div>
+</div>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
             <Button
@@ -457,66 +579,35 @@ export default function PartialCancelPage() {
               disabled={!hasPending}
               onClick={async (e) => {
                 e.preventDefault();
-                // Prepare medicine name lists
-
                 const selectedMedsArr = order.medicineId.filter((med: any) => selected.includes(med._id));
                 const unselectedMedsArr = order.medicineId.filter((med: any) => !selected.includes(med._id));
-
-                const renderMedList = (arr: any[], badgeColor: string) =>
-                  arr.length
-                    ? `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">${arr
-                      .map(
-                        (med) =>
-                          `<span style="background:${badgeColor};color:#fff;padding:4px 10px;border-radius:16px;font-size:13px;">${med.name}</span>`
-                      )
-                      .join('')}</div>`
-                    : `<div style="margin-top:6px;color:#888;font-size:13px;"><i>None</i></div>`;
-
-                const htmlContent = `
-                  <div style="text-align:left;max-width:480px;margin:0 auto;">
-                    <div style="font-weight:600;font-size:15px;margin-bottom:4px;">Selected Medicines</div>
-                    <div style="background:#e8f5e9;padding:10px 12px;border-radius:10px;box-shadow:0 1px 4px #0001;">
-                      ${renderMedList(selectedMedsArr, '#43a047')}
-                    </div>
-                    <div style="font-weight:600;font-size:15px;margin:18px 0 4px 0;">Unselected Medicines</div>
-                    <div style="background:#fff3e0;padding:10px 12px;border-radius:10px;box-shadow:0 1px 4px #0001;">
-                      ${renderMedList(unselectedMedsArr, '#fb8c00')}
-                    </div>
-                  </div>
-                `;
-
-                const { value: reason } = await Swal.fire({
-                  title: 'Reason for cancelling non-selected medicines',
-                  html: htmlContent + '<textarea id="swal-input1" class="swal2-textarea" placeholder="Enter reason for cancellation..."></textarea>',
-                  focusConfirm: false,
-                  preConfirm: () => {
-                    const val = (document.getElementById('swal-input1') as HTMLTextAreaElement)?.value;
-                    if (!val || !val.trim()) return Swal.showValidationMessage('Reason is required!');
-                    return val;
-                  },
-                  showCancelButton: true,
-                  confirmButtonText: 'Proceed',
-                  cancelButtonText: 'Cancel',
-                });
-                if (!reason) return;
-                try {
-                  const res = await fetch("/api/admin/order/partial-accept", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ orderId, medicineIds: selected, cancelReason: reason }),
-                  });
-                  const data = await res.json();
-                  if (data.success) {
-                    Swal.fire("Success", "Selected medicines accepted", "success");
-                    setSelected([]);
-                    setCancelReason("");
-                    fetchOrder();
-                  } else {
-                    Swal.fire("Error", data.message || "Failed to accept", "error");
+                // If there are no unselected meds, proceed immediately (no reason required)
+                if (!unselectedMedsArr.length) {
+                  try {
+                    const res = await fetch("/api/admin/order/partial-accept", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ orderId, medicineIds: selected, cancelReason: undefined }),
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                      Swal.fire("Success", "Selected medicines accepted", "success");
+                      setSelected([]);
+                      setCancelReason("");
+                      fetchOrder();
+                    } else {
+                      Swal.fire("Error", data.message || "Failed to accept", "error");
+                    }
+                  } catch (e) {
+                    Swal.fire("Error", "Failed to accept", "error");
                   }
-                } catch (e) {
-                  Swal.fire("Error", "Failed to accept", "error");
+                  return;
                 }
+
+                // otherwise preview and open styled dialog
+                setPreviewSelectedMeds(selectedMedsArr);
+                setPreviewUnselectedMeds(unselectedMedsArr);
+                setShowCancelReasonDialog(true);
               }}
             >
               Accept Selected
@@ -524,7 +615,66 @@ export default function PartialCancelPage() {
           </div>
         </form>
       </div>
-      {/* Cancel Selected dialog removed as per request */}
+        {/* Cancel reason dialog styled like Reject Prescription */}
+        <Dialog open={showCancelReasonDialog} onClose={() => setShowCancelReasonDialog(false)} maxWidth="sm" fullWidth PaperProps={{ sx: modalStyles.paper }}>
+          <DialogTitle>
+            <ModalHeader title="Cancel Unselected Medicines" onClose={() => setShowCancelReasonDialog(false)} />
+          </DialogTitle>
+          <DialogContent sx={modalStyles.content}>
+            <Box sx={modalStyles.noticeBox}>
+              <p className="text-xs font-semibold text-[var(--status-danger-text)] leading-relaxed"><span className="font-bold">⚠️ Please provide a cancellation reason:</span> this message will be sent to the customer.</p>
+            </Box>
+            <div style={{ marginTop: 8 }}>
+              <div style={{ fontWeight: 600, marginBottom: 6 }}>Selected Medicines</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+                {previewSelectedMeds.length ? previewSelectedMeds.map((m) => (
+                  <span key={m._id} style={{ background: '#43a047', color: '#fff', padding: '4px 10px', borderRadius: 16, fontSize: 13 }}>{m.name}</span>
+                )) : <div style={{ color: '#888', fontSize: 13 }}><i>None</i></div>}
+              </div>
+
+              {previewUnselectedMeds.length > 0 && (
+                <>
+                  <div style={{ fontWeight: 600, marginBottom: 6 }}>Unselected Medicines</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+                    {previewUnselectedMeds.map((m) => (
+                      <span key={m._1d || m._id} style={{ background: '#fb8c00', color: '#fff', padding: '4px 10px', borderRadius: 16, fontSize: 13 }}>{m.name}</span>
+                    ))}
+                  </div>
+
+                  <TextField multiline minRows={4} fullWidth autoFocus value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} placeholder="Enter reason for cancellation..." variant="outlined" margin="normal" sx={modalStyles.textField} />
+                </>
+              )}
+            </div>
+          </DialogContent>
+          <DialogActions sx={modalStyles.actions}>
+            <Button onClick={() => setShowCancelReasonDialog(false)} sx={modalStyles.cancelBtn}>Cancel</Button>
+            <Button onClick={async () => {
+              // if there are unselected meds, reason is required
+              if (previewUnselectedMeds.length > 0 && (!cancelReason || !cancelReason.trim())) return Swal.fire('Warning', 'Reason is required!', 'warning');
+              try {
+                const res = await fetch("/api/admin/order/partial-accept", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ orderId, medicineIds: selected, cancelReason: previewUnselectedMeds.length > 0 ? cancelReason : undefined }),
+                });
+                const data = await res.json();
+                if (data.success) {
+                  Swal.fire("Success", "Selected medicines accepted", "success");
+                  setSelected([]);
+                  setCancelReason("");
+                  setShowCancelReasonDialog(false);
+                  fetchOrder();
+                } else {
+                  Swal.fire("Error", data.message || "Failed to accept", "error");
+                }
+              } catch (e) {
+                Swal.fire("Error", "Failed to accept", "error");
+              }
+            }} variant="contained" sx={modalStyles.confirmBtn}>Proceed</Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Cancel Selected dialog removed as per request */}
     </div>
   );
 }

@@ -51,7 +51,7 @@ export const CustomButton = ({
   height,
 }: CustomButtonProps) => {
   const buttonStyle: React.CSSProperties = {
-    width: width,
+    // width: width,
     height: height,
   };
 
