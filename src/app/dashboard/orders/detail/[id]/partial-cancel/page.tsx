@@ -549,7 +549,7 @@ export default function PartialCancelPage() {
       {/* --- End Prescription Management --- */}
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
-        <h2 className="text-xl font-bold mb-4">Ordered Medicines List</h2>
+          <h2 className="text-xl font-bold mb-4">Ordered Items</h2>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -584,7 +584,7 @@ export default function PartialCancelPage() {
                 }}
                 disabled={pendingMedicineIds.length === 0}
               />
-              <div className="text-sm font-medium">Select all pending</div>
+              <div className="text-sm font-medium">Select All Pending Items</div>
             </div>
             {/* {order.medicineId && order.medicineId.length > 0 ? (
               order.medicineId.map((med: any, idx: number) => {
@@ -846,22 +846,20 @@ export default function PartialCancelPage() {
       >
         <DialogTitle>
           <ModalHeader
-            title="Cancel Unselected Medicines"
+            title="Confirm Order"
             onClose={() => setShowCancelReasonDialog(false)}
           />
         </DialogTitle>
         <DialogContent sx={modalStyles.content}>
           <Box sx={modalStyles.noticeBox}>
             <p className="text-xs font-semibold text-[var(--status-danger-text)] leading-relaxed">
-              <span className="font-bold">
-                ⚠️ Please provide a cancellation reason:
-              </span>{" "}
-              this message will be sent to the customer.
+              <span className="font-bold">Notice:</span>{" "}
+              Please provide a reason for cancellation. This note will be sent to the customer.
             </p>
           </Box>
           <div style={{ marginTop: 8 }}>
             <div style={{ fontWeight: 600, marginBottom: 6 }}>
-              Order Confirmed
+                 Confirm Item
             </div>
             <div
               style={{
@@ -896,7 +894,7 @@ export default function PartialCancelPage() {
             {previewUnselectedMeds.length > 0 && (
               <>
                 <div style={{ fontWeight: 600, marginBottom: 6 }}>
-                  Cancel Item
+                   Cancel Items
                 </div>
                 <div
                   style={{
@@ -946,7 +944,7 @@ export default function PartialCancelPage() {
             Cancel
           </Button>
           <Button
-            onClick={async () => {
+        onClick={async () => {
               // if there are unselected meds, reason is required
               if (
                 previewUnselectedMeds.length > 0 &&
@@ -990,8 +988,8 @@ export default function PartialCancelPage() {
             }}
             variant="contained"
             sx={modalStyles.confirmBtn}
-          >
-            Proceed
+            >
+            Confirm 
           </Button>
         </DialogActions>
       </Dialog>
