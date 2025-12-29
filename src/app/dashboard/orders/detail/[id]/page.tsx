@@ -413,6 +413,10 @@ export default function OrderDetailPage() {
                     let badgeColor =
                       "bg-yellow-50 text-yellow-700 border-yellow-200";
                     let dot = "#facc15";
+                    const hasDiscount =
+                      medicine?.mrp !== undefined &&
+                      medicine?.price !== undefined &&
+                      Number(medicine.mrp) > Number(medicine.price);
 
                     if (status === "delivered") {
                       badgeColor =
@@ -481,9 +485,11 @@ export default function OrderDetailPage() {
                               Price Per Unit
                             </p>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-400 line-through">
-                                ₹{medicine.mrp?.toFixed(2)}
-                              </span>
+                              {hasDiscount && (
+                                <span className="text-xs text-gray-400 line-through">
+                                  ₹{Number(medicine.mrp).toFixed(2)}
+                                </span>
+                              )}
                               <p className="text-xl font-black text-[var(--primary)] leading-none">
                                 ₹{medicine.price?.toFixed(2)}
                               </p>
@@ -519,6 +525,10 @@ export default function OrderDetailPage() {
                     const status = "cancelled";
                     const badgeColor = "bg-red-50 text-red-600 border-red-200";
                     const dot = "#f87171";
+                    const hasDiscount =
+                      medicine?.mrp !== undefined &&
+                      medicine?.price !== undefined &&
+                      Number(medicine.mrp) > Number(medicine.price);
 
                     return (
                       <div
@@ -584,9 +594,11 @@ export default function OrderDetailPage() {
                               Price Per Unit
                             </p>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-400 line-through">
-                                ₹{medicine.mrp?.toFixed(2)}
-                              </span>
+                              {hasDiscount && (
+                                <span className="text-xs text-gray-400 line-through">
+                                  ₹{Number(medicine.mrp).toFixed(2)}
+                                </span>
+                              )}
                               <p className="text-xl font-black text-red-600 leading-none">
                                 ₹{medicine.price?.toFixed(2)}
                               </p>
