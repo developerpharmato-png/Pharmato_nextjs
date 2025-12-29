@@ -361,91 +361,8 @@ export default function OrderDetailPage() {
                 </div>
               </div>
 
-              {/* Prescription Documents Grid */}
-              {order?.prescription_url && order.prescription_url.length > 0 && (
-                <div className="grid grid-cols-2 gap-4">
-                  {order.prescription_url.map((url: string, idx: number) => {
-                    const isPdf = url.toLowerCase().endsWith(".pdf");
-                    return (
-                      <div
-                        key={idx}
-                        className="group relative border border-gray-200 rounded-xl overflow-hidden bg-white hover:border-[var(--secondary)] transition-all shadow-sm"
-                      >
-                        {isPdf ? (
-                          <div className="flex flex-col items-center justify-center p-4 h-32 bg-gray-50">
-                            <svg
-                              className="w-8 h-8 text-[var(--status-danger-text)] mb-2"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path d="M4 4a2 2 0 012-2h4.586A1 1 0 0111.293 2.707l3 3a1 1 0 01.293.707V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
-                            </svg>
-                            <a
-                              href={url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[10px] font-bold text-[var(--primary)] hover:underline"
-                            >
-                              VIEW PDF
-                            </a>
-                          </div>
-                        ) : (
-                          <div className="relative h-32 w-full">
-                            <CustomImage
-                              coverImage={url}
-                              images={[url]}
-                              alt={`Prescription ${idx + 1}`}
-                              style={{
-                                height: "100%",
-                                width: "100%",
-                                objectFit: "cover",
-                              }}
-                            />
-                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button
-                                onClick={() => downloadImageByUrl(url)}
-                                className="bg-white/90 px-2 py-1 rounded text-[10px] font-bold shadow"
-                              >
-                                Download
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                        <div className="p-2 bg-white border-t border-gray-100 text-center">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">
-                            Page {idx + 1}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Approval Notes */}
-              {order?.prescription_approval_notes && (
-                <div className="bg-[var(--status-success-bg)] border-l-4 border-[var(--status-success-text)] rounded-r-lg p-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <svg
-                      className="w-4 h-4 text-[var(--status-success-text)]"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <p className="text-xs font-black text-[var(--status-success-text)] uppercase tracking-widest">
-                      Approval Notes
-                    </p>
-                  </div>
-                  <p className="text-sm text-[var(--status-success-text)] font-medium">
-                    {order?.prescription_approval_notes}
-                  </p>
-                </div>
-              )}
+            
+          
             </div>
           </div>
         </div>
@@ -480,15 +397,15 @@ export default function OrderDetailPage() {
               <div className="flex justify-between items-center mb-2">
                 <h3 className="font-bold text-gray-800">Accepted Items</h3>
                 <span className="text-xs text-gray-400 font-medium">
-                  {order?.medicineId?.filter((m) => m.status !== "cancelled")
-                    .length || 0}{" "}
+                  {order?.medicineId?.filter((m: any) => m.status !== "cancelled")
+                    .length || 0} {" "}
                   Items
                 </span>
               </div>
-              {order?.medicineId?.filter((m) => m.status !== "cancelled")
+              {order?.medicineId?.filter((m: any) => m.status !== "cancelled")
                 .length > 0 ? (
                 order?.medicineId
-                  .filter((m) => m.status !== "cancelled")
+                  .filter((m: any) => m.status !== "cancelled")
                   .map((medicine: any, index: number) => {
                     const status = medicine.status || "pending";
                     let badgeColor =
@@ -586,15 +503,15 @@ export default function OrderDetailPage() {
               <div className="flex justify-between items-center mb-2">
                 <h3 className="font-bold text-gray-800">Rejected Items</h3>
                 <span className="text-xs text-gray-400 font-medium">
-                  {order?.medicineId?.filter((m) => m.status === "cancelled")
-                    .length || 0}{" "}
+                  {order?.medicineId?.filter((m: any) => m.status === "cancelled")
+                    .length || 0} {" "}
                   Items
                 </span>
               </div>
-              {order?.medicineId?.filter((m) => m.status === "cancelled")
+              {order?.medicineId?.filter((m: any) => m.status === "cancelled")
                 .length > 0 ? (
                 order?.medicineId
-                  .filter((m) => m.status === "cancelled")
+                  .filter((m: any) => m.status === "cancelled")
                   .map((medicine: any, index: number) => {
                     const status = "cancelled";
                     const badgeColor = "bg-red-50 text-red-600 border-red-200";
