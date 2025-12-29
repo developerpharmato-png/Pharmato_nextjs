@@ -55,6 +55,17 @@ export async function POST(req: NextRequest) {
                 const amount = entity.amount;
                 const currency = entity.currency;
 
+                await Order.updateOne(
+                    { _id: checkOrder._id },
+                    {
+                        $push: { paymentHistory: paymentHistory },
+                        $set: {
+                            payment_mode: entity.method || '',
+                            payment_id: entity.id || '',
+                        }
+                    }
+                );
+
                 // Update paymentStatus in Firebase Realtime Database
                 if (checkOrder?.order_id && entity?.status) {
                     const db = getDb();
@@ -279,6 +290,18 @@ export async function POST(req: NextRequest) {
                 }
 
             }
+
+             if (body.event == 'refund.created') {
+
+                await Order.updateOne(
+                    { _id: checkOrder._id },
+                    {
+                        $push: { paymentHistory: paymentHistory }
+                    }
+                );
+
+             }
+
         }
     }
 
