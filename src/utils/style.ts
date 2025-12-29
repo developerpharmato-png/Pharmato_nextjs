@@ -10,76 +10,94 @@ export const modalStyle = {
   p: 4,
 };
 
-
 export const modalStyles = {
-  // Dialog Paper Container
   paper: {
-    overflow: "visible",
     borderRadius: "16px",
-    padding: "8px",
+    maxHeight: "90vh", // Prevents dialog from hitting screen edges
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden", // Removes outer scrollbar
   },
-  
-  // Dialog Content area
   content: {
-    overflow: "visible",
+    px: 3,
+    py: 1, // Reduced padding
+    "&::-webkit-scrollbar": { width: "6px" },
+    "&::-webkit-scrollbar-thumb": { backgroundColor: "#e2e8f0", borderRadius: "10px" },
   },
-
-  // Warning/Notice Box (Tailwind equivalent in SX)
+  sectionHeader: {
+    fontWeight: 700,
+    fontSize: "0.75rem",
+    color: "text.secondary",
+    textTransform: "uppercase",
+    mb: 0.5,
+  },
   noticeBox: {
-    backgroundColor: "var(--status-danger-bg)",
-    padding: "12px",
+    backgroundColor: "rgba(239, 68, 68, 0.04)",
+    p: 1.2,
     borderRadius: "8px",
-    marginBottom: "16px",
-    border: "1px solid",
-    borderColor: "rgba(var(--status-danger-text-rgb), 0.1)", // Adjust based on your variable setup
+    mb: 2,
+    border: "1px solid rgba(239, 68, 68, 0.15)",
   },
-
-  // Cancel Button (Secondary/Ghost)
+  noticeText: {
+    color: "#b91c1c",
+    fontSize: "0.75rem",
+    display: "block",
+  },
+  chipContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 0.75,
+    mb: 1,
+  },
+  confirmChip: {
+    backgroundColor: "#f0fdf4",
+    color: "#166534",
+    fontWeight: 600,
+    fontSize: "0.75rem",
+    borderRadius: "6px",
+    border: "1px solid #dcfce7",
+  },
+  cancelChip: {
+    backgroundColor: "#fff7ed",
+    color: "#9a3412",
+    fontWeight: 600,
+    fontSize: "0.75rem",
+    borderRadius: "6px",
+    border: "1px solid #ffedd5",
+  },
+  refundBox: {
+    mt: 1,
+    p: 1.5,
+    display: "flex",
+    justifyContent: "flex-end",
+    backgroundColor: "#f8fafc",
+    borderRadius: "8px",
+    border: "1px dashed #cbd5e1",
+  },
+  textField: {
+    mt: 1.5,
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "8px",
+      fontSize: "0.85rem",
+      "&.Mui-focused fieldset": { borderColor: "var(--status-danger-text)" },
+    },
+  },
+  actions: {
+    px: 3,
+    py: 2,
+    borderTop: "1px solid #f1f5f9", // Separation line for clarity
+  },
   cancelBtn: {
-    color: "gray",
-    fontWeight: "bold",
+    color: "text.secondary",
     textTransform: "none",
-    borderRadius: "8px",
-    "&:hover": { backgroundColor: "#f5f5f5" },
+    fontWeight: 600,
   },
-
-  // Confirm/Danger Button
   confirmBtn: {
     backgroundColor: "var(--status-danger-text)",
     textTransform: "none",
-    fontWeight: "bold",
+    fontWeight: 600,
     borderRadius: "8px",
-    px: 4,
-    "&:hover": {
-      backgroundColor: "#7f1d1d",
-      boxShadow: "0 4px 12px rgba(153, 27, 27, 0.2)",
-    },
-    "&.Mui-disabled": {
-      backgroundColor: "#f3f4f6",
-      color: "#9ca3af",
-    },
-  },
-
-  // Action Container
-  actions: {
-    p: 3,
-    pt: 1,
-    gap: 1,
-  },
-
-  // Danger-themed TextField
-  textField: {
-    mt: 2,
-    "& .MuiOutlinedInput-root": {
-      borderRadius: "12px",
-      fontSize: "0.9rem",
-      "&.Mui-focused fieldset": {
-        borderColor: "var(--status-danger-text)",
-      },
-    },
-    "& .MuiInputBase-input::placeholder": {
-      fontSize: "0.85rem",
-      opacity: 0.6,
-    },
+    px: 3,
+    "&:hover": { backgroundColor: "#7f1d1d" },
   },
 };

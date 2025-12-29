@@ -15,6 +15,8 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Typography,
+  Chip,
 } from "@mui/material";
 import {
   ModalHeader,
@@ -22,7 +24,7 @@ import {
   CustomButton,
 } from "@/app/dashboard/components/miniComponents";
 import { modalStyles } from "@/utils/style";
-import { Box } from "@mui/system";
+import { Box, Stack } from "@mui/system";
 import { downloadImageByUrl } from "@/utils/function";
 import PartialCancel from "@/app/dashboard/components/skeleton/PartialCancel";
 
@@ -401,90 +403,94 @@ export default function PartialCancelPage() {
                 {order.prescription_url.map((url: string, idx: number) => {
                   const isPdf = url.toLowerCase().endsWith(".pdf");
                   return (
-                  <div
-  key={idx}
-  className="group relative border border-gray-200 rounded-xl overflow-hidden bg-white hover:border-[var(--secondary)] transition-all shadow-sm"
->
-  {isPdf ? (
-    <div className="relative flex flex-col items-center justify-center p-6 h-40 bg-gray-50">
-      {/* PDF Download Button - Always Visible */}
-      <div className="absolute top-2 right-2 flex gap-2">
-        <button
-          onClick={() => downloadImageByUrl(url)}
-          className="bg-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold shadow-md flex items-center gap-1.5 text-gray-700 border border-gray-100 hover:bg-gray-50 transition-all"
-          title="Download PDF"
-        >
-          <svg
-            className="w-3.5 h-3.5 text-[var(--status-danger-text)]"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-            />
-          </svg>
-          DOWNLOAD
-        </button>
-      </div>
+                    <div
+                      key={idx}
+                      className="group relative border border-gray-200 rounded-xl overflow-hidden bg-white hover:border-[var(--secondary)] transition-all shadow-sm"
+                    >
+                      {isPdf ? (
+                        <div className="relative flex flex-col items-center justify-center p-6 h-40 bg-gray-50">
+                          {/* PDF Download Button - Always Visible */}
+                          <div className="absolute top-2 right-2 flex gap-2">
+                            <button
+                              onClick={() => downloadImageByUrl(url)}
+                              className="bg-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold shadow-md flex items-center gap-1.5 text-gray-700 border border-gray-100 hover:bg-gray-50 transition-all"
+                              title="Download PDF"
+                            >
+                              <svg
+                                className="w-3.5 h-3.5 text-[var(--status-danger-text)]"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2.5}
+                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                />
+                              </svg>
+                              DOWNLOAD
+                            </button>
+                          </div>
 
-      {/* PDF Icon and View Link */}
-      <svg
-        className="w-10 h-10 text-[var(--status-danger-text)] mb-2"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-      >
-        <path d="M4 4a2 2 0 012-2h4.586A1 1 0 0111.293 2.707l3 3a1 1 0 01.293.707V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
-      </svg>
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-xs font-bold text-[var(--primary)] hover:underline"
-      >
-        VIEW PDF
-      </a>
-    </div>
-  ) : (
-    <div className="relative h-40 w-full">
-      <CustomImage
-        coverImage={url}
-        images={[url]}
-        alt={`Prescription ${idx + 1}`}
-        style={{ height: "100%", width: "100%", objectFit: "cover" }}
-      />
-      <div className="absolute top-2 right-2 flex gap-2">
-        <button
-          onClick={() => downloadImageByUrl(url)}
-          className="bg-white/95 px-2.5 py-1.5 rounded-lg text-[10px] font-bold shadow-lg flex items-center gap-1.5 text-gray-700 border border-gray-100 hover:bg-white transition-all"
-        >
-          <svg
-            className="w-3.5 h-3.5 text-[var(--primary)]"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-            />
-          </svg>
-          DOWNLOAD
-        </button>
-      </div>
-    </div>
-  )}
-  <div className="p-2.5 bg-white border-t border-gray-100 text-center">
-    <span className="text-[10px] font-bold text-gray-400 uppercase">
-      Page {idx + 1}
-    </span>
-  </div>
-</div>
+                          {/* PDF Icon and View Link */}
+                          <svg
+                            className="w-10 h-10 text-[var(--status-danger-text)] mb-2"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M4 4a2 2 0 012-2h4.586A1 1 0 0111.293 2.707l3 3a1 1 0 01.293.707V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                          </svg>
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-bold text-[var(--primary)] hover:underline"
+                          >
+                            VIEW PDF
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="relative h-40 w-full">
+                          <CustomImage
+                            coverImage={url}
+                            images={[url]}
+                            alt={`Prescription ${idx + 1}`}
+                            style={{
+                              height: "100%",
+                              width: "100%",
+                              objectFit: "cover",
+                            }}
+                          />
+                          <div className="absolute top-2 right-2 flex gap-2">
+                            <button
+                              onClick={() => downloadImageByUrl(url)}
+                              className="bg-white/95 px-2.5 py-1.5 rounded-lg text-[10px] font-bold shadow-lg flex items-center gap-1.5 text-gray-700 border border-gray-100 hover:bg-white transition-all"
+                            >
+                              <svg
+                                className="w-3.5 h-3.5 text-[var(--primary)]"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2.5}
+                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                />
+                              </svg>
+                              DOWNLOAD
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      <div className="p-2.5 bg-white border-t border-gray-100 text-center">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase">
+                          Page {idx + 1}
+                        </span>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -549,7 +555,7 @@ export default function PartialCancelPage() {
       {/* --- End Prescription Management --- */}
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
-          <h2 className="text-xl font-bold mb-4">Ordered Items</h2>
+        <h2 className="text-xl font-bold mb-4">Ordered Items</h2>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -584,7 +590,9 @@ export default function PartialCancelPage() {
                 }}
                 disabled={pendingMedicineIds.length === 0}
               />
-              <div className="text-sm font-medium">Select All Pending Items</div>
+              <div className="text-sm font-medium">
+                Select All Pending Items
+              </div>
             </div>
             {/* {order.medicineId && order.medicineId.length > 0 ? (
               order.medicineId.map((med: any, idx: number) => {
@@ -837,7 +845,7 @@ export default function PartialCancelPage() {
         </form>
       </div>
       {/* Cancel reason dialog styled like Reject Prescription */}
-      <Dialog
+      {/* <Dialog
         open={showCancelReasonDialog}
         onClose={() => setShowCancelReasonDialog(false)}
         maxWidth="sm"
@@ -894,7 +902,7 @@ export default function PartialCancelPage() {
             {previewUnselectedMeds.length > 0 && (
               <>
                 <div style={{ fontWeight: 600, marginBottom: 6 }}>
-                   Cancel Items
+                  Items to Cancel
                 </div>
                 <div
                   style={{
@@ -906,7 +914,7 @@ export default function PartialCancelPage() {
                 >
                   {previewUnselectedMeds.map((m) => (
                     <span
-                      key={m._1d || m._id}
+                      key={m._id}
                       style={{
                         background: "#fb8c00",
                         color: "#fff",
@@ -918,6 +926,26 @@ export default function PartialCancelPage() {
                       {m.name}
                     </span>
                   ))}
+                </div>
+
+                <div className="text-right mb-3">
+                  {(() => {
+                    const refundAmount = previewUnselectedMeds.reduce((sum, m) => {
+                      const q = order?.medicineQuantity?.find(
+                        (x: any) =>
+                          x.medicineId === m._id ||
+                          x.medicineId?.toString?.() === m._id?.toString?.()
+                      );
+                      const qty = q?.quantity || m.quantity || 1;
+                      const price = Number(m.price) || 0;
+                      return sum + price * qty;
+                    }, 0);
+                    return (
+                      <div className="text-sm font-semibold text-gray-700">
+                        Refund Amount: <span className="font-bold">₹{refundAmount.toFixed(2)}</span>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <TextField
@@ -945,7 +973,6 @@ export default function PartialCancelPage() {
           </Button>
           <Button
         onClick={async () => {
-              // if there are unselected meds, reason is required
               if (
                 previewUnselectedMeds.length > 0 &&
                 (!cancelReason || !cancelReason.trim())
@@ -992,8 +1019,173 @@ export default function PartialCancelPage() {
             Confirm 
           </Button>
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
 
+      <Dialog
+        open={showCancelReasonDialog}
+        onClose={() => setShowCancelReasonDialog(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: modalStyles.paper }}
+      >
+        <DialogTitle sx={{ p: 2 }}>
+          <ModalHeader
+            title="Confirm Order "
+            onClose={() => setShowCancelReasonDialog(false)}
+          />
+        </DialogTitle>
+
+        {/* overflowY: "auto" ensures only the content scrolls, not the whole dialog */}
+        <DialogContent
+          sx={{ ...modalStyles.content, overflowY: "auto", maxHeight: "70vh" }}
+        >
+          <Box sx={modalStyles.noticeBox}>
+            <Typography variant="caption" sx={modalStyles.noticeText}>
+              <span className="font-bold">Notice:</span> Please provide a reason
+              for cancellation. This note will be sent to the customer.
+            </Typography>
+          </Box>
+
+          <Stack spacing={2}>
+            {/* Items to Confirm */}
+            <Box>
+              <Typography sx={modalStyles.sectionHeader}>
+                Confirm Items
+              </Typography>
+              <Box sx={modalStyles.chipContainer}>
+                {previewSelectedMeds.length ? (
+                  previewSelectedMeds.map((m) => (
+                    <Chip
+                      key={m._id}
+                      label={m.name}
+                      size="small"
+                      sx={modalStyles.confirmChip}
+                    />
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    None
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+
+            {/* Items to Cancel */}
+            {previewUnselectedMeds.length > 0 && (
+              <Box>
+                <Typography sx={modalStyles.sectionHeader}>
+                  Cancel Items
+                </Typography>
+                <Box sx={modalStyles.chipContainer}>
+                  {previewUnselectedMeds.map((m) => (
+                    <Chip
+                      key={m._id}
+                      label={m.name}
+                      size="small"
+                      sx={modalStyles.cancelChip}
+                    />
+                  ))}
+                </Box>
+
+                <Box sx={modalStyles.refundBox}>
+                  {(() => {
+                    const refundAmount = previewUnselectedMeds.reduce(
+                      (sum, m) => {
+                        const q = order?.medicineQuantity?.find(
+                          (x: any) =>
+                            x.medicineId === m._id ||
+                            x.medicineId?.toString?.() === m._id?.toString?.()
+                        );
+                        const qty = q?.quantity || m.quantity || 1;
+                        const price = Number(m.price) || 0;
+                        return sum + price * qty;
+                      },
+                      0
+                    );
+                    return (
+                      <Typography variant="body2" fontWeight="600">
+                        Refund Amount:{" "}
+                        <span style={{ color: "#d32f2f" }}>
+                          ₹{refundAmount.toFixed(2)}
+                        </span>
+                      </Typography>
+                    );
+                  })()}
+                </Box>
+
+                <TextField
+                  multiline
+                  minRows={2} // Reduced rows to save space
+                  fullWidth
+                  label="Reason for cancellation"
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  placeholder="e.g., Item out of stock..."
+                  variant="outlined"
+                  sx={modalStyles.textField}
+                />
+              </Box>
+            )}
+          </Stack>
+        </DialogContent>
+
+        <DialogActions sx={modalStyles.actions}>
+          <Button
+            onClick={() => setShowCancelReasonDialog(false)}
+            sx={modalStyles.cancelBtn}
+          >
+            Back
+          </Button>
+          <Button
+            onClick={async () => {
+              if (
+                previewUnselectedMeds.length > 0 &&
+                (!cancelReason || !cancelReason.trim())
+              )
+                return Swal.fire("Warning", "Reason is required!", "warning");
+              try {
+                const res = await fetch("/api/admin/order/partial-accept", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    orderId,
+                    medicineIds: selected,
+                    cancelReason:
+                      previewUnselectedMeds.length > 0
+                        ? cancelReason
+                        : undefined,
+                  }),
+                });
+                const data = await res.json();
+                if (data.success) {
+                  Swal.fire(
+                    "Success",
+                    "Selected medicines accepted",
+                    "success"
+                  );
+                  setSelected([]);
+                  setCancelReason("");
+                  setShowCancelReasonDialog(false);
+                  fetchOrder();
+                } else {
+                  Swal.fire(
+                    "Error",
+                    data.message || "Failed to accept",
+                    "error"
+                  );
+                }
+              } catch (e) {
+                Swal.fire("Error", "Failed to accept", "error");
+              }
+            }}
+            variant="contained"
+            disableElevation
+            sx={modalStyles.confirmBtn}
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
       {/* Cancel Selected dialog removed as per request */}
     </div>
   );
