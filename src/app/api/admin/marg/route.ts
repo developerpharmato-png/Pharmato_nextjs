@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
         const payload = {
             CompanyCode: 'PharmatoInd2',
             MargID: 486257,
-            Datetime: '2025-12-27 00:00:00',
+            Datetime: '',
             index: 0
         };
 
@@ -192,7 +192,8 @@ export async function POST(request: NextRequest) {
         //     await Medicine.insertMany(bulkInsertArray, { ordered: false });
         // }
 
-        return NextResponse.json({ success: true, message: 'Medicines imported successfully.', data : products , count : products.length});
+        // return NextResponse.json({ success: true, message: 'Medicines imported successfully.', data : products , count : products.length});
+        return NextResponse.json({ success: true, message: 'Medicines imported successfully.', count : products.length});
 
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message || 'MargERP API error' }, { status: 500 });

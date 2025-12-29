@@ -40,12 +40,16 @@ export async function POST(req: NextRequest) {
 
     if (body?.payload?.payment?.entity) {
         let paymentHistory: any = {};
+        let refundHistory: any = {};
         const entity = body.payload.payment.entity;
         console.log(entity);
         const orderId = entity.notes?.razorpay_order_id;
 
         paymentHistory.orderId = orderId;
         paymentHistory.entity = entity;
+
+        refundHistory.orderId = orderId;
+        refundHistory.entity = body?.payload?.refund ?.entity || {};
 
         // Find the order in DB
         const checkOrder = await Order.findOne({ order_id: orderId });
@@ -296,7 +300,40 @@ export async function POST(req: NextRequest) {
                 await Order.updateOne(
                     { _id: checkOrder._id },
                     {
-                        $push: { paymentHistory: paymentHistory }
+                        $push: { refundHistory: refundHistory }
+                    }
+                );
+
+             }
+
+             if (body.event == 'refund.processed') {
+
+                await Order.updateOne(
+                    { _id: checkOrder._id },
+                    {
+                        $push: { refundHistory: refundHistory }
+                    }
+                );
+
+             }
+
+             if (body.event == 'refund.failed') {
+
+                await Order.updateOne(
+                    { _id: checkOrder._id },
+                    {
+                        $push: { refundHistory: refundHistory }
+                    }
+                );
+
+             }
+
+             if (body.event == 'refund.speed_changed') {
+
+                await Order.updateOne(
+                    { _id: checkOrder._id },
+                    {
+                        $push: { refundHistory: refundHistory }
                     }
                 );
 

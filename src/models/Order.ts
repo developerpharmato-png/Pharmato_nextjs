@@ -22,6 +22,7 @@ export interface IOrder extends Document {
     medicineQuantity: Record<string, any>[];
     calculationData: Record<string, any>;
     paymentHistory: [{}];
+    refundHistory: [{}];
     isPrescriptionRequired?: boolean;
     prescription_url: string[];
     prescription_status: string;
@@ -61,6 +62,7 @@ const OrderSchema = new Schema<IOrder>({
     medicineQuantity: { type: [Object], default: [] },
     calculationData: { type: Object, default: {} },
     paymentHistory: [{ type: Object, default: {} }],
+    refundHistory: [{ type: Object, default: {} }],
     isPrescriptionRequired: { type: Boolean, default: false }, 
     prescription_url: [
         { type: String, default: '' }
