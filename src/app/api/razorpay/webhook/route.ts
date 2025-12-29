@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
 
         refundHistory.orderId = orderId;
         refundHistory.entity = body?.payload?.refund ?.entity || {};
+        refundHistory.refundId = refundHistory?.entity?.id || '';
 
         // Find the order in DB
         const checkOrder = await Order.findOne({ order_id: orderId });
