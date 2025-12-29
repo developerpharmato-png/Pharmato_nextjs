@@ -4,28 +4,10 @@ import { useRouter, useParams } from "next/navigation";
 import HeaderWithAction from "../../../components/HeaderWithAction";
 import { CustomImage, ModalHeader } from "../../../components/miniComponents";
 import Swal from "sweetalert2";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Typography,
-} from "@mui/material";
-import {
-  OrderDetailsStore,
-  ApprovePrescriptionStore,
-  RejectPrescriptionStore,
-} from "../../../storeAPICall/useUserStore";
-import {
-  OrderDetailPath,
-  PrescriptionApprovePath,
-  PrescriptionRejectPath,
-} from "../../../storeAPICall/API/BaseApi";
-import { downloadImageByUrl } from "@/utils/function";
-import { modalStyles } from "@/utils/style";
-import { Box } from "@mui/system";
+
+import { OrderDetailsStore } from "../../../storeAPICall/useUserStore";
+import { OrderDetailPath } from "../../../storeAPICall/API/BaseApi";
+import { downloadImageByUrl, getStatusColor } from "@/utils/function";
 
 export default function OrderDetailPage() {
   const router = useRouter();
@@ -34,28 +16,12 @@ export default function OrderDetailPage() {
 
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [rejectionReason, setRejectionReason] = useState("");
-  const [showRejectModal, setShowRejectModal] = useState(false);
-  const [approvalNotes, setApprovalNotes] = useState("");
 
   const {
     postData: fetchDetailsPost,
     data: detailsData,
     loading: detailsLoading,
   } = OrderDetailsStore();
-
-  const {
-    postData: approvePost,
-    data: approveData,
-    loading: approveLoading,
-    clearData: clearapproveData,
-  } = ApprovePrescriptionStore();
-
-  const {
-    postData: rejectPost,
-    data: rejectData,
-    loading: rejectLoading,
-  } = RejectPrescriptionStore();
 
   useEffect(() => {
     if (orderId) {
@@ -90,167 +56,6 @@ export default function OrderDetailPage() {
       router.push("/dashboard/orders");
     }
   }, [detailsData]);
-
-  const handleApprovePrescription = async () => {
-    try {
-      const adminData = localStorage.getItem("admin");
-      const admin = adminData ? JSON.parse(adminData) : null;
-      await approvePost(PrescriptionApprovePath, {
-        orderId: order?._id,
-        adminId: admin?._id,
-        approvalNotes: approvalNotes.trim() || undefined,
-      });
-    } catch (error) {
-      // handled in approveData effect
-    }
-  };
-
-  useEffect(() => {
-    if (!approveData) return;
-    const success = (approveData as any).success;
-    if (success) {
-      Swal.fire({
-        toast: true,
-        position: "top-end",
-        icon: "success",
-        title: "Prescription approved successfully",
-        showConfirmButton: false,
-        timer: 2000,
-      });
-      clearapproveData();
-      setApprovalNotes("");
-      fetchOrderDetail();
-    } else {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: (approveData as any).message || "Failed to approve prescription",
-      });
-      clearapproveData();
-    }
-  }, [approveData]);
-
-  const handleRejectPrescription = async () => {
-    if (!rejectionReason.trim()) {
-      Swal.fire({
-        icon: "warning",
-        title: "Rejection Reason Required",
-        text: "Please provide a reason for rejection",
-      });
-      return;
-    }
-    try {
-      const adminData = localStorage.getItem("admin");
-      const admin = adminData ? JSON.parse(adminData) : null;
-      await rejectPost(PrescriptionRejectPath, {
-        orderId: order?._id,
-        adminId: admin?._id,
-        rejectionReason,
-      });
-    } catch (error) {
-      // handled in rejectData effect
-    }
-  };
-
-  useEffect(() => {
-    if (!rejectData) return;
-    const success = (rejectData as any).success;
-    if (success) {
-      Swal.fire({
-        toast: true,
-        position: "top-end",
-        icon: "success",
-        title: "Prescription rejected successfully",
-        showConfirmButton: false,
-        timer: 2000,
-      });
-      setShowRejectModal(false);
-      setRejectionReason("");
-      fetchOrderDetail();
-    } else {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: (rejectData as any).message || "Failed to reject prescription",
-      });
-    }
-  }, [rejectData]);
-
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "pending":
-      case "placed":
-        return "status-pending";
-      case "completed":
-      case "success":
-      case "delivered":
-      case "approved":
-        return "status-success";
-      case "failed":
-      case "cancelled":
-      case "rejected":
-        return "status-danger";
-      case "processing":
-      case "confirmed":
-      case "packed":
-        return "status-info";
-      case "dispatched":
-        return "status-purple";
-      case "prescription re-upload required":
-      case "re-upload required":
-        return "status-warning";
-      default:
-        return "status-default";
-    }
-  };
-
-  const getPrescriptionStatusBadge = (status: string) => {
-    const statusLower = status?.toLowerCase();
-    if (statusLower === "approved") {
-      return (
-        <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-          Approved
-        </span>
-      );
-    } else if (statusLower === "rejected") {
-      return (
-        <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-          Rejected
-        </span>
-      );
-    } else if (statusLower === "re-upload required") {
-      return (
-        <span className="px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
-          Re-upload Required
-        </span>
-      );
-    } else {
-      return (
-        <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-          Pending
-        </span>
-      );
-    }
-  };
-
-  const calculateItemSubtotal = (medicine: any) => {
-    const quantity = medicine.quantity || 1;
-    const price = medicine.price || 0;
-    return quantity * price;
-  };
-
-  const calculateTotalMRP = () => {
-    if (!order?.medicineId || order?.medicineId.length === 0) return 0;
-    return order?.medicineId.reduce((sum: number, item: any) => {
-      return sum + (item.mrp || 0) * (item.quantity || 1);
-    }, 0);
-  };
-
-  const calculateTotalDiscount = () => {
-    const totalMRP = calculateTotalMRP();
-    const actualAmount = order?.actual_amount || 0;
-    return totalMRP - actualAmount;
-  };
 
   if (loading) {
     return (
@@ -427,87 +232,46 @@ export default function OrderDetailPage() {
           </div>
         </div>
 
-        {/* Customer Information */}
-        {/* Customer Information */}
-        {order?.userId && (
-          <div className="bg-[var(--background)] rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-6">
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-3">
-                <div className="p-2 bg-[var(--status-info-bg)] rounded-lg">
-                  <svg
-                    className="w-5 h-5 text-[var(--status-info-text)]"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                </div>
-                <h2 className="text-xl font-bold text-[var(--foreground)]">
-                  Customer Details
-                </h2>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Email */}
-                <div className="group">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                    Email ID
-                  </p>
-                  <a
-                    href={`mailto:${order?.userId.email}`}
-                    className="text-sm font-medium text-[var(--status-info-text)] hover:underline flex items-center gap-1"
-                  >
-                    {order?.userId.email || "No email provided"}
-                    {order?.userId.email && (
-                      <svg
-                        className="w-3 h-3"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                        />
-                      </svg>
-                    )}
-                  </a>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          {/* Left Column: Customer Details */}
+          {order?.userId && (
+            <div className="bg-[var(--background)] rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+              <div className="p-6 flex-1">
+                <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-3">
+                  <div className="p-2 bg-[var(--status-info-bg)] rounded-lg">
+                    <svg
+                      className="w-5 h-5 text-[var(--status-info-text)]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-[var(--foreground)]">
+                    Customer Details
+                  </h2>
                 </div>
 
-                {/* Phone */}
-                <div className="group">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                    Mobile Number
-                  </p>
-                  <a
-                    href={`tel:${order?.userId.phone || order?.userId.mobile}`}
-                    className="text-sm font-bold text-gray-900 hover:text-[var(--primary)] flex items-center gap-1"
-                  >
-                    {order?.userId?.mobile ? `📞 +91 ${order.userId.mobile}` : "N/A"}
-                    <span className="text-[10px] px-1.5 py-0.5 bg-[var(--status-success-bg)] text-[var(--status-success-text)] rounded ml-2">
-                      Verified
-                    </span>
-                  </a>
-                </div>
-
-                {/* Delivery Address (Secondary Check) */}
-                {order?.delivery_address &&
-                  Object.keys(order?.delivery_address).length > 0 && (
-                    <div className="md:col-span-2 lg:col-span-3 mt-2">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
-                        Primary Shipping Reference
-                      </p>
-                      <div className="p-4 bg-gray-50 border border-dashed border-gray-200 rounded-xl flex items-start gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {/* Email */}
+                  <div className="group">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                      Email ID
+                    </p>
+                    <a
+                      href={`mailto:${order?.userId.email}`}
+                      className="text-sm font-medium text-[var(--status-info-text)] hover:underline flex items-center gap-1"
+                    >
+                      {order?.userId.email || "No email provided"}
+                      {order?.userId.email && (
                         <svg
-                          className="w-5 h-5 text-gray-400 mt-0.5"
+                          className="w-3 h-3"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -516,50 +280,90 @@ export default function OrderDetailPage() {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
                           />
                         </svg>
-                        <p className="text-sm text-gray-600 leading-relaxed italic">
-                          {Object.values(order?.delivery_address)
-                            .filter(Boolean)
-                            .join(", ")}
+                      )}
+                    </a>
+                  </div>
+
+                  {/* Phone */}
+                  <div className="group">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                      Mobile Number
+                    </p>
+                    <a
+                      href={`tel:${
+                        order?.userId.phone || order?.userId.mobile
+                      }`}
+                      className="text-sm font-bold text-gray-900 hover:text-[var(--primary)] flex items-center gap-1"
+                    >
+                      {order?.userId?.mobile
+                        ? `📞 +91 ${order.userId.mobile}`
+                        : "N/A"}
+                      <span className="text-[10px] px-1.5 py-0.5 bg-[var(--status-success-bg)] text-[var(--status-success-text)] rounded ml-2">
+                        Verified
+                      </span>
+                    </a>
+                  </div>
+
+                  {/* Delivery Address */}
+                  {order?.delivery_address &&
+                    Object.keys(order?.delivery_address).length > 0 && (
+                      <div className="sm:col-span-2 mt-2">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                          Primary Shipping Reference
                         </p>
+                        <div className="p-4 bg-gray-50 border border-dashed border-gray-200 rounded-xl flex items-start gap-3">
+                          <svg
+                            className="w-5 h-5 text-gray-400 mt-0.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                            />
+                          </svg>
+                          <p className="text-sm text-gray-600 leading-relaxed italic">
+                            {Object.values(order?.delivery_address)
+                              .filter(Boolean)
+                              .join(", ")}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                </div>
               </div>
+              <div className="h-1 w-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] opacity-20"></div>
             </div>
+          )}
 
-            {/* Subtle footer accent */}
-            <div className="h-1 w-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] opacity-20"></div>
-          </div>
-        )}
+          {/* Right Column: Prescription Management */}
+          <div className="bg-[var(--background)] rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
+            <h2 className="text-xl font-bold mb-6 text-[var(--foreground)] border-b border-gray-100 pb-3">
+              Prescription Management
+            </h2>
 
-        {/* Prescription Management */}
-        <div className="bg-[var(--background)] rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
-          <h2 className="text-xl font-bold mb-6 text-[var(--foreground)] border-b border-gray-100 pb-3">
-            Prescription Management
-          </h2>
-
-          <div className="space-y-6">
-            {/* Status and Action Header */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
-              <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                  Current Status
-                </p>
-                <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                  {order?.prescription_status || "Pending"}
-                </span>
+            <div className="space-y-6 flex-1">
+              {/* Status */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                    Current Status
+                  </p>
+                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                    {order?.prescription_status || "Pending"}
+                  </span>
+                </div>
               </div>
-            </div>
 
-            {/* Prescription Documents Grid */}
-            {order?.prescription_url && order.prescription_url.length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2"></div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Prescription Documents Grid */}
+              {order?.prescription_url && order.prescription_url.length > 0 && (
+                <div className="grid grid-cols-2 gap-4">
                   {order.prescription_url.map((url: string, idx: number) => {
                     const isPdf = url.toLowerCase().endsWith(".pdf");
                     return (
@@ -568,9 +372,9 @@ export default function OrderDetailPage() {
                         className="group relative border border-gray-200 rounded-xl overflow-hidden bg-white hover:border-[var(--secondary)] transition-all shadow-sm"
                       >
                         {isPdf ? (
-                          <div className="flex flex-col items-center justify-center p-6 h-40 bg-gray-50">
+                          <div className="flex flex-col items-center justify-center p-4 h-32 bg-gray-50">
                             <svg
-                              className="w-10 h-10 text-[var(--status-danger-text)] mb-2"
+                              className="w-8 h-8 text-[var(--status-danger-text)] mb-2"
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -580,13 +384,13 @@ export default function OrderDetailPage() {
                               href={url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs font-bold text-[var(--primary)] hover:underline"
+                              className="text-[10px] font-bold text-[var(--primary)] hover:underline"
                             >
                               VIEW PDF
                             </a>
                           </div>
                         ) : (
-                          <div className="relative h-40 w-full">
+                          <div className="relative h-32 w-full">
                             <CustomImage
                               coverImage={url}
                               images={[url]}
@@ -597,19 +401,18 @@ export default function OrderDetailPage() {
                                 objectFit: "cover",
                               }}
                             />
-                            <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button
                                 onClick={() => downloadImageByUrl(url)}
-                                className="bg-white/90 px-2 py-1 rounded text-xs font-bold shadow"
-                                title="Download"
+                                className="bg-white/90 px-2 py-1 rounded text-[10px] font-bold shadow"
                               >
                                 Download
                               </button>
                             </div>
                           </div>
                         )}
-                        <div className="p-2.5 bg-white border-t border-gray-100 text-center">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase">
+                        <div className="p-2 bg-white border-t border-gray-100 text-center">
+                          <span className="text-[9px] font-bold text-gray-400 uppercase">
                             Page {idx + 1}
                           </span>
                         </div>
@@ -617,33 +420,33 @@ export default function OrderDetailPage() {
                     );
                   })}
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Approval Notes */}
-            {order?.prescription_approval_notes && (
-              <div className="bg-[var(--status-success-bg)] border-l-4 border-[var(--status-success-text)] rounded-r-lg p-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <svg
-                    className="w-4 h-4 text-[var(--status-success-text)]"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <p className="text-xs font-black text-[var(--status-success-text)] uppercase tracking-widest">
-                    Approval Notes
+              {/* Approval Notes */}
+              {order?.prescription_approval_notes && (
+                <div className="bg-[var(--status-success-bg)] border-l-4 border-[var(--status-success-text)] rounded-r-lg p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <svg
+                      className="w-4 h-4 text-[var(--status-success-text)]"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <p className="text-xs font-black text-[var(--status-success-text)] uppercase tracking-widest">
+                      Approval Notes
+                    </p>
+                  </div>
+                  <p className="text-sm text-[var(--status-success-text)] font-medium">
+                    {order?.prescription_approval_notes}
                   </p>
                 </div>
-                <p className="text-sm text-[var(--status-success-text)] font-medium leading-relaxed">
-                  {order?.prescription_approval_notes}
-                </p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
@@ -671,125 +474,214 @@ export default function OrderDetailPage() {
             </div>
           )}
 
-          <div className="space-y-4">
-            {order?.medicineId && order?.medicineId.length > 0 ? (
-              order?.medicineId.map((medicine: any, index: number) => {
-                const status = medicine.status || "pending";
-                let badgeColor =
-                  "bg-yellow-50 text-yellow-700 border-yellow-200";
-                let dot = "#facc15";
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Left Column: Accepted Items */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-bold text-gray-800">Accepted Items</h3>
+                <span className="text-xs text-gray-400 font-medium">
+                  {order?.medicineId?.filter((m) => m.status !== "cancelled")
+                    .length || 0}{" "}
+                  Items
+                </span>
+              </div>
+              {order?.medicineId?.filter((m) => m.status !== "cancelled")
+                .length > 0 ? (
+                order?.medicineId
+                  .filter((m) => m.status !== "cancelled")
+                  .map((medicine: any, index: number) => {
+                    const status = medicine.status || "pending";
+                    let badgeColor =
+                      "bg-yellow-50 text-yellow-700 border-yellow-200";
+                    let dot = "#facc15";
 
-                if (status === "cancelled") {
-                  badgeColor = "bg-red-50 text-red-600 border-red-200";
-                  dot = "#f87171";
-                } else if (status === "delivered") {
-                  badgeColor = "bg-green-50 text-green-700 border-green-200";
-                  dot = "#22c55e";
-                }
+                    if (status === "delivered") {
+                      badgeColor =
+                        "bg-green-50 text-green-700 border-green-200";
+                      dot = "#22c55e";
+                    }
 
-                return (
-                  <div
-                    key={index}
-                    onClick={() => medidetails(medicine._id)}
-                    className="group flex flex-col p-4 border border-gray-100 rounded-xl transition-all duration-200 hover:border-[var(--secondary)]/30 hover:shadow-md hover:bg-gray-50/50 cursor-pointer"
-                  >
-                    {/* Top Row: Product Info & Status */}
-                    <div className="flex justify-between items-start gap-4 mb-4">
-                      <div className="flex gap-4">
-                        {/* Image */}
-                        <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-gray-100 bg-white">
-                          {medicine.coverImage ||
-                          (medicine.images && medicine.images[0]) ? (
-                            <CustomImage
-                              coverImage={
-                                medicine.coverImage || medicine.images[0]
-                              }
-                              images={medicine.images || []}
-                              alt={medicine.name}
-                              style={{
-                                height: "100%",
-                                width: "100%",
-                                objectFit: "cover",
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400 font-bold uppercase">
-                              No Image
+                    return (
+                      <div
+                        key={index}
+                        onClick={() => medidetails(medicine._id)}
+                        className="group flex flex-col p-4 border border-gray-100 rounded-xl transition-all duration-200 hover:border-[var(--secondary)]/30 hover:shadow-md hover:bg-gray-50/50 cursor-pointer"
+                      >
+                        {/* Top Row: Product Info & Status */}
+                        <div className="flex justify-between items-start gap-4 mb-4">
+                          <div className="flex gap-4">
+                            <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-gray-100 bg-white">
+                              {medicine.coverImage ||
+                              (medicine.images && medicine.images[0]) ? (
+                                <CustomImage
+                                  coverImage={
+                                    medicine.coverImage || medicine.images[0]
+                                  }
+                                  images={medicine.images || []}
+                                  alt={medicine.name}
+                                  style={{
+                                    height: "100%",
+                                    width: "100%",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400 font-bold uppercase">
+                                  No Image
+                                </div>
+                              )}
                             </div>
-                          )}
+                            <div className="flex-1">
+                              <h3 className="font-bold text-gray-900 leading-tight group-hover:text-[var(--primary)]">
+                                {medicine.name}
+                              </h3>
+                              <p className="text-[11px] text-gray-500 font-medium uppercase mt-1">
+                                {medicine.manufacturer}
+                              </p>
+                              <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] font-bold">
+                                Qty: {medicine.quantity || 1}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            <span
+                              className={`px-2.5 py-1 rounded-full border text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm ${badgeColor}`}
+                            >
+                              <div
+                                className="w-2 h-2 rounded-full"
+                                style={{ backgroundColor: dot }}
+                              />
+                              {status}
+                            </span>
+                          </div>
                         </div>
-
-                        {/* Name & Manufacturer */}
-                        <div className="flex-1">
-                          <h3 className="font-bold text-gray-900 leading-tight group-hover:text-[var(--primary)]">
-                            {medicine.name}
-                          </h3>
-                          <p className="text-[11px] text-gray-500 font-medium uppercase mt-1">
-                            {medicine.manufacturer}
-                          </p>
-                          <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] font-bold">
-                            Qty: {medicine.quantity || 1}
+                        {/* Bottom Row: Pricing */}
+                        <div className="flex justify-between items-end pt-3 border-t border-gray-50">
+                          <div>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase">
+                              Price Per Unit
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-400 line-through">
+                                ₹{medicine.mrp?.toFixed(2)}
+                              </span>
+                              <p className="text-xl font-black text-[var(--primary)] leading-none">
+                                ₹{medicine.price?.toFixed(2)}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
+                    );
+                  })
+              ) : (
+                <div className="text-center py-6 bg-gray-50 rounded-xl border border-dashed text-gray-400 text-sm">
+                  No accepted items
+                </div>
+              )}
+            </div>
 
-                      {/* Status Badge - Now part of the flex flow, NO OVERLAP */}
-                      <div className="flex flex-col items-end gap-1 shrink-0">
-                        <span
-                          className={`px-2.5 py-1 rounded-full border text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm ${badgeColor}`}
-                        >
-                          <div
-                            className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: dot }}
-                          />
-                          {status}
-                        </span>
-                        {status === "cancelled" && medicine.cancelReason && (
-                          <span className="text-[10px] text-red-500 italic bg-red-50 px-2 py-0.5 rounded border border-red-100 text-right max-w-[120px]">
-                            {medicine.cancelReason}
-                          </span>
-                        )}
-                      </div>
-                    </div>
+            {/* Right Column: Rejected Items */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-bold text-gray-800">Rejected Items</h3>
+                <span className="text-xs text-gray-400 font-medium">
+                  {order?.medicineId?.filter((m) => m.status === "cancelled")
+                    .length || 0}{" "}
+                  Items
+                </span>
+              </div>
+              {order?.medicineId?.filter((m) => m.status === "cancelled")
+                .length > 0 ? (
+                order?.medicineId
+                  .filter((m) => m.status === "cancelled")
+                  .map((medicine: any, index: number) => {
+                    const status = "cancelled";
+                    const badgeColor = "bg-red-50 text-red-600 border-red-200";
+                    const dot = "#f87171";
 
-                    {/* Bottom Row: Pricing */}
-                    <div className="flex justify-between items-end pt-3 border-t border-gray-50">
-                      <div>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase">
-                          Price Per Unit
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-400 line-through">
-                            ₹{medicine.mrp?.toFixed(2)}
-                          </span>
-                          <span className="text-sm font-bold text-gray-900">
-                            ₹{medicine.price?.toFixed(2)}
-                          </span>
+                    return (
+                      <div
+                        key={index}
+                        onClick={() => medidetails(medicine._id)}
+                        className="group flex flex-col p-4 border border-gray-100 rounded-xl transition-all duration-200 hover:border-red-200 hover:shadow-md hover:bg-red-50/30 cursor-pointer"
+                      >
+                        <div className="flex justify-between items-start gap-4 mb-4">
+                          <div className="flex gap-4">
+                            <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-gray-100 bg-white">
+                              {medicine.coverImage ||
+                              (medicine.images && medicine.images[0]) ? (
+                                <CustomImage
+                                  coverImage={
+                                    medicine.coverImage || medicine.images[0]
+                                  }
+                                  images={medicine.images || []}
+                                  alt={medicine.name}
+                                  style={{
+                                    height: "100%",
+                                    width: "100%",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400 font-bold uppercase">
+                                  No Image
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-bold text-gray-900 leading-tight group-hover:text-red-600">
+                                {medicine.name}
+                              </h3>
+                              <p className="text-[11px] text-gray-500 font-medium uppercase mt-1">
+                                {medicine.manufacturer}
+                              </p>
+                              <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] font-bold">
+                                Qty: {medicine.quantity || 1}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            <span
+                              className={`px-2.5 py-1 rounded-full border text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm ${badgeColor}`}
+                            >
+                              <div
+                                className="w-2 h-2 rounded-full"
+                                style={{ backgroundColor: dot }}
+                              />
+                              {status}
+                            </span>
+                            {medicine.cancelReason && (
+                              <span className="text-[10px] text-red-500 italic bg-red-50 px-2 py-0.5 rounded border border-red-100 text-right max-w-[120px]">
+                                {medicine.cancelReason}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-end pt-3 border-t border-gray-50">
+                          <div>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase">
+                              Price Per Unit
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-400 line-through">
+                                ₹{medicine.mrp?.toFixed(2)}
+                              </span>
+                              <p className="text-xl font-black text-red-600 leading-none">
+                                ₹{medicine.price?.toFixed(2)}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
-
-                      <div className="text-right">
-                        <p className="text-[10px] text-[var(--primary)] font-bold uppercase">
-                          Subtotal
-                        </p>
-                        <p className="text-xl font-black text-[var(--primary)] leading-none">
-                          ₹{calculateItemSubtotal(medicine).toFixed(2)}
-                        </p>
-                        {medicine.discount > 0 && (
-                          <span className="mt-1 inline-block px-1.5 py-0.5 bg-green-100 text-green-700 text-[9px] font-bold rounded">
-                            {medicine.discount}% SAVED
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 text-gray-400 font-medium">
-                No items found in this order
-              </div>
-            )}
+                    );
+                  })
+              ) : (
+                <div className="text-center py-6 bg-gray-50 rounded-xl border border-dashed text-gray-400 text-sm">
+                  No rejected items
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -803,35 +695,28 @@ export default function OrderDetailPage() {
             {/* Line Items */}
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-500 font-medium">
-                Total MRP
-              </span>
-              <span className="text-sm font-bold text-gray-900">
-                ₹{calculateTotalMRP().toFixed(2)}
-              </span>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500 font-medium">
-                  Total Discount
-                </span>
-                <span className="text-[10px] px-2 py-0.5 bg-[var(--status-success-bg)] text-[var(--status-success-text)] font-bold rounded-full uppercase tracking-tighter">
-                  Savings
-                </span>
-              </div>
-              <span className="text-sm font-bold text-[var(--primary)]">
-                -₹{calculateTotalDiscount().toFixed(2)}
-              </span>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500 font-medium">
                 Subtotal
               </span>
               <span className="text-sm font-bold text-gray-900">
-                ₹{order?.actual_amount?.toFixed(2) || "0.00"}
+                ₹{order?.calculationData?.priceTotalSumBeforeDiscount}
               </span>
             </div>
+
+            {order?.calculationData?.discount >= 1 && (
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500 font-medium">
+                    Total Discount
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 bg-[var(--status-success-bg)] text-[var(--status-success-text)] font-bold rounded-full uppercase tracking-tighter">
+                    Savings
+                  </span>
+                </div>
+                <span className="text-sm font-bold text-[var(--primary)]">
+                  - ₹{order?.calculationData?.discount}
+                </span>
+              </div>
+            )}
 
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-500 font-medium">
@@ -856,7 +741,10 @@ export default function OrderDetailPage() {
                 Platform Fee
               </span>
               <span className="text-sm font-bold text-gray-900">
-                ₹{order?.platform_fee?.toFixed(2) || "0.00"}
+                ₹
+                {order?.calculationData?.platformFee +
+                  order?.calculationData?.razorPayCommissionGstAmount +
+                  order?.calculationData?.razorPayCommissionAmount}
               </span>
             </div>
 
@@ -869,13 +757,12 @@ export default function OrderDetailPage() {
                 <p className="text-lg font-black text-gray-900">
                   Final Payable
                 </p>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                  Inclusive of all taxes
-                </p>
               </div>
               <div className="text-right">
                 <span className="text-2xl font-black text-[var(--primary)]">
-                  ₹{order?.total_order_amount?.toFixed(2) || "0.00"}
+                  ₹
+                  {order?.calculationData?.totalOrderAmount?.toFixed(2) ||
+                    "0.00"}
                 </span>
               </div>
             </div>
@@ -895,72 +782,6 @@ export default function OrderDetailPage() {
           </div>
         </div>
       </div>
-
-      <Dialog
-        open={showRejectModal}
-        onClose={() => {
-          setShowRejectModal(false);
-          setRejectionReason("");
-        }}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: modalStyles.paper }}
-      >
-        <DialogTitle sx={{ p: 2, pb: 1 }}>
-          <ModalHeader
-            title="Reject Prescription"
-            onClose={() => {
-              setShowRejectModal(false);
-              setRejectionReason("");
-            }}
-          />
-        </DialogTitle>
-
-        <DialogContent sx={modalStyles.content}>
-          {/* Notice Box */}
-          <Box sx={modalStyles.noticeBox}>
-            <p className="text-xs font-semibold text-[var(--status-danger-text)] leading-relaxed">
-              <span className="font-bold">⚠️ Notice:</span> Please provide a
-              clear reason for rejection. This message will be sent directly to
-              the customer to help them correct their upload.
-            </p>
-          </Box>
-
-          {/* TextField using extracted styles */}
-          <TextField
-            multiline
-            minRows={4}
-            fullWidth
-            autoFocus
-            value={rejectionReason}
-            onChange={(e) => setRejectionReason(e.target.value)}
-            placeholder="e.g., The prescription has expired or the doctor's signature is not visible..."
-            variant="outlined"
-            margin="normal"
-            sx={modalStyles.textField}
-          />
-        </DialogContent>
-
-        <DialogActions sx={modalStyles.actions}>
-          <Button
-            onClick={() => {
-              setShowRejectModal(false);
-              setRejectionReason("");
-            }}
-            sx={modalStyles.cancelBtn}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleRejectPrescription}
-            variant="contained"
-            disabled={!rejectionReason.trim()}
-            sx={modalStyles.confirmBtn}
-          >
-            Reject Document
-          </Button>
-        </DialogActions>
-      </Dialog>
     </div>
   );
 }
