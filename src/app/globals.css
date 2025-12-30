@@ -230,12 +230,12 @@ display: inline-block;
 .ButtonOuter{
   margin-top: 2rem;
   display: flex;
-  justify-content: center;
+  justify-content: end;
 }
 .buttoninner{
   /* flex justify-center w-full max-w-sm */
   display: flex;
-  justify-content: center;
+  justify-content: end;
    /* width: 100%; */
 
   }

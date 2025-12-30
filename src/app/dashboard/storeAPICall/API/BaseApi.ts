@@ -33,3 +33,7 @@ export const PincodeActiveListPath = `/api/admin/pincode/active-list`;
 export const markreadNotificationsPath = `/api/notifications/mark-read`;
 export const NotificationsListPath = `/api/notifications`;
 export const unreadNotificationPath = `/api/notifications/unread-count`;
+
+// Settings & Policies
+export const PaymentSettingsPath = `/api/admin/settings/payment`;
+export const PolicySettingsPath = `/api/admin/settings/policy`;
