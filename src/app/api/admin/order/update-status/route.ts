@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
+import User from '@/models/User';
+import Notification from '@/models/Notification';
+import { sendPushNotificationWithData } from '@/utils/firebase.helper';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
@@ -15,6 +18,38 @@ export async function POST(req: NextRequest) {
         }
         order.order_status = status;
         await order.save();
+
+        // Send notification to user
+        const user = await User.findById(order.userId);
+        if (user && user.deviceToken) {
+            await sendPushNotificationWithData({
+                token: user.deviceToken,
+                title: 'Order Status Updated',
+                body: `Your order (Order ID: ${order.order_id || order._id}) status is now: ${status}`,
+                data: {
+                    orderId: order._id.toString(),
+                    type: 'order_status_update',
+                    status: status
+                }
+            });
+        }
+
+        // Send in-app notification to user
+        if (user) {
+            await Notification.create({
+                userId: user._id,
+                role: 'customer',
+                title: 'Order Status Updated',
+                message: `Your order (Order ID: ${order.order_id || order._id}) status is now: ${status}`,
+                type: 'order',
+                targetScreen: 'orders/detail',
+                targetId: order._id.toString(),
+                meta: {
+                    status: status
+                }
+            });
+        }
+
         return NextResponse.json({ success: true, message: 'Order status updated', data: order });
     } catch (error) {
         return NextResponse.json({ success: false, message: 'Failed to update order status', error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
