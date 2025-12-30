@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
 import { getDb } from '@/utils/firebase.helper';
+import Razorpay from 'razorpay';
+
+const razorpayInstance = new Razorpay({
+    key_id: process.env.razorPay_Key_Id || '',
+    key_secret: process.env.razorPay_Secret_Key || ''
+});
 
 /**
  * @swagger
@@ -68,7 +74,12 @@ export async function POST(req: NextRequest) {
                 return { ...item, status: 'cancelled', cancelReason: cancelReason || 'Cancelled by admin (not selected for acceptance)', cancelDetail };
             }
         });
-        order.status = 'Confirmed';
+        const unCancelledItems = order.medicineQuantity.filter((item: any) => item.status !== 'cancelled');
+        if (unCancelledItems.length === 0) {
+            order.status = 'Cancelled';
+        } else {
+            order.status = 'Confirmed';
+        }
         await order.save();
 
         // console.log(order.medicineQuantity);
@@ -78,6 +89,12 @@ export async function POST(req: NextRequest) {
         if (cancelledItems.length > 0) {
 
             const refundAmount = cancelledItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+
+            try {
+                const refundResponse = await razorpayInstance.payments.refund(order.payment_id, {
+                    amount: refundAmount * 100
+                });
+            } catch (error) {}
 
             console.log("$$$$$refundAmount$$$$$$", refundAmount);
 
