@@ -10,6 +10,7 @@ import { CustomButton, ErrorMessageCom } from "@/app/dashboard/components/miniCo
 import Toast from "@/utils/Toast";
 import { PaymentSettingsPath } from "@/app/dashboard/storeAPICall/API/BaseApi";
 import { PaymentSettingsStore } from "../storeAPICall/useUserStore";
+import SettingSkeleton from "../components/skeleton/SettingSkeleton";
 
 const SettingsService = {
   getSettings: async () => {
@@ -26,23 +27,33 @@ const SettingsService = {
 export default function SettingsPage() {
   const { postData, loading, clearData } = PaymentSettingsStore();
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [loadingSettings, setLoadingSettings] = useState(true);
   const [initialValues, setInitialValues] = useState({
     deliveryAmount: "",
     deliveryAmountThreshold: "",
     paymentGatewayFeesPercent: "",
     paymentGatewayFeesGSTPercent: "",
   });
-console.log(toastMsg,"toastMsg");
-
   useEffect(() => {
-    SettingsService.getSettings()
-      .then((data) => setInitialValues({
-        deliveryAmount: data.deliveryAmount ?? "",
-        deliveryAmountThreshold: data.deliveryAmountThreshold ?? "",
-        paymentGatewayFeesPercent: data.paymentGatewayFeesPercent ?? "",
-        paymentGatewayFeesGSTPercent: data.paymentGatewayFeesGSTPercent ?? "",
-      }))
-      .catch(console.error);
+    let mounted = true;
+    (async () => {
+      setLoadingSettings(true);
+      try {
+        const data = await SettingsService.getSettings();
+        if (!mounted) return;
+        setInitialValues({
+          deliveryAmount: data.deliveryAmount ?? "",
+          deliveryAmountThreshold: data.deliveryAmountThreshold ?? "",
+          paymentGatewayFeesPercent: data.paymentGatewayFeesPercent ?? "",
+          paymentGatewayFeesGSTPercent: data.paymentGatewayFeesGSTPercent ?? "",
+        });
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (mounted) setLoadingSettings(false);
+      }
+    })();
+    return () => { mounted = false; };
   }, []);
 
   // --- Logic to prevent typing > 100 ---
@@ -74,22 +85,27 @@ console.log(toastMsg,"toastMsg");
     showBack={false}
   />
 
-  <Formik
-    enableReinitialize
-    initialValues={initialValues}
-    validationSchema={validationSchema}
-    onSubmit={async (values) => {
-      try {
-        const res = await SettingsService.saveSettings(postData, values);
-        setToastMsg(res?.message || "Settings saved successfully");
-        try { clearData && clearData(); } catch (e) {}
-      } catch (e: any) {
-        setToastMsg(e?.message || "Error saving settings");
-      }
-    }}
-  >
-    {({ values, handleChange, handleBlur, touched, errors, setFieldValue }) => (
-      <Form className="space-y-10 mt-8 max-w-5xl">
+  {loadingSettings ? (
+    <div className="mt-6">
+      <SettingSkeleton />
+    </div>
+  ) : (
+    <Formik
+      enableReinitialize
+      initialValues={initialValues}
+      validationSchema={validationSchema}
+      onSubmit={async (values) => {
+        try {
+          const res = await SettingsService.saveSettings(postData, values);
+          setToastMsg(res?.message || "Settings saved successfully");
+          try { clearData && clearData(); } catch (e) {}
+        } catch (e: any) {
+          setToastMsg(e?.message || "Error saving settings");
+        }
+      }}
+    >
+      {({ values, handleChange, handleBlur, touched, errors, setFieldValue }) => (
+        <Form className="space-y-10 mt-8 max-w-5xl">
         
         {/* --- Section 1: Logistics --- */}
         <div className="space-y-4">
@@ -204,7 +220,8 @@ console.log(toastMsg,"toastMsg");
       </Form>
     )}
   </Formik>
-  {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg(null)} />}
+  )}
+  {toastMsg && <Toast message={toastMsg} />}
 </div>
   );
 }

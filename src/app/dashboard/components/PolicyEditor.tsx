@@ -11,6 +11,7 @@ import {
 import { PolicySettingsPath } from "@/app/dashboard/storeAPICall/API/BaseApi";
 import { PolicySettingsStore } from "@/app/dashboard/storeAPICall/useUserStore";
 import Toast from "@/utils/Toast";
+import PrivacySkeleton from "./skeleton/PrivacySkeleton";
 
 type Props = {
   type: string;
@@ -21,21 +22,29 @@ type Props = {
 export default function PolicyEditor({ type, title, subtitle }: Props) {
   const { postData, loading, clearData } = PolicySettingsStore();
   const [initialContent, setInitialContent] = useState("");
+  const [loadingContent, setLoadingContent] = useState(true);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
     (async () => {
+      setLoadingContent(true);
       try {
         const res = await fetch(`${PolicySettingsPath}?type=${type}`);
         const json = await res.json();
+        if (!mounted) return;
         setInitialContent(json?.data || "");
       } catch (e) {
+        if (!mounted) return;
         setInitialContent("");
+      } finally {
+        if (mounted) setLoadingContent(false);
       }
       try {
-        await import("react-quill/dist/quill.snow.css");
+        await import("quill/dist/quill.snow.css");
       } catch (e) {}
     })();
+    return () => { mounted = false; };
   }, [type]);
 
   const validationSchema = Yup.object({
@@ -76,17 +85,23 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
         }) => (
           <Form onSubmit={handleSubmit} className="space-y-4 mt-4">
             <div>
-              <QuillEditor
-                value={values.content || ""}
-                onChange={(val) => setFieldValue("content", val)}
-                minHeight={
-                  type === "policy" || type === "termcondition"
-                    ? "520px"
-                    : "320px"
-                }
-              />
-              {touched.content && errors.content && (
-                <ErrorMessageCom error={errors.content as string} />
+              {loadingContent ? (
+                <PrivacySkeleton  />
+              ) : (
+                <>
+                  <QuillEditor
+                    value={values.content || ""}
+                    onChange={(val) => setFieldValue("content", val)}
+                    minHeight={
+                      type === "policy" || type === "termcondition"
+                        ? "520px"
+                        : "320px"
+                    }
+                  />
+                  {touched.content && errors.content && (
+                    <ErrorMessageCom error={errors.content as string} />
+                  )}
+                </>
               )}
             </div>
 
