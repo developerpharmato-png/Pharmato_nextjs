@@ -386,8 +386,8 @@ export default function MedicineDetailPage() {
                       </div>
                     </div>
                   ))}
-                  {medicine.relatedProducts?.length === 0 && (
-                    <div className="col-span-full text-sm text-gray-500 italic">
+                  {(!medicine.relatedProducts || medicine.relatedProducts?.length === 0) && (
+                    <div className="col-span-full text-sm text-gray-500 italic text-center">
                       No related products linked.
                     </div>
                   )}
@@ -403,9 +403,11 @@ export default function MedicineDetailPage() {
                     onUpdate={handleUpdateRelatedProducts}
                   />
                 )}
-                <div className=" mt-10 flex justify-end">
+                <div className="mt-10 flex justify-center">
                   <CustomButton onClick={() => setShowRelatedPopup(true)}>
-                    Update
+                    {medicine.relatedProducts && medicine.relatedProducts.length > 0
+                      ? "Update"
+                      : "Add"}
                   </CustomButton>
                 </div>
               </div>
@@ -454,9 +456,9 @@ export default function MedicineDetailPage() {
                       </div>
                     </div>
                   ))}
-                  {medicine.crossSellProducts?.length === 0 && (
-                    <div className="col-span-full text-sm text-gray-500 italic">
-                      No related products linked.
+                  {(!medicine.crossSellProducts || medicine.crossSellProducts?.length === 0) && (
+                    <div className="col-span-full text-sm text-gray-500 italic text-center">
+                      No cross-sell products linked.
                     </div>
                   )}
                   {showCrossSellPopup && (
@@ -470,9 +472,11 @@ export default function MedicineDetailPage() {
                     />
                   )}
                 </div>
-                <div className="mt-10 flex justify-end">
+                <div className="mt-10 flex justify-center">
                   <CustomButton onClick={() => setShowCrossSellPopup(true)}>
-                    Update
+                    {medicine.crossSellProducts && medicine.crossSellProducts.length > 0
+                      ? "Update"
+                      : "Add"}
                   </CustomButton>
                 </div>
               </div>
