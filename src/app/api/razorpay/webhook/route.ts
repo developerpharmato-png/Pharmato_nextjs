@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
     if (body?.payload?.payment?.entity) {
         let paymentHistory: any = {};
-        let refundHistory: any = {};
+        let refundHistory: any = [];
         const entity = body.payload.payment.entity;
         console.log(entity);
         const orderId = entity.notes?.razorpay_order_id;
@@ -48,14 +48,46 @@ export async function POST(req: NextRequest) {
         paymentHistory.orderId = orderId;
         paymentHistory.entity = entity;
 
-        refundHistory.orderId = orderId;
-        refundHistory.entity = body?.payload?.refund ?.entity || {};
-        refundHistory.refundId = refundHistory?.entity?.id || '';
+        const refundId = body?.payload?.refund?.entity?.id || '';
 
         // Find the order in DB
         const checkOrder = await Order.findOne({ order_id: orderId });
 
         if (checkOrder) {
+
+            refundHistory = checkOrder?.refundHistory || [];
+
+            const checkRefundHistory = refundHistory.find((obj: any) => obj.refundId == refundId)
+
+            if (checkRefundHistory) {
+
+                for (const element of refundHistory) {
+
+                    if (element.refundId == refundId) {
+                        element.status = body?.payload?.refund?.entity?.status || '';
+                        element.payload.push(body?.payload)
+                    }
+
+                }
+
+            } else {
+
+                const data = {
+                    orderId: orderId,
+                    refundId: refundId,
+                    status: body?.payload?.refund?.entity?.status || '',
+                    amount: body?.payload?.refund?.entity?.amount || 0,
+                    currency: body?.payload?.refund?.entity?.currency || '',
+                    reason: body?.payload?.refund?.entity?.reason || '',
+                    created_at: body?.payload?.refund?.entity?.created_at || 0,
+                    payload: body?.payload,
+
+                }
+
+                refundHistory.push(data);
+
+            }
+
             if (body.event === 'payment.authorized') {
                 const amount = entity.amount;
                 const currency = entity.currency;
@@ -296,49 +328,49 @@ export async function POST(req: NextRequest) {
 
             }
 
-             if (body.event == 'refund.created') {
+            if (body.event == 'refund.created') {
 
                 await Order.updateOne(
                     { _id: checkOrder._id },
                     {
-                        $push: { refundHistory: refundHistory }
+                        $set: { refundHistory: refundHistory }
                     }
                 );
 
-             }
+            }
 
-             if (body.event == 'refund.processed') {
+            if (body.event == 'refund.processed') {
 
                 await Order.updateOne(
                     { _id: checkOrder._id },
                     {
-                        $push: { refundHistory: refundHistory }
+                        $set: { refundHistory: refundHistory }
                     }
                 );
 
-             }
+            }
 
-             if (body.event == 'refund.failed') {
+            if (body.event == 'refund.failed') {
 
                 await Order.updateOne(
                     { _id: checkOrder._id },
                     {
-                        $push: { refundHistory: refundHistory }
+                        $set: { refundHistory: refundHistory }
                     }
                 );
 
-             }
+            }
 
-             if (body.event == 'refund.speed_changed') {
+            if (body.event == 'refund.speed_changed') {
 
                 await Order.updateOne(
                     { _id: checkOrder._id },
                     {
-                        $push: { refundHistory: refundHistory }
+                        $set: { refundHistory: refundHistory }
                     }
                 );
 
-             }
+            }
 
         }
     }
