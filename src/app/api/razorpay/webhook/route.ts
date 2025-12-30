@@ -113,10 +113,9 @@ export async function POST(req: NextRequest) {
                         });
                 }
 
-
                 try {
                     const captureResponse = await razorpayInstance.payments.capture(entity.id, amount, currency);
-                } catch (error) { }
+                } catch (error) {}
             }
 
             if (body.event === 'payment.captured') {
@@ -337,6 +336,19 @@ export async function POST(req: NextRequest) {
                     }
                 );
 
+                // Update paymentStatus in Firebase Realtime Database
+                if (checkOrder?.order_id && entity?.status) {
+                    const db = getDb();
+                    //Firebase realtime data update
+                    const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
+                    const snapshot = await firebaseRef.once('value');
+                    const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+                    await firebaseRef.update({
+                        isOrderStatusChanged: isOrderStatusChanged,
+                        paymentStatus: entity.status
+                    });
+                }
+
             }
 
             if (body.event == 'refund.processed') {
@@ -347,6 +359,19 @@ export async function POST(req: NextRequest) {
                         $set: { refundHistory: refundHistory }
                     }
                 );
+
+                // Update paymentStatus in Firebase Realtime Database
+                if (checkOrder?.order_id && entity?.status) {
+                    const db = getDb();
+                    //Firebase realtime data update
+                    const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
+                    const snapshot = await firebaseRef.once('value');
+                    const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+                    await firebaseRef.update({
+                        isOrderStatusChanged: isOrderStatusChanged,
+                        paymentStatus: entity.status
+                    });
+                }
 
             }
 
@@ -359,6 +384,19 @@ export async function POST(req: NextRequest) {
                     }
                 );
 
+                // Update paymentStatus in Firebase Realtime Database
+                if (checkOrder?.order_id && entity?.status) {
+                    const db = getDb();
+                    //Firebase realtime data update
+                    const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
+                    const snapshot = await firebaseRef.once('value');
+                    const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+                    await firebaseRef.update({
+                        isOrderStatusChanged: isOrderStatusChanged,
+                        paymentStatus: entity.status
+                    });
+                }
+
             }
 
             if (body.event == 'refund.speed_changed') {
@@ -369,6 +407,19 @@ export async function POST(req: NextRequest) {
                         $set: { refundHistory: refundHistory }
                     }
                 );
+
+                // Update paymentStatus in Firebase Realtime Database
+                if (checkOrder?.order_id && entity?.status) {
+                    const db = getDb();
+                    //Firebase realtime data update
+                    const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
+                    const snapshot = await firebaseRef.once('value');
+                    const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+                    await firebaseRef.update({
+                        isOrderStatusChanged: isOrderStatusChanged,
+                        paymentStatus: entity.status
+                    });
+                }
 
             }
 
