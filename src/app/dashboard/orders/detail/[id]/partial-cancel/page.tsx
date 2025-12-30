@@ -50,7 +50,6 @@ export default function PartialCancelPage() {
   const [previewSelectedMeds, setPreviewSelectedMeds] = useState<any[]>([]);
   const [previewUnselectedMeds, setPreviewUnselectedMeds] = useState<any[]>([]);
   const statusOptions = [
-    { value: "Out for Delivery", label: "Out for Delivery" },
     { value: "Delivered", label: "Delivered" },
   ];
 

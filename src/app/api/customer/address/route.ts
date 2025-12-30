@@ -73,6 +73,15 @@ export async function POST(req: NextRequest) {
     if (!userId || !addressType || !name || !phone || !address) {
         return NextResponse.json({ success: false, message: 'Missing required fields', data: null }, { status: 400 });
     }
+
+    const checkOrder = await UserAddress.findOne({ userId: userId, addressType: addressType });
+
+    if (checkOrder) {
+
+        return NextResponse.json({ success: false, message: `Address of type ${addressType} already exists`, data: null }, { status: 400 });
+        
+    }
+
     try {
         if (is_primary === 1) {
             await UserAddress.updateMany(
