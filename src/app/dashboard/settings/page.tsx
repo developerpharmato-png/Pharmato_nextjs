@@ -32,6 +32,7 @@ export default function SettingsPage() {
     paymentGatewayFeesPercent: "",
     paymentGatewayFeesGSTPercent: "",
   });
+console.log(toastMsg,"toastMsg");
 
   useEffect(() => {
     SettingsService.getSettings()
@@ -66,136 +67,144 @@ export default function SettingsPage() {
   });
 
   return (
-    <div className="containerStyle scrollbar-hide ">
-      <HeaderWithAction
-        title="Settings & Policies"
-        subtitle="Global configuration for your pharmacy platform"
-        showBack={false}
-      />
+   <div className="containerStyle scrollbar-hide">
+  <HeaderWithAction
+    title="Settings & Policies"
+    subtitle="Global configuration for your pharmacy platform"
+    showBack={false}
+  />
 
+  <Formik
+    enableReinitialize
+    initialValues={initialValues}
+    validationSchema={validationSchema}
+    onSubmit={async (values) => {
+      try {
+        const res = await SettingsService.saveSettings(postData, values);
+        setToastMsg(res?.message || "Settings saved successfully");
+        try { clearData && clearData(); } catch (e) {}
+      } catch (e: any) {
+        setToastMsg(e?.message || "Error saving settings");
+      }
+    }}
+  >
+    {({ values, handleChange, handleBlur, touched, errors, setFieldValue }) => (
+      <Form className="space-y-10 mt-8 max-w-5xl">
+        
+        {/* --- Section 1: Logistics --- */}
+        <div className="space-y-4">
+          {/* Label Row */}
+          <div className="border-l-4 border-green-600 pl-4 py-1">
+            <div className="flex items-center gap-2 text-green-700">
+              <Truck size={22} />
+              <h3 className="font-bold text-xl">Logistics</h3>
+            </div>
+            <p className="text-sm text-gray-500 ml-1">Configure shipping fees and free delivery milestones.</p>
+          </div>
 
-      <Formik
-        enableReinitialize
-        initialValues={initialValues}
-        validationSchema={validationSchema}
-        onSubmit={async (values) => {
-          try {
-            const res = await SettingsService.saveSettings(postData, values);
-            setToastMsg(res?.message || "Settings saved successfully");
-            try { clearData && clearData(); } catch (e) {}
-          } catch (e: any) {
-            setToastMsg(e?.message || "Error saving settings");
-          }
-        }}
-      >
-        {({ values, handleChange, handleBlur, touched, errors, setFieldValue }) => (
-          <Form className="space-y-8 mt-8">
-            
-            {/* Section 1: Logistics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-green-700">
-                  <Truck size={20} />
-                  <h3 className="font-bold text-lg">Logistics</h3>
-                </div>
-                <p className="text-sm text-gray-500">Shipping and delivery costs.</p>
-              </div>
-
-              <div className="md:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <TextField
-                    label="Standard Delivery Fee"
-                    name="deliveryAmount"
-                    type="number"
-                    value={values.deliveryAmount}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    error={touched.deliveryAmount && !!errors.deliveryAmount}
-                    InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
-                    fullWidth
-                  />
-                  {touched.deliveryAmount && errors.deliveryAmount && <ErrorMessageCom error={errors.deliveryAmount} />}
-                </div>
-
-                <div>
-                  <TextField
-                    label="Free Delivery Threshold"
-                    name="deliveryAmountThreshold"
-                    type="number"
-                    value={values.deliveryAmountThreshold}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    error={touched.deliveryAmountThreshold && !!errors.deliveryAmountThreshold}
-                    InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
-                    fullWidth
-                  />
-                  {touched.deliveryAmountThreshold && errors.deliveryAmountThreshold && <ErrorMessageCom error={errors.deliveryAmountThreshold} />}
-                </div>
-              </div>
+          {/* Input Row - Fields appear below the heading */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="flex flex-col gap-1">
+              <TextField
+                label="Standard Delivery Fee"
+                name="deliveryAmount"
+                type="number"
+                variant="outlined"
+                value={values.deliveryAmount}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={touched.deliveryAmount && !!errors.deliveryAmount}
+                InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
+                fullWidth
+              />
+              {touched.deliveryAmount && errors.deliveryAmount && <ErrorMessageCom error={errors.deliveryAmount} />}
             </div>
 
-            <Divider />
+            <div className="flex flex-col gap-1">
+              <TextField
+                label="Free Delivery Threshold"
+                name="deliveryAmountThreshold"
+                type="number"
+                variant="outlined"
+                value={values.deliveryAmountThreshold}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={touched.deliveryAmountThreshold && !!errors.deliveryAmountThreshold}
+                InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
+                fullWidth
+              />
+              {touched.deliveryAmountThreshold && errors.deliveryAmountThreshold && <ErrorMessageCom error={errors.deliveryAmountThreshold} />}
+            </div>
+          </div>
+        </div>
 
-            {/* Section 2: Financials */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-blue-700">
-                  <CreditCard size={20} />
-                  <h3 className="font-bold text-lg">Financials</h3>
-                </div>
-                <p className="text-sm text-gray-500">Gateway fees (Max 100%).</p>
-              </div>
+        <Divider />
 
-              <div className="md:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <TextField
-                    label="Gateway Commission"
-                    name="paymentGatewayFeesPercent"
-                    type="number"
-                    value={values.paymentGatewayFeesPercent}
-                    onChange={(e: any) => handlePercentageInput(e, setFieldValue)} // Restricted Input
-                    onBlur={handleBlur}
-                    error={touched.paymentGatewayFeesPercent && !!errors.paymentGatewayFeesPercent}
-                    InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
-                    fullWidth
-                  />
-                  {touched.paymentGatewayFeesPercent && errors.paymentGatewayFeesPercent && <ErrorMessageCom error={errors.paymentGatewayFeesPercent} />}
-                </div>
+        {/* --- Section 2: Financials --- */}
+        <div className="space-y-4">
+          {/* Label Row */}
+          <div className="border-l-4 border-blue-600 pl-4 py-1">
+            <div className="flex items-center gap-2 text-blue-700">
+              <CreditCard size={22} />
+              <h3 className="font-bold text-xl">Financials</h3>
+            </div>
+            <p className="text-sm text-gray-500 ml-1">Set gateway commission and tax percentages (Max 100%).</p>
+          </div>
 
-                <div>
-                  <TextField
-                    label="GST on Commission"
-                    name="paymentGatewayFeesGSTPercent"
-                    type="number"
-                    value={values.paymentGatewayFeesGSTPercent}
-                    onChange={(e: any) => handlePercentageInput(e, setFieldValue)} // Restricted Input
-                    onBlur={handleBlur}
-                    error={touched.paymentGatewayFeesGSTPercent && !!errors.paymentGatewayFeesGSTPercent}
-                    InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
-                    fullWidth
-                  />
-                  {touched.paymentGatewayFeesGSTPercent && errors.paymentGatewayFeesGSTPercent && <ErrorMessageCom error={errors.paymentGatewayFeesGSTPercent} />}
-                </div>
-              </div>
+          {/* Input Row */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="flex flex-col gap-1">
+              <TextField
+                label="Gateway Commission"
+                name="paymentGatewayFeesPercent"
+                type="number"
+                variant="outlined"
+                value={values.paymentGatewayFeesPercent}
+                onChange={(e: any) => handlePercentageInput(e, setFieldValue)}
+                onBlur={handleBlur}
+                error={touched.paymentGatewayFeesPercent && !!errors.paymentGatewayFeesPercent}
+                InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
+                fullWidth
+              />
+              {touched.paymentGatewayFeesPercent && errors.paymentGatewayFeesPercent && <ErrorMessageCom error={errors.paymentGatewayFeesPercent} />}
             </div>
 
-           <div className="mt-8 flex ButtonOuter w-full">
+            <div className="flex flex-col gap-1">
+              <TextField
+                label="GST on Commission"
+                name="paymentGatewayFeesGSTPercent"
+                type="number"
+                variant="outlined"
+                value={values.paymentGatewayFeesGSTPercent}
+                onChange={(e: any) => handlePercentageInput(e, setFieldValue)}
+                onBlur={handleBlur}
+                error={touched.paymentGatewayFeesGSTPercent && !!errors.paymentGatewayFeesGSTPercent}
+                InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
+                fullWidth
+              />
+              {touched.paymentGatewayFeesGSTPercent && errors.paymentGatewayFeesGSTPercent && <ErrorMessageCom error={errors.paymentGatewayFeesGSTPercent} />}
+            </div>
+          </div>
+        </div>
+
+        {/* --- Action Row --- */}
+         <div className="mt-8 flex ButtonOuter w-full">
               {" "}
               <div className="buttoninner  w-full max-w-sm">
             
-               <CustomButton
-                type="submit"
-                disabled={loading}
-                className="flex items-center gap-2 px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-full shadow-2xl transition-all"
-              >
-                {loading ? "Saving..." : <><Save size={20} /> Update Settings</>}
-              </CustomButton>
-           </div>
-           </div>
-          </Form>
-        )}
-      </Formik>
-      {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg(null)} />}
-    </div>
+            <CustomButton
+              type="submit"
+              disabled={loading}
+              className="flex items-center gap-2 px-10 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg transition-all"
+            >
+              {loading ? "Processing..." : <><Save size={20} /> Update Settings</>}
+            </CustomButton>
+          </div>
+        </div>
+      </Form>
+    )}
+  </Formik>
+  {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg(null)} />}
+</div>
   );
 }
