@@ -37,9 +37,17 @@ export default function QuillEditor({ value, onChange, minHeight = '320px' }: Qu
             onChange(html);
           });
 
-          // set initial content
-          if (value) {
-            quillRef.current.clipboard.dangerouslyPasteHTML(value);
+          // set initial content (guard clipboard availability)
+          try {
+            const clipboardModule = quillRef.current.getModule ? quillRef.current.getModule('clipboard') : quillRef.current.clipboard;
+            if (clipboardModule && typeof clipboardModule.dangerouslyPasteHTML === 'function') {
+              clipboardModule.dangerouslyPasteHTML(value || '');
+            } else if (quillRef.current && quillRef.current.root) {
+              // fallback: set root innerHTML
+              quillRef.current.root.innerHTML = value || '';
+            }
+          } catch (e) {
+            try { quillRef.current.root.innerHTML = value || ''; } catch (err) {}
           }
           // apply minHeight to editor surface
           try {
@@ -64,10 +72,21 @@ export default function QuillEditor({ value, onChange, minHeight = '320px' }: Qu
 
   // keep updating editor when value prop changes externally
   useEffect(() => {
-    if (quillRef.current && value !== quillRef.current.root.innerHTML) {
+    if (quillRef.current && quillRef.current.root && value !== quillRef.current.root.innerHTML) {
       const sel = quillRef.current.getSelection && quillRef.current.getSelection();
-      quillRef.current.clipboard.dangerouslyPasteHTML(value || '');
-      if (sel) quillRef.current.setSelection(sel.index, sel.length);
+      try {
+        const clipboardModule = quillRef.current.getModule ? quillRef.current.getModule('clipboard') : quillRef.current.clipboard;
+        if (clipboardModule && typeof clipboardModule.dangerouslyPasteHTML === 'function') {
+          clipboardModule.dangerouslyPasteHTML(value || '');
+        } else {
+          quillRef.current.root.innerHTML = value || '';
+        }
+      } catch (e) {
+        try { quillRef.current.root.innerHTML = value || ''; } catch (err) {}
+      }
+      if (sel && quillRef.current && typeof quillRef.current.setSelection === 'function') {
+        try { quillRef.current.setSelection(sel.index, sel.length); } catch (e) {}
+      }
     }
   }, [value]);
 

@@ -35,5 +35,6 @@ export const NotificationsListPath = `/api/notifications`;
 export const unreadNotificationPath = `/api/notifications/unread-count`;
 
 // Settings & Policies
-export const PaymentSettingsPath = `/api/admin/settings/payment`;
+export const PaymentSettingsPath = `/api/admin/settings/admin-list`;
+export const SettingsGetByTypePath = `/api/admin/settings/get-by-type`;
 export const PolicySettingsPath = `/api/admin/settings/policy`;

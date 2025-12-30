@@ -8,8 +8,7 @@ import {
   CustomButton,
   ErrorMessageCom,
 } from "@/app/dashboard/components/miniComponents";
-import { PolicySettingsPath } from "@/app/dashboard/storeAPICall/API/BaseApi";
-import { PolicySettingsStore } from "@/app/dashboard/storeAPICall/useUserStore";
+import { SettingsGetByTypePath } from "@/app/dashboard/storeAPICall/API/BaseApi";
 import Toast from "@/utils/Toast";
 import PrivacySkeleton from "./skeleton/PrivacySkeleton";
 
@@ -20,7 +19,7 @@ type Props = {
 };
 
 export default function PolicyEditor({ type, title, subtitle }: Props) {
-  const { postData, loading, clearData } = PolicySettingsStore();
+  const [loading, setLoading] = useState(false);
   const [initialContent, setInitialContent] = useState("");
   const [loadingContent, setLoadingContent] = useState(true);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -30,10 +29,14 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
     (async () => {
       setLoadingContent(true);
       try {
-        const res = await fetch(`${PolicySettingsPath}?type=${type}`);
+        const res = await fetch(SettingsGetByTypePath, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type }),
+        });
         const json = await res.json();
         if (!mounted) return;
-        setInitialContent(json?.data || "");
+        setInitialContent(json?.data?.data || json?.data || "");
       } catch (e) {
         if (!mounted) return;
         setInitialContent("");
@@ -59,18 +62,19 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
         validationSchema={validationSchema}
         onSubmit={async (values, { setSubmitting }) => {
           try {
-            const res = await postData?.(PolicySettingsPath, {
-              type,
-              content: values.content,
+            setLoading(true);
+            const res = await fetch(SettingsGetByTypePath, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type, data: values.content }),
             });
-            setToastMsg(res?.message || "Saved");
-            try {
-              clearData && clearData();
-            } catch (e) {}
+            const json = await res.json();
+            setToastMsg(json?.message || 'Saved');
           } catch (e) {
-            const errMsg = (e as any)?.message || "Save failed";
+            const errMsg = (e as any)?.message || 'Save failed';
             setToastMsg(errMsg);
           } finally {
+            setLoading(false);
             setSubmitting(false);
           }
         }}
