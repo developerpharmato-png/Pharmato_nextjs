@@ -49,6 +49,7 @@
     "react-dom": "19.2.0",
     "react-icons": "^5.5.0",
     "react-leaflet": "^5.0.0",
+    "react-quill": "^2.0.0",
     "react-tabs": "^6.1.0",
     "react-toastify": "^11.0.5",
     "swagger-ui-react": "^5.30.2",

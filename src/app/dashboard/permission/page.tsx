@@ -10,18 +10,27 @@ import { customGet, customPost } from "../BaseURL/CustomNetwork";
 
 type Role = { _id: string; name: string };
 
-// Use the same menu items as the main layout (names must match)
+// Use the same menu items as the main layout (flattened to individual permission keys)
 const menuItems = [
   "Dashboard",
   "Medicines",
   "Categories",
   "Subcategories",
-  "Prescriptions",
-  "Admins",
+  "Orders",
   "Customers",
-  "Pincodes",
   "Stores",
   "Banner Images",
+  // Data Analytics children
+  "Product Analytics",
+  "Order Analytics",
+  // Settings & Policies children
+  "Setting",
+  "Privacy Policies",
+  "Term & Condition",
+  // Admin Permissions children
+  "Role",
+  "Permission",
+  "Management",
 ];
 
 function prettyLabel(name: string) {
@@ -138,7 +147,7 @@ export default function PermissionPage() {
     }
     setLoading(false);
   };
-
+  
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import RolePermission from '@/models/RolePermission';
+import Role from '@/models/Role';
 import Admin from '@/models/Admin';
 import crypto from 'crypto';
 
@@ -30,7 +31,13 @@ export async function POST(req: NextRequest) {
     });
   } else {
     // Try to map flat keys like isCategoryView / isCategoryEdit to menu-based permissions
-    const menuItems = ['Dashboard','Medicines','Categories','Subcategories','Prescriptions','Admins','Customers','Pincodes','Stores','Banner Images'];
+    const menuItems = [
+      'Dashboard','Medicines','Categories','Subcategories',
+      'Orders','Customers','Stores','Banner Images',
+      'Product Analytics','Order Analytics',
+      'Setting','Privacy Policies','Term & Condition',
+      'Role','Permission','Management'
+    ];
     menuItems.forEach(menu => {
       const keyBase = menu.replace(/\s+/g, '');
       const viewKey = `is${keyBase}View`;
@@ -48,10 +55,32 @@ export async function POST(req: NextRequest) {
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 
+  // If this role is SuperAdmin, ensure the saved permissions include every key set to true
+  try {
+    const roleDoc: any = await Role.findById(roleId).lean();
+    if (roleDoc && roleDoc.name === 'SuperAdmin') {
+      const allPerms: Record<string, { view: boolean; edit: boolean }> = {};
+      const menuItems = [
+        'Dashboard','Medicines','Categories','Subcategories',
+        'Orders','Customers','Stores','Banner Images',
+        'Product Analytics','Order Analytics',
+        'Setting','Privacy Policies','Term & Condition',
+        'Role','Permission','Management'
+      ];
+      menuItems.forEach((m) => { allPerms[m] = { view: true, edit: true }; });
+      await RolePermission.findOneAndUpdate({ roleId }, { $set: { permissions: allPerms } }, { new: true });
+    }
+  } catch (err) {
+    // ignore role lookup errors
+  }
+
   // Invalidate all admin sessions for this role
+  // Invalidate all admin sessions for this role so clients must re-authenticate.
+  // Clear `sessionId`, `sessionToken` and `refreshToken` to ensure JWT/session mismatch
+  // causes immediate 401 on next request.
   await Admin.updateMany(
     { roleId },
-    { $set: { sessionToken: crypto.randomBytes(32).toString('hex') } }
+    { $set: { sessionToken: null, sessionId: null, refreshToken: null } }
   );
 
   // Ensure legacy flat keys are removed if present
