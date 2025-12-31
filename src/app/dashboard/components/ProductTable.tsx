@@ -126,11 +126,13 @@ const ProductTable: React.FC<Props> = ({
                           : "bg-blue-50 text-blue-500 border-blue-100"
                       }`}
                     >
-                      {isRejected
+                      {/* {isRejected
                         ? "REJECTED"
                         : status === "delivered" || status === "accepted"
                         ? "ACCEPTED"
-                        : status.toUpperCase()}
+                        : status.toUpperCase()} */}
+
+                      {status.toUpperCase()}
                     </span>
                   </td>
                 </tr>

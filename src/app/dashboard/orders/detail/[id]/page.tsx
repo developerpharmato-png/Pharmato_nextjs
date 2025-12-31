@@ -439,7 +439,7 @@ export default function OrderDetailPage() {
               order?.medicineId?.filter((m: any) => m.status === "cancelled") ||
               []
             }
-            title="Rejected Items"
+            title="Canecelled items "
             variant="rejected"
           />
         )}

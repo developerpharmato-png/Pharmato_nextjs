@@ -279,6 +279,10 @@ export default function PartialCancelPage() {
 
   console.log("$$$$$$$pendingMedicineIds$$$$$$$$", pendingMedicineIds);
 
+  const hasPrescriptionImages = (
+    (order?.prescription_url || []).filter(Boolean) || []
+  ).length > 0;
+
   return (
     <div className="containerStyle scrollbar-hide">
       {toastMsg && <Toast message={toastMsg} />}
@@ -412,7 +416,8 @@ export default function PartialCancelPage() {
       </Dialog>
 
       {/* Prescription Management (Updated UI) */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
+      {hasPrescriptionImages && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
         {/* Header: Title and Status Badge */}
         <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
           <div className="flex items-start gap-3">
@@ -442,29 +447,7 @@ export default function PartialCancelPage() {
             const url = order?.prescription_url?.[idx];
 
             if (!url) {
-              return (
-                <div
-                  key={`empty-${idx}`}
-                  className="h-44 rounded-xl border-2 border-dashed border-gray-100 bg-gray-50/30 flex flex-col items-center justify-center gap-2"
-                >
-                  <svg
-                    className="w-8 h-8 text-gray-200"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <span className="text-[10px] font-bold text-gray-300 uppercase">
-                    Empty Slot
-                  </span>
-                </div>
-              );
+              return <></>;
             }
 
             const isPdf = url.toLowerCase().endsWith(".pdf");
@@ -553,6 +536,7 @@ export default function PartialCancelPage() {
             </div>
           )}
       </div>
+      )}
 
       {/* Reject prescription dialog */}
       <Dialog
@@ -854,7 +838,7 @@ export default function PartialCancelPage() {
             sx={modalStyles.confirmBtn}
           >
             {previewUnselectedMeds.length > 0
-              ? "Confirm & Cancel"
+              ? "Confirm "
               : "Confirm Selected"}
           </Button>
         </DialogActions>
