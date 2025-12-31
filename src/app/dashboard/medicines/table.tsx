@@ -53,6 +53,17 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
   const router = useRouter();
 console.log(searchValue,"searchValue");
 
+  const [adminPermissions, setAdminPermissions] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("adminPermissions");
+      if (p) setAdminPermissions(JSON.parse(p));
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
   useEffect(() => {
    
     setLoading(true);
@@ -149,8 +160,9 @@ console.log(searchValue,"searchValue");
       .finally(() => setLoading(false));
   };
 
-  const columns: Column<any>[] = [
-      
+  const canEditMedicines = adminPermissions?.Medicines?.edit ?? true;
+
+  const baseColumns: Column<any>[] = [
     {
       id: "uniqueCode",
       label: "ID",
@@ -159,7 +171,6 @@ console.log(searchValue,"searchValue");
         <CustomTooltip title={row.uniqueCode || "-"}>
           <span
            className="ID-List"
-            
             onClick={() => router.push(`/dashboard/medicines/${row._id}`)}
           >
             {row.uniqueCode || "-"}
@@ -185,7 +196,6 @@ console.log(searchValue,"searchValue");
                 borderRadius: 4,
               }}
             />
-          
           </div>
         ) : (
           <Avatar sx={{ width: 32, height: 32, fontSize: 14 }}>
@@ -213,7 +223,6 @@ console.log(searchValue,"searchValue");
         </CustomTooltip>
       ),
     },
-  
     {
       id: "categoryId",
       label: "Category",
@@ -400,29 +409,32 @@ console.log(searchValue,"searchValue");
         </CustomTooltip>
       ),
     },
-  
-   
-  
-     {
-          id: "isActive",
-          label: "Status",
-          minWidth: 80,
-          selector: (row) => (
-            <button
-              onClick={() => handleToggleStatus(row)}
-              className="relative cursor-pointer inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-              style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
-              title={row.isActive ? "Click to deactivate" : "Click to activate"}
-            >
-              <span
-                className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
-                  row.isActive ? "translate-x-6" : "translate-x-1"
-                }`}
-              />
-            </button>
-          ),
-        },
-    {
+  ];
+
+  const columns: Column<any>[] = [...baseColumns];
+
+  if (canEditMedicines) {
+    columns.push({
+      id: "isActive",
+      label: "Status",
+      minWidth: 80,
+      selector: (row) => (
+        <button
+          onClick={() => handleToggleStatus(row)}
+          className="relative cursor-pointer inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
+          title={row.isActive ? "Click to deactivate" : "Click to activate"}
+        >
+          <span
+            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
+              row.isActive ? "translate-x-6" : "translate-x-1"
+            }`}
+          />
+        </button>
+      ),
+    });
+
+    columns.push({
       id: "actions",
       label: "Edit",
       minWidth: 60,
@@ -434,8 +446,8 @@ console.log(searchValue,"searchValue");
           <EditIcon fontSize="small" />
         </span>
       ),
-    },
-  ];
+    });
+  }
 
   return (
     <>

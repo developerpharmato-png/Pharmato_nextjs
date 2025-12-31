@@ -144,8 +144,7 @@ const ProductManageTable: React.FC<Props> = ({
                     </td>
                     <td className="px-4 py-4 text-right">
                       <div className="flex flex-col items-end">
-                        {mrp > price && <span className="text-[10px] text-gray-300 line-through">₹{mrp.toFixed(2)}</span>}
-                        <span className={`text-[13px] font-bold ${theme === 'red' ? 'text-gray-400' : 'text-green-600'}`}>₹{price.toFixed(2)}</span>
+                          <span className={`text-[13px] font-bold ${theme === 'red' ? 'text-gray-400' : 'text-green-600'}`}>₹{price.toFixed(2)}</span>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-right">
@@ -170,7 +169,7 @@ const ProductManageTable: React.FC<Props> = ({
     <div className="w-full">
       <StatusTable items={pending} title="Pending Items" theme="blue" showCheckbox={true} />
       <StatusTable items={accepted} title="Accepted Items" theme="orange" showCheckbox={false} />
-      <StatusTable items={rejected} title="Rejected Items" theme="red" showCheckbox={false} />
+      <StatusTable items={rejected} title="Canecelled items " theme="red" showCheckbox={false} />
     </div>
   );
 };

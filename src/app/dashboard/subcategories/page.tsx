@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CustomTable, Column } from "../components/CustomTable";
 import { CustomImage, CustomTooltip } from "../components/miniComponents";
 import Link from "next/link";
@@ -17,6 +17,19 @@ export default function SubCategoriesPage() {
   const handleAdd = () => {
     router.push("/dashboard/subcategories/new");
   };
+  const [adminPermissions, setAdminPermissions] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("adminPermissions");
+      if (p) setAdminPermissions(JSON.parse(p));
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  const canEditSubcategories = adminPermissions?.Subcategories?.edit ?? true;
+
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
@@ -25,16 +38,16 @@ export default function SubCategoriesPage() {
         showBack={false}
         showSearch={false}
         addLabel="Add "
-        addShow={true}
+        addShow={canEditSubcategories}
         handleAdd={handleAdd}
       />
 
-      <SubCategoriesTable />
+      <SubCategoriesTable canEdit={canEditSubcategories} />
     </div>
   );
 }
-
-function SubCategoriesTable() {
+ 
+function SubCategoriesTable({ canEdit }: { canEdit?: boolean }) {
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
@@ -136,7 +149,7 @@ function SubCategoriesTable() {
   };
 
   // Table columns
-  const columns: Column<any>[] = [
+  const baseColumns: Column<any>[] = [
     {
       id: "uniqueCode",
       label: "Id",
@@ -223,7 +236,12 @@ function SubCategoriesTable() {
         </CustomTooltip>
       ),
     },
-    {
+  ];
+
+  const columns: Column<any>[] = [...baseColumns];
+
+  if (canEdit) {
+    columns.push({
       id: "isActive",
       label: "Status",
       selector: (row) => (
@@ -242,8 +260,9 @@ function SubCategoriesTable() {
           </button>
         </CustomTooltip>
       ),
-    },
-    {
+    });
+
+    columns.push({
       id: "actions",
       label: "Actions",
       selector: (row) => (
@@ -264,8 +283,8 @@ function SubCategoriesTable() {
           </span>
         </CustomTooltip>
       ),
-    },
-  ];
+    });
+  }
 
   return (
     <div>

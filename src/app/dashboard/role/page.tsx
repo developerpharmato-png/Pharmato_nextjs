@@ -223,7 +223,7 @@ export default function RolePage() {
         handleAdd={() => {
           setShowModal(true);
           setEditId(null);
-          formik.resetForm();
+          formik.resetForm(); 
         }}
       />
 

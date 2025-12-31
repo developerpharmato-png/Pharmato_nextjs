@@ -20,6 +20,18 @@ export default function OrderDetailPage() {
 
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [adminPermissions, setAdminPermissions] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("adminPermissions");
+      if (p) setAdminPermissions(JSON.parse(p));
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  const canEditOrders = adminPermissions?.Orders?.edit ?? true;
 
   const {
     postData: fetchDetailsPost,
@@ -101,18 +113,20 @@ export default function OrderDetailPage() {
         addShow={false}
         isunsaved={false}
         rightNode={
-          <button
-            className="ml-2 px-4 py-2 rounded-lg font-bold transition"
-            style={{
-              background: "var(--primary)",
-              color: "#fff",
-            }}
-            onClick={() =>
-              router.push(`/dashboard/orders/detail/${orderId}/partial-cancel`)
-            }
-          >
-            Manage Order
-          </button>
+          canEditOrders ? (
+            <button
+              className="ml-2 px-4 py-2 rounded-lg font-bold transition"
+              style={{
+                background: "var(--primary)",
+                color: "#fff",
+              }}
+              onClick={() =>
+                router.push(`/dashboard/orders/detail/${orderId}/partial-cancel`)
+              }
+            >
+              Manage Order
+            </button>
+          ) : null
         }
       />
 
@@ -425,7 +439,7 @@ export default function OrderDetailPage() {
               order?.medicineId?.filter((m: any) => m.status === "cancelled") ||
               []
             }
-            title="Rejected Items"
+            title="Canecelled items "
             variant="rejected"
           />
         )}

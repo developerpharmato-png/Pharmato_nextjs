@@ -23,6 +23,23 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
   const [initialContent, setInitialContent] = useState("");
   const [loadingContent, setLoadingContent] = useState(true);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [adminPermissions, setAdminPermissions] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("adminPermissions");
+      if (p) setAdminPermissions(JSON.parse(p));
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  const lowerType = (type || "").toLowerCase();
+  const canEditPolicy = lowerType.includes("privacy")
+    ? adminPermissions?.["Privacy Policies"]?.edit ?? adminPermissions?.PrivacyPolicies?.edit ?? true
+    : lowerType.includes("term") || lowerType.includes("condition")
+    ? adminPermissions?.["Term & Condition"]?.edit ?? adminPermissions?.TermCondition?.edit ?? adminPermissions?.Term?.edit ?? true
+    : true;
 
   useEffect(() => {
     let mounted = true;
@@ -109,14 +126,16 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
               )}
             </div>
 
-            <div className="mt-8 flex ButtonOuter w-full">
-              {" "}
-              <div className="buttoninner  w-full max-w-sm">
-                <CustomButton type="submit" disabled={isSubmitting || loading}>
-                  {loading ? "Saving..." : "Save"}
-                </CustomButton>
+            {canEditPolicy && (
+              <div className="mt-8 flex ButtonOuter w-full">
+                {" "}
+                <div className="buttoninner  w-full max-w-sm">
+                  <CustomButton type="submit" disabled={isSubmitting || loading}>
+                    {loading ? "Saving..." : "Save"}
+                  </CustomButton>
+                </div>
               </div>
-            </div>
+            )}
             {toastMsg && <Toast message={toastMsg} />}
           </Form>
         )}

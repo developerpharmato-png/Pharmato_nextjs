@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import { CustomTable, Column } from "../components/CustomTable";
 import { CustomTooltip, CustomImage } from "../components/miniComponents";
 import Avatar from "@mui/material/Avatar";
@@ -45,7 +46,20 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
     confirmStatusMsg,
   } = props;
   const router = useRouter();
-  const columns: Column<Category>[] = [
+  const [adminPermissions, setAdminPermissions] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("adminPermissions");
+      if (p) setAdminPermissions(JSON.parse(p));
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  const canEditCategories = adminPermissions?.Categories?.edit ?? true;
+
+  const baseColumns: Column<Category>[] = [
     {
       id: "uniqueCode",
       label: "ID",
@@ -138,7 +152,12 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
         </CustomTooltip>
       ),
     },
-    {
+  ];
+
+  const columns: Column<Category>[] = [...baseColumns];
+
+  if (canEditCategories) {
+    columns.push({
       id: "isActive",
       label: "Status",
       minWidth: 80,
@@ -174,12 +193,12 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
           />
         </button>
       ),
-    },
-    {
+    });
+
+    columns.push({
       id: "actions",
       label: "Edit",
       minWidth: 60,
-
       selector: (row: Category) => (
         <CustomTooltip title="Edit">
           <span
@@ -196,8 +215,8 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
           </span>
         </CustomTooltip>
       ),
-    },
-  ];
+    });
+  }
 
   return (
     <CustomTable
