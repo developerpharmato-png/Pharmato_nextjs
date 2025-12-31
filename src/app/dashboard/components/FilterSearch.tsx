@@ -63,6 +63,8 @@ interface FilterSearchProps {
   setPage?: (val: number) => void;
   dayFilter?: boolean;
   setDayFilter?: (val: string) => void;
+  setExportStartDate?: (date: Date | null) => void;
+  setExportEndDate?: (date: Date | null) => void;
 }
 
 export default function FilterSearch({
@@ -86,6 +88,8 @@ export default function FilterSearch({
   setOrderStatus,
   setPage,
   dayFilter = false,
+  setExportEndDate,
+  setExportStartDate,
   setDayFilter,
 }: FilterSearchProps) {
   const [dayFilterValue, setDayFilterValue] = useState<string>("all");
@@ -159,6 +163,9 @@ console.log(categoryFilter,"categoryFilter");
     setPage?.(0);
     setDayFilter?.("all");
     if (!showApply) onChange?.({});
+
+    setExportStartDate?.(null);
+    setExportEndDate?.(null);
   }
 
   // --- UI STYLING ---

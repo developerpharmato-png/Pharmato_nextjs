@@ -171,6 +171,8 @@ export default function OrdersPage() {
           orderStatus={orderStatus}
           setOrderStatus={setOrderStatus}
           setPage={setPage}
+          setExportStartDate={setExportStartDate}
+          setExportEndDate={setExportEndDate}
         />
       </Box>
 

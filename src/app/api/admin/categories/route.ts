@@ -97,15 +97,13 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json();
 
-        // If request contains pagination/sorting keys, treat as list endpoint
+        // Treat as list endpoint only when explicit pagination/sort keys are provided
         const isListRequest = (
             body && (
                 Object.prototype.hasOwnProperty.call(body, 'limit') ||
                 Object.prototype.hasOwnProperty.call(body, 'offset') ||
                 Object.prototype.hasOwnProperty.call(body, 'sortBy') ||
-                Object.prototype.hasOwnProperty.call(body, 'columnName') ||
-                Object.prototype.hasOwnProperty.call(body, 'isOTC') ||
-                Object.prototype.hasOwnProperty.call(body, 'name')
+                Object.prototype.hasOwnProperty.call(body, 'columnName')
             )
         );
 
@@ -148,7 +146,24 @@ export async function POST(request: NextRequest) {
         }
 
         // Otherwise, create a new category (original behavior)
-        const category = await Category.create(body);
+        const name = (body?.name || '').trim();
+        if (!name) {
+            return NextResponse.json(
+                { success: false, error: 'Category name is required' },
+                { status: 400 }
+            );
+        }
+
+        // Check for duplicate name (case-insensitive)
+        const existing = await Category.findOne({ name: { $regex: `^${name}$`, $options: 'i' } });
+        if (existing) {
+            return NextResponse.json(
+                { success: false, error: 'Category already exists' },
+                { status: 409 }
+            );
+        }
+
+        const category = await Category.create({ ...body, name });
         return NextResponse.json({ success: true, data: category }, { status: 201 });
     } catch (error: any) {
         return NextResponse.json(
