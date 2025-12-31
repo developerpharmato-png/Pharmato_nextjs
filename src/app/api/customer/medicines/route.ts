@@ -99,7 +99,6 @@ export async function POST(req: NextRequest) {
         .limit(limit)
         .lean();
 
-
     // Get user's cart or guest cart
     let cartItems: any[] = [];
     if (userId && typeof userId === 'string' && userId.trim() !== "") {
@@ -109,7 +108,6 @@ export async function POST(req: NextRequest) {
         const guestCart = await GuestCart.findOne({ guestId }).lean();
         cartItems = guestCart && typeof guestCart === 'object' && 'items' in guestCart && Array.isArray((guestCart as any).items) ? (guestCart as any).items : [];
     }
-
 
     // Loop and populate category, subcategory, and cart info
     const populatedMedicines = (

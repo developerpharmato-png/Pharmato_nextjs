@@ -211,13 +211,17 @@ export async function POST(req: NextRequest) {
             cartQuantity,
         };
     });
-
+    // Compute manufacturer list
     const manufacturerList = [...new Set(medicines.map(item => item.manufacturer))];
+
+    // Determine max price from the medicinesWithCart list and set priceRange as requested
+    const maxPriceInList = medicinesWithCart.length > 0 ? Math.max(...medicinesWithCart.map((m: any) => Number(m.price || 0))) : 0;
 
     return NextResponse.json({
         status: true,
         data: medicinesWithCart,
         manufacturerList,
-        totalCount
+        totalCount,
+        priceRange: `0,${maxPriceInList}`
     });
 }
