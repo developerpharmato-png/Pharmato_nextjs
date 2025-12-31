@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Swal from "sweetalert2";
+import Toast from "@/utils/Toast";
 import HeaderWithAction from "../../../../components/HeaderWithAction";
 import {
   Button,
@@ -27,6 +28,8 @@ import { modalStyles } from "@/utils/style";
 import { Box, Stack } from "@mui/system";
 import { downloadImageByUrl } from "@/utils/function";
 import PartialCancel from "@/app/dashboard/components/skeleton/PartialCancel";
+import ProductManageTable from "@/app/dashboard/components/ProductManageTable";
+import TextareaField from "@/app/dashboard/components/skeleton/FieldCom";
 
 export default function PartialCancelPage() {
   const router = useRouter();
@@ -49,9 +52,8 @@ export default function PartialCancelPage() {
   const [showCancelReasonDialog, setShowCancelReasonDialog] = useState(false);
   const [previewSelectedMeds, setPreviewSelectedMeds] = useState<any[]>([]);
   const [previewUnselectedMeds, setPreviewUnselectedMeds] = useState<any[]>([]);
-  const statusOptions = [
-    { value: "Delivered", label: "Delivered" },
-  ];
+  const [toastMsg, setToastMsg] = useState<string>("");
+  const statusOptions = [{ value: "Delivered", label: "Delivered" }];
 
   const medidetails = (_id: String) => {
     router.push(`/dashboard/medicines/${_id}`);
@@ -60,6 +62,8 @@ export default function PartialCancelPage() {
   useEffect(() => {
     if (orderId) fetchOrder();
   }, [orderId]);
+
+  console.log(order?.medicineId, "orderorder");
 
   const fetchOrder = async () => {
     setLoading(true);
@@ -203,6 +207,52 @@ export default function PartialCancelPage() {
     }
   };
 
+  const handleAcceptSelected = async (e?: React.MouseEvent) => {
+    if (e && typeof (e as any).preventDefault === "function")
+      (e as any).preventDefault();
+    if (!order) return;
+
+    const selectedMedsArr = order.medicineId.filter((med: any) =>
+      selected.includes(med._id)
+    );
+    const unselectedMedsArr = order.medicineId.filter(
+      (med: any) => !selected.includes(med._id)
+    );
+
+    // If there are no unselected meds, proceed immediately (no reason required)
+    if (!unselectedMedsArr.length) {
+      try {
+        const res = await fetch("/api/admin/order/partial-accept", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId,
+            medicineIds: selected,
+            cancelReason: undefined,
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setToastMsg("Selected medicines accepted");
+          setTimeout(() => setToastMsg(""), 3500);
+          setSelected([]);
+          setCancelReason("");
+          fetchOrder();
+        } else {
+          Swal.fire("Error", data.message || "Failed to accept", "error");
+        }
+      } catch (e) {
+        Swal.fire("Error", "Failed to accept", "error");
+      }
+      return;
+    }
+
+    // otherwise preview and open styled dialog
+    setPreviewSelectedMeds(selectedMedsArr);
+    setPreviewUnselectedMeds(unselectedMedsArr);
+    setShowCancelReasonDialog(true);
+  };
+
   if (loading)
     return (
       <div className="scrollbar-hide containerStyle">
@@ -222,10 +272,15 @@ export default function PartialCancelPage() {
       q.medicineId?.toString ? q.medicineId.toString() : q.medicineId
     );
 
+  const allPendingSelected =
+    pendingMedicineIds.length > 0 &&
+    pendingMedicineIds.every((id) => selected.includes(id));
+
   console.log("$$$$$$$pendingMedicineIds$$$$$$$$", pendingMedicineIds);
 
   return (
     <div className="containerStyle scrollbar-hide">
+      {toastMsg && <Toast message={toastMsg} />}
       <div
         style={{
           display: "flex",
@@ -355,147 +410,147 @@ export default function PartialCancelPage() {
         </DialogActions>
       </Dialog>
 
-      {/* Prescription Management (similar to Order Details) */}
-      <div className="bg-[var(--background)] rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
-        <h2 className="text-xl font-bold mb-6 text-[var(--foreground)] border-b border-gray-100 pb-3">
-          Prescription Management
-        </h2>
-
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
-            <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                Current Status
-              </p>
-              <div className="mt-1">
-                <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                  {order?.prescription_status || "Pending"}
-                </span>
-              </div>
+      {/* Prescription Management (Updated UI) */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
+        {/* Header: Title and Status Badge */}
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14H7v-2h3v2zm3-4H7v-2h6v2zm3-4H7V7h9v2z" />
+              </svg>
             </div>
-
-            {order?.isPrescriptionRequired &&
-              order?.prescription_status?.toLowerCase() == "pending" && (
-                <div className="flex gap-3 w-full sm:w-auto">
-                  <button
-                    onClick={handleApprovePrescription}
-                    disabled={approveLoading}
-                    className="flex-1 sm:flex-none px-6 py-2.5 bg-[var(--primary)] text-white text-sm font-bold rounded-lg hover:opacity-90 transition-all shadow-sm"
-                  >
-                    {approveLoading ? "Approving..." : "Approve"}
-                  </button>
-                  <button
-                    onClick={() => setShowRejectModalPresc(true)}
-                    disabled={rejectLoading}
-                    className="flex-1 sm:flex-none px-6 py-2.5 bg-white border-2 border-[var(--status-danger-text)] text-[var(--status-danger-text)] text-sm font-bold rounded-lg hover:bg-[var(--status-danger-bg)] transition-all"
-                  >
-                    {rejectLoading ? "Rejecting..." : "Reject"}
-                  </button>
-                </div>
-              )}
+            <div>
+              <h2 className="text-xl font-bold text-gray-800 tracking-tight">
+                Prescription Management
+              </h2>
+              <p className="text-sm text-gray-400 font-medium">
+                Attached files for verification
+              </p>
+            </div>
           </div>
 
-          {/* Prescription documents grid */}
-          {order?.prescription_url && order.prescription_url.length > 0 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {order.prescription_url.map((url: string, idx: number) => {
-                  const isPdf = url.toLowerCase().endsWith(".pdf");
-                  return (
-                    <div
-                      key={idx}
-                      className="group relative border border-gray-200 rounded-xl overflow-hidden bg-white hover:border-[var(--secondary)] transition-all shadow-sm"
-                    >
-                      {isPdf ? (
-                        <div className="relative flex flex-col items-center justify-center p-6 h-40 bg-gray-50">
-                          {/* PDF Download Button - Always Visible */}
-                          <div className="absolute top-2 right-2 flex gap-2">
-                            <button
-                              onClick={() => downloadImageByUrl(url)}
-                              className="bg-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold shadow-md flex items-center gap-1.5 text-gray-700 border border-gray-100 hover:bg-gray-50 transition-all"
-                              title="Download PDF"
-                            >
-                              <svg
-                                className="w-3.5 h-3.5 text-[var(--status-danger-text)]"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2.5}
-                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                                />
-                              </svg>
-                              DOWNLOAD
-                            </button>
-                          </div>
+          <span className="px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-100">
+            {order?.prescription_status || "Verification Pending"}
+          </span>
+        </div>
 
-                          {/* PDF Icon and View Link */}
-                          <svg
-                            className="w-10 h-10 text-[var(--status-danger-text)] mb-2"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M4 4a2 2 0 012-2h4.586A1 1 0 0111.293 2.707l3 3a1 1 0 01.293.707V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
-                          </svg>
-                          <a
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs font-bold text-[var(--primary)] hover:underline"
-                          >
-                            VIEW PDF
-                          </a>
-                        </div>
-                      ) : (
-                        <div className="relative h-40 w-full">
-                          <CustomImage
-                            coverImage={url}
-                            images={[url]}
-                            alt={`Prescription ${idx + 1}`}
-                            style={{
-                              height: "100%",
-                              width: "100%",
-                              objectFit: "cover",
-                            }}
-                          />
-                          <div className="absolute top-2 right-2 flex gap-2">
-                            <button
-                              onClick={() => downloadImageByUrl(url)}
-                              className="bg-white/95 px-2.5 py-1.5 rounded-lg text-[10px] font-bold shadow-lg flex items-center gap-1.5 text-gray-700 border border-gray-100 hover:bg-white transition-all"
-                            >
-                              <svg
-                                className="w-3.5 h-3.5 text-[var(--primary)]"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2.5}
-                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                                />
-                              </svg>
-                              DOWNLOAD
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                      <div className="p-2.5 bg-white border-t border-gray-100 text-center">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase">
-                          Page {idx + 1}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
+        {/* Document Grid: Always 4 slots */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          {[0, 1, 2, 3].map((idx) => {
+            const url = order?.prescription_url?.[idx];
+
+            if (!url) {
+              return (
+                <div
+                  key={`empty-${idx}`}
+                  className="h-44 rounded-xl border-2 border-dashed border-gray-100 bg-gray-50/30 flex flex-col items-center justify-center gap-2"
+                >
+                  <svg
+                    className="w-8 h-8 text-gray-200"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <span className="text-[10px] font-bold text-gray-300 uppercase">
+                    Empty Slot
+                  </span>
+                </div>
+              );
+            }
+
+            const isPdf = url.toLowerCase().endsWith(".pdf");
+
+            return (
+              <div
+                key={idx}
+                className="relative h-44 rounded-xl border border-gray-200 overflow-hidden bg-white shadow-sm"
+              >
+                {/* Download Button - Fixed to Top Right, Always Visible */}
+                <button
+                  onClick={() => downloadImageByUrl(url)}
+                  className="absolute top-2 right-2 z-10 bg-white/90 p-1.5 rounded-lg shadow-md border border-gray-100 hover:bg-white transition-all text-gray-700"
+                  title="Download File"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2.5"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                </button>
+
+                {isPdf ? (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-red-50/20">
+                    <svg
+                      className="w-10 h-10 text-red-400 mb-1"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M4 4a2 2 0 012-2h4.586A1 1 0 0111.293 2.707l3 3a1 1 0 01.293.707V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                    </svg>
+                    <span className="text-[10px] font-bold text-red-500 uppercase">
+                      PDF File
+                    </span>
+                  </div>
+                ) : (
+                  <CustomImage
+                    coverImage={url}
+                    images={[url]}
+                    alt={`Prescription ${idx + 1}`}
+                    style={{
+                      height: "100%",
+                      width: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                )}
               </div>
+            );
+          })}
+        </div>
+
+        {/* Large Footer Action Buttons */}
+        {order?.isPrescriptionRequired &&
+          order?.prescription_status?.toLowerCase() === "pending" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-10">
+              <button
+                onClick={handleApprovePrescription}
+                disabled={approveLoading}
+                className="flex items-center justify-center gap-3 py-4 border-2 border-green-500 rounded-xl text-green-600 font-bold text-sm uppercase tracking-wide hover:bg-green-50 transition-all disabled:opacity-50"
+              >
+                <div className="w-5 h-5 rounded-full border-2 border-green-500 flex items-center justify-center text-[10px]">
+                  {approveLoading ? "..." : "✓"}
+                </div>
+                {approveLoading ? "Approving..." : "Approve Prescription"}
+              </button>
+
+              <button
+                onClick={() => setShowRejectModalPresc(true)}
+                disabled={rejectLoading}
+                className="flex items-center justify-center gap-3 py-4 border-2 border-red-500 rounded-xl text-red-500 font-bold text-sm uppercase tracking-wide hover:bg-red-50 transition-all disabled:opacity-50"
+              >
+                <div className="w-5 h-5 rounded-full border-2 border-red-500 flex items-center justify-center text-[10px]">
+                  {rejectLoading ? "..." : "✕"}
+                </div>
+                {rejectLoading ? "Rejecting..." : "Reject Prescription"}
+              </button>
             </div>
           )}
-        </div>
       </div>
 
       {/* Reject prescription dialog */}
@@ -520,7 +575,7 @@ export default function PartialCancelPage() {
               customer.
             </p>
           </Box>
-          <TextField
+          {/* <TextField
             multiline
             minRows={4}
             fullWidth
@@ -531,6 +586,19 @@ export default function PartialCancelPage() {
             variant="outlined"
             margin="normal"
             sx={modalStyles.textField}
+          /> */}
+
+          <TextareaField
+            id="targetScreen"
+            name="alt"
+            label=""
+            value={rejectionReasonPresc}
+            onChange={(e) => setRejectionReasonPresc(e.target.value)}
+            placeholder="Enter reason for rejection"
+            maxLength={250}
+            rows={4}
+            showCount={true}
+            className="mb-4"
           />
         </DialogContent>
         <DialogActions sx={modalStyles.actions}>
@@ -562,463 +630,30 @@ export default function PartialCancelPage() {
           }}
         >
           <div className="space-y-3 mb-6">
-            {/* Select all pending checkbox */}
-            <div className="flex items-center gap-2 mb-2">
-              <Checkbox
-                checked={
-                  pendingMedicineIds.length > 0 &&
-                  pendingMedicineIds.every((id) => selected.includes(id))
-                }
-                indeterminate={
-                  pendingMedicineIds.length > 0 &&
-                  pendingMedicineIds.some((id) => selected.includes(id)) &&
-                  !pendingMedicineIds.every((id) => selected.includes(id))
-                }
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    // add all pending ids to selected
-                    setSelected((prev) =>
-                      Array.from(new Set([...prev, ...pendingMedicineIds]))
-                    );
-                  } else {
-                    // remove all pending ids from selected
-                    setSelected((prev) =>
-                      prev.filter((id) => !pendingMedicineIds.includes(id))
-                    );
-                  }
-                }}
-                disabled={pendingMedicineIds.length === 0}
+            <div>
+              <ProductManageTable
+                medicines={order?.medicineId || []}
+                medicineQuantity={order?.medicineQuantity || []}
+                selected={selected}
+                setSelected={(s: string[]) => setSelected(s)}
+                medidetails={(id: string) => medidetails(id)}
+                gridCols="grid-cols-1 lg:grid-cols-2"
+                tableMode={true}
               />
-              <div className="text-sm font-medium">
-                Select All Pending Items
-              </div>
-            </div>
-            {/* {order.medicineId && order.medicineId.length > 0 ? (
-              order.medicineId.map((med: any, idx: number) => {
-                // Find status from medicineQuantity
-                const q = order.medicineQuantity.find(
-                  (x: any) =>
-                    x.medicineId === med._id ||
-                    x.medicineId?.toString() === med._id?.toString()
-                );
-                const status = q?.status || "pending";
-                return (
-                  <div
-                    key={med._id}
-                    className="flex items-center gap-4 p-3 border rounded-lg"
-                  >
-                    <Checkbox
-                      checked={selected.includes(med._id)}
-                      onChange={() => handleSelect(med._id)}
-                      disabled={status !== "pending"}
-                    />
-                    <div className="flex-1">
-                      <div className="font-bold">{med.name}</div>
-                      <div className="text-xs text-gray-500">
-                        Qty: {q?.quantity || 1}
-                      </div> 
-                      <div
-                        className={`text-xs font-semibold ${status === "cancelled"
-                          ? "text-red-500"
-                          : status === "accepted"
-                            ? "text-green-600"
-                            : "text-yellow-600"
-                          }`}
-                      >
-                        Status:{" "}
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </div>
-                      {status === "cancelled" && q?.cancelReason && (
-                        <div className="text-xs text-red-400 mt-1 italic">
-                          Reason: {q.cancelReason}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div>No medicines found in this order.</div>
-            )} */}
-
-            <div className="mt-8">
-              <div className="flex justify-between items-center mb-6">
-                <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-bold">
-                  {order?.medicineId?.length || 0} Items
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {order.medicineId && order.medicineId.length > 0 ? (
-                  order.medicineId.map((med: any, idx: number) => {
-                    // Finding quantity and status logic from your first snippet
-                    const q = order.medicineQuantity?.find(
-                      (x: any) =>
-                        x.medicineId === med._id ||
-                        x.medicineId?.toString() === med._id?.toString()
-                    );
-                    const status = q?.status || med.status || "pending";
-
-                    // Dynamic badge colors
-                    let badgeColor =
-                      "bg-yellow-50 text-yellow-700 border-yellow-200";
-                    let dot = "#facc15";
-                    if (status === "accepted" || status === "delivered") {
-                      badgeColor =
-                        "bg-green-50 text-green-700 border-green-200";
-                      dot = "#22c55e";
-                    } else if (
-                      status === "cancelled" ||
-                      status === "rejected"
-                    ) {
-                      badgeColor = "bg-red-50 text-red-600 border-red-200";
-                      dot = "#f87171";
-                    }
-
-                    return (
-                      <div
-                        key={med._id}
-                        className="group relative flex items-start gap-4 p-4 border border-gray-100 rounded-xl transition-all duration-200 hover:shadow-md hover:bg-gray-50/50 bg-white"
-                      >
-                        {/* Checkbox - Logic preserved exactly as requested */}
-                        <div className="mt-1">
-                          <Checkbox
-                            checked={selected.includes(med._id)}
-                            onChange={() => handleSelect(med._id)}
-                            disabled={status !== "pending"}
-                          />
-                        </div>
-
-                        <div
-                          className="flex-1 cursor-pointer"
-                          onClick={() => medidetails(med._id)}
-                        >
-                          {/* Top Row: Image and Info */}
-                          <div className="flex gap-4">
-                            <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-gray-100 bg-white">
-                              {med.coverImage ||
-                              (med.images && med.images[0]) ? (
-                                <CustomImage
-                                  coverImage={med.coverImage || med.images[0]}
-                                  images={med.images || []}
-                                  alt={med.name}
-                                  style={{
-                                    height: "100%",
-                                    width: "100%",
-                                    objectFit: "cover",
-                                  }}
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-[8px] text-gray-400 font-bold uppercase">
-                                  No Image
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="flex-1">
-                              <h3 className="font-bold text-gray-900 leading-tight group-hover:text-[var(--primary)] line-clamp-1">
-                                {med.name}
-                              </h3>
-                              <p className="text-[10px] text-gray-500 font-medium uppercase mt-0.5 line-clamp-1">
-                                {med.manufacturer}
-                              </p>
-                              <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] font-bold">
-                                Qty: {q?.quantity || med.quantity || 1}
-                              </div>
-                            </div>
-
-                            {/* Status Badge */}
-                            <div className="shrink-0">
-                              <span
-                                className={`px-2 py-1 rounded-full border text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm ${badgeColor}`}
-                              >
-                                <div
-                                  className="w-1.5 h-1.5 rounded-full"
-                                  style={{ backgroundColor: dot }}
-                                />
-                                {status}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Bottom Row: Pricing and Reasons */}
-                          <div className="mt-4 pt-3 border-t border-gray-50 flex justify-between items-end">
-                            <div>
-                              <p className="text-[9px] text-gray-400 font-bold uppercase">
-                                Price Per Unit
-                              </p>
-                              <div className="flex items-center gap-2">
-                                {med.mrp > med.price && (
-                                  <span className="text-xs text-gray-400 line-through">
-                                    ₹{med.mrp?.toFixed(2)}
-                                  </span>
-                                )}
-                                <p
-                                  className={`text-lg font-black leading-none ${
-                                    status === "cancelled"
-                                      ? "text-red-600"
-                                      : "text-[var(--primary)]"
-                                  }`}
-                                >
-                                  ₹{med.price?.toFixed(2)}
-                                </p>
-                              </div>
-                            </div>
-
-                            {status === "cancelled" && q?.cancelReason && (
-                              <div className="text-[10px] text-red-500 italic bg-red-50 px-2 py-1 rounded border border-red-100 max-w-[150px] truncate">
-                                Reason: {q.cancelReason}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="col-span-full text-center py-10 bg-gray-50 rounded-xl border border-dashed text-gray-400 text-sm">
-                    No medicines found in this order.
-                  </div>
-                )}
-              </div>
             </div>
           </div>
-          <div style={{ display: "flex", gap: 12 }}>
-            <Button
-              type="button"
-              variant="contained"
-              color="success"
-              disabled={!hasPending}
-              onClick={async (e) => {
-                e.preventDefault();
-                const selectedMedsArr = order.medicineId.filter((med: any) =>
-                  selected.includes(med._id)
-                );
-                const unselectedMedsArr = order.medicineId.filter(
-                  (med: any) => !selected.includes(med._id)
-                );
-                // If there are no unselected meds, proceed immediately (no reason required)
-                if (!unselectedMedsArr.length) {
-                  try {
-                    const res = await fetch("/api/admin/order/partial-accept", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        orderId,
-                        medicineIds: selected,
-                        cancelReason: undefined,
-                      }),
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                      Swal.fire(
-                        "Success",
-                        "Selected medicines accepted",
-                        "success"
-                      );
-                      setSelected([]);
-                      setCancelReason("");
-                      fetchOrder();
-                    } else {
-                      Swal.fire(
-                        "Error",
-                        data.message || "Failed to accept",
-                        "error"
-                      );
-                    }
-                  } catch (e) {
-                    Swal.fire("Error", "Failed to accept", "error");
-                  }
-                  return;
-                }
 
-                // otherwise preview and open styled dialog
-                setPreviewSelectedMeds(selectedMedsArr);
-                setPreviewUnselectedMeds(unselectedMedsArr);
-                setShowCancelReasonDialog(true);
-              }}
+          <div style={{ display: "flex", gap: 12 }}>
+            <CustomButton
+              type="button"
+              disabled={!hasPending}
+              onClick={handleAcceptSelected}
             >
-              Accept Selected
-            </Button>
+              Confirm Order
+            </CustomButton>
           </div>
         </form>
       </div>
-      {/* Cancel reason dialog styled like Reject Prescription */}
-      {/* <Dialog
-        open={showCancelReasonDialog}
-        onClose={() => setShowCancelReasonDialog(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: modalStyles.paper }}
-      >
-        <DialogTitle>
-          <ModalHeader
-            title="Confirm Order"
-            onClose={() => setShowCancelReasonDialog(false)}
-          />
-        </DialogTitle>
-        <DialogContent sx={modalStyles.content}>
-          <Box sx={modalStyles.noticeBox}>
-            <p className="text-xs font-semibold text-[var(--status-danger-text)] leading-relaxed">
-              <span className="font-bold">Notice:</span>{" "}
-              Please provide a reason for cancellation. This note will be sent to the customer.
-            </p>
-          </Box>
-          <div style={{ marginTop: 8 }}>
-            <div style={{ fontWeight: 600, marginBottom: 6 }}>
-                 Confirm Item
-            </div>
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 6,
-                marginBottom: 12,
-              }}
-            >
-              {previewSelectedMeds.length ? (
-                previewSelectedMeds.map((m) => (
-                  <span
-                    key={m._id}
-                    style={{
-                      background: "#43a047",
-                      color: "#fff",
-                      padding: "4px 10px",
-                      borderRadius: 16,
-                      fontSize: 13,
-                    }}
-                  >
-                    {m.name}
-                  </span>
-                ))
-              ) : (
-                <div style={{ color: "#888", fontSize: 13 }}>
-                  <i>None</i>
-                </div>
-              )}
-            </div>
-
-            {previewUnselectedMeds.length > 0 && (
-              <>
-                <div style={{ fontWeight: 600, marginBottom: 6 }}>
-                  Items to Cancel
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 6,
-                    marginBottom: 12,
-                  }}
-                >
-                  {previewUnselectedMeds.map((m) => (
-                    <span
-                      key={m._id}
-                      style={{
-                        background: "#fb8c00",
-                        color: "#fff",
-                        padding: "4px 10px",
-                        borderRadius: 16,
-                        fontSize: 13,
-                      }}
-                    >
-                      {m.name}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="text-right mb-3">
-                  {(() => {
-                    const refundAmount = previewUnselectedMeds.reduce((sum, m) => {
-                      const q = order?.medicineQuantity?.find(
-                        (x: any) =>
-                          x.medicineId === m._id ||
-                          x.medicineId?.toString?.() === m._id?.toString?.()
-                      );
-                      const qty = q?.quantity || m.quantity || 1;
-                      const price = Number(m.price) || 0;
-                      return sum + price * qty;
-                    }, 0);
-                    return (
-                      <div className="text-sm font-semibold text-gray-700">
-                        Refund Amount: <span className="font-bold">₹{refundAmount.toFixed(2)}</span>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                <TextField
-                  multiline
-                  minRows={4}
-                  fullWidth
-                  autoFocus
-                  value={cancelReason}
-                  onChange={(e) => setCancelReason(e.target.value)}
-                  placeholder="Enter reason for cancellation..."
-                  variant="outlined"
-                  margin="normal"
-                  sx={modalStyles.textField}
-                />
-              </>
-            )}
-          </div>
-        </DialogContent>
-        <DialogActions sx={modalStyles.actions}>
-          <Button
-            onClick={() => setShowCancelReasonDialog(false)}
-            sx={modalStyles.cancelBtn}
-          >
-            Cancel
-          </Button>
-          <Button
-        onClick={async () => {
-              if (
-                previewUnselectedMeds.length > 0 &&
-                (!cancelReason || !cancelReason.trim())
-              )
-                return Swal.fire("Warning", "Reason is required!", "warning");
-              try {
-                const res = await fetch("/api/admin/order/partial-accept", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    orderId,
-                    medicineIds: selected,
-                    cancelReason:
-                      previewUnselectedMeds.length > 0
-                        ? cancelReason
-                        : undefined,
-                  }),
-                });
-                const data = await res.json();
-                if (data.success) {
-                  Swal.fire(
-                    "Success",
-                    "Selected medicines accepted",
-                    "success"
-                  );
-                  setSelected([]);
-                  setCancelReason("");
-                  setShowCancelReasonDialog(false);
-                  fetchOrder();
-                } else {
-                  Swal.fire(
-                    "Error",
-                    data.message || "Failed to accept",
-                    "error"
-                  );
-                }
-              } catch (e) {
-                Swal.fire("Error", "Failed to accept", "error");
-              }
-            }}
-            variant="contained"
-            sx={modalStyles.confirmBtn}
-            >
-            Confirm 
-          </Button>
-        </DialogActions>
-      </Dialog> */}
 
       <Dialog
         open={showCancelReasonDialog}
@@ -1029,7 +664,11 @@ export default function PartialCancelPage() {
       >
         <DialogTitle sx={{ p: 2 }}>
           <ModalHeader
-            title="Confirm Order "
+            title={
+              allPendingSelected
+                ? "Confirm Selected"
+                : "Reason for cancelling remaining items"
+            }
             onClose={() => setShowCancelReasonDialog(false)}
           />
         </DialogTitle>
@@ -1157,11 +796,8 @@ export default function PartialCancelPage() {
                 });
                 const data = await res.json();
                 if (data.success) {
-                  Swal.fire(
-                    "Success",
-                    "Selected medicines accepted",
-                    "success"
-                  );
+                  setToastMsg("Selected medicines accepted");
+                  setTimeout(() => setToastMsg(""), 3500);
                   setSelected([]);
                   setCancelReason("");
                   setShowCancelReasonDialog(false);
@@ -1181,7 +817,9 @@ export default function PartialCancelPage() {
             disableElevation
             sx={modalStyles.confirmBtn}
           >
-            Confirm
+            {previewUnselectedMeds.length > 0
+              ? "Confirm & Cancel"
+              : "Confirm Selected"}
           </Button>
         </DialogActions>
       </Dialog>
