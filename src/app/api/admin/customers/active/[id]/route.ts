@@ -52,7 +52,14 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
     if (typeof isActive !== 'boolean') {
         return NextResponse.json({ success: false, message: 'Missing isActive field', data: null }, { status: 400 });
     }
-    const user = await User.findByIdAndUpdate(id, { isActive }, { new: true });
+    // Set userDeActiveBy to 'admin' when deactivating
+    let updateFields: any = { isActive };
+    if (isActive === false) {
+        updateFields.userDeActiveBy = 'admin';
+    } else {
+        updateFields.userDeActiveBy = "";
+    }
+    const user = await User.findByIdAndUpdate(id, updateFields, { new: true });
     if (!user) {
         return NextResponse.json({ success: false, message: 'User not found', data: null }, { status: 404 });
     }
