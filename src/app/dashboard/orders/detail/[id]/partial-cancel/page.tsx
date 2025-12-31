@@ -279,9 +279,8 @@ export default function PartialCancelPage() {
 
   console.log("$$$$$$$pendingMedicineIds$$$$$$$$", pendingMedicineIds);
 
-  const hasPrescriptionImages = (
-    (order?.prescription_url || []).filter(Boolean) || []
-  ).length > 0;
+  const hasPrescriptionImages =
+    ((order?.prescription_url || []).filter(Boolean) || []).length > 0;
 
   return (
     <div className="containerStyle scrollbar-hide">
@@ -415,133 +414,131 @@ export default function PartialCancelPage() {
         </DialogActions>
       </Dialog>
 
-   
-
-
-
-
-{hasPrescriptionImages && (
-  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
-    {/* Header: Title and Status Badge */}
-    <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
-      <div className="flex items-start gap-3">
-        <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14H7v-2h3v2zm3-4H7v-2h6v2zm3-4H7V7h9v2z" />
-          </svg>
-        </div>
-        <div>
-          <h2 className="text-xl font-bold text-gray-800 tracking-tight">
-            Prescription Management
-          </h2>
-          <p className="text-sm text-gray-400 font-medium">
-            Attached files for verification
-          </p>
-        </div>
-      </div>
-
-      <span className="px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-100">
-        {order?.prescription_status || "Verification Pending"}
-      </span>
-    </div>
-
-    {/* Document Grid */}
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-      {[0, 1, 2, 3].map((idx) => {
-        const url = order?.prescription_url?.[idx];
-
-        if (!url) {
-          return null; // Changed from <></> to null for cleaner mapping
-        }
-
-        const isPdf = url.toLowerCase().endsWith(".pdf");
-
-        return (
-          <div
-            key={idx}
-            className="relative h-44 rounded-xl border border-gray-200 overflow-hidden bg-white shadow-sm"
-          >
-            {/* Download Button - Fixed to Top Right, Always Visible */}
-            <button
-              onClick={() => downloadImageByUrl(url)}
-              className="absolute top-2 right-2 z-20 bg-white/90 p-1.5 rounded-lg shadow-md border border-gray-100 hover:bg-white transition-all text-gray-700"
-              title="Download File"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2.5"
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                />
-              </svg>
-            </button>
-
-            {isPdf ? (
-              <div className="w-full h-full bg-gray-50">
-                {/* PDF Viewer inside Iframe */}
-                <iframe
-                  src={`${url}#toolbar=0&navpanes=0&scrollbar=0`}
-                  className="w-full h-full border-none pointer-events-none"
-                  title={`Prescription PDF ${idx + 1}`}
-                />
-                {/* Subtle label to indicate it's a PDF since we hidden the toolbar */}
-                <div className="absolute bottom-0 left-0 right-0 bg-red-600/10 text-red-600 text-[8px] font-bold text-center py-0.5 backdrop-blur-sm">
-                   PDF PREVIEW
-                </div>
+      {hasPrescriptionImages && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
+          {/* Header: Title and Status Badge */}
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                <svg
+                  className="w-6 h-6"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14H7v-2h3v2zm3-4H7v-2h6v2zm3-4H7V7h9v2z" />
+                </svg>
               </div>
-            ) : (
-              <CustomImage
-                coverImage={url}
-                images={[url]}
-                alt={`Prescription ${idx + 1}`}
-                style={{
-                  height: "100%",
-                  width: "100%",
-                  objectFit: "cover",
-                }}
-              />
-            )}
+              <div>
+                <h2 className="text-xl font-bold text-gray-800 tracking-tight">
+                  Prescription Management
+                </h2>
+                <p className="text-sm text-gray-400 font-medium">
+                  Attached files for verification
+                </p>
+              </div>
+            </div>
+
+            <span className="px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-100">
+              {order?.prescription_status || "Verification Pending"}
+            </span>
           </div>
-        );
-      })}
-    </div>
 
-    {/* Large Footer Action Buttons */}
-    {order?.isPrescriptionRequired &&
-      order?.prescription_status?.toLowerCase() === "pending" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-10">
-          <button
-            onClick={handleApprovePrescription}
-            disabled={approveLoading}
-            className="flex items-center justify-center gap-3 py-4 border-2 border-green-500 rounded-xl text-green-600 font-bold text-sm uppercase tracking-wide hover:bg-green-50 transition-all disabled:opacity-50"
-          >
-            <div className="w-5 h-5 rounded-full border-2 border-green-500 flex items-center justify-center text-[10px]">
-              {approveLoading ? "..." : "✓"}
-            </div>
-            {approveLoading ? "Approving..." : "Approve Prescription"}
-          </button>
+          {/* Document Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            {[0, 1, 2, 3].map((idx) => {
+              const url = order?.prescription_url?.[idx];
 
-          <button
-            onClick={() => setShowRejectModalPresc(true)}
-            disabled={rejectLoading}
-            className="flex items-center justify-center gap-3 py-4 border-2 border-red-500 rounded-xl text-red-500 font-bold text-sm uppercase tracking-wide hover:bg-red-50 transition-all disabled:opacity-50"
-          >
-            <div className="w-5 h-5 rounded-full border-2 border-red-500 flex items-center justify-center text-[10px]">
-              {rejectLoading ? "..." : "✕"}
-            </div>
-            {rejectLoading ? "Rejecting..." : "Reject Prescription"}
-          </button>
+              if (!url) {
+                return null; // Changed from <></> to null for cleaner mapping
+              }
+
+              const isPdf = url.toLowerCase().endsWith(".pdf");
+
+              return (
+                <div
+                  key={idx}
+                  className="relative h-44 rounded-xl border border-gray-200 overflow-hidden bg-white shadow-sm"
+                >
+                  {/* Download Button - Fixed to Top Right, Always Visible */}
+                  <button
+                    onClick={() => downloadImageByUrl(url)}
+                    className="absolute top-2 right-2 z-20 bg-white/90 p-1.5 rounded-lg shadow-md border border-gray-100 hover:bg-white transition-all text-gray-700"
+                    title="Download File"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2.5"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
+                    </svg>
+                  </button>
+
+                  {isPdf ? (
+                    <div className="w-full h-full bg-gray-50">
+                      {/* PDF Viewer inside Iframe */}
+                      <iframe
+                        src={`${url}#toolbar=0&navpanes=0&scrollbar=0`}
+                        className="w-full h-full border-none pointer-events-none"
+                        title={`Prescription PDF ${idx + 1}`}
+                      />
+                      {/* Subtle label to indicate it's a PDF since we hidden the toolbar */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-red-600/10 text-red-600 text-[8px] font-bold text-center py-0.5 backdrop-blur-sm">
+                        PDF PREVIEW
+                      </div>
+                    </div>
+                  ) : (
+                    <CustomImage
+                      coverImage={url}
+                      images={[url]}
+                      alt={`Prescription ${idx + 1}`}
+                      style={{
+                        height: "100%",
+                        width: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Large Footer Action Buttons */}
+          {order?.isPrescriptionRequired &&
+            order?.prescription_status?.toLowerCase() === "pending" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-10">
+                <button
+                  onClick={handleApprovePrescription}
+                  disabled={approveLoading}
+                  className="flex items-center justify-center gap-3 py-4 border-2 border-green-500 rounded-xl text-green-600 font-bold text-sm uppercase tracking-wide hover:bg-green-50 transition-all disabled:opacity-50"
+                >
+                  <div className="w-5 h-5 rounded-full border-2 border-green-500 flex items-center justify-center text-[10px]">
+                    {approveLoading ? "..." : "✓"}
+                  </div>
+                  {approveLoading ? "Approving..." : "Approve Prescription"}
+                </button>
+
+                <button
+                  onClick={() => setShowRejectModalPresc(true)}
+                  disabled={rejectLoading}
+                  className="flex items-center justify-center gap-3 py-4 border-2 border-red-500 rounded-xl text-red-500 font-bold text-sm uppercase tracking-wide hover:bg-red-50 transition-all disabled:opacity-50"
+                >
+                  <div className="w-5 h-5 rounded-full border-2 border-red-500 flex items-center justify-center text-[10px]">
+                    {rejectLoading ? "..." : "✕"}
+                  </div>
+                  {rejectLoading ? "Rejecting..." : "Reject Prescription"}
+                </button>
+              </div>
+            )}
         </div>
       )}
-  </div>
-)}
-
 
       {/* Reject prescription dialog */}
       <Dialog
@@ -636,7 +633,7 @@ export default function PartialCancelPage() {
           <div style={{ display: "flex", gap: 12 }}>
             <CustomButton
               type="button"
-              disabled={!hasPending}
+              disabled={!hasPending ||order.order_status!=="Order Placed"}
               onClick={handleAcceptSelected}
             >
               Confirm Order
@@ -842,9 +839,7 @@ export default function PartialCancelPage() {
             disableElevation
             sx={modalStyles.confirmBtn}
           >
-            {previewUnselectedMeds.length > 0
-              ? "Confirm "
-              : "Confirm Selected"}
+            {previewUnselectedMeds.length > 0 ? "Confirm " : "Confirm Selected"}
           </Button>
         </DialogActions>
       </Dialog>

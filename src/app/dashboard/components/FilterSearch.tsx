@@ -266,7 +266,7 @@ console.log(categoryFilter,"categoryFilter");
                 setPage?.(0);
               }}
             >
-              <MenuItem value="all">All Statuses</MenuItem>
+              <MenuItem value="all">All Status</MenuItem>
               <MenuItem value="Pending">Pending</MenuItem>
               <MenuItem value="Approved">Approved</MenuItem>
               <MenuItem value="Rejected">Rejected</MenuItem>
@@ -284,12 +284,12 @@ console.log(categoryFilter,"categoryFilter");
                 setPage?.(0);
               }}
             >
-              <MenuItem value="all">All Statuses</MenuItem>
+              <MenuItem value="all">All Status</MenuItem>
               <MenuItem value="Pending">Pending</MenuItem>
               <MenuItem value="Confirmed">Confirmed</MenuItem>
-              <MenuItem value="Dispatched">Dispatched</MenuItem>
-              <MenuItem value="Delivered">Delivered</MenuItem>
               <MenuItem value="Cancelled">Cancelled</MenuItem>
+              <MenuItem value="Delivered">Delivered</MenuItem>
+              <MenuItem value="Order Placed">Order Placed</MenuItem>
             </Select>
           </FormControl>
         </>
