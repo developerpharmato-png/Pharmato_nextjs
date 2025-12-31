@@ -41,7 +41,7 @@ const UserSchema = new Schema<IUser>({
     isVerified: { type: Boolean, default: false }, 
     walletAmount: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },
-    userDeActiveBy: { type: String },
+    userDeActiveBy: { type: String, default: "" }, // 'admin' or ''
     isDelete: { type: Boolean, default: false },
     uniqueCode: { type: String },
     // Added for OTP and block logic
