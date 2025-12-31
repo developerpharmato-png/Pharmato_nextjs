@@ -64,12 +64,15 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Update prescription status and optional prescription URL
+        // Update prescription status. Do NOT overwrite existing prescription_url
+        // unless the request explicitly provides a value for it.
         order.prescription_status = 'Rejected';
         order.prescription_rejected_by = adminId;
         order.prescription_rejected_at = new Date();
         order.prescription_rejection_reason = rejectionReason;
-        order.prescription_url = prescription_url;
+        if (typeof prescription_url !== 'undefined') {
+            order.prescription_url = prescription_url;
+        }
 
         await order.save();        
 
