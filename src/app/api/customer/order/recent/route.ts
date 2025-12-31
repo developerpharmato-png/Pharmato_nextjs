@@ -4,6 +4,7 @@ import Order from '@/models/Order';
 import Medicine from '@/models/Medicine';
 import mongoose from 'mongoose';
 import Cart from '@/models/Cart';
+import moment from 'moment-timezone';
 
 /**
  * @swagger
@@ -49,6 +50,12 @@ export async function POST(req: NextRequest) {
         const order = await Order.findOne(query).sort({ createdAt: -1 });
         if (!order) {
             return NextResponse.json({ success: false, message: 'No order found for this user' }, { status: 404 });
+        }
+
+        if (order.createdAt) {
+            order.createdAt = moment(order.createdAt)
+                .tz('Asia/Kolkata')
+                .format('MMM D, YYYY');
         }
 
         let medicines: any[] = [];
@@ -104,6 +111,9 @@ export async function POST(req: NextRequest) {
                 message: 'Medicines fetched successfully',
                 medicines: finalMedicines,
                 medicineQuantity: order.medicineQuantity,
+                orderCreatedAt: moment(order.createdAt)
+                    .tz('Asia/Kolkata')
+                    .format('MMM D, YYYY')
             },
             {
                 status: 200,
