@@ -32,7 +32,7 @@ import {
 } from "@/app/dashboard/components/miniComponents";
 import { ImageUploadField } from "@/app/dashboard/components/ImageUploadField";
 import {
-  StandardFormCheckbox,
+  StandardFormCheckbox, 
   StyledCheckboxWithDescription,
 } from "@/app/dashboard/components/StyledCheckboxWithDescription";
 import HeaderWithAction from "@/app/dashboard/components/HeaderWithAction";

@@ -57,10 +57,11 @@ export default function NewCategoryPage() {
     onSubmit: async (values, { setSubmitting, setErrors }) => {
       setLoading(true);
       try {
+        const payload = { ...values, isActive: true };
         const res = await fetch("/api/admin/categories", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(values),
+          body: JSON.stringify(payload),
         });
         const data = await res.json();
         if (data.success) {
@@ -70,10 +71,12 @@ export default function NewCategoryPage() {
           });
           setTimeout(() => router.push("/dashboard/categories"), 1200);
         } else {
-          setErrors(data.error || {});
-
+          const errorMsg = data.error || data.message || "Failed to create category";
+          if (data.errors && typeof data.errors === "object") {
+            setErrors(data.errors as any);
+          }
           setToast({
-            message: "Failed to create category",
+            message: errorMsg,
             type: "error",
           });
         }
