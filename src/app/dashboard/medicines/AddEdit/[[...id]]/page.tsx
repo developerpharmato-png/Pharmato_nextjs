@@ -28,6 +28,7 @@ import {
 import { useParams } from "next/navigation";
 import { initialMedicineFormValues } from "@/utils/initCategory";
 import { medicineFormValidationSchema } from "@/utils/validateCategory";
+import TextareaField from "@/app/dashboard/components/skeleton/FieldCom";
 
 export default function MedicineAddEditForm({ id }: { id?: string }) {
   const router = useRouter();
@@ -420,8 +421,13 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
       prev.map((c, i) => (i === idx ? { ...c, [field]: value } : c))
     );
   };
-  const addCompositionRow = () =>
+  const addCompositionRow = () => {
+    if ((composition || []).length >= 5) {
+      Swal.fire("Warning", "You can add up to 5 composition items only", "warning");
+      return;
+    }
     setComposition((prev) => [...prev, { name: "", value: "" }]);
+  };
   const removeCompositionRow = (idx: number) =>
     setComposition((prev) => prev.filter((_, i) => i !== idx));
 
@@ -430,8 +436,13 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
     newHighlights[idx] = value;
     formik.setFieldValue("highlights", newHighlights);
   };
-  const addHighlightRow = () =>
+  const addHighlightRow = () => {
+    if ((formik.values.highlights || []).length >= 5) {
+      Swal.fire("Warning", "You can add up to 5 highlights only", "warning");
+      return;
+    }
     formik.setFieldValue("highlights", [...formik.values.highlights, ""]);
+  };
   const removeHighlightRow = (idx: number) =>
     formik.setFieldValue(
       "highlights",
@@ -608,7 +619,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
               </div>
 
               <div>
-                <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                <FormControl fullWidth variant="outlined">
                   <InputLabel id="store-select-label">Store</InputLabel>
                   <Select
                     labelId="store-select-label"
@@ -642,27 +653,26 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
             </div>
 
             <div>
-              <TextField
-                name="description"
-                label="Description *"
+              <TextareaField
+                id="targetScreen"
+                name="alt"
+                label="Description"
                 value={formik.values.description}
-                onChange={handleChange}
-                onBlur={formik.handleBlur}
-                multiline
-                rows={4}
-                fullWidth
-                variant="outlined"
-                placeholder="Enter medicine description and usage"
+                onChange={(e) => {
+                  console.log("Description updated:", e.target.value); // Debugging log
+                  formik.setFieldValue("description", e.target.value);
+                }}
+                placeholder="Enter description here"
+                maxLength={400}
+                rows={5}
+                showCount={true}
                 error={
                   formik.touched.description &&
-                  Boolean(formik.errors.description)
+                  typeof formik.errors.description === "string"
+                    ? formik.errors.description
+                    : undefined
                 }
-                InputProps={{
-                  style: {
-                    borderRadius: "0.75rem",
-                    background: "#fff",
-                  },
-                }}
+                className="mb-4"
               />
               {formik.touched.description && formik.errors.description && (
                 <ErrorMessageCom error={formik.errors.description} />
@@ -1120,13 +1130,15 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                   </button>
                 </div>
               ))}
-              <button
-                type="button"
-                onClick={addCompositionRow}
-                className="text-green-600 hover:text-green-700 font-semibold mt-2 inline-flex items-center gap-1 transition"
-              >
-                <span className="text-xl">+</span> Add Composition
-              </button>
+              {(composition || []).length < 5 && (
+                <button
+                  type="button"
+                  onClick={addCompositionRow}
+                  className="text-green-600 hover:text-green-700 font-semibold mt-2 inline-flex items-center gap-1 transition"
+                >
+                  <span className="text-xl">+</span> Add Composition
+                </button>
+              )}
             </div>
             {/* Highlights Section Styling */}
             <div>
@@ -1162,13 +1174,15 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                   </button>
                 </div>
               ))}
-              <button
-                type="button"
-                onClick={addHighlightRow}
-                className="text-green-600 hover:text-green-700 font-semibold mt-2 inline-flex items-center gap-1 transition"
-              >
-                <span className="text-xl">+</span> Add Highlight
-              </button>
+              {(formik.values.highlights || []).length < 5 && (
+                <button
+                  type="button"
+                  onClick={addHighlightRow}
+                  className="text-green-600 hover:text-green-700 font-semibold mt-2 inline-flex items-center gap-1 transition"
+                >
+                  <span className="text-xl">+</span> Add Highlight
+                </button>
+              )}
             </div>
             <div className="space-y-4 border-t pt-8">
               {" "}

@@ -222,9 +222,7 @@ export default function ManagementPage() {
       label: "Mobile",
       minWidth: 140,
       selector: (r) => (
-        <div className="">
-          {r.mobile ? `+91 ${r.mobile}` : "-"}
-        </div>
+        <div className="">{r.mobile ? `+91 ${r.mobile}` : "-"}</div>
       ),
     },
     {
