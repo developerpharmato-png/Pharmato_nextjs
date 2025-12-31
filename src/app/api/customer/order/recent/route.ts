@@ -51,9 +51,16 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, message: 'No order found for this user' }, { status: 404 });
         }
 
-        let medicines = [];
+        let medicines: any[] = [];
         if (order.medicineId && Array.isArray(order.medicineId) && order.medicineId.length > 0) {
-            medicines = await Medicine.find({ _id: { $in: order.medicineId } });
+            // medicines = await Medicine.find({ _id: { $in: order.medicineId } });
+            medicines = await Medicine.find({
+                _id: { $in: order.medicineId }
+            })
+                .select('_id name categoryId subCategoryId manufacturer isPrescription mrp price discount images stock coverImage')
+                .lean();
+
+
         }
         // Get user's cart or guest cart
         let cartItems: any[] = [];
@@ -62,45 +69,41 @@ export async function POST(req: NextRequest) {
             cartItems = cart && typeof cart === 'object' && 'items' in cart && Array.isArray((cart as any).items) ? (cart as any).items : [];
         }
 
-        // Loop and populate category, subcategory, and cart info
-        const populatedMedicines = (
-            await Promise.all(
-                medicines.map(async (med: any) => {
-                    let category = null;
-                    let subcategory = null;
-                    if (med.categoryId) {
-                        const cat = await import('@/models/Category').then(m => m.default.findById(med.categoryId).lean());
-                        category = cat || null;
-                    }
-                    if (med.subCategoryId) {
-                        const subcat = await import('@/models/SubCategory').then(m => m.default.findById(med.subCategoryId).lean());
-                        subcategory = subcat || null;
-                    }
-                    // Cart info
-                    const cartItem = cartItems.find((item: any) => item.medicineId?.toString() === med._id?.toString());
-                    const isInCart = !!cartItem;
-                    const cartQuantity = cartItem ? cartItem.quantity : 0;
-                    return {
-                        ...med,
-                        category,
-                        subcategory,
-                        isInCart,
-                        cartQuantity,
-                    };
-                })
-            )
-        ).filter(med => {
+        for (const med of medicines) {
+
+            let category = null;
+            let subcategory = null;
+            if (med.categoryId) {
+                const cat = await import('@/models/Category').then(m => m.default.findById(med.categoryId).lean());
+                category = cat || null;
+            }
+            if (med.subCategoryId) {
+                const subcat = await import('@/models/SubCategory').then(m => m.default.findById(med.subCategoryId).lean());
+                subcategory = subcat || null;
+            }
+            // Cart info
+            med.cartItem = cartItems.find((item: any) => item.medicineId?.toString() === med._id?.toString());
+            med.isInCart = !!med.cartItem;
+            med.cartQuantity = med.cartItem ? med.cartItem.quantity : 0;
+            med.category = category;
+            med.subcategory = subcategory;
+
+        }
+
+        const finalMedicines = medicines.filter(med => {
             // Exclude if category is inactive
             if (med.categoryId && (!med.category || med.category.isActive === false)) return false;
             // Exclude if subcategory is inactive
             // if (med.subCategoryId && (!med.subcategory || med.subcategory.isActive === false)) return false;
             return true;
         });
+
         return NextResponse.json(
             {
                 success: true,
                 message: 'Medicines fetched successfully',
-                medicines: populatedMedicines
+                medicines: finalMedicines,
+                medicineQuantity: order.medicineQuantity,
             },
             {
                 status: 200,
