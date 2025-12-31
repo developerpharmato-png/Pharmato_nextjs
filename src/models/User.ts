@@ -13,6 +13,7 @@ export interface IUser extends Document {
     socialId?: string;
     isVerified: boolean;
     isActive?: boolean;
+    userDeActiveBy: string;
     isDelete?: boolean;
     walletAmount?: number;
     uniqueCode: string;
@@ -40,6 +41,7 @@ const UserSchema = new Schema<IUser>({
     isVerified: { type: Boolean, default: false }, 
     walletAmount: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },
+    userDeActiveBy: { type: String },
     isDelete: { type: Boolean, default: false },
     uniqueCode: { type: String },
     // Added for OTP and block logic

@@ -185,7 +185,8 @@ export async function POST(request: NextRequest) {
             message: 'OTP sent',
             otp, // remove in production
             userId: user._id,
-            isActive: user.isActive
+            isActive: user.isActive,
+            userDeActiveBy: user.userDeActiveBy
         },
         { status: 200 }
     );
