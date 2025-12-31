@@ -53,6 +53,7 @@ export default function PartialCancelPage() {
   const [previewSelectedMeds, setPreviewSelectedMeds] = useState<any[]>([]);
   const [previewUnselectedMeds, setPreviewUnselectedMeds] = useState<any[]>([]);
   const [toastMsg, setToastMsg] = useState<string>("");
+  const [cancelReasonError, setCancelReasonError] = useState<string>("");
   const statusOptions = [{ value: "Delivered", label: "Delivered" }];
 
   const medidetails = (_id: String) => {
@@ -751,7 +752,7 @@ export default function PartialCancelPage() {
                   })()}
                 </Box>
 
-                <TextField
+                {/* <TextField
                   multiline
                   minRows={2} // Reduced rows to save space
                   fullWidth
@@ -761,7 +762,33 @@ export default function PartialCancelPage() {
                   placeholder="e.g., Item out of stock..."
                   variant="outlined"
                   sx={modalStyles.textField}
-                />
+                /> */}
+                <div className="mt-6">
+                  <TextareaField
+                    id="targetScreen"
+                    name="alt"
+                    label="Reason for cancellation"
+                    value={cancelReason}
+                    onChange={(e) => {
+                      setCancelReason(e.target.value);
+                      // clear inline error when user types
+                      try {
+                        setCancelReasonError("");
+                      } catch (e) {}
+                    }}
+                    // placeholder="Enter description here"
+                    maxLength={200}
+                    rows={3}
+                    showCount={true}
+                    className="mb-4"
+                  />
+                  {typeof cancelReasonError !== "undefined" &&
+                  cancelReasonError ? (
+                    <p className="text-sm text-red-600 mt-1">
+                      {cancelReasonError}
+                    </p>
+                  ) : null}
+                </div>
               </Box>
             )}
           </Stack>
@@ -769,7 +796,12 @@ export default function PartialCancelPage() {
 
         <DialogActions sx={modalStyles.actions}>
           <Button
-            onClick={() => setShowCancelReasonDialog(false)}
+            onClick={() => {
+              setShowCancelReasonDialog(false);
+              try {
+                setCancelReasonError("");
+              } catch (e) {}
+            }}
             sx={modalStyles.cancelBtn}
           >
             Back
@@ -779,8 +811,12 @@ export default function PartialCancelPage() {
               if (
                 previewUnselectedMeds.length > 0 &&
                 (!cancelReason || !cancelReason.trim())
-              )
-                return Swal.fire("Warning", "Reason is required!", "warning");
+              ) {
+                try {
+                  setCancelReasonError("Reason is required!");
+                } catch (e) {}
+                return;
+              }
               try {
                 const res = await fetch("/api/admin/order/partial-accept", {
                   method: "POST",

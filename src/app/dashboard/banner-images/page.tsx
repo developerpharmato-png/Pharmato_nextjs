@@ -29,6 +29,22 @@ export default function BannerImagesDashboard() {
   const [success, setSuccess] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const [adminPermissions, setAdminPermissions] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("adminPermissions");
+      if (p) setAdminPermissions(JSON.parse(p));
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  const canEditBanner =
+    adminPermissions?.["Banner Images"]?.edit ??
+    adminPermissions?.BannerImages?.edit ??
+    true;
+
   // Image upload handler (max 3 images, show size, cancel/delete button)
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : [];
@@ -238,8 +254,8 @@ export default function BannerImagesDashboard() {
         title="Banner Images"
         subtitle="Manage homepage banner images"
         addLabel="Add"
-        addShow={true}
-        handleAdd={() => setModal({ open: true, editIdx: null })}
+        addShow={canEditBanner}
+        handleAdd={() => canEditBanner && setModal({ open: true, editIdx: null })}
       />
 
       <BannerImageModal
@@ -251,7 +267,7 @@ export default function BannerImagesDashboard() {
         }
         categories={categories}
         loading={loading}
-        onClose={() => setModal({ open: false, editIdx: null })}
+        onClose={() => setModal({ open: false, editIdx: null })} 
         onSave={async (img) => {
           setLoading(true);
           if (modal.editIdx !== null) {
@@ -274,30 +290,31 @@ export default function BannerImagesDashboard() {
 
       <div className="mt-8">
         <CustomTable
-          columns={[
-            {
-              id: "image",
-              label: "Image",
-              minWidth: 100,
-              selector: (row: any) => (
-                <CustomTooltip title={row.alt || "Banner image"}>
-                  <span>
-                    <CustomImage
-                      coverImage={row.url}
-                      images={[row.url]}
-                      alt={row.alt || "Banner"}
-                      style={{
-                        height: 48,
-                        width: 120,
-                        objectFit: "cover",
-                        borderRadius: 6,
-                        cursor: "pointer",
-                      }}
-                    />
-                  </span>
-                </CustomTooltip>
-              ),
-            },
+          columns={(() => {
+            const baseColumns = [
+              {
+                id: "image",
+                label: "Image",
+                minWidth: 100,
+                selector: (row: any) => (
+                  <CustomTooltip title={row.alt || "Banner image"}>
+                    <span>
+                      <CustomImage
+                        coverImage={row.url}
+                        images={[row.url]}
+                        alt={row.alt || "Banner"}
+                        style={{
+                          height: 48,
+                          width: 120,
+                          objectFit: "cover",
+                          borderRadius: 6,
+                          cursor: "pointer",
+                        }}
+                      />
+                    </span>
+                  </CustomTooltip>
+                ),
+              },
             // {
             //   id: "alt",
             //   label: "Alt Text",
@@ -319,108 +336,113 @@ export default function BannerImagesDashboard() {
             //   ),
             // },
 
-            {
-              id: "targetId",
-              label: "Category",
-              minWidth: 120,
-              selector: (row: any) => {
-                const cat = categories.find((c) => c._id === row.targetId);
-                return (
-                  <CustomTooltip title={cat ? cat.name : "-"}>
+              {
+                id: "targetId",
+                label: "Category",
+                minWidth: 120,
+                selector: (row: any) => {
+                  const cat = categories.find((c) => c._id === row.targetId);
+                  return (
+                    <CustomTooltip title={cat ? cat.name : "-"}>
+                      <span
+                        style={{
+                          display: "inline-block",
+                          width: 120,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {cat ? cat.name : "-"}
+                      </span>
+                    </CustomTooltip>
+                  );
+                },
+              },
+            ];
+
+            if (canEditBanner) {
+              baseColumns.push({
+                id: "isActive",
+                label: "Status",
+                minWidth: 80,
+                selector: (row: any) => (
+                  <button
+                    onClick={() => {
+                      showConfirmStatusAlert({
+                        isActive: !!row.isActive,
+                        title: row.isActive
+                          ? "Deactivate Status?"
+                          : "Activate Status?",
+                        text: row.isActive
+                          ? "Are you sure you want to deactivate this banner?"
+                          : "Are you sure you want to activate this banner?",
+                        confirmText: row.isActive ? "Deactivate" : "Activate",
+                        cancelText: "Cancel",
+                        onConfirm: async () => {
+                          const idx = images.findIndex(
+                            (img) => img.url === row.url
+                          );
+                          if (idx === -1) return;
+                          const updated = images.map((img, i) =>
+                            i === idx ? { ...img, isActive: !img.isActive } : img
+                          );
+                          setImages(updated);
+                          setLoading(true);
+                          try {
+                            await axios.post("/api/admin/banner-images", {
+                              images: updated,
+                            });
+                          } catch {}
+                          setLoading(false);
+                        },
+                      });
+                    }}
+                    className="relative cursor-pointer inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                    style={{
+                      backgroundColor: row.isActive ? "#10b981" : "#d1d5db",
+                    }}
+                    title={
+                      row.isActive ? "Click to deactivate" : "Click to activate"
+                    }
+                  >
+                    <span
+                      className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
+                        row.isActive ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                ),
+              });
+
+              baseColumns.push({
+                id: "actions",
+                label: "Edit",
+                minWidth: 100,
+                selector: (row: any) => (
+                  <div className="flex gap-2">
                     <span
                       style={{
-                        display: "inline-block",
-                        width: 120,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
+                        cursor: "pointer",
+                        color: "var(--primary)",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                      onClick={() => {
+                        const idx = images.findIndex((img) => img.url === row.url);
+                        setModal({ open: true, editIdx: idx });
                       }}
                     >
-                      {cat ? cat.name : "-"}
+                      <EditIcon fontSize="small" />
                     </span>
-                  </CustomTooltip>
-                );
-              },
-            },
-            {
-              id: "isActive",
-              label: "Status",
-              minWidth: 80,
-              selector: (row: any) => (
-                <button
-                  onClick={() => {
-                    showConfirmStatusAlert({
-                      isActive: !!row.isActive,
-                      title: row.isActive
-                        ? "Deactivate Status?"
-                        : "Activate Status?",
-                      text: row.isActive
-                        ? "Are you sure you want to deactivate this banner?"
-                        : "Are you sure you want to activate this banner?",
-                      confirmText: row.isActive ? "Deactivate" : "Activate",
-                      cancelText: "Cancel",
-                      onConfirm: async () => {
-                        const idx = images.findIndex(
-                          (img) => img.url === row.url
-                        );
-                        if (idx === -1) return;
-                        const updated = images.map((img, i) =>
-                          i === idx ? { ...img, isActive: !img.isActive } : img
-                        );
-                        setImages(updated);
-                        setLoading(true);
-                        try {
-                          await axios.post("/api/admin/banner-images", {
-                            images: updated,
-                          });
-                        } catch {}
-                        setLoading(false);
-                      },
-                    });
-                  }}
-                  className="relative cursor-pointer inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                  style={{
-                    backgroundColor: row.isActive ? "#10b981" : "#d1d5db",
-                  }}
-                  title={
-                    row.isActive ? "Click to deactivate" : "Click to activate"
-                  }
-                >
-                  <span
-                    className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
-                      row.isActive ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              ),
-            },
-            {
-              id: "actions",
-              label: "Edit",
-              minWidth: 100,
-              selector: (row: any) => (
-                <div className="flex gap-2">
-                  <span
-                    style={{
-                      cursor: "pointer",
-                      color: "var(--primary)",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                    onClick={() => {
-                      const idx = images.findIndex(
-                        (img) => img.url === row.url
-                      );
-                      setModal({ open: true, editIdx: idx });
-                    }}
-                  >
-                    <EditIcon fontSize="small" />
-                  </span>
-                </div>
-              ),
-            },
-          ]}
+                  </div>
+                ),
+              });
+            }
+
+            return baseColumns;
+          })()}
           data={images}
           page={0}
           rowsPerPage={10}

@@ -147,6 +147,18 @@ export default function CategoriesPage() {
   const handleAdd = () => {
     router.push("/dashboard/categories/new");
   };
+  const [adminPermissions, setAdminPermissions] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("adminPermissions");
+      if (p) setAdminPermissions(JSON.parse(p));
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  const canEditCategories = adminPermissions?.Categories?.edit ?? true;
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
@@ -156,8 +168,8 @@ export default function CategoriesPage() {
         showSearch={false}
         onSearchChange={setSearchTerm}
         addLabel="Add "
-         
-        addShow={true}
+        
+        addShow={canEditCategories}
         handleAdd={handleAdd}
       />
 

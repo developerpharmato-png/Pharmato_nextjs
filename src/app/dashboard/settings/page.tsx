@@ -34,6 +34,19 @@ export default function SettingsPage() {
     deliveryFeeId: "",
     deliveryFeeThresholdId: "",
   });
+  const [adminPermissions, setAdminPermissions] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("adminPermissions");
+      if (p) setAdminPermissions(JSON.parse(p));
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  const canEditSettings =
+    adminPermissions?.Setting?.edit ?? adminPermissions?.Settings?.edit ?? true;
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -151,22 +164,23 @@ export default function SettingsPage() {
         </div>
 
         {/* --- Action Row --- */}
-         <div className="mt-8 flex ButtonOuter w-full">
-              {" "}
-              <div className="buttoninner  w-full max-w-sm">
-            
-            <CustomButton
-              type="submit"
-              disabled={loading}
-              className="flex items-center gap-2 px-10 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg transition-all"
-            >
-              {loading ? "Processing..." : <><Save size={20} /> Update Settings</>}
-            </CustomButton>
+        {canEditSettings && (
+          <div className="mt-8 flex ButtonOuter w-full">
+            {" "}
+            <div className="buttoninner  w-full max-w-sm">
+              <CustomButton
+                type="submit"
+                disabled={loading}
+                className="flex items-center gap-2 px-10 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg transition-all"
+              >
+                {loading ? "Processing..." : <><Save size={20} /> Update Settings</>}
+              </CustomButton>
+            </div>
           </div>
-        </div>
+        )}
       </Form>
     )}
-  </Formik>
+  </Formik> 
   )}
   {toastMsg && <Toast message={toastMsg} />}
 </div>

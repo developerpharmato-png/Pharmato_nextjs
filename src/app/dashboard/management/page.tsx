@@ -14,6 +14,7 @@ type Admin = {
   name?: string;
   email: string;
   roleId?: string;
+  roleName?: string;
   isActive?: boolean;
   mobile?: string;
 };
@@ -229,14 +230,16 @@ export default function ManagementPage() {
       id: "role",
       label: "Role",
       minWidth: 140,
-      selector: (r) => roleMap[r.roleId || ""] || "-",
+      selector: (r) => (
+        <div className="">{r.roleName || roleMap[r.roleId || ""] || "-"}</div>
+      ),
     },
     {
       id: "isActive",
       label: "Status",
       minWidth: 100,
       selector: (row) => {
-        const roleName = roleMap[row.roleId || ""] || "";
+        const roleName = row.roleName || roleMap[row.roleId || ""] || "";
         const disabled = roleName === "SuperAdmin";
         return (
           <button
@@ -266,7 +269,7 @@ export default function ManagementPage() {
       id: "actions",
       label: "Actions",
       selector: (r) => {
-        const roleName = roleMap[r.roleId || ""] || "";
+        const roleName = r.roleName || roleMap[r.roleId || ""] || "";
         const isSuper = roleName === "SuperAdmin";
         return (
           <div className="flex items-center justify-center gap-3">
@@ -301,7 +304,7 @@ export default function ManagementPage() {
   const filteredAdmins = admins.filter((a) => {
     if (!search) return true;
     const q = search.toLowerCase();
-    const roleName = roleMap[a.roleId || ""] || "";
+    const roleName = a.roleName || roleMap[a.roleId || ""] || "";
     return (
       (a.name || "").toLowerCase().includes(q) ||
       (a.email || "").toLowerCase().includes(q) ||

@@ -80,8 +80,21 @@ export default function StoreDashboard() {
     }
   }, [storesData]);
 
+  const [adminPermissions, setAdminPermissions] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("adminPermissions");
+      if (p) setAdminPermissions(JSON.parse(p));
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  const canEditStores = adminPermissions?.Stores?.edit ?? true;
+
   // CustomTable columns definition
-  const columns: Column<any>[] = [
+  const baseColumns: Column<any>[] = [
     {
       id: "name",
       label: "Name",
@@ -153,7 +166,12 @@ export default function StoreDashboard() {
         );
       },
     },
-    {
+  ];
+
+  const columns: Column<any>[] = [...baseColumns];
+
+  if (canEditStores) {
+    columns.push({
       id: "status",
       label: "Status",
       minWidth: 100,
@@ -198,8 +216,9 @@ export default function StoreDashboard() {
           />
         </button>
       ),
-    },
-    {
+    });
+
+    columns.push({
       id: "actions",
       label: "Actions",
       minWidth: 60,
@@ -219,8 +238,8 @@ export default function StoreDashboard() {
           </span>
         </CustomTooltip>
       ),
-    },
-  ];
+    });
+  }
 
   return (
     <div className="containerStyle scrollbar-hide">
@@ -230,7 +249,7 @@ export default function StoreDashboard() {
         showBack={false}
         showSearch={false}
         addLabel="Add "
-        addShow={false}
+        addShow={canEditStores}
         handleAdd={() => router.push(`/dashboard/store/new/`)}
       />
 

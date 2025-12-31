@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import MedicinesTable from "./table";
 import HeaderWithAction from "../components/HeaderWithAction";
 import FilterSearch from "../components/FilterSearch";
@@ -46,6 +46,19 @@ export default function MedicinesPage() {
   const handleAdd = () => {
     router.push("/dashboard/medicines/AddEdit");
   };
+
+  const [adminPermissions, setAdminPermissions] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("adminPermissions");
+      if (p) setAdminPermissions(JSON.parse(p));
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  const canEditMedicines = adminPermissions?.Medicines?.edit ?? true;
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
@@ -53,11 +66,11 @@ export default function MedicinesPage() {
         subtitle="Manage your medicine inventory"
         backLabel="Back"
         addLabel="Add "
-        addHref="/dashboard/medicines/new"
+      
         showBack={false}
         showSearch={false}
         handleAdd={handleAdd}
-        addShow={true}
+        addShow={canEditMedicines}
         ExportButton={
           <>
             <div className="flex items-center ">
