@@ -4,6 +4,7 @@ import User from '@/models/User';
 import Order from '@/models/Order';
 import UserAddress from '@/models/UserAddress';
 import Store from '@/models/Store';
+import Medicine from '@/models/Medicine';
 import mongoose from 'mongoose';
 
 /**
@@ -39,12 +40,6 @@ import mongoose from 'mongoose';
  *                 items:
  *                   type: string
  *                 description: Array of prescription image/pdf URLs
- *               pinCode:
- *                 type: string
- *                 description: Pin code for the order
- *                 minLength: 4
- *                 maxLength: 10
- *                 example: "110001"
  *     responses:
  *       200:
  *         description: Order created successfully
@@ -96,10 +91,8 @@ import mongoose from 'mongoose';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { userId, storeId, calculationData, addressId, isPrescriptionRequired, prescription_url, pinCode } = await req.json();
-    if (!pinCode || typeof pinCode !== 'string' || pinCode.trim().length < 4) {
-        return NextResponse.json({ success: false, message: 'pinCode is required' }, { status: 400 });
-    }
+    const { userId, storeId, calculationData, addressId, isPrescriptionRequired, prescription_url } = await req.json();
+
     // Normalize prescription_url to array of strings
     let prescriptionUrlArr: string[] = [];
     if (Array.isArray(prescription_url)) {
@@ -161,8 +154,14 @@ export async function POST(req: NextRequest) {
 
     // Check if pinCode is available for the store
     // Type assertion to IStore to ensure correct property access
-    const store = await Store.findById(storeId).lean() as import('@/models/Store').IStore | null;
-    if (!store || !Array.isArray(store.servicePinCodes) || !store.servicePinCodes.includes(pinCode)) {
+    const store = await Store.findOne({
+        _id: storeObjectId,
+        status: true
+    }).lean() as import('@/models/Store').IStore | null;
+
+    // console.log(store);
+
+    if (!store || !Array.isArray(store.servicePinCodes) || !store.servicePinCodes.includes(addressDoc.address.pinCode)) {
         return NextResponse.json({ success: false, message: 'Pin code not serviceable by this store' }, { status: 400 });
     }
 
@@ -172,6 +171,22 @@ export async function POST(req: NextRequest) {
         expectedDeliveryDate.setDate(now.getDate() + 1);
     }
     expectedDeliveryDate.setHours(0, 0, 0, 0); // Set to midnight, so only date part is used
+
+    // Check stock for each medicine in medicineQuantity
+    if (Array.isArray(calculationData.medicineQuantity)) {
+        for (const item of calculationData.medicineQuantity) {
+            if (!item.medicineId || typeof item.quantity !== 'number') continue;
+            const med = await Medicine.findById(item.medicineId).lean();
+            // Type assertion to ensure med is not an array
+            const medDoc = med as import('@/models/Medicine').IMedicine | null;
+            if (!medDoc) {
+                return NextResponse.json({ success: false, message: `Medicine not found: ${item.medicineId}` }, { status: 400 });
+            }
+            if (typeof medDoc.stock === 'number' && item.quantity > medDoc.stock) {
+                return NextResponse.json({ success: false, message: `Stock not available for medicine: ${medDoc.name}` }, { status: 400 });
+            }
+        }
+    }
 
     const createOrder = await Order.create({
         userId: userCheck._id,
@@ -199,6 +214,7 @@ export async function POST(req: NextRequest) {
         deliveredAddress: addressDoc.toObject(),
         expectedDeliveryDate
     });
+
     if (createOrder) {
         return NextResponse.json({
             success: true,
@@ -214,4 +230,5 @@ export async function POST(req: NextRequest) {
     } else {
         return NextResponse.json({ success: false, message: 'Order not created' });
     }
+
 }
