@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import Order from '@/models/Order';
 import UserAddress from '@/models/UserAddress';
+import Store from '@/models/Store';
 import mongoose from 'mongoose';
 
 /**
@@ -38,6 +39,12 @@ import mongoose from 'mongoose';
  *                 items:
  *                   type: string
  *                 description: Array of prescription image/pdf URLs
+ *               pinCode:
+ *                 type: string
+ *                 description: Pin code for the order
+ *                 minLength: 4
+ *                 maxLength: 10
+ *                 example: "110001"
  *     responses:
  *       200:
  *         description: Order created successfully
@@ -89,7 +96,10 @@ import mongoose from 'mongoose';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { userId, storeId, calculationData, addressId, isPrescriptionRequired, prescription_url } = await req.json();
+    const { userId, storeId, calculationData, addressId, isPrescriptionRequired, prescription_url, pinCode } = await req.json();
+    if (!pinCode || typeof pinCode !== 'string' || pinCode.trim().length < 4) {
+        return NextResponse.json({ success: false, message: 'pinCode is required' }, { status: 400 });
+    }
     // Normalize prescription_url to array of strings
     let prescriptionUrlArr: string[] = [];
     if (Array.isArray(prescription_url)) {
@@ -147,6 +157,13 @@ export async function POST(req: NextRequest) {
         storeObjectId = new mongoose.Types.ObjectId(storeId.trim());
     } catch {
         return NextResponse.json({ success: false, message: 'Invalid storeId' }, { status: 400 });
+    }
+
+    // Check if pinCode is available for the store
+    // Type assertion to IStore to ensure correct property access
+    const store = await Store.findById(storeId).lean() as import('@/models/Store').IStore | null;
+    if (!store || !Array.isArray(store.servicePinCodes) || !store.servicePinCodes.includes(pinCode)) {
+        return NextResponse.json({ success: false, message: 'Pin code not serviceable by this store' }, { status: 400 });
     }
 
     // Calculate expectedDeliveryDate (only date, no time)
