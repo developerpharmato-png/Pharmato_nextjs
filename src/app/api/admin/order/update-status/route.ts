@@ -3,7 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
 import User from '@/models/User';
 import Notification from '@/models/Notification';
-import { sendPushNotificationWithData } from '@/utils/firebase.helper';
+import { getDb, sendPushNotificationWithData } from '@/utils/firebase.helper';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
@@ -18,6 +18,18 @@ export async function POST(req: NextRequest) {
         }
         order.order_status = status;
         await order.save();
+
+        // Update orderStatus in Firebase Realtime Database
+        if (order?.order_id) {
+            const db = getDb();
+            //Firebase realtime data update
+            const firebaseRef = db.ref(`orders/${order.order_id}`);
+            const snapshot = await firebaseRef.once('value');
+            const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+            await firebaseRef.update({
+                isOrderStatusChanged: isOrderStatusChanged
+            });
+        }
 
         // Send notification to user
         const user = await User.findById(order.userId);

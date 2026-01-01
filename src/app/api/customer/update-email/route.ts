@@ -54,9 +54,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
     const user = await User.findById(userId);
+
     if (!user) {
         return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+    const oldEmail = user.email;
     if (user.otp !== otp || !user.otpExpires || user.otpExpires < new Date()) {
         return NextResponse.json({ error: 'Invalid or expired OTP' }, { status: 400 });
     }
@@ -71,12 +73,12 @@ export async function POST(req: NextRequest) {
             await sendPushNotificationWithData({
                 token: user.deviceToken,
                 title: 'Pharmato',
-                body: 'Your email has been updated successfully.',
+                body: oldEmail ? `Your email has been updated from ${oldEmail} to ${email}.` : 'Your email has been updated successfully.',
                 data: {
                     type: 'email-update',
                     targetScreen: 'account',
                     userId: user._id.toString(),
-                    oldEmail: user.email,
+                    oldEmail: oldEmail,
                     newEmail: email
                 }
             });
@@ -92,7 +94,7 @@ export async function POST(req: NextRequest) {
             userId: user._id.toString(),
             role: 'customer',
             title: 'Email Updated',
-            message: `Your email has been updated from ${user.email} to ${email}.`,
+            message: `Your email has been updated to ${email}.`,
             type: 'email-update',
             targetScreen: 'account',
             targetId: user._id.toString(),

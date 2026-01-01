@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
-import { getDb } from '@/utils/firebase.helper';
+import { getDb, sendPushNotificationWithData } from '@/utils/firebase.helper';
+import Notification from '@/models/Notification';
 import Razorpay from 'razorpay';
 import User from '@/models/User';
 import Medicine from '@/models/Medicine';
@@ -83,9 +84,9 @@ export async function POST(req: NextRequest) {
         });
         const unCancelledItems = order.medicineQuantity.filter((item: any) => item.status !== 'cancelled');
         if (unCancelledItems.length === 0) {
-            order.status = 'Cancelled';
+            order.order_status = 'Cancelled';
         } else {
-            order.status = 'Confirmed';
+            order.order_status = 'Confirmed';
         }
         await order.save();
 
@@ -95,7 +96,7 @@ export async function POST(req: NextRequest) {
         const cancelledForRefund = order.medicineQuantity.filter((item: any) => item.status === 'cancelled');
 
         if (cancelledForRefund.length > 0) {
-             refundAmount = cancelledForRefund.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+            refundAmount = cancelledForRefund.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
             try {
                 const refundResponse = await razorpayInstance.payments.refund(order.payment_id, {
                     amount: refundAmount * 100
@@ -140,6 +141,41 @@ export async function POST(req: NextRequest) {
             await firebaseRef.update({
                 isOrderStatusChanged: isOrderStatusChanged
             });
+        }
+
+        // Create in-app notification for customer and send push notification if device token exists
+        try {
+            const title = `Order Update`;
+            const message = `Your order ${order.order_id || ''} status is now ${order.order_status}`;
+            // Create in-app notification
+            await Notification.create({
+                userId: order.userId?.toString?.() || (user?._id?.toString?.() || ''),
+                role: 'customer',
+                title,
+                message,
+                type: 'order_status',
+                targetScreen: 'orders/detail',
+                targetId: order._id?.toString?.(),
+                isRead: false,
+                meta: { orderId: order.order_id, status: order.order_status }
+            });
+
+            // Send push if device token available
+            const deviceToken = user?.deviceToken || (user && (user as any).deviceToken);
+            if (deviceToken) {
+                try {
+                    await sendPushNotificationWithData({
+                        token: deviceToken,
+                        title: `Order ${order.order_id} updated`,
+                        body: message,
+                        data: { orderId: order._id?.toString?.(), orderStatus: order.order_status, screen: 'order' }
+                    });
+                } catch (err) {
+                    console.error('Failed to send push notification (partial-accept):', err);
+                }
+            }
+        } catch (notifErr) {
+            console.error('Notification create/send error (partial-accept):', notifErr);
         }
 
         return NextResponse.json({ success: true, message: 'Selected medicines accepted, rest cancelled', data: order });

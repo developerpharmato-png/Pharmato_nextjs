@@ -6,6 +6,7 @@ import { sendEmail } from '@/utils/sendEmail';
 import { getDb, sendPushNotificationWithData } from '@/utils/firebase.helper';
 import fs from 'fs';
 import path from 'path';
+import User from '@/models/User';
 
 /**
  * @swagger
@@ -66,7 +67,6 @@ export async function POST(req: NextRequest) {
         order.prescription_approved_at = new Date();
         order.prescription_approval_notes = approvalNotes || '';
         order.prescription_rejection_reason = '';
-        order.order_status = 'Confirmed';
 
         await order.save();
 
@@ -136,8 +136,9 @@ export async function POST(req: NextRequest) {
             console.error('Notification create error (approve):', notifErr);
         }
 
-        // Send notification if deviceToken exists
-        const user = order.userId;
+
+        // Get user info
+        const user = await User.findById(order.userId);
         if (user && user.deviceToken) {
             try {
                 await sendPushNotificationWithData({
