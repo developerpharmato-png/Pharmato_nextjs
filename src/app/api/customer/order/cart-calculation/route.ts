@@ -208,7 +208,7 @@ export async function POST(req: NextRequest) {
     const razorPayCommissionGstAmount = (razorPayCommissionAmount * Number(calculationData.razorPayCommissionGstInPercent)) / 100;
     calculationData.razorPayCommissionAmount = Number(razorPayCommissionAmount.toFixed(2));
     calculationData.razorPayCommissionGstAmount = Number(razorPayCommissionGstAmount.toFixed(2));
-    let totalOrderAmount = userTotalCharged + razorPayCommissionAmount + razorPayCommissionGstAmount + deliveryFee;
+    let totalOrderAmount = userTotalCharged + razorPayCommissionAmount + razorPayCommissionGstAmount + calculationData.deliveryFee;
 
     calculationData.totalOrderAmount = Number(totalOrderAmount.toFixed(2));
     calculationData.medicineId = medicineId;

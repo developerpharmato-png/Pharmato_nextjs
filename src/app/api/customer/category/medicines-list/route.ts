@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
     if (subCategoryId) {
         matchStage.subCategoryId = new mongoose.Types.ObjectId(subCategoryId);
     }
-    if (typeof (global as any).ObjectId === 'function') { }
+    if (typeof (global as any).ObjectId === 'function') {}
     if (typeof storeId === 'string' && storeId.trim() !== '') {
         try {
             matchStage.storeId = new mongoose.Types.ObjectId(storeId.trim());
