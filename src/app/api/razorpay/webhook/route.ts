@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
 
                 try {
                     const captureResponse = await razorpayInstance.payments.capture(entity.id, amount, currency);
-                } catch (error) {}
+                } catch (error) { }
             }
 
             if (body.event === 'payment.captured') {
@@ -146,11 +146,8 @@ export async function POST(req: NextRequest) {
                 }
 
                 try {
-                    const updatedOrder = await Order.findById(checkOrder._id).lean();
-                    let user = null;
-                    if (updatedOrder && typeof updatedOrder === 'object' && !Array.isArray(updatedOrder) && 'userId' in updatedOrder) {
-                        user = await User.findById((updatedOrder as any).userId).lean();
-                    }
+                    const updatedOrder = await Order.findOne({ order_id: orderId });
+                    const user = await User.findOne({ _id: checkOrder.userId })
                     const amountValue = typeof entity.amount === 'number' ? entity.amount / 100 : 0;
                     const subject = `Payment received for Order ${checkOrder.order_id}`;
                     let userName = 'Customer';
@@ -296,6 +293,7 @@ export async function POST(req: NextRequest) {
                     } catch (err) {
                         console.error('Superadmin notification error:', err);
                     }
+
                 } catch (notifyErr) {
                     console.error('Notify/email error on payment captured:', notifyErr);
                 }
