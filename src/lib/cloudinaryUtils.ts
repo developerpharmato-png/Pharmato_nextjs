@@ -9,18 +9,28 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export const uploadToCloudinary = async (fileBuffer: Buffer, publicId: string) => {
+export const uploadToCloudinary = async (
+    fileBuffer: Buffer,
+    publicId: string,
+    resourceType: 'image' | 'raw'
+) => {
     try {
         const result = await new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
-                { public_id: publicId },
+                {
+                    public_id: publicId,
+                    resource_type: resourceType, // 🔥 MAIN CHANGE
+                    folder: 'uploads'
+                },
                 (error, result) => {
                     if (error) return reject(error);
                     resolve(result);
                 }
             );
+
             uploadStream.end(fileBuffer);
         });
+
         return result;
     } catch (err) {
         throw err;

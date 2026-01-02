@@ -688,13 +688,6 @@ export default function PartialCancelPage() {
           sx={{ ...modalStyles.content, overflowY: "auto", maxHeight: "70vh" }}
         >
 
-          {/* <Box sx={modalStyles.noticeBox}>
-            <Typography variant="caption" sx={modalStyles.noticeText}>
-              <span className="font-bold">Notice:</span> Please provide a reason
-              for cancellation. This note will be sent to the customer.
-            </Typography>
-          </Box> */}
-
           {previewUnselectedMeds.length > 0 && (
             <Box sx={modalStyles.noticeBox}>
               <Typography variant="caption" sx={modalStyles.noticeText}>
