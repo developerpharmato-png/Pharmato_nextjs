@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
         let paymentHistory: any = {};
         let refundHistory: any = [];
         const entity = body.payload.payment.entity;
-        console.log(entity);
+        // console.log(entity);
         const orderId = entity.notes?.razorpay_order_id;
 
         paymentHistory.orderId = orderId;
@@ -148,6 +148,7 @@ export async function POST(req: NextRequest) {
                 try {
                     const updatedOrder = await Order.findOne({ order_id: orderId });
                     const user = await User.findOne({ _id: checkOrder.userId })
+                    // console.log("$$$updatedOrder$$$$$$$$$$$$$$user$$", updatedOrder, user);
                     const amountValue = typeof entity.amount === 'number' ? entity.amount / 100 : 0;
                     const subject = `Payment received for Order ${checkOrder.order_id}`;
                     let userName = 'Customer';
@@ -188,7 +189,7 @@ export async function POST(req: NextRequest) {
                         targetId: checkOrder._id.toString(),
                         meta: {
                             paymentId: entity.id,
-                            amount: amountValue,
+                            amount: `${amountValue}`,
                             currency: entity.currency,
                             method: entity.method,
                             status: entity.status
@@ -208,7 +209,7 @@ export async function POST(req: NextRequest) {
                                     type: 'order_placed',
                                     targetScreen: 'orders/detail',
                                     paymentId: entity.id,
-                                    amount: amountValue,
+                                    amount: `${amountValue}`,
                                     currency: entity.currency,
                                     method: entity.method,
                                     status: entity.status
