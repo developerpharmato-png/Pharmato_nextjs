@@ -208,51 +208,70 @@ export default function PartialCancelPage() {
     }
   };
 
+  // const handleAcceptSelected = async (e?: React.MouseEvent) => {
+  //   if (e && typeof (e as any).preventDefault === "function")
+  //     (e as any).preventDefault();
+  //   if (!order) return;
+
+  //   const selectedMedsArr = order.medicineId.filter((med: any) =>
+  //     selected.includes(med._id)
+  //   );
+  //   const unselectedMedsArr = order.medicineId.filter(
+  //     (med: any) => !selected.includes(med._id)
+  //   );
+
+  //   // If there are no unselected meds, proceed immediately (no reason required)
+  //   if (!unselectedMedsArr.length) {
+  //     try {
+  //       const res = await fetch("/api/admin/order/partial-accept", {
+  //         method: "POST",
+  //         headers: { "Content-Type": "application/json" },
+  //         body: JSON.stringify({
+  //           orderId,
+  //           medicineIds: selected,
+  //           cancelReason: undefined,
+  //         }),
+  //       });
+  //       const data = await res.json();
+  //       if (data.success) {
+  //         setToastMsg("Selected medicines accepted");
+  //         setTimeout(() => setToastMsg(""), 3500);
+  //         setSelected([]);
+  //         setCancelReason("");
+  //         fetchOrder();
+  //       } else {
+  //         Swal.fire("Error", data.message || "Failed to accept", "error");
+  //       }
+  //     } catch (e) {
+  //       Swal.fire("Error", "Failed to accept", "error");
+  //     }
+  //     return;
+  //   }
+
+  //   // otherwise preview and open styled dialog
+  //   setPreviewSelectedMeds(selectedMedsArr);
+  //   setPreviewUnselectedMeds(unselectedMedsArr);
+  //   setShowCancelReasonDialog(true);
+  // };
+
   const handleAcceptSelected = async (e?: React.MouseEvent) => {
-    if (e && typeof (e as any).preventDefault === "function")
-      (e as any).preventDefault();
+    if (e?.preventDefault) e.preventDefault();
     if (!order) return;
 
     const selectedMedsArr = order.medicineId.filter((med: any) =>
       selected.includes(med._id)
     );
+
     const unselectedMedsArr = order.medicineId.filter(
       (med: any) => !selected.includes(med._id)
     );
 
-    // If there are no unselected meds, proceed immediately (no reason required)
-    if (!unselectedMedsArr.length) {
-      try {
-        const res = await fetch("/api/admin/order/partial-accept", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            orderId,
-            medicineIds: selected,
-            cancelReason: undefined,
-          }),
-        });
-        const data = await res.json();
-        if (data.success) {
-          setToastMsg("Selected medicines accepted");
-          setTimeout(() => setToastMsg(""), 3500);
-          setSelected([]);
-          setCancelReason("");
-          fetchOrder();
-        } else {
-          Swal.fire("Error", data.message || "Failed to accept", "error");
-        }
-      } catch (e) {
-        Swal.fire("Error", "Failed to accept", "error");
-      }
-      return;
-    }
-
-    // otherwise preview and open styled dialog
+    // 🔥 ALWAYS open preview dialog
     setPreviewSelectedMeds(selectedMedsArr);
     setPreviewUnselectedMeds(unselectedMedsArr);
     setShowCancelReasonDialog(true);
   };
+
 
   if (loading)
     return (
@@ -300,7 +319,11 @@ export default function PartialCancelPage() {
           showSearch={false}
           addShow={false}
         />
-        <CustomButton width="250px" onClick={() => setShowStatusDialog(true)}>
+        <CustomButton
+          width="250px"
+          onClick={() => setShowStatusDialog(true)}
+          disabled={order?.order_status !== 'Confirmed'}
+        >
           Update Order
         </CustomButton>
       </div>
@@ -323,34 +346,34 @@ export default function PartialCancelPage() {
                 order.order_status === "Delivered"
                   ? "#e8f5e9"
                   : order.order_status === "Out For Delivery"
-                  ? "#e3f2fd"
-                  : order.order_status === "Cancelled"
-                  ? "#ffebee"
-                  : "#f3f4f6",
+                    ? "#e3f2fd"
+                    : order.order_status === "Cancelled"
+                      ? "#ffebee"
+                      : "#f3f4f6",
               color:
                 order.order_status === "Delivered"
                   ? "#388e3c"
                   : order.order_status === "Out For Delivery"
-                  ? "#1565c0"
-                  : order.order_status === "Cancelled"
-                  ? "#d32f2f"
-                  : "#555",
+                    ? "#1565c0"
+                    : order.order_status === "Cancelled"
+                      ? "#d32f2f"
+                      : "#555",
               border:
                 order.order_status === "Delivered"
                   ? "1px solid #a5d6a7"
                   : order.order_status === "Out For Delivery"
-                  ? "1px solid #90caf9"
-                  : order.order_status === "Cancelled"
-                  ? "1px solid #ef9a9a"
-                  : "1px solid #e0e0e0",
+                    ? "1px solid #90caf9"
+                    : order.order_status === "Cancelled"
+                      ? "1px solid #ef9a9a"
+                      : "1px solid #e0e0e0",
               boxShadow: "0 1px 4px #0001",
               textTransform: "capitalize",
             }}
           >
             {order.order_status
               ? order.order_status
-                  .replace(/_/g, " ")
-                  .replace(/\b\w/g, (c: string) => c.toUpperCase())
+                .replace(/_/g, " ")
+                .replace(/\b\w/g, (c: string) => c.toUpperCase())
               : "Status Unknown"}
           </span>
         </div>
@@ -633,7 +656,7 @@ export default function PartialCancelPage() {
           <div style={{ display: "flex", gap: 12 }}>
             <CustomButton
               type="button"
-              disabled={!hasPending ||order.order_status!=="Order Placed"}
+              disabled={!hasPending || order.order_status !== "Order Placed"}
               onClick={handleAcceptSelected}
             >
               Confirm Order
@@ -664,12 +687,23 @@ export default function PartialCancelPage() {
         <DialogContent
           sx={{ ...modalStyles.content, overflowY: "auto", maxHeight: "70vh" }}
         >
-          <Box sx={modalStyles.noticeBox}>
+
+          {/* <Box sx={modalStyles.noticeBox}>
             <Typography variant="caption" sx={modalStyles.noticeText}>
               <span className="font-bold">Notice:</span> Please provide a reason
               for cancellation. This note will be sent to the customer.
             </Typography>
-          </Box>
+          </Box> */}
+
+          {previewUnselectedMeds.length > 0 && (
+            <Box sx={modalStyles.noticeBox}>
+              <Typography variant="caption" sx={modalStyles.noticeText}>
+                <span className="font-bold">Notice:</span> Please provide a reason
+                for cancellation. This note will be sent to the customer.
+              </Typography>
+            </Box>
+          )}
+
 
           <Stack spacing={2}>
             {/* Items to Confirm */}
@@ -760,7 +794,7 @@ export default function PartialCancelPage() {
                       // clear inline error when user types
                       try {
                         setCancelReasonError("");
-                      } catch (e) {}
+                      } catch (e) { }
                     }}
                     // placeholder="Enter description here"
                     maxLength={200}
@@ -769,7 +803,7 @@ export default function PartialCancelPage() {
                     className="mb-4"
                   />
                   {typeof cancelReasonError !== "undefined" &&
-                  cancelReasonError ? (
+                    cancelReasonError ? (
                     <p className="text-sm text-red-600 mt-1">
                       {cancelReasonError}
                     </p>
@@ -786,7 +820,7 @@ export default function PartialCancelPage() {
               setShowCancelReasonDialog(false);
               try {
                 setCancelReasonError("");
-              } catch (e) {}
+              } catch (e) { }
             }}
             sx={modalStyles.cancelBtn}
           >
@@ -800,7 +834,7 @@ export default function PartialCancelPage() {
               ) {
                 try {
                   setCancelReasonError("Reason is required!");
-                } catch (e) {}
+                } catch (e) { }
                 return;
               }
               try {
