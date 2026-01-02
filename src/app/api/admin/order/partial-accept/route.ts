@@ -168,7 +168,12 @@ export async function POST(req: NextRequest) {
                         token: deviceToken,
                         title: `Order ${order.order_id} updated`,
                         body: message,
-                        data: { orderId: order._id?.toString?.(), orderStatus: order.order_status, screen: 'order' }
+                        data: {
+                            targetId: order._id?.toString?.(),
+                            orderId: order._id?.toString?.(),
+                            orderStatus: order.order_status,
+                            screen: 'order'
+                        }
                     });
                 } catch (err) {
                     console.error('Failed to send push notification (partial-accept):', err);

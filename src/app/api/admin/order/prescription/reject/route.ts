@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
             order.prescription_url = prescription_url;
         }
 
-        await order.save();        
+        await order.save();
 
         // Update orderStatus in Firebase Realtime Database
         if (order?.order_id) {
@@ -119,6 +119,7 @@ export async function POST(req: NextRequest) {
                     title: 'Pharmato',
                     body: `Your prescription for order ${order.order_id} has been rejected. Please re-upload a valid prescription or contact the store manager.`,
                     data: {
+                        targetId: order._id.toString(),
                         orderId: order._id.toString(),
                         type: 'prescription_rejected',
                         targetScreen: 'orders/detail/prescription_reupload',

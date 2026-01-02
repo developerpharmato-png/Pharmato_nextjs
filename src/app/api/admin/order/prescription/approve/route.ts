@@ -146,6 +146,7 @@ export async function POST(req: NextRequest) {
                     title: 'Pharmato',
                     body: `Your prescription for order ${order.order_id} has been approved by the store. Your order is confirmed and will be delivered soon.`,
                     data: {
+                        targetId: order._id.toString(),
                         orderId: order._id.toString(),
                         type: 'prescription_approved',
                         targetScreen: 'orders/detail'

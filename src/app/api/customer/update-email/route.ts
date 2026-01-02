@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
                 data: {
                     type: 'email-update',
                     targetScreen: 'account',
+                    targetId: user._id.toString(),
                     userId: user._id.toString(),
                     oldEmail: oldEmail,
                     newEmail: email

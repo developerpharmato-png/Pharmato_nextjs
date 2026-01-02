@@ -40,7 +40,9 @@ export async function POST(req: NextRequest) {
                 body: `Your order (Order ID: ${order.order_id || order._id}) status is now: ${status}`,
                 data: {
                     orderId: order._id.toString(),
+                    targetId: order._id.toString(),
                     type: 'order_status_update',
+                    targetScreen: 'orders/detail',
                     status: status
                 }
             });

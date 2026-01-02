@@ -50,6 +50,14 @@ import { signJwt } from '@/lib/jwt';
 export async function POST(request: NextRequest) {
     await connectDB();
     const { userId, otp, deviceToken } = await request.json();
+    // Log deviceToken if sent in headers (case-insensitive key)
+    try {
+        const headerDeviceToken = request.headers.get('devicetoken') || request.headers.get('deviceToken') || request.headers.get('device-token');
+        console.log('verify-otp: deviceToken (body):', deviceToken);
+        console.log('verify-otp: deviceToken (header):', headerDeviceToken);
+    } catch (e) {
+        console.log('verify-otp: failed to read headers for deviceToken', e);
+    }
     if (!userId || !otp) {
         return NextResponse.json({ success: false, error: 'User object id and OTP required' }, { status: 400 });
     }

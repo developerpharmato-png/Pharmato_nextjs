@@ -81,8 +81,9 @@ export async function POST(req: NextRequest) {
                 data: {
                     type: 'mobile-update',
                     targetScreen: 'account',
+                    targetId: user._id.toString(),
                     userId: user._id.toString(),
-                    oldMobile: user.mobile,
+                    oldMobile: oldMobile,
                     newMobile: mobile
                 }
             });

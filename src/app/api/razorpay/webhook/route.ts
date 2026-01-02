@@ -206,6 +206,7 @@ export async function POST(req: NextRequest) {
                                 title: 'Pharmato',
                                 body: checkOrder.isPrescriptionRequired !== true ? `Your Order ${checkOrder.order_id} has been placed successfully. It will be delievered to you soon.` : `Your Order ${checkOrder.order_id} has been placed successfully. We will Notify you when your prescription is approved.`,
                                 data: {
+                                    targetId: checkOrder._id.toString(),
                                     orderId: checkOrder._id.toString(),
                                     type: 'order_placed',
                                     targetScreen: 'orders/detail',
