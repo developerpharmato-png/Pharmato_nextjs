@@ -85,10 +85,10 @@ export async function POST(req: NextRequest) {
 
         }
 
-        // Filter out addresses that have no matching store
-        const filteredAddressList = addressList.filter((a: any) => Array.isArray(a.storeList) && a.storeList.length > 0);
+        // // Filter out addresses that have no matching store
+        // const filteredAddressList = addressList.filter((a: any) => Array.isArray(a.storeList) && a.storeList.length > 0);
 
-        return NextResponse.json({ success: true, message: 'Address list fetched successfully', addressList: filteredAddressList });
+        return NextResponse.json({ success: true, message: 'Address list fetched successfully', addressList: addressList });
     } catch (error: any) {
         return NextResponse.json({ success: false, message: 'Error fetching address list', error: error.message });
     }
