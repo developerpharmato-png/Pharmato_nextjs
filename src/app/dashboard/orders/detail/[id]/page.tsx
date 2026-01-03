@@ -216,12 +216,12 @@ export default function OrderDetailPage() {
                       </svg>
                       {order?.createdAt
                         ? new Date(order.createdAt).toLocaleString("en-IN", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                         : "N/A"}
                     </p>
                   </div>
@@ -255,7 +255,7 @@ export default function OrderDetailPage() {
                     <span className="font-bold text-green-600 uppercase">
                       {" "}
                       {order?.calculationData?.deliveryFee !== undefined &&
-                      order?.calculationData?.deliveryFee > 0
+                        order?.calculationData?.deliveryFee > 0
                         ? `₹${order?.calculationData?.deliveryFee?.toFixed(2)}`
                         : "FREE"}
                     </span>
