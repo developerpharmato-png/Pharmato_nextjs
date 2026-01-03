@@ -121,7 +121,7 @@ export default function AdminCustomerListPage() {
     },
     {
       id: "isActive",
-      label: "Status",
+      label: "User Status",
       minWidth: 80,
       selector: (row: Customer) => (
         <button

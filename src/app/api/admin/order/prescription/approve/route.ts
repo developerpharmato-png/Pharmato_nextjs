@@ -136,7 +136,6 @@ export async function POST(req: NextRequest) {
             console.error('Notification create error (approve):', notifErr);
         }
 
-
         // Get user info
         const user = await User.findById(order.userId);
         if (user && user.deviceToken) {
