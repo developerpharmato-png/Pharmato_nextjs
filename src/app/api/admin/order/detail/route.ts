@@ -82,6 +82,8 @@ export async function POST(req: NextRequest) {
                 return {
                     ...med.toObject(),
                     quantity: q?.quantity || 1,
+                    price: q?.price || med.price,
+                    isPrescription: q?.isPrescription || false,
                     status: q?.status || 'pending',
                     cancelReason: q?.cancelReason || '',
                 };

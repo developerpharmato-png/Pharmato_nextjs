@@ -114,6 +114,7 @@ const ProductManageTable: React.FC<Props> = ({
                 <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Unit Price</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Total</th>
                 <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Status</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Is Prescription Required</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -153,6 +154,11 @@ const ProductManageTable: React.FC<Props> = ({
                     <td className="px-6 py-4 text-center">
                       <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border tracking-tighter ${themeClasses[theme]}`}>
                         {item.status === 'delivered' || item.status === 'accepted' ? 'ACCEPTED' : item.status.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border tracking-tighter bg-blue-50 text-blue-500 border-blue-100`}>
+                        {item.isPrescription === true ? 'PRESCRIPTION REQUIRED' : 'NO PRESCRIPTION'}
                       </span>
                     </td>
                   </tr>
