@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
                     title: 'Prescription Rejected',
                     message: `Your prescription for order ${order.order_id} has been rejected. Please re-upload a valid prescription or contact the store manager.`,
                     type: 'prescription_rejected',
-                    targetScreen: 'orders/detail/prescription_reupload',
+                    targetScreen: 'orders/detail',
                     targetId: order._id.toString(),
                     meta: {
                         orderId: order._id.toString(),
@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
                         targetId: order._id.toString(),
                         orderId: order._id.toString(),
                         type: 'prescription_rejected',
-                        targetScreen: 'orders/detail/prescription_reupload',
+                        targetScreen: 'orders/detail',
                         rejectionReason
                     }
                 });
