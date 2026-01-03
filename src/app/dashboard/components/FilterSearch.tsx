@@ -171,13 +171,16 @@ console.log(categoryFilter,"categoryFilter");
   // --- UI STYLING ---
   const controlStyle = {
     minWidth: 200,
-    flex: "1 1 200px",
+    maxWidth: 200,
+    flex: "0 0 300px",
     "& .MuiOutlinedInput-root": {
       borderRadius: "8px",
       "&.Mui-focused fieldset": { borderColor: "green" },
     },
     "& .MuiInputLabel-root.Mui-focused": { color: "green" },
   };
+
+  const searchWidth = showOrderFilters ? 200 : 300;
 
   return (
     <Box className={className} sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, mb: 2 }}>
@@ -189,7 +192,7 @@ console.log(categoryFilter,"categoryFilter");
           placeholder={placeholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          sx={{ ...controlStyle, flex: "2 1 300px" }}
+          sx={{ ...controlStyle, flex: `0 0 ${searchWidth}px`, maxWidth: searchWidth, minWidth: searchWidth }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">

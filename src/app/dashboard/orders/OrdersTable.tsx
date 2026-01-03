@@ -196,9 +196,10 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       selector: (row: Order) => (
         <CustomTooltip title={row.payment_status || "Pending"}>
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium customTooltip ${getStatusColor(
+            className={`px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase text-center inline-flex justify-center items-center customTooltip ${getStatusColor(
               row.payment_status
             )}`}
+            style={{ minWidth: 110, letterSpacing: 0.4 }}
           >
             {row.payment_status || "Pending"}
           </span>
@@ -212,9 +213,10 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       selector: (row: Order) => (
         <CustomTooltip title={row.order_status || "Pending"}>
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium customTooltip ${getStatusColor(
+            className={`px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase text-center inline-flex justify-center items-center customTooltip ${getStatusColor(
               row.order_status
             )}`}
+            style={{ minWidth: 110, letterSpacing: 0.4 }}
           >
             {row.order_status || "Pending"}
           </span>
@@ -228,9 +230,10 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       selector: (row: Order) => (
         <CustomTooltip title={row.prescription_status || "Not Required"}>
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium customTooltip ${getPrescriptionColor(
+            className={`px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase text-center inline-flex justify-center items-center customTooltip ${getPrescriptionColor(
               row.prescription_status || ""
             )}`}
+            style={{ minWidth: 120, letterSpacing: 0.4 }}
           >
             {row.prescription_status || "Not Required"}
           </span>

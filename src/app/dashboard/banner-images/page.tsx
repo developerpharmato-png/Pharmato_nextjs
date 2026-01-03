@@ -252,7 +252,7 @@ export default function BannerImagesDashboard() {
       <HeaderWithAction
         showBack={false}
         title="Banner Images"
-        subtitle="Manage homepage banner images"
+        subtitle="Manage promotional banners"
         addLabel="Add"
         addShow={canEditBanner}
         handleAdd={() => canEditBanner && setModal({ open: true, editIdx: null })}
