@@ -489,54 +489,69 @@ export default function PartialCancelPage() {
               return (
                 <div
                   key={idx}
-                  className="relative h-44 rounded-xl border border-gray-200 overflow-hidden bg-white shadow-sm"
+                  className="flex flex-col rounded-xl border border-gray-200 overflow-hidden bg-white shadow-sm h-full"
                 >
-                  {/* Download Button - Fixed to Top Right, Always Visible */}
+                  {/* Image/PDF Container */}
+                  <div className="relative flex-1 bg-gray-50 min-h-40">
+                    {/* Download Button - Fixed to Top Right, Always Visible */}
+                    <button
+                      onClick={() => downloadImageByUrl(url)}
+                      className="absolute top-2 right-2 z-20 bg-white/90 p-1.5 rounded-lg shadow-md border border-gray-100 hover:bg-white transition-all text-gray-700"
+                      title="Download File"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2.5"
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                        />
+                      </svg>
+                    </button>
+
+                    {isPdf ? (
+                      <div className="w-full h-full bg-gradient-to-br from-red-50 to-red-100 flex flex-col items-center justify-center gap-3">
+                        {/* PDF Icon */}
+                        <div className="w-16 h-16 bg-red-500 rounded-lg flex items-center justify-center shadow-lg">
+                          <svg
+                            className="w-10 h-10 text-white"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-8-6z" />
+                          </svg>
+                        </div>
+                        {/* PDF Label */}
+                        <span className="text-red-600 font-bold text-sm tracking-widest uppercase">
+                          PDF Document
+                        </span>
+                      </div>
+                    ) : (
+                      <CustomImage
+                        coverImage={url}
+                        images={[url]}
+                        alt={`Prescription ${idx + 1}`}
+                        style={{
+                          height: "100%",
+                          width: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  {/* View Button at Bottom */}
                   <button
                     onClick={() => downloadImageByUrl(url)}
-                    className="absolute top-2 right-2 z-20 bg-white/90 p-1.5 rounded-lg shadow-md border border-gray-100 hover:bg-white transition-all text-gray-700"
-                    title="Download File"
+                    className="w-full py-3 text-center font-bold text-sm uppercase tracking-wide text-teal-600 hover:bg-teal-50 transition-all border-t border-gray-200"
                   >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2.5"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                      />
-                    </svg>
+                    View
                   </button>
-
-                  {isPdf ? (
-                    <div className="w-full h-full bg-gray-50">
-                      {/* PDF Viewer inside Iframe */}
-                      <iframe
-                        src={`${pdfViewerUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                        className="w-full h-full border-none pointer-events-none"
-                        title={`Prescription PDF ${idx + 1}`}
-                      />
-                      {/* Subtle label to indicate it's a PDF since we hidden the toolbar */}
-                      <div className="absolute bottom-0 left-0 right-0 bg-red-600/10 text-red-600 text-[8px] font-bold text-center py-0.5 backdrop-blur-sm">
-                        PDF PREVIEW
-                      </div>
-                    </div>
-                  ) : (
-                    <CustomImage
-                      coverImage={url}
-                      images={[url]}
-                      alt={`Prescription ${idx + 1}`}
-                      style={{
-                        height: "100%",
-                        width: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
-                  )}
                 </div>
               );
             })}
