@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
         if (setting.type === 'deliveryFeeThreshold') deliveryFeeThreshold = Number(setting.data);
     }
 
-    console.log("$$$$$$$$$cartData$$$$$$$$$",cartData);
+    // console.log("$$$$$$$$$cartData$$$$$$$$$",cartData);
 
     for (const element of cartData) {
         medicineId.push(new mongoose.Types.ObjectId(element.medicine._id));
