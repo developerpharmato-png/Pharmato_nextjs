@@ -90,7 +90,7 @@ export default function OrdersPage() {
 
       <HeaderWithAction
         title="Orders"
-        subtitle="Manage customer orders and track status"
+        subtitle="Track, process, and manage all orders"
         showBack={false}
         ExportButton={
           <div className="flex items-center gap-2 p-1 bg-gray-50 rounded-lg border border-gray-200">

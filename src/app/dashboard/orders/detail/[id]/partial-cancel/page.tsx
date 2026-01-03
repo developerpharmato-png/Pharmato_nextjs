@@ -475,7 +475,16 @@ export default function PartialCancelPage() {
                 return null; // Changed from <></> to null for cleaner mapping
               }
 
-              const isPdf = url.toLowerCase().endsWith(".pdf");
+              // Treat Cloudinary raw assets (no extension, /raw/ in path) as PDF so we render the iframe preview
+              const lowerUrl = url.toLowerCase();
+              const isPdf = lowerUrl.endsWith(".pdf") || lowerUrl.includes("/raw/");
+              // For raw Cloudinary links, disable attachment disposition so the browser can inline it; fall back to gview if still blocked
+              const inlineUrl = isPdf && lowerUrl.includes("/raw/")
+                ? `${url}${url.includes("?") ? "&" : "?"}fl_attachment=false`
+                : url;
+              const pdfViewerUrl = isPdf && !lowerUrl.endsWith(".pdf")
+                ? `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(inlineUrl)}`
+                : inlineUrl;
 
               return (
                 <div
@@ -507,7 +516,7 @@ export default function PartialCancelPage() {
                     <div className="w-full h-full bg-gray-50">
                       {/* PDF Viewer inside Iframe */}
                       <iframe
-                        src={`${url}#toolbar=0&navpanes=0&scrollbar=0`}
+                        src={`${pdfViewerUrl}#toolbar=0&navpanes=0&scrollbar=0`}
                         className="w-full h-full border-none pointer-events-none"
                         title={`Prescription PDF ${idx + 1}`}
                       />

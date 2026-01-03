@@ -245,11 +245,12 @@ export default function StoreDashboard() {
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
         title="Stores"
-        subtitle="Manage your store locations and service pincodes"
+        subtitle="Manage stores, managers, and serviceable areas"
         showBack={false}
         showSearch={false}
+        addShow={false}
         addLabel="Add "
-        addShow={canEditStores}
+        // addShow={canEditStores}
         handleAdd={() => router.push(`/dashboard/store/new/`)}
       />
 

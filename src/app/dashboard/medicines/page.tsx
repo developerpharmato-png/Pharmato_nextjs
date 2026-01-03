@@ -63,7 +63,8 @@ export default function MedicinesPage() {
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
         title="Medicines"
-        subtitle="Manage your medicine inventory"
+        subtitle="Manage medicines, pricing, and availability
+ "
         backLabel="Back"
         addLabel="Add "
       

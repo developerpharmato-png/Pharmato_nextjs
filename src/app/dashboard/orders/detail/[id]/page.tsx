@@ -274,7 +274,7 @@ export default function OrderDetailPage() {
                     <span className="text-sm font-bold text-gray-800">
                       Final Payable
                     </span>
-                    <span className="text-2xl font-black text-green-600">
+                    <span className=" font-black text-green-600">
                       {" "}
                       ₹
                       {order?.calculationData?.totalOrderAmount?.toFixed(2) ||

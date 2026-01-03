@@ -17,6 +17,13 @@ export async function POST(req: NextRequest) {
   const { name, email, roleId, _id, mobile } = body;
   if (!email || !name) return NextResponse.json({ success: false, message: 'name and email required' }, { status: 400 });
 
+  // Capture existing role to decide if session needs to be invalidated
+  let priorRoleId: string | null = null;
+  if (_id) {
+    const existing = await Admin.findById(_id).select('roleId').lean();
+    if (existing) priorRoleId = (existing as any).roleId ? String((existing as any).roleId) : null;
+  }
+
   // create or update admin with temp password and token
   const token = crypto.randomBytes(20).toString('hex');
   const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
@@ -62,6 +69,20 @@ export async function POST(req: NextRequest) {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     ).lean();
     if (Array.isArray(upserted)) upserted = upserted[0];
+  }
+
+  // If role changed, force logout for that admin by clearing session artifacts
+  if (_id && upserted && upserted._id) {
+    const updatedRoleId = (upserted as any).roleId ? String((upserted as any).roleId) : null;
+    if (priorRoleId !== null || updatedRoleId !== null) {
+      const roleChanged = priorRoleId !== updatedRoleId;
+      if (roleChanged) {
+        await Admin.updateOne(
+          { _id: upserted._id },
+          { $set: { sessionToken: null, sessionId: null, refreshToken: null } }
+        );
+      }
+    }
   }
 
   // If roleId is present, try to populate role name for convenience
