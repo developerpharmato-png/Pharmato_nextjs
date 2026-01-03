@@ -364,8 +364,7 @@ export default function OrderDetailPage() {
                     </span>
                   </div>
                   <p className="text-sm text-gray-500 leading-relaxed">
-                    {order?.deliveredAddress?.address?.houseNumber},{" "}
-                    {order?.deliveredAddress?.address?.street}, <br />
+                    {order?.deliveredAddress?.address?.houseNumber},
                     {order?.deliveredAddress?.address?.locality &&
                       `${order.deliveredAddress.address.locality}, `}
                     {order?.deliveredAddress?.address?.city} -{" "}

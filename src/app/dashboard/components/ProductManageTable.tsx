@@ -157,7 +157,7 @@ const ProductManageTable: React.FC<Props> = ({
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border tracking-tighter ${themeClasses[theme]}`}>
+                      <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border tracking-tighter bg-blue-50 text-blue-500 border-blue-100`}>
                         {item.isPrescription === true ? 'PRESCRIPTION REQUIRED' : 'NO PRESCRIPTION'}
                       </span>
                     </td>
