@@ -6,6 +6,7 @@ import { sendEmail } from '@/utils/sendEmail';
 import fs from 'fs';
 import path from 'path';
 import { getDb, sendPushNotificationWithData } from '@/utils/firebase.helper';
+import User from '@/models/User';
 
 /**
  * @swagger
@@ -110,8 +111,8 @@ export async function POST(req: NextRequest) {
             console.error('Notification create error:', notifErr);
         }
 
-        // Send notification if deviceToken exists
-        const user = order.userId;
+        // Get user info
+        const user = await User.findById(order.userId);
         if (user && user.deviceToken) {
             try {
                 await sendPushNotificationWithData({
