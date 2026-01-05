@@ -48,7 +48,7 @@ export default function PermissionPage() {
     } catch (err) {
       setRoles([]);
     }
-    setLoading(false);
+    
   };
 
   const loadPermissions = async (roleId: string) => {
