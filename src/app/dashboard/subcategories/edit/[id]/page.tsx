@@ -18,6 +18,7 @@ import {
   StyledCheckboxWithDescription,
 } from "@/app/dashboard/components/StyledCheckboxWithDescription";
 import { dropdownCategoriesPath } from "@/app/dashboard/storeAPICall/API/BaseApi";
+import { MdSave } from "react-icons/md";
 
 export default function EditSubCategoryPage() {
   const { id } = useParams();
@@ -124,7 +125,7 @@ export default function EditSubCategoryPage() {
         const res = await fetch(dropdownCategoriesPath);
         const data = await res.json();
         setCategories(data.data || []);
-      } catch {}
+      } catch { }
     }
     fetchSubCategory();
     fetchCategories();
@@ -290,7 +291,7 @@ export default function EditSubCategoryPage() {
             handleFileChange={handleFileChange}
             handleDeleteImage={handleDeleteImage}
             previewOpen={!!(formik.touched.images && formik.errors.images)}
-            setPreviewOpen={() => {}}
+            setPreviewOpen={() => { }}
             uploading={uploading}
             deleting={false}
             label="Subcategory Image *"
@@ -336,15 +337,20 @@ export default function EditSubCategoryPage() {
             label="Active Subcategory"
           /> */}
 
-          <div className="mt-8 flex ButtonOuter w-full">
+          <div className=" ButtonOuter">
             {" "}
-            <div className="buttoninner  w-full max-w-sm">
+            <div className="buttoninner  ">
               <CustomButton
                 type="submit"
                 disabled={loading || uploading || formik.isSubmitting}
                 width="100%"
               >
-                {loading || formik.isSubmitting ? "Saving..." : "Save Changes"}
+                {loading || formik.isSubmitting ? "Saving..." : (
+                  <>
+                    <MdSave size={22} />{" "}
+
+                    Update Subcategory</>
+                )}
               </CustomButton>
             </div>
           </div>

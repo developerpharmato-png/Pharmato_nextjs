@@ -16,6 +16,7 @@ import {
 import Swal from "sweetalert2";
 import TextareaField from "../components/skeleton/FieldCom";
 import { modalStyle } from "@/utils/style";
+import { MdSave } from "react-icons/md";
 
 interface BannerImageModalProps {
   open: boolean;
@@ -182,7 +183,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
               handleFileChange={handleFileChange}
               handleDeleteImage={handleDeleteImage}
               previewOpen={false}
-              setPreviewOpen={() => {}}
+              setPreviewOpen={() => { }}
               uploading={false}
               deleting={false}
               label="Banner Image"
@@ -192,7 +193,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
               <ErrorMessageCom error={formik.errors.url} />
             )}
           </Box>
-{/* 
+          {/* 
           <TextareaField
             id="targetScreen"
             name="alt"
@@ -213,7 +214,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
             }
             className="mb-4"
           /> */}
-<div className="mt-5"></div>
+          <div className="mt-5"></div>
           <TextField
             name="targetId"
             select
@@ -239,6 +240,8 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
 
           <DialogActions>
             <CustomButton type="submit" disabled={loading}>
+              <MdSave size={22} />{" "}
+
               {initial?._edit ? "Edit" : "Add"}
             </CustomButton>
           </DialogActions>

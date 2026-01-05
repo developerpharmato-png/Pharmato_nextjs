@@ -13,6 +13,7 @@ import {
   StyledCheckboxWithDescription,
 } from "../../components/StyledCheckboxWithDescription";
 import { dropdownCategoriesPath } from "../../storeAPICall/API/BaseApi";
+import { MdSave } from "react-icons/md";
 
 export default function NewSubCategoryPage() {
   const router = useRouter();
@@ -287,15 +288,15 @@ export default function NewSubCategoryPage() {
             label="Subcategory Image *"
             id="subcategory-image-input"
           />
-            {formik.touched.images && formik.errors.images && (
-              <ErrorMessageCom
-                error={
-                  Array.isArray(formik.errors.images)
-                    ? formik.errors.images.join(", ")
-                    : (formik.errors.images as string)
-                }
-              />
-            )}
+          {formik.touched.images && formik.errors.images && (
+            <ErrorMessageCom
+              error={
+                Array.isArray(formik.errors.images)
+                  ? formik.errors.images.join(", ")
+                  : (formik.errors.images as string)
+              }
+            />
+          )}
           <StyledCheckboxWithDescription
             id="isOTC"
             checked={formik.values.isOTC}
@@ -303,28 +304,33 @@ export default function NewSubCategoryPage() {
             title="Over-the-Counter (OTC) Subcategory"
             description="Medicines in this subcategory can be purchased without a prescription"
           />
-{/* 
+          {/* 
           <StandardFormCheckbox
             id="isActive"
             checked={formik.values.isActive}
             onChange={formik.handleChange}
             label="Active Subcategory"
           /> */}
-            <div className="mt-8 flex ButtonOuter w-full">
-          {" "}
-          <div className="buttoninner  w-full max-w-sm">
-            <CustomButton
-              type="submit"  
-              disabled={loading || uploading || formik.isSubmitting}
-              width="100%"
-            >
-              {loading || formik.isSubmitting ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                "Create Category"
-              )}
-            </CustomButton>
-          </div>
+          <div className="ButtonOuter">
+            {" "}
+            <div className="buttoninner ">
+              <CustomButton
+                type="submit"
+                disabled={loading || uploading || formik.isSubmitting}
+                width="100%"
+              >
+                {loading || formik.isSubmitting ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  <>
+
+                    <MdSave size={22} />{" "}
+
+
+                    Add  Subcategory</>
+                )}
+              </CustomButton>
+            </div>
           </div>
         </form>
       </div>

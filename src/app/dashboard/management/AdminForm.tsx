@@ -4,6 +4,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem,
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { ErrorMessageCom, CustomButton, CustomCloseButton } from '../components/miniComponents';
+import { MdSave } from 'react-icons/md';
 
 type Role = { _id: string; name: string };
 
@@ -43,10 +44,10 @@ export default function AdminForm({ open, onClose, onSubmit, initialValues = {},
   });
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      fullWidth 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
       maxWidth="sm"
       // Added subtle shadow and rounded corners to the dialog container
       PaperProps={{
@@ -56,11 +57,11 @@ export default function AdminForm({ open, onClose, onSubmit, initialValues = {},
         }
       }}
     >
-      <DialogTitle 
-        sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           pr: 1,
           // Stronger title styling
           fontWeight: 600,
@@ -71,17 +72,17 @@ export default function AdminForm({ open, onClose, onSubmit, initialValues = {},
           pb: 1,
         }}
       >
-        {editing ? 'Edit Administrator Details' : 'Add New Administrator'}
+        {editing ? 'Edit  Details' : 'Add New '}
         <CustomCloseButton onClick={onClose} size="medium" ariaLabel="close" />
       </DialogTitle>
 
       <DialogContent dividers sx={{ pt: 3, pb: 2, borderBottom: 'none' }}>
-        <Box 
-          component="form" 
-          onSubmit={formik.handleSubmit} 
+        <Box
+          component="form"
+          onSubmit={formik.handleSubmit}
           // Increased gap for better visual separation
           sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 1 }}
-        >  
+        >
           {/* Name Field */}
           <TextField
             label="Full Name" // Enhanced label  
@@ -91,8 +92,8 @@ export default function AdminForm({ open, onClose, onSubmit, initialValues = {},
             {...formik.getFieldProps('name')}
             error={formik.touched.name && Boolean(formik.errors.name)}
             required
-            sx={{ 
-              '& .MuiOutlinedInput-root': { borderRadius: 1 }, 
+            sx={{
+              '& .MuiOutlinedInput-root': { borderRadius: 1 },
               bgcolor: 'background.paper', // Ensure white background
             }}
           />
@@ -110,11 +111,11 @@ export default function AdminForm({ open, onClose, onSubmit, initialValues = {},
             error={formik.touched.email && Boolean(formik.errors.email)}
             disabled={editing}
             required={!editing}
-            sx={{ 
-              '& .MuiOutlinedInput-root': { 
-                borderRadius: 1, 
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 1,
                 // Style for disabled state
-                ...(editing && { bgcolor: '#f5f5f5' }) 
+                ...(editing && { bgcolor: '#f5f5f5' })
               },
             }}
           />
@@ -122,9 +123,9 @@ export default function AdminForm({ open, onClose, onSubmit, initialValues = {},
             <ErrorMessageCom error={formik.errors.email as string} />
           )}
           {editing && (
-              <Box sx={{ fontSize: '0.8rem', color: 'text.secondary', mt: -2 }}>
-                  * Email cannot be changed when editing an existing admin.
-              </Box>
+            <Box sx={{ fontSize: '0.8rem', color: 'text.secondary', mt: -2 }}>
+              * Email cannot be changed when editing an existing admin.
+            </Box>
           )}
 
           {/* Mobile Number Field */}
@@ -169,16 +170,17 @@ export default function AdminForm({ open, onClose, onSubmit, initialValues = {},
       </DialogContent>
 
       <DialogActions sx={{ pr: 3, pb: 2, pt: 2, borderTop: '1px solid #e0e0e0' }}>
-      
-        
+
+
         {/* Submit Button - uses CustomButton for consistency */}
-        <CustomButton 
-          type="submit" 
-          onClick={() => formik.submitForm()} 
+        <CustomButton
+          type="submit"
+          onClick={() => formik.submitForm()}
           width="120px"
           // Applied loading state via button text
           disabled={formik.isSubmitting}
-        >
+        >                     <MdSave size={22} />{" "}
+
           {formik.isSubmitting ? 'Processing...' : (editing ? 'Save ' : 'Add ')}
         </CustomButton>
       </DialogActions>

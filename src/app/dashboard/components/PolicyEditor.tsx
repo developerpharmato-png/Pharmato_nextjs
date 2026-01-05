@@ -11,6 +11,7 @@ import {
 import { SettingsGetByTypePath } from "@/app/dashboard/storeAPICall/API/BaseApi";
 import Toast from "@/utils/Toast";
 import PrivacySkeleton from "./skeleton/PrivacySkeleton";
+import { MdSave } from "react-icons/md";
 
 type Props = {
   type: string;
@@ -127,11 +128,14 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
             </div>
 
             {canEditPolicy && (
-              <div className="mt-8 flex ButtonOuter w-full">
-                {" "}
-                <div className="buttoninner  w-full max-w-sm">
+           <div className="ButtonOuter">
+                  {" "}
+                  <div className="buttoninner">
                   <CustomButton type="submit" disabled={isSubmitting || loading}>
-                    {loading ? "Saving..." : "Save"}
+                    
+                     <MdSave size={22} />{" "}
+                                           
+                    {loading ? "Saving..." : `Update ${title}`}
                   </CustomButton>
                 </div>
               </div>

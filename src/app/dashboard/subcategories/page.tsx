@@ -46,7 +46,7 @@ export default function SubCategoriesPage() {
     </div>
   );
 }
- 
+
 function SubCategoriesTable({ canEdit }: { canEdit?: boolean }) {
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -154,7 +154,11 @@ function SubCategoriesTable({ canEdit }: { canEdit?: boolean }) {
       id: "uniqueCode",
       label: "Id",
       selector: (row) => (
-        <CustomTooltip title={row.uniqueCode || "—"}>
+        <CustomTooltip title={row.uniqueCode || "—"}
+          onClick={() => router.push(`/dashboard/subcategories/edit/${row._id}`)}
+
+
+        >
           <span className="ID-List">{row.uniqueCode || "—"}</span>
         </CustomTooltip>
       ),
@@ -253,9 +257,8 @@ function SubCategoriesTable({ canEdit }: { canEdit?: boolean }) {
             title={row.isActive ? "Click to deactivate" : "Click to activate"}
           >
             <span
-              className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
-                row.isActive ? "translate-x-6" : "translate-x-1"
-              }`}
+              className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${row.isActive ? "translate-x-6" : "translate-x-1"
+                }`}
             />
           </button>
         </CustomTooltip>
