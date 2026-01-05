@@ -311,11 +311,10 @@ export async function POST(req: NextRequest) {
 
                     // Notify all superadmins
                     try {
-                        const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
+                        const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: "SuperAdmin" });
                         if (superAdminRole && superAdminRole._id) {
                             const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
                             for (const superAdmin of superAdmins) {
-                                if (superAdmin && typeof superAdmin === 'object' && !Array.isArray(superAdmin) && 'id' in superAdmin) {
                                     await Notification.create({
                                         userId: (superAdmin as any)._id.toString(),
                                         role: 'admin',
@@ -354,7 +353,6 @@ export async function POST(req: NextRequest) {
                                         console.error('Failed to send push notification:', err);
                                     }
 
-                                }
                             }
                         }
                     } catch (err) {
