@@ -9,6 +9,8 @@ import Store from '@/models/Store';
 import Admin from '@/models/Admin';
 import Razorpay from 'razorpay';
 import { getDb } from '@/utils/firebase.helper';
+import fs from 'fs';
+import path from 'path';
 
 const razorpayInstance = new Razorpay({
     key_id: process.env.razorPay_Key_Id || '',
@@ -145,31 +147,78 @@ export async function POST(req: NextRequest) {
                     });
                 }
 
+
+
+                // Choose template based on create or update
+                const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+                const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+                const header = fs.readFileSync(headerPath, 'utf8');
+                const footer = fs.readFileSync(footerPath, 'utf8');
+
                 try {
                     const updatedOrder = await Order.findOne({ order_id: orderId });
                     const user = await User.findOne({ _id: checkOrder.userId })
                     // console.log("$$$updatedOrder$$$$$$$$$$$$$$user$$", updatedOrder, user);
                     const amountValue = typeof entity.amount === 'number' ? entity.amount / 100 : 0;
-                    const subject = `Payment received for Order ${checkOrder.order_id}`;
+                    const subject = `Order Placed Successfully – Order ${checkOrder.order_id}`;
                     let userName = 'Customer';
                     let userEmail = '';
                     if (user && typeof user === 'object' && !Array.isArray(user)) {
                         userName = (user as any).name || 'Customer';
                         userEmail = (user as any).email || '';
                     }
-                    const html = `
-                        <div>
-                            <p>Dear ${userName},</p>
-                            <p>Your payment has been captured successfully.</p>
-                            <ul>
-                                <li>Order ID: ${checkOrder.order_id}</li>
-                                <li>Payment ID: ${entity.id}</li>
-                                <li>Amount: ${amountValue} ${entity.currency || ''}</li>
-                                <li>Method: ${entity.method || ''}</li>
-                                <li>Status: ${entity.status || ''}</li>
-                            </ul>
-                            <p>Thank you for shopping with us.</p>
+                    const orderData: any = updatedOrder || checkOrder;
+                    const deliveredAddr: any = (orderData && typeof orderData === 'object') ? (orderData.deliveredAddress || orderData.deliveryAddress || {}) : {};
+                    let deliveryAddressText = '';
+                    if (deliveredAddr && typeof deliveredAddr === 'object') {
+                        const parts = [deliveredAddr.name, deliveredAddr.address, deliveredAddr.city, deliveredAddr.state, deliveredAddr.pincode, deliveredAddr.phone].filter(Boolean);
+                        deliveryAddressText = parts.join(', ');
+                    } else if (typeof deliveredAddr === 'string') {
+                        deliveryAddressText = deliveredAddr;
+                    }
+
+                    const html = `${header}
+                        <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.4;">
+                            <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
+                                <div style="text-align:center;padding-bottom:10px;">
+                                    <h2 style="margin:0;color:#1a73e8;">Pharmato</h2>
+                                    <p style="margin:5px 0 0;font-size:14px;color:#666;">Order Confirmation</p>
+                                </div>
+
+                                <p>Hi ${userName},</p>
+                                <p>Thank you for placing your order with Pharmato. We have successfully received your payment and your order is now confirmed.</p>
+
+                                <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+                                    <tr>
+                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+                                        <td style="padding:8px;border:1px solid #eee;">${checkOrder.order_id}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Payment ID</td>
+                                        <td style="padding:8px;border:1px solid #eee;">${entity.id}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Amount</td>
+                                        <td style="padding:8px;border:1px solid #eee;">${amountValue} ${entity.currency || ''}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Payment Method</td>
+                                        <td style="padding:8px;border:1px solid #eee;">${entity.method || ''}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Status</td>
+                                        <td style="padding:8px;border:1px solid #eee;">${entity.status || ''}</td>
+                                    </tr>
+                                </table>
+
+                                <h4 style="margin:12px 0 6px;">Delivery Address</h4>
+                                <p style="margin:0 0 12px;color:#555;">${deliveryAddressText || 'Address will be updated soon.'}</p>                                
+
+                                <p style="margin-top:18px;color:#777;font-size:13px;">If you have any questions, reply to this email or contact our support.</p>
+                                <p style="margin:6px 0 0;color:#333;font-weight:600;">Thanks,<br/>Team Pharmato</p>
+                            </div>
                         </div>
+                    ${footer}
                     `;
                     if (userEmail) {
                         await sendEmail({ to: userEmail, subject, html });

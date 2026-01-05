@@ -165,10 +165,29 @@ export async function POST(request: NextRequest) {
             try {
                 const { sendEmail } = await import('@/utils/sendEmail');
                 const { WELCOME_EMAIL_SUBJECT } = await import('@/utils/emailSubjects');
+                const name = user.name || '';
+                const displayName = name ? name : (user.mobile || 'Customer');
+                const html = `
+                    <div style="font-family: Arial, sans-serif; color: #333; line-height:1.5;">
+                      <p>Hello ${displayName},</p>
+                      <p>Welcome to "Pharmato"! 👋<br/>We’re glad to have you with us.</p>
+                      <p>Pharmato makes ordering medicines and healthcare essentials simple, safe, and convenient. Upload your doctor’s prescription, place your order, and let us take care of the rest—right from verified pharmacies to your doorstep.</p>
+                      <p>With Pharmato, you can:</p>
+                      <ul>
+                        <li>Order medicines easily</li>
+                        <li>Upload and manage prescriptions securely</li>
+                        <li>Get medicines delivered to your home</li>
+                        <li>Track your orders in real time</li>
+                      </ul>
+                      <p>Start exploring now and experience hassle-free healthcare delivery.</p>
+                      <p>Stay healthy,<br/>Team Pharmato<br/>Your trusted pharmacy partner</p>
+                    </div>
+                `;
+
                 await sendEmail({
                     to: user.email,
                     subject: WELCOME_EMAIL_SUBJECT,
-                    html: `<h1>Welcome to Pharmato!</h1><p>Thank you for registering. Enjoy your experience!</p>`
+                    html
                 });
             } catch (err) {
                 console.error('Failed to send welcome email:', err);
