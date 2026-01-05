@@ -238,7 +238,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
         });
         const data = await res.json();
         if (data.success && data.url) uploadedUrls.push(data.url);
-      } catch {}
+      } catch { }
     }
     setUploading(false);
 
@@ -591,7 +591,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
               handleFileChange={handleFileChange}
               setPrimaryImage={(url) => formik.setFieldValue("coverImage", url)}
               handleDeleteImage={handleDeleteImage}
-              openSlider={() => {}} // Provided a no-op function
+              openSlider={() => { }} // Provided a no-op function
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -668,7 +668,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                 showCount={true}
                 error={
                   formik.touched.description &&
-                  typeof formik.errors.description === "string"
+                    typeof formik.errors.description === "string"
                     ? formik.errors.description
                     : undefined
                 }
@@ -1222,9 +1222,9 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                 <p className="text-sm font-medium text-red-800">{error}</p>
               </div>
             )}
-            <div className="mt-8 flex ButtonOuter w-full">
+            <div className="  ButtonOuter">
               {" "}
-              <div className="buttoninner  w-full max-w-sm">
+              <div className="buttoninner  ">
                 <CustomButton type="submit" disabled={loading} width="100%">
                   <MdSave size={22} />{" "}
                   {loading
@@ -1232,8 +1232,8 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                       ? "Saving..."
                       : "Saving..."
                     : isEdit
-                    ? "Update Medicine"
-                    : "Add Medicine"}
+                      ? "Update Medicine"
+                      : "Add Medicine"}
                 </CustomButton>
               </div>
             </div>

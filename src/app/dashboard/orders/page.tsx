@@ -86,7 +86,7 @@ export default function OrdersPage() {
   }, [OrderListData]);
 
   return (
-       <div className="containerStyle scrollbar-hide">
+    <div className="containerStyle scrollbar-hide">
 
       <HeaderWithAction
         title="Orders"
@@ -104,11 +104,11 @@ export default function OrdersPage() {
                   setExportStartDate(d);
                   if (d && exportEndDate && !(exportEndDate > d)) setExportEndDate(null);
                 }}
-                slotProps={{ 
-                  textField: { 
-                    size: "small", 
-                    sx: { width: 160, '& .MuiOutlinedInput-root': { borderRadius: '6px', backgroundColor: 'white' }} 
-                  } 
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    sx: { width: 160, '& .MuiOutlinedInput-root': { borderRadius: '6px', backgroundColor: 'white' } }
+                  }
                 }}
               />
               <DatePicker
@@ -118,11 +118,11 @@ export default function OrdersPage() {
                 minDate={exportStartDate ? addDays(exportStartDate, 1) : undefined}
                 maxDate={new Date()}
                 onChange={(d) => setExportEndDate(d)}
-                slotProps={{ 
-                  textField: { 
-                    size: "small", 
-                    sx: { width: 160, '& .MuiOutlinedInput-root': { borderRadius: '6px', backgroundColor: 'white' }} 
-                  } 
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    sx: { width: 160, '& .MuiOutlinedInput-root': { borderRadius: '6px', backgroundColor: 'white' } }
+                  }
                 }}
               />
             </LocalizationProvider>

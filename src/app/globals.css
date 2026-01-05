@@ -279,13 +279,13 @@ body {
 .ButtonOuter {
   margin-top: 2rem;
   display: flex;
-  justify-content: end;
+  justify-content: start;
 }
 
 .buttoninner {
   /* flex justify-center w-full max-w-sm */
   display: flex;
-  justify-content: end;
+  justify-content: start;
   /* width: 100%; */
 
 }

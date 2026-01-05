@@ -108,7 +108,7 @@ export default function OrderDetailPage() {
         title="Order Details"
         subtitle={`Order ID: ${order?.order_id}`}
         showBack={true}
-       onBack={() => router.back()}
+        onBack={() => router.push("/dashboard/orders")}
         showSearch={false}
         addShow={false}
         isunsaved={false}
