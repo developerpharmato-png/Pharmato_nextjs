@@ -7,6 +7,8 @@ import Razorpay from 'razorpay';
 import User from '@/models/User';
 import Medicine from '@/models/Medicine';
 import { sendEmail } from '@/utils/sendEmail';
+import fs from 'fs';
+import path from 'path';
 
 const razorpayInstance = new Razorpay({
     key_id: process.env.razorPay_Key_Id || '',
@@ -89,6 +91,12 @@ export async function POST(req: NextRequest) {
             order.order_status = 'Confirmed';
         }
         await order.save();
+        
+        // Choose template based on create or update
+        const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+        const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+        const header = fs.readFileSync(headerPath, 'utf8');
+        const footer = fs.readFileSync(footerPath, 'utf8');
 
         // console.log(order.medicineQuantity);
 
@@ -112,9 +120,26 @@ export async function POST(req: NextRequest) {
         ]);
 
         // Build email HTML
-        let html = `<div><p>Dear ${user?.name || 'Customer'},</p>`;
+        let html = `${header}<div><p>Dear ${user?.name || 'Customer'},</p>`;
         html += `<p>The admin has updated your order (Order ID: <b>${order.order_id || order._id}</b>).</p>`;
 
+
+        let emailSubject : any = `Order Update: Partial Acceptance`;
+
+        if (cancelledNames.length === 0) {
+
+            emailSubject = `Order Confirmed Successfully– Order #${order.order_id}`;
+            html += `<p>All medicines in your order have been accepted.</p>`;
+            
+        }
+
+        if (acceptedNames.length === 0) {
+
+            emailSubject = `Order Cancelled Successfully– Order #${order.order_id}`;
+            html += `<p>All medicines in your order have been cancelled.</p>`;
+            
+        }
+        
         if (acceptedNames.length > 0) {
             html += '<p><b>Accepted Medicines:</b><ul>';
             acceptedNames.forEach((m: any) => { html += `<li>${m.name}</li>`; });
@@ -126,8 +151,10 @@ export async function POST(req: NextRequest) {
             html += `</ul><b>Refund Amount:</b> ₹${refundAmount}</p>`;
         }
         html += '<p>Thank you for your order.</p></div>';
+        html += `${footer}`;
+
         if (user?.email) {
-            await sendEmail({ to: user.email, subject: `Order Update: Partial Acceptance`, html });
+            await sendEmail({ to: user.email, subject: emailSubject, html });
         }
 
         console.log("$$$acceptedNames$$$$$$$$cancelledNames$$", acceptedNames, cancelledNames);
