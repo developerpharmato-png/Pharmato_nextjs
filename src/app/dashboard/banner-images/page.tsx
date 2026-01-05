@@ -297,7 +297,7 @@ export default function BannerImagesDashboard() {
                 label: "Image",
                 minWidth: 100,
                 selector: (row: any) => (
-                  <CustomTooltip title={row.alt || "Banner image"}>
+                  
                     <span>
                       <CustomImage
                         coverImage={row.url}
@@ -312,7 +312,7 @@ export default function BannerImagesDashboard() {
                         }}
                       />
                     </span>
-                  </CustomTooltip>
+                 
                 ),
               },
             // {

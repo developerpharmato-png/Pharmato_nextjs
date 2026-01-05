@@ -31,18 +31,18 @@ interface StoreForm {
 export default function StoreDashboard() {
   const router = useRouter();
   const [search, setSearch] = useState<string>("");
-  
+
   const {
     fetchData: GetStores,
     loading: storesLoading,
     data: storesData,
   } = StoreListStore();
-  
+
   const {
     putData: UpdateStoreStatus,
     loading: updateStatusLoading,
   } = StoreUpdateStore();
-  
+
   const [stores, setStores] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState<StoreForm>({
@@ -144,9 +144,13 @@ export default function StoreDashboard() {
             {extraCount > 0 && (
               <CustomTooltip
                 title={
-                  <div className="flex flex-col">
+                  /* Changed flex-col to flex flex-wrap and added a gap and max-width */
+                  <div className="flex flex-wrap gap-2 p-1 max-w-2xl">
                     {pins.map((p) => (
-                      <span key={p} className="text-sm py-0.5">
+                      <span
+                        key={p}
+                        className="inline-flex items-center px-3 py-1 rounded-full bg-linear-to-r from-green-100 to-green-200 text-green-800 font-semibold shadow-sm border border-green-300 text-sm"
+                      >
                         {p}
                       </span>
                     ))}
@@ -210,9 +214,8 @@ export default function StoreDashboard() {
           }
         >
           <span
-            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
-              row.status === 1 ? "translate-x-6" : "translate-x-1"
-            }`}
+            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${row.status === 1 ? "translate-x-6" : "translate-x-1"
+              }`}
           />
         </button>
       ),
@@ -269,7 +272,7 @@ export default function StoreDashboard() {
         page={0}
         rowsPerPage={100}
         totalCount={stores.length}
-        onPageChange={() => {}}
+        onPageChange={() => { }}
         loading={storesLoading}
       />
       {error && (
