@@ -630,7 +630,7 @@ export default function DashboardLayout({
     { name: "Orders", path: "/dashboard/orders", icon: "receipt_long", isActive: true },
     { name: "Customers", path: "/dashboard/admin/customers", icon: "person", isActive: true },
     { name: "Stores", path: "/dashboard/store", icon: "store", isActive: true },
-    { name: "Banner Images", path: "/dashboard/banner-images", icon: "image", isActive: true },
+    { name: "Banner Management", path: "/dashboard/banner-images", icon: "image", isActive: true },
     {
       name: "Data Analytics",
       icon: "dashboard",
