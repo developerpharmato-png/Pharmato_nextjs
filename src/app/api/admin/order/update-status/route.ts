@@ -5,6 +5,8 @@ import User from '@/models/User';
 import Notification from '@/models/Notification';
 import { getDb, sendPushNotificationWithData } from '@/utils/firebase.helper';
 import { sendEmail } from '@/utils/sendEmail';
+import fs from 'fs';
+import path from 'path';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
@@ -65,6 +67,13 @@ export async function POST(req: NextRequest) {
             });
         }
 
+
+        // Choose template based on create or update
+        const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+        const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+        const header = fs.readFileSync(headerPath, 'utf8');
+        const footer = fs.readFileSync(footerPath, 'utf8');
+
         // If order is delivered, send delivered email to customer
         try {
             const statusLower = String(status || '').toLowerCase();
@@ -82,7 +91,7 @@ export async function POST(req: NextRequest) {
                 const userName = (user && (user as any).name) ? (user as any).name : 'Customer';
                 const userEmail = (user && (user as any).email) ? (user as any).email : '';
                 const subject = `Order Delivered Successfully – Order #${order.order_id}`;
-                const html = `
+                const html = `${header}
                     <div style="font-family: Arial, sans-serif; color:#333; line-height:1.4;">
                         <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
                             <p>Hello ${userName},</p>
@@ -95,6 +104,7 @@ export async function POST(req: NextRequest) {
                             <p>Stay healthy,<br/>Team Pharmato<br/>Your trusted pharmacy partner</p>
                         </div>
                     </div>
+                ${footer}
                 `;
 
                 if (userEmail) {
