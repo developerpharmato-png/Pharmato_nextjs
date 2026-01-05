@@ -32,7 +32,7 @@ import {
 } from "@/app/dashboard/components/miniComponents";
 import { ImageUploadField } from "@/app/dashboard/components/ImageUploadField";
 import {
-  StandardFormCheckbox, 
+  StandardFormCheckbox,
   StyledCheckboxWithDescription,
 } from "@/app/dashboard/components/StyledCheckboxWithDescription";
 import HeaderWithAction from "@/app/dashboard/components/HeaderWithAction";
@@ -322,108 +322,111 @@ export default function EditCategoryPage() {
         showSearch={false}
       />
 
-     
-          <Box
-            component="form"
-            onSubmit={formik.handleSubmit}
-            sx={{ display: "flex", flexDirection: "column", gap: 3 }}
-          >
-            {/* Category Name Input (Width Limited & Custom Error) */}
-            <Box sx={{ maxWidth: { xs: "100%", sm: "75%", md: "50%" } }}>
-              <TextField
-                label="Category Name *"
-                size="medium"
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-                {...formik.getFieldProps("name")}
-                error={formik.touched.name && Boolean(formik.errors.name)}
-              />
 
-              {/* Custom Error Component as requested */}
-              {formik.touched.name && formik.errors.name && (
-                <ErrorMessageCom error={formik.errors.name} />
-              )}
-            </Box>
+      <Box
+        component="form"
+        onSubmit={formik.handleSubmit}
+        sx={{ display: "flex", flexDirection: "column", gap: 3 }}
+      >
+        {/* Category Name Input (Width Limited & Custom Error) */}
+        <Box sx={{ maxWidth: { xs: "100%", sm: "75%", md: "50%" } }}>
+          <TextField
+            label="Category Name *"
+            size="medium"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            {...formik.getFieldProps("name")}
+            error={formik.touched.name && Boolean(formik.errors.name)}
+          />
 
-            {/* Description Textarea (Character Counter) */}
-            <TextField
-              label="Description *"
-              multiline
-              rows={4}
-              InputLabelProps={{ shrink: true }}
-              inputProps={{ maxLength: MAX_DESCRIPTION_LENGTH }}
-              {...formik.getFieldProps("description")}
-              error={
-                formik.touched.description && Boolean(formik.errors.description)
-              }
-              helperText={
-                formik.touched.description && formik.errors.description
-                  ? formik.errors.description
-                  : `${formik.values.description.length} / ${MAX_DESCRIPTION_LENGTH} characters`
-              }
-              FormHelperTextProps={{
-                sx: { textAlign: "right", mr: 0, mt: 0.5 },
-              }}
-            />
+          {/* Custom Error Component as requested */}
+          {formik.touched.name && formik.errors.name && (
+            <ErrorMessageCom error={formik.errors.name} />
+          )}
+        </Box>
 
-            <ImageUploadField
-              formik={formik}
-              handleFileChange={handleFileChange}
-              handleDeleteImage={handleDeleteImage}
-              previewOpen={previewOpen}
-              setPreviewOpen={setPreviewOpen}
-              uploading={uploading}
-              deleting={false}
-              label="Category Image"
-              id="category-image-input"
-            />
-            {formik.touched.images && formik.errors.images && (
-              <ErrorMessageCom
-                error={
-                  Array.isArray(formik.errors.images)
-                    ? formik.errors.images.join(", ")
-                    : (formik.errors.images as string)
-                }
-              />
-            )}
+        {/* Description Textarea (Character Counter) */}
+        <TextField
+          label="Description *"
+          multiline
+          rows={4}
+          InputLabelProps={{ shrink: true }}
+          inputProps={{ maxLength: MAX_DESCRIPTION_LENGTH }}
+          {...formik.getFieldProps("description")}
+          error={
+            formik.touched.description && Boolean(formik.errors.description)
+          }
+          helperText={
+            formik.touched.description && formik.errors.description
+              ? formik.errors.description
+              : `${formik.values.description.length} / ${MAX_DESCRIPTION_LENGTH} characters`
+          }
+          FormHelperTextProps={{
+            sx: { textAlign: "right", mr: 0, mt: 0.5 },
+          }}
+        />
 
-            <StyledCheckboxWithDescription
-              id="isOTC"
-              checked={formik.values.isOTC}
-              onChange={formik.handleChange}
-              title="Over-the-Counter (OTC) Subcategory"
-              description="Medicines in this subcategory can be purchased without a prescription"
-            />
+        <ImageUploadField
+          formik={formik}
+          handleFileChange={handleFileChange}
+          handleDeleteImage={handleDeleteImage}
+          previewOpen={previewOpen}
+          setPreviewOpen={setPreviewOpen}
+          uploading={uploading}
+          deleting={false}
+          label="Category Image"
+          id="category-image-input"
+        />
+        {formik.touched.images && formik.errors.images && (
+          <ErrorMessageCom
+            error={
+              Array.isArray(formik.errors.images)
+                ? formik.errors.images.join(", ")
+                : (formik.errors.images as string)
+            }
+          />
+        )}
 
-            {/* <StandardFormCheckbox
+        <StyledCheckboxWithDescription
+          id="isOTC"
+          checked={formik.values.isOTC}
+          onChange={formik.handleChange}
+          title="Over-the-Counter (OTC) Subcategory"
+          description="Medicines in this subcategory can be purchased without a prescription"
+        />
+
+        {/* <StandardFormCheckbox
               id="isActive"
               checked={formik.values.isActive}
               onChange={formik.handleChange}
               label="Active Subcategory"
             /> */}
 
-            <Box sx={{ display: "flex", gap: 2, pt: 4 }}>
-              <Box sx={{ display: "flex", gap: 2, pt: 2 }}>
-                <div className="mt-8 flex justify-center w-full">
-                  <div className="flex justify-center w-full max-w-sm">
-                    {" "}
-                    <CustomButton
-                      type="submit"
-                      // disabled={formik.isSubmitting || !formik.isValid}
-                      width="100%"
-                    >
-                      {formik.isSubmitting ? (
-                        <CircularProgress size={24} color="inherit" />
-                      ) : (
-                        "Save Changes"
-                      )}
-                    </CustomButton>
-                  </div>
-                </div>
-              </Box>
-            </Box>
-          </Box>
-        
+      
+            <div className="ButtonOuter">
+              <div className="buttoninner">
+                {" "}
+                <CustomButton
+                  type="submit"
+                  // disabled={formik.isSubmitting || !formik.isValid}
+                  width="100%"
+                >
+                  {formik.isSubmitting ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    <>
+                      <MdSave size={22} />{" "}
+
+                      Update Category
+                    </>
+                  )}
+                </CustomButton>
+              </div>
+            </div>
+          
+
+      </Box>
+
     </div>
   );
 }

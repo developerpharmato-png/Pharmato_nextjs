@@ -7,7 +7,7 @@ export default function PrivacyPage() {
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction title="Privacy Policy" subtitle="Edit privacy policy" showBack={false} />
-      <PolicyEditor type="userPrivacyPolicy" />
+      <PolicyEditor type="userPrivacyPolicy"  title="Privacy Policy" />
     </div>
   );
 }

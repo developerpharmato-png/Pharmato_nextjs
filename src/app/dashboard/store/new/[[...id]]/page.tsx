@@ -260,9 +260,9 @@ export default function AddStorePage() {
             <ErrorMessageCom error={formik.errors.address.gps as string} />
           )}
         </div>
-        <div className="mt-8 flex ButtonOuter w-full">
+        <div className=" ButtonOuter">
           {" "}
-          <div className="buttoninner  w-full max-w-sm">
+          <div className="buttoninner ">
             <CustomButton
               type="submit"
               disabled={
