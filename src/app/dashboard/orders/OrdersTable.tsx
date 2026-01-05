@@ -134,11 +134,11 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       label: "Items",
       minWidth: 70,
       selector: (row: Order) => (
-        <CustomTooltip title={(row.medicineId?.length || 0).toString()}>
+        
           <span className="text-gray-700 customTooltip">
             {row.medicineId?.length || 0}
           </span>
-        </CustomTooltip>
+      
       ),
     },
     {
@@ -156,11 +156,11 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       label: "Amount",
       minWidth: 100,
       selector: (row: Order) => (
-        <CustomTooltip title={row.total_order_amount?.toFixed(2) || "0.00"}>
+      
           <span className="customTooltip">
             ₹{row.total_order_amount?.toFixed(2) || "0.00"}
           </span>
-        </CustomTooltip>
+      
       ),
     },
     {
@@ -168,13 +168,12 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       label: "Discount",
       minWidth: 90,
       selector: (row: Order) => (
-        <CustomTooltip
-          title={row.discount > 0 ? `₹${row.discount.toFixed(2)}` : "-"}
-        >
+        
+        
           <span className="font-medium text-green-600 customTooltip">
             {row.discount > 0 ? `₹${row.discount.toFixed(2)}` : "-"}
           </span>
-        </CustomTooltip>
+       
       ),
     },
     {
