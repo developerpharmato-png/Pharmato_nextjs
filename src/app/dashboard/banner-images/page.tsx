@@ -251,7 +251,7 @@ export default function BannerImagesDashboard() {
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
         showBack={false}
-        title="Banner Images"
+        title="Banner Management"
         subtitle="Manage promotional banners"
         addLabel="Add"
         addShow={canEditBanner}
