@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
                         userEmail = (user as any).email || '';
                     }
                     const orderData: any = updatedOrder || checkOrder;
-                    const deliveredAddr: any = orderData.deliveredAddress.address || null;    
+                    const deliveredAddr: any = orderData.deliveredAddress.address || null;
 
                     let deliveryAddressText = ''
 
@@ -332,6 +332,28 @@ export async function POST(req: NextRequest) {
                                             status: entity.status
                                         }
                                     });
+
+                                    try {
+                                        await sendPushNotificationWithData({
+                                            token: (superAdmin as any).deviceToken,
+                                            title: 'Pharmato',
+                                            body: `Admin ${adminName} (${adminRoleName}) received a new order for store ${storeName}. Customer: ${customerName}. Order ID: ${checkOrder.order_id}.`,
+                                            data: {
+                                                targetId: checkOrder._id.toString(),
+                                                orderId: checkOrder._id.toString(),
+                                                type: 'order_placed',
+                                                targetScreen: 'orders/detail',
+                                                paymentId: entity.id,
+                                                amount: `${amountValue}`,
+                                                currency: entity.currency,
+                                                method: entity.method,
+                                                status: entity.status
+                                            }
+                                        });
+                                    } catch (err) {
+                                        console.error('Failed to send push notification:', err);
+                                    }
+
                                 }
                             }
                         }
