@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
                     <div style="font-family: Arial, sans-serif; color:#333; line-height:1.4;">
                         <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
                             <p>Hello ${userName},</p>
-                            <p>Your order <strong>#${order.order_id || order._id}</strong> has been delivered to you successfully.</p>
+                            <p>Your order has been delivered to you successfully.</p>
                             <h4>Order Summary:</h4>
                             <p>Order ID: <strong>#${order.order_id || order._id}</strong></p>
                             <p>Order Status: <strong>Delivered</strong></p>
