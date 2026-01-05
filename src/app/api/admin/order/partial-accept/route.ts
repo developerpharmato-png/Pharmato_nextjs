@@ -150,7 +150,10 @@ export async function POST(req: NextRequest) {
             cancelledNames.forEach((m: any) => { html += `<li>${m.name}</li>`; });
             html += `</ul><b>Refund Amount:</b> ₹${refundAmount}</p>`;
         }
-        html += '<p>Thank you for your order.</p></div>';
+        html += '<p>You can track your order status anytime from the My Orders section on the Pharmato app or website.</p>';
+        html += '<p>If you have any questions or need assistance, our support team is always here to help.</p>';
+        html += '<p>Thank you for choosing Pharmato for your healthcare needs.</p>';
+        html += '<p>Stay healthy,<br/>Team Pharmato<br/>Your trusted pharmacy partner</p></div>';
         html += `${footer}`;
 
         if (user?.email) {
