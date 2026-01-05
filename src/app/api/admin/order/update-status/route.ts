@@ -4,6 +4,7 @@ import Order from '@/models/Order';
 import User from '@/models/User';
 import Notification from '@/models/Notification';
 import { getDb, sendPushNotificationWithData } from '@/utils/firebase.helper';
+import { sendEmail } from '@/utils/sendEmail';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
@@ -62,6 +63,46 @@ export async function POST(req: NextRequest) {
                     status: status
                 }
             });
+        }
+
+        // If order is delivered, send delivered email to customer
+        try {
+            const statusLower = String(status || '').toLowerCase();
+            if (statusLower.includes('deliv')) {
+                // format delivery address
+                const orderData: any = order;
+                const deliveredAddr: any = orderData.deliveredAddress.address || null;
+
+                let deliveryAddressText = ''
+
+                if (deliveredAddr) {
+                    deliveryAddressText = `${deliveredAddr.houseNumber}, ${deliveredAddr.locality}, ${deliveredAddr.landmark}, ${deliveredAddr.city}, ${deliveredAddr.state} - ${deliveredAddr.pinCode}`;
+                }
+
+                const userName = (user && (user as any).name) ? (user as any).name : 'Customer';
+                const userEmail = (user && (user as any).email) ? (user as any).email : '';
+                const subject = `Order Delivered Successfully – Order #${order.order_id}`;
+                const html = `
+                    <div style="font-family: Arial, sans-serif; color:#333; line-height:1.4;">
+                        <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
+                            <p>Hello ${userName},</p>
+                            <p>Your order <strong>#${order.order_id || order._id}</strong> has been delivered to you successfully.</p>
+                            <h4>Order Summary:</h4>
+                            <p>Order ID: <strong>#${order.order_id || order._id}</strong></p>
+                            <p>Order Status: <strong>Delivered</strong></p>
+                            <p>Delivery Address: ${deliveryAddressText || 'Not available'}</p>
+                            <p>Thank you for choosing Pharmato for your healthcare needs. We’re committed to delivering your medicines safely and on time.</p>
+                            <p>Stay healthy,<br/>Team Pharmato<br/>Your trusted pharmacy partner</p>
+                        </div>
+                    </div>
+                `;
+
+                if (userEmail) {
+                    await sendEmail({ to: userEmail, subject, html });
+                }
+            }
+        } catch (emailErr) {
+            console.error('Error sending delivered email:', emailErr);
         }
 
         return NextResponse.json({ success: true, message: 'Order status updated', data: order });
