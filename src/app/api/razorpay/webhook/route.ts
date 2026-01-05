@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
                         userEmail = (user as any).email || '';
                     }
                     const orderData: any = updatedOrder || checkOrder;
-                    const deliveredAddr: any = orderData.deliveredAddress;    
+                    const deliveredAddr: any = orderData.deliveredAddress.address || null;    
 
                     let deliveryAddressText = ''
 
