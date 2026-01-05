@@ -169,12 +169,38 @@ export async function POST(req: NextRequest) {
                     }
                     const orderData: any = updatedOrder || checkOrder;
                     const deliveredAddr: any = (orderData && typeof orderData === 'object') ? (orderData.deliveredAddress || orderData.deliveryAddress || {}) : {};
+                    const formatValue = (val: any): string => {
+                        if (val === null || val === undefined || val === '') return '';
+                        if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') return String(val);
+                        if (Array.isArray(val)) return val.map(formatValue).filter(Boolean).join(', ');
+                        if (typeof val === 'object') {
+                            const preferredKeys = ['name','house','houseNumber','address','addressLine1','addressLine2','street','locality','area','city','state','pincode','pinCode','zip','phone','mobile','phoneNumber','email','landmark'];
+                            const parts: string[] = [];
+                            for (const k of preferredKeys) {
+                                if (k in val) {
+                                    const s = formatValue(val[k]);
+                                    if (s) parts.push(s);
+                                }
+                            }
+                            // fallback: include any other primitive values
+                            for (const k in val) {
+                                if (!preferredKeys.includes(k)) {
+                                    const s = formatValue(val[k]);
+                                    if (s) parts.push(s);
+                                }
+                            }
+                            return parts.filter(Boolean).join(', ');
+                        }
+                        return '';
+                    };
+
                     let deliveryAddressText = '';
-                    if (deliveredAddr && typeof deliveredAddr === 'object') {
-                        const parts = [deliveredAddr.name, deliveredAddr.address, deliveredAddr.city, deliveredAddr.state, deliveredAddr.pincode, deliveredAddr.phone].filter(Boolean);
-                        deliveryAddressText = parts.join(', ');
-                    } else if (typeof deliveredAddr === 'string') {
-                        deliveryAddressText = deliveredAddr;
+                    if (deliveredAddr !== null && deliveredAddr !== undefined) {
+                        if (typeof deliveredAddr === 'string' || typeof deliveredAddr === 'number') {
+                            deliveryAddressText = String(deliveredAddr);
+                        } else {
+                            deliveryAddressText = formatValue(deliveredAddr);
+                        }
                     }
 
                     const html = `${header}
