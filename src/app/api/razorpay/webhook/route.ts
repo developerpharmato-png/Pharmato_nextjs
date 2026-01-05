@@ -180,11 +180,7 @@ export async function POST(req: NextRequest) {
                     const html = `${header}
                         <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.4;">
                             <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
-                                <div style="text-align:center;padding-bottom:10px;">
-                                    <h2 style="margin:0;color:#1a73e8;">Pharmato</h2>
-                                    <p style="margin:5px 0 0;font-size:14px;color:#666;">Order Confirmation</p>
-                                </div>
-
+                             
                                 <p>Hi ${userName},</p>
                                 <p>Thank you for placing your order with Pharmato. We have successfully received your payment and your order is now confirmed.</p>
 
