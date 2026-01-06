@@ -83,8 +83,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
         success: true,
         message: 'Get wallet calculation data successfully',
-        data: walletCalculationData,
-        razorPayKeyId: process.env.razorPay_Key_Id || 'rzp_test_unzQYlf1P4xFBb',
-        razorPaySecretKey: process.env.razorPay_Secret_Key || 'H9JFfYehn1Fh2SftK4qj8jQX',
+        data: walletCalculationData
     });
+    
 }
