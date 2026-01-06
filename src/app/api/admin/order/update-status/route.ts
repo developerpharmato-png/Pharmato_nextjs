@@ -7,6 +7,8 @@ import { getDb, sendPushNotificationWithData } from '@/utils/firebase.helper';
 import { sendEmail } from '@/utils/sendEmail';
 import fs from 'fs';
 import path from 'path';
+import Admin from '@/models/Admin';
+import Store from '@/models/Store';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
@@ -67,6 +69,63 @@ export async function POST(req: NextRequest) {
             });
         }
 
+        let userName = 'Customer';
+        let userEmail = '';
+        const deliveredAddr: any = order.deliveredAddress.address || null;
+        if (user && typeof user === 'object' && !Array.isArray(user)) {
+            userName = (user as any).name || deliveredAddr?.name || 'Customer';
+            userEmail = (user as any).email || deliveredAddr?.email || '';
+        }
+
+        const store : any = await Store.findById(order.storeId).lean();
+        const storeName = store ? (store.name || 'Store') : 'Store';
+
+        // Notify all superadmins
+        try {
+            const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
+            if (superAdminRole && superAdminRole._id) {
+                const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+                for (const superAdmin of superAdmins) {
+
+                    // Order #{OrderID} placed by {User Name} at store {Store Name} has been successfully delivered.
+
+                    await Notification.create({
+                        userId: (superAdmin as any)._id.toString(),
+                        role: 'admin',
+                        title: 'Order Updated',
+                        message: `Order #${order.order_id} placed by ${userName} at store ${storeName} has been successfully delivered.`,
+                        type: 'order',
+                        targetScreen: 'orders/detail',
+                        targetId: order._id.toString(),
+                        meta: {
+                            orderId: order._id.toString(),
+                        }
+                    });
+
+                    try {
+                        const superToken = (superAdmin as any).deviceToken;
+                        if (superToken) {
+                            await sendPushNotificationWithData({
+                                token: superToken,
+                                title: 'Pharmato',
+                                body: `Order #${order.order_id} has been successfully delivered to the customer.`,
+                                data: {
+                                    targetId: order._id.toString(),
+                                    orderId: order._id.toString(),
+                                    type: 'order_updated',
+                                    targetScreen: 'orders/detail',
+                                }
+                            });
+                        }
+                    } catch (err) {
+                        console.error('Failed to send push notification to superadmin:', err);
+                    }
+
+                }
+            }
+        } catch (err) {
+            console.error('Superadmin notification error:', err);
+        }
 
         // Choose template based on create or update
         const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');

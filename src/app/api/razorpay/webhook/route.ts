@@ -147,8 +147,6 @@ export async function POST(req: NextRequest) {
                     });
                 }
 
-
-
                 // Choose template based on create or update
                 const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
                 const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
@@ -163,12 +161,12 @@ export async function POST(req: NextRequest) {
                     const subject = `Order Placed Successfully – Order ${checkOrder.order_id}`;
                     let userName = 'Customer';
                     let userEmail = '';
-                    if (user && typeof user === 'object' && !Array.isArray(user)) {
-                        userName = (user as any).name || 'Customer';
-                        userEmail = (user as any).email || '';
-                    }
                     const orderData: any = updatedOrder || checkOrder;
                     const deliveredAddr: any = orderData.deliveredAddress.address || null;
+                    if (user && typeof user === 'object' && !Array.isArray(user)) {
+                        userName = (user as any).name || deliveredAddr?.name || 'Customer';
+                        userEmail = (user as any).email || deliveredAddr?.email || '';
+                    }
 
                     let deliveryAddressText = ''
 
@@ -287,12 +285,14 @@ export async function POST(req: NextRequest) {
                                             }
                                         }
 
+                                        // Order #{OrderID} has been placed by {User Name} at your store. Review and proceed Further.
+
                                         // Notify store admin
                                         await Notification.create({
                                             userId: (store as any).adminManagerId.toString(),
                                             role: 'admin',
                                             title: 'New Order Received',
-                                            message: `Admin ${adminName} (${adminRoleName}) received a new order for store ${storeName}. Customer: ${customerName}. Order ID: ${checkOrder.order_id}.`,
+                                            message: `Order #${checkOrder.order_id} has been placed by ${customerName} at your store ${storeName}. Review and proceed further.`,
                                             type: 'order',
                                             targetScreen: 'orders/detail',
                                             targetId: checkOrder._id.toString(),
@@ -307,24 +307,27 @@ export async function POST(req: NextRequest) {
 
 
                                         try {
-                                            await sendPushNotificationWithData({
-                                                token: (admin as any).deviceToken,
-                                                title: 'Pharmato',
-                                                body: `Admin ${adminName} (${adminRoleName}) received a new order for store ${storeName}. Customer: ${customerName}. Order ID: ${checkOrder.order_id}.`,
-                                                data: {
-                                                    targetId: checkOrder._id.toString(),
-                                                    orderId: checkOrder._id.toString(),
-                                                    type: 'order_placed',
-                                                    targetScreen: 'orders/detail',
-                                                    paymentId: entity.id,
-                                                    amount: `${amountValue}`,
-                                                    currency: entity.currency,
-                                                    method: entity.method,
-                                                    status: entity.status
-                                                }
-                                            });
+                                            const adminToken = (admin as any).deviceToken;
+                                            if (adminToken) {
+                                                await sendPushNotificationWithData({
+                                                    token: adminToken,
+                                                    title: 'Pharmato',
+                                                    body: `Order #${checkOrder.order_id} has been placed by ${customerName} at your store ${storeName}. Review and proceed further.`,
+                                                    data: {
+                                                        targetId: checkOrder._id.toString(),
+                                                        orderId: checkOrder._id.toString(),
+                                                        type: 'order_placed',
+                                                        targetScreen: 'orders/detail',
+                                                        paymentId: entity.id,
+                                                        amount: `${amountValue}`,
+                                                        currency: entity.currency,
+                                                        method: entity.method,
+                                                        status: entity.status
+                                                    }
+                                                });
+                                            }
                                         } catch (err) {
-                                            console.error('Failed to send push notification:', err);
+                                            console.error('Failed to send push notification to admin:', err);
                                         }
 
 
@@ -336,15 +339,18 @@ export async function POST(req: NextRequest) {
 
                     // Notify all superadmins
                     try {
-                        const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: "SuperAdmin" });
+                        const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
                         if (superAdminRole && superAdminRole._id) {
                             const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
                             for (const superAdmin of superAdmins) {
+
+                                // User {User Name} has placed order #{OrderID} at store {Store Name}. Waiting for store Manager to accept order.
+
                                 await Notification.create({
                                     userId: (superAdmin as any)._id.toString(),
                                     role: 'admin',
                                     title: 'New Order Received',
-                                    message: `Admin ${adminName} (${adminRoleName}) received a new order for store ${storeName}. Customer: ${customerName}. Order ID: ${checkOrder.order_id}.`,
+                                    message: `User ${customerName} has placed order #${checkOrder.order_id} at store ${storeName}. Waiting for store Manager to accept order.`,
                                     type: 'order',
                                     targetScreen: 'orders/detail',
                                     targetId: checkOrder._id.toString(),
@@ -358,24 +364,27 @@ export async function POST(req: NextRequest) {
                                 });
 
                                 try {
-                                    await sendPushNotificationWithData({
-                                        token: (superAdmin as any).deviceToken,
-                                        title: 'Pharmato',
-                                        body: `Admin ${adminName} (${adminRoleName}) received a new order for store ${storeName}. Customer: ${customerName}. Order ID: ${checkOrder.order_id}.`,
-                                        data: {
-                                            targetId: checkOrder._id.toString(),
-                                            orderId: checkOrder._id.toString(),
-                                            type: 'order_placed',
-                                            targetScreen: 'orders/detail',
-                                            paymentId: entity.id,
-                                            amount: `${amountValue}`,
-                                            currency: entity.currency,
-                                            method: entity.method,
-                                            status: entity.status
-                                        }
-                                    });
+                                    const superToken = (superAdmin as any).deviceToken;
+                                    if (superToken) {
+                                        await sendPushNotificationWithData({
+                                            token: superToken,
+                                            title: 'Pharmato',
+                                            body: `User ${customerName} has placed order #${checkOrder.order_id} at store ${storeName}. Waiting for store Manager to accept order.`,
+                                            data: {
+                                                targetId: checkOrder._id.toString(),
+                                                orderId: checkOrder._id.toString(),
+                                                type: 'order_placed',
+                                                targetScreen: 'orders/detail',
+                                                paymentId: entity.id,
+                                                amount: `${amountValue}`,
+                                                currency: entity.currency,
+                                                method: entity.method,
+                                                status: entity.status
+                                            }
+                                        });
+                                    }
                                 } catch (err) {
-                                    console.error('Failed to send push notification:', err);
+                                    console.error('Failed to send push notification to superadmin:', err);
                                 }
 
                             }
