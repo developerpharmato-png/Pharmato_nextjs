@@ -129,6 +129,12 @@ export const ToastMessages = {
   SUBCATEGORY_ACTIVATED: "Subcategory activated successfully",
   SUBCATEGORY_DEACTIVATED: "Subcategory deactivated successfully",
   SUBCATEGORY_STATUS_UPDATE_FAILED: "Failed to update subcategory status",
+
+  // Login messages
+  ADMIN_ACCOUNT_INACTIVE: "Your account has been deactivated. Please contact your administrator",
+  ADMIN_ROLE_INACTIVE: "Your role has been deactivated. Please contact your administrator",
+  LOGIN_SUCCESS: "Login successful",
+  INVALID_CREDENTIALS: "Invalid email or password",
 };
 
 
