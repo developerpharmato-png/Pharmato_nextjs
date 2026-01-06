@@ -14,6 +14,7 @@ import {
   ModalHeader,
 } from "../components/miniComponents";
 import Swal from "sweetalert2";
+import { ToastMessages } from "@/utils/ToasterMessage";
 import TextareaField from "../components/skeleton/FieldCom";
 import { modalStyle } from "@/utils/style";
 import { MdSave } from "react-icons/md";
@@ -83,9 +84,12 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
       ];
       if (!allowedTypes.includes(file.type)) {
         Swal.fire({
+          toast: true,
+          position: "top-end",
           icon: "error",
-          title: "Invalid file type",
-          text: "Please upload only image files",
+          title: ToastMessages.INVALID_FILE_TYPE,
+          showConfirmButton: false,
+          timer: 2000,
         });
         const fileInput = document.getElementById(
           "category-image-input"
@@ -97,9 +101,12 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
       const maxSize = 5 * 1024 * 1024; // 5MB
       if (file.size > maxSize) {
         Swal.fire({
+          toast: true,
+          position: "top-end",
           icon: "error",
-          title: "File too large",
-          text: "Please upload an image smaller than 5MB",
+          title: ToastMessages.FILE_TOO_LARGE,
+          showConfirmButton: false,
+          timer: 2000,
         });
         const fileInput = document.getElementById(
           "category-image-input"
@@ -122,15 +129,19 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
           toast: true,
           position: "top-end",
           icon: "success",
-          title: "Image uploaded successfully",
+          title: ToastMessages.IMAGES_UPLOADED(1),
           showConfirmButton: false,
           timer: 2000,
         });
       } else {
         Swal.fire({
+          toast: true,
+          position: "top-end",
           icon: "error",
           title: "Image upload failed",
           text: data.error || "Failed to upload image",
+          showConfirmButton: false,
+          timer: 2000,
         });
       }
 
@@ -155,15 +166,18 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
         toast: true,
         position: "top-end",
         icon: "success",
-        title: "Image deleted",
+        title: ToastMessages.IMAGE_DELETED,
         showConfirmButton: false,
         timer: 2000,
       });
     } else {
       Swal.fire({
+        toast: true,
+        position: "top-end",
         icon: "error",
-        title: "Delete failed",
-        text: data.error || "Failed to delete image",
+        title: ToastMessages.IMAGE_DELETE_FAILED(data.error),
+        showConfirmButton: false,
+        timer: 2000,
       });
     }
   };

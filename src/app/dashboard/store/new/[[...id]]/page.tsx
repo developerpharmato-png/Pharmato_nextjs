@@ -5,6 +5,7 @@ import { useFormik } from "formik";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { ToastMessages } from "@/utils/ToasterMessage";
 import TextField from "@mui/material/TextField";
 import {
   StoreCreateStore,
@@ -25,9 +26,11 @@ import {
 import PincodeSelect from "../../PincodeSelect";
 import AddressFields from "../../AddressFields";
 import StoreMapComponent from "../../StoreMapComponent";
+
 import { StoreInitialValues } from "@/utils/initCategory";
 import { StoreValidationSchema } from "@/utils/validateCategory";
 import { MdSave } from "react-icons/md";
+import StoreSkeleton from "@/app/dashboard/components/skeleton/StoreSkeleton";
 
 export default function AddStorePage() {
   const router = useRouter();
@@ -74,8 +77,8 @@ export default function AddStorePage() {
             position: "top-end",
             icon: "success",
             title: isEditMode
-              ? "Store updated successfully!"
-              : "Store added successfully!",
+              ? ToastMessages.STORE_UPDATED
+              : ToastMessages.STORE_CREATED,
             showConfirmButton: false,
             timer: 2000,
           });
@@ -91,9 +94,13 @@ export default function AddStorePage() {
         const errorMsg =
           err?.message || err?.response?.data?.message || "Error saving store";
         Swal.fire({
+          toast: true,
+          position: "top-end",
           icon: "error",
-          title: "Error",
+          title: isEditMode ? ToastMessages.STORE_UPDATE_FAILED : ToastMessages.STORE_CREATE_FAILED,
           text: errorMsg,
+          showConfirmButton: false,
+          timer: 2000,
         });
       }
     },
@@ -157,6 +164,9 @@ export default function AddStorePage() {
         showSearch={false}
       />
 
+      {isEditMode && storeDetailLoading ? (
+        <StoreSkeleton />
+      ) : (
       <form
         onSubmit={formik.handleSubmit}
         className="flex flex-col gap-8 px-8 py-8"
@@ -279,6 +289,7 @@ export default function AddStorePage() {
           </div>
         </div>
       </form>
+      )}
     </div>
   );
 }

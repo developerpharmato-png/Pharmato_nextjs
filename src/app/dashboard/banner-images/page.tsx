@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { ToastMessages } from "@/utils/ToasterMessage";
 import HeaderWithAction from "../components/HeaderWithAction";
 import { ImageUploadField } from "../components/ImageUploadField";
 import {
@@ -45,91 +46,7 @@ export default function BannerImagesDashboard() {
     adminPermissions?.BannerImages?.edit ??
     true;
 
-  // Image upload handler (max 3 images, show size, cancel/delete button)
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files ? Array.from(e.target.files) : [];
-    if (files.length === 0) return;
 
-    // Validate count (max 3)
-    if (images.length + files.length > 3) {
-      Swal.fire({
-        icon: "error",
-        title: "Too many images",
-        text: `You can upload up to 3 images. Currently ${images.length} uploaded.`,
-      });
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    const allowedTypes = [
-      "image/jpeg",
-      "image/jpg",
-      "image/png",
-      "image/gif",
-      "image/webp",
-      "image/svg+xml",
-    ];
-    const maxSize = 5 * 1024 * 1024;
-
-    setLoading(true);
-    let uploadedObjs: any[] = [];
-    for (const file of files) {
-      if (!allowedTypes.includes(file.type)) {
-        Swal.fire({
-          icon: "error",
-          title: "Invalid file type",
-          text: "Please upload only image files (JPEG, PNG, GIF, WebP, SVG)",
-        });
-        continue;
-      }
-      if (file.size > maxSize) {
-        Swal.fire({
-          icon: "error",
-          title: "File too large",
-          text: "Please upload an image smaller than 5MB",
-        });
-        continue;
-      }
-      const uploadFormData = new FormData();
-      uploadFormData.append("file", file);
-      try {
-        const res = await fetch("/api/cloudinary/upload-image", {
-          method: "POST",
-          body: uploadFormData,
-        });
-        const data = await res.json();
-        if (data.success && data.url) {
-          uploadedObjs.push({ url: data.url });
-        }
-      } catch {}
-    }
-    setLoading(false);
-
-    if (uploadedObjs.length > 0) {
-      // Update images array and backend
-      const newImages = [...images, ...uploadedObjs];
-      setImages(newImages);
-      try {
-        await axios.post("/api/admin/banner-images", { images: newImages });
-        Swal.fire({
-          toast: true,
-          position: "top-end",
-          icon: "success",
-          title: `Uploaded ${uploadedObjs.length} image(s)`,
-          showConfirmButton: false,
-          timer: 2000,
-        });
-      } catch {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to update images",
-          text: "Could not update images on server.",
-        });
-      }
-    }
-    // Reset file input
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
 
   const fetchImages = async () => {
     setLoading(true);
@@ -155,97 +72,8 @@ export default function BannerImagesDashboard() {
     })();
   }, []);
 
-  // Optionally, you can update handleUpdate to accept JSON input for advanced editing
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess("");
-    let parsed: any[] = [];
-    try {
-      parsed = JSON.parse(inputImages);
-      if (!Array.isArray(parsed)) throw new Error();
-    } catch {
-      setError("Input must be a valid JSON array of objects");
-      setLoading(false);
-      return;
-    }
-    try {
-      const res = await axios.post("/api/admin/banner-images", {
-        images: parsed,
-      });
-      setImages(res.data.data?.images || []);
-      setSuccess("Banner images updated successfully");
-      setInputImages("");
-      Swal.fire({
-        toast: true,
-        position: "top-end",
-        icon: "success",
-        title: "Banner images updated",
-        showConfirmButton: false,
-        timer: 2000,
-      });
-    } catch (err: any) {
-      const apiMsg = err?.response?.data?.message || err?.response?.data?.error;
-      setError(apiMsg || "Error updating banner images");
-      Swal.fire({
-        icon: "error",
-        title: "Failed to update images",
-        text: apiMsg || "Unknown error",
-      });
-    }
-    setLoading(false);
-  };
 
-  const handleDeleteImage = async (imageObj: any) => {
-    const result = await Swal.fire({
-      title: "Delete Image?",
-      text: "Are you sure you want to delete this image?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Delete",
-      cancelButtonText: "Cancel",
-    });
-    if (!result.isConfirmed) return;
-    setLoading(true);
-    try {
-      // Delete from Cloudinary
-      const resCloud = await fetch("/api/cloudinary/delete-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl: imageObj.url }),
-      });
-      const dataCloud = await resCloud.json();
-      if (!dataCloud.success) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to delete image from Cloudinary",
-          text: dataCloud.error || "Unknown error",
-        });
-        setLoading(false);
-        return;
-      }
-      // Remove from images array and update backend
-      const newImages = images.filter((img) => img.url !== imageObj.url);
-      setImages(newImages);
-      await axios.post("/api/admin/banner-images", { images: newImages });
-      Swal.fire({
-        toast: true,
-        position: "top-end",
-        icon: "success",
-        title: "Image deleted",
-        showConfirmButton: false,
-        timer: 2000,
-      });
-    } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Failed to delete image",
-        text: "Network error",
-      });
-    }
-    setLoading(false);
-  };
+
 
   return (
     <div className="containerStyle scrollbar-hide">
@@ -267,24 +95,53 @@ export default function BannerImagesDashboard() {
         }
         categories={categories}
         loading={loading}
-        onClose={() => setModal({ open: false, editIdx: null })} 
+        onClose={() => setModal({ open: false, editIdx: null })}
         onSave={async (img) => {
           setLoading(true);
-          if (modal.editIdx !== null) {
-            // Edit
-            const updated = images.map((i, idx) =>
-              idx === modal.editIdx ? { ...img } : i
-            );
-            setImages(updated);
-            await axios.post("/api/admin/banner-images", { images: updated });
-          } else {
-            // Add
-            const updated = [...images, img];
-            setImages(updated);
-            await axios.post("/api/admin/banner-images", { images: updated });
+          try {
+            if (modal.editIdx !== null) {
+              // Edit
+              const updated = images.map((i, idx) =>
+                idx === modal.editIdx ? { ...img } : i
+              );
+              setImages(updated);
+              await axios.post("/api/admin/banner-images", { images: updated });
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: ToastMessages.BANNER_IMAGE_UPDATED,
+                showConfirmButton: false,
+                timer: 2000,
+              });
+            } else {
+              // Add
+              const updated = [...images, img];
+              setImages(updated);
+              await axios.post("/api/admin/banner-images", { images: updated });
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: ToastMessages.BANNER_IMAGE_CREATED,
+                showConfirmButton: false,
+                timer: 2000,
+              });
+            }
+            setModal({ open: false, editIdx: null });
+          } catch (err: any) {
+            Swal.fire({
+              toast: true,
+              position: "top-end",
+              icon: "error",
+              title: modal.editIdx !== null ? ToastMessages.BANNER_IMAGE_UPDATED : ToastMessages.BANNER_IMAGE_CREATED,
+              text: (err as any)?.message || "An error occurred",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+          } finally {
+            setLoading(false);
           }
-          setModal({ open: false, editIdx: null });
-          setLoading(false);
         }}
       />
 
@@ -297,44 +154,44 @@ export default function BannerImagesDashboard() {
                 label: "Image",
                 minWidth: 100,
                 selector: (row: any) => (
-                  
-                    <span>
-                      <CustomImage
-                        coverImage={row.url}
-                        images={[row.url]}
-                        alt={row.alt || "Banner"}
-                        style={{
-                          height: 48,
-                          width: 120,
-                          objectFit: "cover",
-                          borderRadius: 6,
-                          cursor: "pointer",
-                        }}
-                      />
-                    </span>
-                 
+
+                  <span>
+                    <CustomImage
+                      coverImage={row.url}
+                      images={[row.url]}
+                      alt={row.alt || "Banner"}
+                      style={{
+                        height: 48,
+                        width: 120,
+                        objectFit: "cover",
+                        borderRadius: 6,
+                        cursor: "pointer",
+                      }}
+                    />
+                  </span>
+
                 ),
               },
-            // {
-            //   id: "alt",
-            //   label: "Alt Text",
-            //   minWidth: 120,
-            //   selector: (row: any) => (
-            //     <CustomTooltip title={row.alt || "-"}>
-            //       <span
-            //         style={{
-            //           display: "inline-block",
-            //           width: 140,
-            //           overflow: "hidden",
-            //           textOverflow: "ellipsis",
-            //           whiteSpace: "nowrap",
-            //         }}
-            //       >
-            //         {row.alt || "-"}
-            //       </span>
-            //     </CustomTooltip>
-            //   ),
-            // },
+              // {
+              //   id: "alt",
+              //   label: "Alt Text",
+              //   minWidth: 120,
+              //   selector: (row: any) => (
+              //     <CustomTooltip title={row.alt || "-"}>
+              //       <span
+              //         style={{
+              //           display: "inline-block",
+              //           width: 140,
+              //           overflow: "hidden",
+              //           textOverflow: "ellipsis",
+              //           whiteSpace: "nowrap",
+              //         }}
+              //       >
+              //         {row.alt || "-"}
+              //       </span>
+              //     </CustomTooltip>
+              //   ),
+              // },
 
               {
                 id: "targetId",
@@ -393,7 +250,26 @@ export default function BannerImagesDashboard() {
                             await axios.post("/api/admin/banner-images", {
                               images: updated,
                             });
-                          } catch {}
+                            Swal.fire({
+                              toast: true,
+                              position: "top-end",
+                              icon: "success",
+                              title: updated[idx].isActive
+                                ? ToastMessages.BANNER_IMAGE_CREATED
+                                : ToastMessages.BANNER_STATUS_UPDATED,
+                              showConfirmButton: false,
+                              timer: 2000,
+                            });
+                          } catch (err) {
+                            Swal.fire({
+                              toast: true,
+                              position: "top-end",
+                              icon: "error",
+                              title: ToastMessages.BANNER_STATUS_UPDATE_FAILED,
+                              showConfirmButton: false,
+                              timer: 2000,
+                            });
+                          }
                           setLoading(false);
                         },
                       });
@@ -407,9 +283,8 @@ export default function BannerImagesDashboard() {
                     }
                   >
                     <span
-                      className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
-                        row.isActive ? "translate-x-6" : "translate-x-1"
-                      }`}
+                      className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${row.isActive ? "translate-x-6" : "translate-x-1"
+                        }`}
                     />
                   </button>
                 ),
@@ -447,7 +322,7 @@ export default function BannerImagesDashboard() {
           page={0}
           rowsPerPage={10}
           totalCount={images.length}
-          onPageChange={() => {}}
+          onPageChange={() => { }}
           loading={loading}
         />
       </div>

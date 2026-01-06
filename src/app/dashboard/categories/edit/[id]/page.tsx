@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
-import Toast from "@/utils/Toast";
+import { ToastMessages } from "@/utils/ToasterMessage";
 
 import { useFormik } from "formik"; // Import useFormik
 import {
@@ -99,10 +99,6 @@ export default function EditCategoryPage() {
   const [uploading, setUploading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const theme = useTheme();
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
   // 1. Fetch initial data and set Formik's initial values
   useEffect(() => {
     async function fetchCategory() {
@@ -144,9 +140,14 @@ export default function EditCategoryPage() {
         // Manually check for image, as Formik might miss it on re-initialization if using custom components
 
         if (values.images.length === 0) {
-          setToast({
-            message: "Please upload a category image before submitting",
-            type: "error",
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "error",
+            title: "Image required",
+            text: ToastMessages.CATEGORY_IMAGE_REQUIRED,
+            showConfirmButton: false,
+            timer: 2000,
           });
           setSubmitting(false);
           return;
@@ -159,28 +160,42 @@ export default function EditCategoryPage() {
         });
         const data = await res.json();
         if (data.success) {
-          setToast({
-            message: "Category updated successfully",
-            type: "success",
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "success",
+            title: ToastMessages.CATEGORY_UPDATED,
+            showConfirmButton: false,
+            timer: 2000,
+            
           });
           setTimeout(() => router.push("/dashboard/categories"), 1200);
         } else {
           // Set Formik errors if validation/server errors are returned
           setErrors(data.errors || {});
-          const errorMsg = data.error || "Failed to update category";
-          setToast({
-            message: "Update failed: " + errorMsg,
-            type: "error",
+          const errorMsg = data.error || ToastMessages.CATEGORY_UPDATE_FAILED;
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "error",
+            title: "Update failed",
+            text: errorMsg,
+            showConfirmButton: false,
+            timer: 2000,
           });
           setError(errorMsg);
         }
       } catch (submitError) {
-        setToast({
-          message:
-            "Update failed: Failed to connect to the server to update category.",
-          type: "error",
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "error",
+          title: "Update failed",
+          text: ToastMessages.CATEGORY_UPDATE_FAILED,
+          showConfirmButton: false,
+          timer: 2000,
         });
-        setError("Failed to connect to the server to update category.");
+        setError(ToastMessages.CATEGORY_UPDATE_FAILED);
       } finally {
         setSubmitting(false);
       }
@@ -203,9 +218,13 @@ export default function EditCategoryPage() {
       ];
       if (!allowedTypes.includes(file.type)) {
         Swal.fire({
+          toast: true,
+          position: "top-end",
           icon: "error",
           title: "Invalid file type",
-          text: "Please upload only image files",
+          text: ToastMessages.INVALID_FILE_TYPE,
+          showConfirmButton: false,
+          timer: 2000,
         });
         const fileInput = document.getElementById(
           "edit-category-image-input"
@@ -217,9 +236,13 @@ export default function EditCategoryPage() {
       const maxSize = 5 * 1024 * 1024; // 5MB
       if (file.size > maxSize) {
         Swal.fire({
+          toast: true,
+          position: "top-end",
           icon: "error",
           title: "File too large",
-          text: "Please upload an image smaller than 5MB",
+          text: ToastMessages.FILE_TOO_LARGE,
+          showConfirmButton: false,
+          timer: 2000,
         });
         const fileInput = document.getElementById(
           "edit-category-image-input"
@@ -242,15 +265,20 @@ export default function EditCategoryPage() {
           toast: true,
           position: "top-end",
           icon: "success",
-          title: "Image uploaded successfully",
+          title: ToastMessages.IMAGES_UPLOADED(1),
           showConfirmButton: false,
           timer: 2000,
+        
         });
       } else {
         Swal.fire({
+          toast: true,
+          position: "top-end",
           icon: "error",
           title: "Image upload failed",
           text: data.error || "Failed to upload image",
+          showConfirmButton: false,
+          timer: 2000,
         });
       }
       setUploading(false);
@@ -277,15 +305,20 @@ export default function EditCategoryPage() {
         toast: true,
         position: "top-end",
         icon: "success",
-        title: "Image deleted",
+        title: ToastMessages.IMAGE_DELETED,
         showConfirmButton: false,
         timer: 2000,
+       
       });
     } else {
       Swal.fire({
+        toast: true,
+        position: "top-end",
         icon: "error",
         title: "Delete failed",
-        text: data.error || "Failed to delete image",
+        text: ToastMessages.IMAGE_DELETE_FAILED(data.error),
+        showConfirmButton: false,
+        timer: 2000,
       });
     }
   };
@@ -309,8 +342,6 @@ export default function EditCategoryPage() {
 
   return (
     <div className="containerStyle scrollbar-hide">
-      {toast && <Toast message={toast.message} type={toast.type} />}
-
       <HeaderWithAction
         title=" Edit Category
 "

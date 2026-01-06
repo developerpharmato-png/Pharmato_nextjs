@@ -5,7 +5,8 @@ import Link from "next/link";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
-import Toast from "@/utils/Toast";
+import Swal from "sweetalert2";
+import { ToastMessages } from "@/utils/ToasterMessage";
 import { LoginSchema } from "@/utils/validateCategory";
 import { requestPermissionAndGetToken } from "@/app/firebase/firebaseConfig";
 
@@ -13,18 +14,12 @@ export default function LoginPage() {
   const router = useRouter();
 
   const [showPassword, setShowPassword] = useState(false);
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
 
   // Yup Validation Schema
 
 
   return (
     <>
-      {toast && <Toast message={toast.message} type={toast.type} />}
-
       <div className="min-h-screen flex bg-gray-50">
         {/* Left Side - Welcome Section */}
         <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-green-600 via-green-700 to-emerald-800 p-12 items-center justify-center relative overflow-hidden">
@@ -163,9 +158,13 @@ export default function LoginPage() {
                     const data = await res.json();
 
                     if (!data.success) {
-                      setToast({
-                        message: data.error || "Login failed",
-                        type: "error",
+                      Swal.fire({
+                        toast: true,
+                        position: "top-end",
+                        icon: "error",
+                        title: data.error || ToastMessages.INVALID_CREDENTIALS,
+                        showConfirmButton: false,
+                        timer: 2000,
                       });
                     } else {
                       // Store all admin data
@@ -199,9 +198,13 @@ export default function LoginPage() {
                         // ignore permission fetch errors; UI will default
                         console.error('Failed to load role permissions', e);
                       }
-                      setToast({
-                        message: "Login successful!",
-                        type: "success",
+                      Swal.fire({
+                        toast: true,
+                        position: "top-end",
+                        icon: "success",
+                        title: ToastMessages.LOGIN_SUCCESS,
+                        showConfirmButton: false,
+                        timer: 2000,
                       });
 
                       setTimeout(() => {
@@ -209,9 +212,13 @@ export default function LoginPage() {
                       }, 1000);
                     }
                   } catch (err) {
-                    setToast({
-                      message: "Network error. Try again.",
-                      type: "error",
+                    Swal.fire({
+                      toast: true,
+                      position: "top-end",
+                      icon: "error",
+                      title: "Network error. Try again.",
+                      showConfirmButton: false,
+                      timer: 2000,
                     });
                   } finally {
                     setSubmitting(false);

@@ -2,12 +2,13 @@
 import React, { useEffect, useState } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
+import Swal from "sweetalert2";
+import { ToastMessages } from "@/utils/ToasterMessage";
 import { TextField, InputAdornment } from "@mui/material";
 import { Truck, Save } from "lucide-react";
 
 import HeaderWithAction from "@/app/dashboard/components/HeaderWithAction";
 import { CustomButton, ErrorMessageCom } from "@/app/dashboard/components/miniComponents";
-import Toast from "@/utils/Toast";
 import { PaymentSettingsPath } from "@/app/dashboard/storeAPICall/API/BaseApi";
 import { PaymentSettingsStore } from "../storeAPICall/useUserStore";
 import SettingSkeleton from "../components/skeleton/SettingSkeleton";
@@ -26,7 +27,6 @@ const SettingsService = {
 
 export default function SettingsPage() {
   const { postData, loading, clearData } = PaymentSettingsStore();
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [initialValues, setInitialValues] = useState({
     deliveryFee: "",
@@ -76,7 +76,7 @@ export default function SettingsPage() {
     deliveryFeeThreshold: Yup.number()
       .required("Mandatory field")
       .min(0, "No negative values")
-      .test("is-greater", "Threshold must be ≥ Delivery Fee", function (value) {
+      .test("is-greater", ToastMessages.THRESHOLD_VALIDATION, function (value) {
         return value >= (this.parent.deliveryFee || 0);
       }),
   });
@@ -109,10 +109,25 @@ export default function SettingsPage() {
                 updates.push({ _id: values.deliveryFeeThresholdId || undefined, type: 'deliveryFeeThreshold', data: String(values.deliveryFeeThreshold), data_value_in: 'number', description: 'free delivery threshold', is_active: 1 });
               }
               const res = await SettingsService.saveSettings(postData, { updates });
-              setToastMsg(res?.message || "Settings saved successfully");
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: ToastMessages.SETTINGS_UPDATED,
+                showConfirmButton: false,
+                timer: 2000,
+              });
               try { clearData && clearData(); } catch (e) { }
             } catch (e: any) {
-              setToastMsg(e?.message || "Error saving settings");
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "error",
+                title: ToastMessages.SETTINGS_UPDATE_FAILED,
+                text: e?.message || "An error occurred",
+                showConfirmButton: false,
+                timer: 2000,
+              });
             }
           }}
         >
@@ -182,7 +197,6 @@ export default function SettingsPage() {
           )}
         </Formik>
       )}
-      {toastMsg && <Toast message={toastMsg} />}
     </div>
   );
 }
