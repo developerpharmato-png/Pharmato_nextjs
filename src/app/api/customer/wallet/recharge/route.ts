@@ -53,6 +53,7 @@ import Wallet from '@/models/Wallet';
 import moment from 'moment';
 
 export async function POST(request: NextRequest) {
+    
     await dbConnect();
     const body = await request.json();
     const { userId, rechargeData } = body;
@@ -63,28 +64,30 @@ export async function POST(request: NextRequest) {
     if (!userCheck) {
         return NextResponse.json({ status: false, message: 'User not found' }, { status: 404 });
     }
-    let currentDateTime = moment();
-    const uniqueNumber = currentDateTime.format('YYYYMMDDHHmmssSSS');
-    const orderID = 'SB-ORDER-' + uniqueNumber;
-    const paymentId = 'PAYID-PNT-' + uniqueNumber + 'M';
+    const uniquePart = Date.now().toString(36); // short base36
+    const rechargeID = `PH-WR-${uniquePart}`;
+    const paymentId = `PY-${uniquePart}`;
+
     const walletDoc = await Wallet.create({
         userId: userCheck._id,
         payment_mode: 'online',
         amount: rechargeData?.amount || 0,
         totalAmount: rechargeData?.totalAmount || 0,
         razorPay_total_tax_charged: rechargeData?.totalAmountRazorPayCharged || 0,
-        order_id: orderID,
+        recharge_id: rechargeID,
         payment_id: paymentId,
+        recharge_status: 'Pending',
         payment_status: 'Pending',
         paymentHistory: [],
     });
+
     if (walletDoc) {
         return NextResponse.json({
             status: true,
             message: 'Wallet charged successfully',
             data: {
                 walletObjectId: walletDoc._id,
-                orderID: walletDoc.order_id,
+                recharge_id: walletDoc.recharge_id,
                 isPaymentTake: true,
                 razorPayKeyId: process.env.razorPay_Key_Id || '',
                 razorPaySecretKey: process.env.razorPay_Secret_Key || '',
@@ -93,4 +96,5 @@ export async function POST(request: NextRequest) {
     } else {
         return NextResponse.json({ status: false, message: 'wallet not charged' }, { status: 500 });
     }
+
 }

@@ -6,7 +6,8 @@ export interface IWallet extends Document {
     amount: number;
     totalAmount: number;
     razorPay_total_tax_charged: number;
-    order_id: string;
+    recharge_id: string;
+    recharge_status: string;
     payment_id: string;
     payment_status: string;
     paymentHistory: object[];
@@ -21,7 +22,8 @@ const WalletSchema: Schema<IWallet> = new Schema(
         amount: { type: Number, default: 0 },
         totalAmount: { type: Number, default: 0 },
         razorPay_total_tax_charged: { type: Number, default: 0 },
-        order_id: { type: String, default: '' },
+        recharge_id: { type: String, default: '' },
+        recharge_status: { type: String, default: '' },
         payment_id: { type: String, default: '' },
         payment_status: { type: String, default: '' },
         paymentHistory: { type: [Object], default: [] },
