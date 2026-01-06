@@ -7,6 +7,7 @@
 
 import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
+import { ToastMessages } from "@/utils/ToasterMessage";
 import HeaderWithAction from "../components/HeaderWithAction";
 import { CustomButton } from "../components/miniComponents";
 import { customGet, customPost } from "../BaseURL/CustomNetwork";
@@ -69,7 +70,14 @@ export default function PermissionPage() {
       });
       setValues(obj);
     } catch (err) {
-      Swal.fire({ icon: "error", title: "Failed to load permissions" });
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "error",
+        title: ToastMessages.PERMISSIONS_LOAD_FAILED,
+        showConfirmButton: false,
+        timer: 2000,
+      });
       setValues({});
     }
     setLoading(false);
@@ -97,20 +105,48 @@ export default function PermissionPage() {
 
   const save = async () => {
     if (!selectedRole) {
-      Swal.fire({ icon: "warning", title: "Select a role" });
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "warning",
+        title: ToastMessages.ROLE_REQUIRED,
+        showConfirmButton: false,
+        timer: 2000,
+      });
       return;
     }
     if (isSuperAdmin) {
-      Swal.fire({ icon: "info", title: "SuperAdmin permissions cannot be modified" });
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "info",
+        title: ToastMessages.SUPERADMIN_PERMISSIONS_LOCKED,
+        showConfirmButton: false,
+        timer: 2000,
+      });
       return;
     }
     setLoading(true);
     try {
       const payload = { roleId: selectedRole, permissions: values };
       await customPost("/api/admin/role-permission", payload);
-      Swal.fire({ icon: "success", title: "Permissions Updated" });
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: ToastMessages.PERMISSIONS_UPDATED,
+        showConfirmButton: false,
+        timer: 2000,
+      });
     } catch (err) {
-      Swal.fire({ icon: "error", title: "Save failed" });
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "error",
+        title: ToastMessages.PERMISSIONS_UPDATE_FAILED,
+        showConfirmButton: false,
+        timer: 2000,
+      });
     }
     setLoading(false);
   };

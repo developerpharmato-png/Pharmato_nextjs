@@ -8,6 +8,7 @@ import AdminForm from "./AdminForm";
 import { Edit2Icon, EditIcon, Trash2 } from "lucide-react";
 import { CustomButton } from "../components/miniComponents";
 import Swal from "sweetalert2";
+import { ToastMessages } from "@/utils/ToasterMessage";
 
 type Admin = {
   _id: string;
@@ -76,10 +77,30 @@ export default function ManagementPage() {
   }, [search]);
 
   async function resendInvite(id: string) {
-    const admin = admins.find((a) => a._id === id);
-    await customPost(`/api/admins/${id}/resend-invite`, {
-      email: admin?.email,
-    });
+    try {
+      const admin = admins.find((a) => a._id === id);
+      await customPost(`/api/admins/${id}/resend-invite`, {
+        email: admin?.email,
+      });
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: ToastMessages.ADMIN_INVITE_RESENT,
+        showConfirmButton: false,
+        timer: 2000,
+      });
+    } catch (err: any) {
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "error",
+        title: ToastMessages.ADMIN_INVITE_RESEND_FAILED,
+        text: err?.message,
+        showConfirmButton: false,
+        timer: 2000,
+      });
+    }
   }
 
   async function toggleActive(id: string, isActive?: boolean) {
@@ -87,9 +108,16 @@ export default function ManagementPage() {
     const row = admins.find((a) => a._id === id);
     const rowRole = row ? roleMap[row.roleId || ""] || "" : "";
     if (rowRole === "SuperAdmin") {
-      alert("Cannot change active status of SuperAdmin");
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "warning",
+        title: ToastMessages.SUPERADMIN_STATUS_LOCKED,
+        showConfirmButton: false,
+        timer: 2000,
+      });
       return;
-    }
+    }  
 
     showConfirmStatusAlert({
       isActive: !!isActive,
@@ -107,52 +135,31 @@ export default function ManagementPage() {
           setAdmins((prev) =>
             prev.map((a) => (a._id === updated._id ? updated : a))
           );
-        } catch (err) {
-          alert("Failed to toggle active status");
-        }
-      },
-    });
-  }
-
-  async function deleteAdmin(id: string) {
-    // who is performing the delete
-    const adminRaw = localStorage.getItem("admin");
-    const currentAdmin = adminRaw ? JSON.parse(adminRaw) : null;
-
-    // Prevent deleting SuperAdmin accounts
-    const row = admins.find((a) => a._id === id);
-    const rowRole = row ? roleMap[row.roleId || ""] || "" : "";
-    if (rowRole === "SuperAdmin") {
-      alert("Cannot delete SuperAdmin");
-      return;
-    }
-
-    showConfirmStatusAlert({
-      isActive: true,
-      title: "Delete admin?",
-      text: "This will permanently remove the admin account. Continue?",
-      confirmText: "Delete",
-      cancelText: "Cancel",
-      onConfirm: async () => {
-        try {
-          const res = await fetch(`/api/admins/${id}/delete`, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ deletedById: currentAdmin?._id || null }),
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "success",
+            title: updated.isActive
+              ? ToastMessages.ADMIN_ACTIVATED
+              : ToastMessages.ADMIN_DEACTIVATED,
+            showConfirmButton: false,
+            timer: 2000,
           });
-          const json = await res.json();
-          if (!res.ok) throw new Error(json?.message || "Delete failed");
-          // remove from UI
-          setAdmins((prev) => prev.filter((a) => a._id !== id));
-          const who = json.data?.deletedBy;
-          if (who) alert(`Admin deleted by ${who.name} (${who.email})`);
-          else alert("Admin deleted");
-        } catch (err: any) {
-          alert(err?.message || "Failed to delete admin");
+        } catch (err) {
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "error",
+            title: ToastMessages.ADMIN_STATUS_UPDATE_FAILED,
+            showConfirmButton: false,
+            timer: 2000,
+          });
         }
       },
     });
   }
+
+  
 
   function openAdd() {
     setEditing(null);
@@ -189,6 +196,14 @@ export default function ManagementPage() {
         setAdmins((prev) =>
           prev.map((a) => (a._id === json.data._id ? json.data : a))
         );
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: ToastMessages.ADMIN_UPDATED,
+          showConfirmButton: false,
+          timer: 2000,
+        });
       } else {
         const res = await fetch("/api/admins/invite", {
           method: "POST",
@@ -201,12 +216,28 @@ export default function ManagementPage() {
           }),
         });
         if (!res.ok) throw new Error("Invite failed");
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: ToastMessages.ADMIN_CREATED,
+          showConfirmButton: false,
+          timer: 2000,
+        });
       }
       setShowAdd(false);
       setEditing(null);
       fetchAdmins();
     } catch (err: any) {
-      alert(err?.message || "Failed to save admin");
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "error",
+        title: ToastMessages.ADMIN_CREATE_FAILED,
+        text: err?.message || "An error occurred",
+        showConfirmButton: false,
+        timer: 2000,
+      });
     }
   }
 
@@ -290,7 +321,7 @@ export default function ManagementPage() {
     },
     {
       id: "resendInvite",
-      label: "Resend ",
+      label: "Reset Password",
       minWidth: 140,
       selector: (r) => (
         <CustomButton onClick={() => resendInvite(r._id)} width="200px">

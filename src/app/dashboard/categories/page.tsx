@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
+import { ToastMessages } from "@/utils/ToasterMessage";
 import HeaderWithAction from "../components/HeaderWithAction";
 import CategoriesTable from "./CategoriesTable";
 import { useRouter } from "next/navigation";
@@ -124,22 +125,32 @@ export default function CategoriesPage() {
           toast: true,
           position: "top-end",
           icon: "success",
-          title: "Status updated",
+          title: isActive
+            ? ToastMessages.CATEGORY_DEACTIVATED
+            : ToastMessages.CATEGORY_ACTIVATED,
           showConfirmButton: false,
           timer: 2000,
         });
       } else {
         Swal.fire({
+          toast: true,
+          position: "top-end",
           icon: "error",
-          title: "Failed to toggle status",
+          title: ToastMessages.CATEGORY_STATUS_UPDATE_FAILED,
           text: data.error || "Unknown error",
+          showConfirmButton: false,
+          timer: 2000,
         });
       }
     } catch (error) {
       Swal.fire({
+        toast: true,
+        position: "top-end",
         icon: "error",
-        title: "Failed to toggle status",
+        title: ToastMessages.CATEGORY_STATUS_UPDATE_FAILED,
         text: "Network error",
+        showConfirmButton: false,
+        timer: 2000,
       });
     }
   };

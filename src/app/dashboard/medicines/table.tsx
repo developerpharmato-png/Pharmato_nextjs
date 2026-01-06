@@ -1,5 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import Swal from "sweetalert2";
+import { ToastMessages } from "@/utils/ToasterMessage";
 import { CustomTable, Column } from "../components/CustomTable";
 import { CustomTooltip, CustomImage } from "../components/miniComponents";
 import { showConfirmStatusAlert } from "../components/ConfirmStatusAlert";
@@ -123,9 +125,26 @@ console.log(searchValue,"searchValue");
             id: row._id,
             isActive: !row.isActive,
           });
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "success",
+            title: row.isActive
+              ? ToastMessages.MEDICINE_DEACTIVATED
+              : ToastMessages.MEDICINE_ACTIVATED,
+            showConfirmButton: false,
+            timer: 2000,
+          });
           fetchMedicines();
-        } catch {
-          // Optionally show error toast
+        } catch (err) {
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "error",
+            title: ToastMessages.MEDICINE_STATUS_UPDATE_FAILED,
+            showConfirmButton: false,
+            timer: 2000,
+          });
         }
       },
     });

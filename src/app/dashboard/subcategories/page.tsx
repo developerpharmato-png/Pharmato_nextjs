@@ -4,6 +4,7 @@ import { CustomTable, Column } from "../components/CustomTable";
 import { CustomImage, CustomTooltip } from "../components/miniComponents";
 import Link from "next/link";
 import Swal from "sweetalert2";
+import { ToastMessages } from "@/utils/ToasterMessage";
 import { showConfirmStatusAlert } from "../components/ConfirmStatusAlert";
 import FilterSearch from "../components/FilterSearch";
 import HeaderWithAction from "../components/HeaderWithAction";
@@ -15,7 +16,7 @@ export default function SubCategoriesPage() {
   const router = useRouter();
 
   const handleAdd = () => {
-    router.push("/dashboard/subcategories/new");
+    router.push("/dashboard/subcategories/AddEdit");
   };
   const [adminPermissions, setAdminPermissions] = useState<any>(null);
 
@@ -128,22 +129,32 @@ function SubCategoriesTable({ canEdit }: { canEdit?: boolean }) {
           toast: true,
           position: "top-end",
           icon: "success",
-          title: "Status updated",
+          title: isActive
+            ? ToastMessages.SUBCATEGORY_DEACTIVATED
+            : ToastMessages.SUBCATEGORY_ACTIVATED,
           showConfirmButton: false,
           timer: 2000,
         });
       } else {
         Swal.fire({
+          toast: true,
+          position: "top-end",
           icon: "error",
-          title: "Failed to toggle status",
+          title: ToastMessages.SUBCATEGORY_STATUS_UPDATE_FAILED,
           text: data.error || "Failed to toggle subcategory status",
+          showConfirmButton: false,
+          timer: 2000,
         });
       }
     } catch (error) {
       Swal.fire({
+        toast: true,
+        position: "top-end",
         icon: "error",
-        title: "Failed to toggle status",
+        title: ToastMessages.SUBCATEGORY_STATUS_UPDATE_FAILED,
         text: "Network error",
+        showConfirmButton: false,
+        timer: 2000,
       });
     }
   };
@@ -155,9 +166,7 @@ function SubCategoriesTable({ canEdit }: { canEdit?: boolean }) {
       label: "Id",
       selector: (row) => (
         <CustomTooltip title={row.uniqueCode || "—"}
-          onClick={() => router.push(`/dashboard/subcategories/edit/${row._id}`)}
-
-
+          onClick={() => router.push(`/dashboard/subcategories/AddEdit/${row._id}`)}
         >
           <span className="ID-List">{row.uniqueCode || "—"}</span>
         </CustomTooltip>
@@ -279,7 +288,7 @@ function SubCategoriesTable({ canEdit }: { canEdit?: boolean }) {
               alignItems: "center",
             }}
             onClick={() =>
-              router.push(`/dashboard/subcategories/edit/${row._id}`)
+              router.push(`/dashboard/subcategories/AddEdit/${row._id}`)
             }
           >
             <EditIcon fontSize="small" />

@@ -3,13 +3,14 @@ import React, { useEffect, useState } from "react";
 import { Box } from "@mui/material";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
+import Swal from "sweetalert2";
+import { ToastMessages } from "@/utils/ToasterMessage";
 import QuillEditor from "@/app/dashboard/components/QuillEditor";
 import {
   CustomButton,
   ErrorMessageCom,
 } from "@/app/dashboard/components/miniComponents";
 import { SettingsGetByTypePath } from "@/app/dashboard/storeAPICall/API/BaseApi";
-import Toast from "@/utils/Toast";
 import PrivacySkeleton from "./skeleton/PrivacySkeleton";
 import { MdSave } from "react-icons/md";
 
@@ -23,7 +24,6 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
   const [loading, setLoading] = useState(false);
   const [initialContent, setInitialContent] = useState("");
   const [loadingContent, setLoadingContent] = useState(true);
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [adminPermissions, setAdminPermissions] = useState<any>(null);
 
   useEffect(() => {
@@ -87,10 +87,24 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
               body: JSON.stringify({ type, data: values.content }),
             });
             const json = await res.json();
-            setToastMsg(json?.message || 'Saved');
+            Swal.fire({
+              toast: true,
+              position: "top-end",
+              icon: "success",
+              title: ToastMessages.POLICY_UPDATED,
+              showConfirmButton: false,
+              timer: 2000,
+            });
           } catch (e) {
-            const errMsg = (e as any)?.message || 'Save failed';
-            setToastMsg(errMsg);
+            Swal.fire({
+              toast: true,
+              position: "top-end",
+              icon: "error",
+              title: ToastMessages.POLICY_UPDATE_FAILED,
+              text: (e as any)?.message || "An error occurred",
+              showConfirmButton: false,
+              timer: 2000,
+            });
           } finally {
             setLoading(false);
             setSubmitting(false);
@@ -140,7 +154,6 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
                 </div>
               </div>
             )}
-            {toastMsg && <Toast message={toastMsg} />}
           </Form>
         )}
       </Formik>

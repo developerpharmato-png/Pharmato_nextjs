@@ -16,6 +16,7 @@ import Link from "next/link";
 import { MdArrowBack, MdSave } from "react-icons/md";
 
 import Swal from "sweetalert2";
+import { ToastMessages } from "@/utils/ToasterMessage";
 
 import DeleteIcon from "@mui/icons-material/Delete";
 import MedicineImageUploader from "../../Imageuplod";
@@ -102,7 +103,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
           Swal.fire({
             icon: "error",
             title: "Invalid price",
-            text: "Selling price cannot be greater than MRP",
+            text: ToastMessages.INVALID_PRICE,
           });
           setLoading(false);
           setSubmitting(false);
@@ -112,7 +113,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
           Swal.fire({
             icon: "error",
             title: "Too many images",
-            text: "You can upload up to 5 images only",
+            text: ToastMessages.TOO_MANY_IMAGES,
           });
           setLoading(false);
           setSubmitting(false);
@@ -156,18 +157,14 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
             toast: true,
             position: "top-end",
             icon: "success",
-            title: isEdit
-              ? "Medicine updated successfully"
-              : "Medicine created successfully",
+            title: isEdit ? ToastMessages.MEDICINE_UPDATED : ToastMessages.MEDICINE_CREATED,
             showConfirmButton: false,
             timer: 2000,
           });
           setTimeout(() => router.push("/dashboard/medicines"), 1000);
         }
       } catch (err) {
-        setError(
-          isEdit ? "Failed to update medicine" : "Failed to create medicine"
-        );
+        setError(isEdit ? "Failed to update medicine" : "Failed to create medicine");
       } finally {
         setLoading(false);
         setSubmitting(false);
@@ -191,7 +188,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
       Swal.fire({
         icon: "error",
         title: "Too many images",
-        text: `You can upload up to 5 images. Currently ${currentCount} uploaded.`,
+        text: ToastMessages.TOO_MANY_IMAGES_CURRENT(currentCount),
       });
       const inp = document.getElementById(
         "medicine-image-input"
@@ -217,7 +214,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
         Swal.fire({
           icon: "error",
           title: "Invalid file type",
-          text: "Please upload only image files (JPEG, PNG, GIF, WebP, SVG)",
+          text: ToastMessages.INVALID_FILE_TYPE,
         });
         continue;
       }
@@ -225,7 +222,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
         Swal.fire({
           icon: "error",
           title: "File too large",
-          text: "Please upload an image smaller than 5MB",
+          text: ToastMessages.FILE_TOO_LARGE,
         });
         continue;
       }
@@ -254,7 +251,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
         toast: true,
         position: "top-end",
         icon: "success",
-        title: `Uploaded ${uploadedUrls.length} image(s)`,
+        title: ToastMessages.IMAGES_UPLOADED(uploadedUrls.length),
         showConfirmButton: false,
         timer: 2000,
       });
@@ -288,7 +285,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
         toast: true,
         position: "top-end",
         icon: "success",
-        title: "Image deleted",
+        title: ToastMessages.IMAGE_DELETED,
         showConfirmButton: false,
         timer: 2000,
       });
@@ -296,7 +293,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
       Swal.fire({
         icon: "error",
         title: "Delete failed",
-        text: data.error || "Failed to delete image",
+        text: ToastMessages.IMAGE_DELETE_FAILED(data.error),
       });
     }
   };
@@ -423,7 +420,11 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
   };
   const addCompositionRow = () => {
     if ((composition || []).length >= 5) {
-      Swal.fire("Warning", "You can add up to 5 composition items only", "warning");
+      Swal.fire({
+        icon: "warning",
+        title: "Warning",
+        text: ToastMessages.COMPOSITION_LIMIT,
+      });
       return;
     }
     setComposition((prev) => [...prev, { name: "", value: "" }]);
@@ -438,7 +439,11 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
   };
   const addHighlightRow = () => {
     if ((formik.values.highlights || []).length >= 5) {
-      Swal.fire("Warning", "You can add up to 5 highlights only", "warning");
+      Swal.fire({
+        icon: "warning",
+        title: "Warning",
+        text: ToastMessages.HIGHLIGHTS_LIMIT,
+      });
       return;
     }
     formik.setFieldValue("highlights", [...formik.values.highlights, ""]);
@@ -465,7 +470,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
         Swal.fire({
           icon: "error",
           title: "Invalid price",
-          text: "Selling price cannot be greater than MRP",
+          text: ToastMessages.INVALID_PRICE,
         });
         setLoading(false);
         return;
@@ -480,7 +485,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
           Swal.fire({
             icon: "error",
             title: "Invalid expiry date",
-            text: "Expiry Date cannot be a past date",
+            text: ToastMessages.INVALID_EXPIRY_DATE,
           });
           setLoading(false);
           return;
@@ -490,7 +495,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
         Swal.fire({
           icon: "error",
           title: "Image required",
-          text: "Please upload a medicine image before submitting",
+          text: ToastMessages.IMAGE_REQUIRED,
         });
         setLoading(false);
         return;
@@ -499,7 +504,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
         Swal.fire({
           icon: "error",
           title: "Too many images",
-          text: "You can upload up to 5 images only",
+          text: ToastMessages.TOO_MANY_IMAGES,
         });
         setLoading(false);
         return;
@@ -537,7 +542,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
           toast: true,
           position: "top-end",
           icon: "success",
-          title: "Medicine created successfully",
+          title: ToastMessages.MEDICINE_CREATED,
           showConfirmButton: false,
           timer: 2000,
         });

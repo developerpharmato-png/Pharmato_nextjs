@@ -1,33 +1,81 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import Swal from "sweetalert2";
 import { ToastMessages } from "@/utils/ToasterMessage";
-
+import HeaderWithAction from "@/app/dashboard/components/HeaderWithAction";
+import { CustomButton, ErrorMessageCom } from "@/app/dashboard/components/miniComponents";
+import { CircularProgress } from "@mui/material";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import FormSkeleton from "@/app/dashboard/components/skeleton/FormSkeleton";
-import {
-  CustomButton,
-  ErrorMessageCom,
-} from "@/app/dashboard/components/miniComponents";
-import HeaderWithAction from "@/app/dashboard/components/HeaderWithAction";
-import { CircularProgress } from "@mui/material";
 import { ImageUploadField } from "@/app/dashboard/components/ImageUploadField";
 import {
-  StandardFormCheckbox,
   StyledCheckboxWithDescription,
 } from "@/app/dashboard/components/StyledCheckboxWithDescription";
 import { dropdownCategoriesPath } from "@/app/dashboard/storeAPICall/API/BaseApi";
 import { MdSave } from "react-icons/md";
+import FormSkeleton from "@/app/dashboard/components/skeleton/FormSkeleton";
 
-export default function EditSubCategoryPage() {
-  const { id } = useParams();
+export default function AddEditSubCategoryPage({ id }: { id?: string }) {
   const router = useRouter();
-  const [categories, setCategories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const params = useParams();
+  const usedId = id && id !== "undefined" ? id : (params as any)?.id?.[0];
+
+  const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [initialFetchLoading, setInitialFetchLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Fetch initial data if editing
+  useEffect(() => {
+    async function fetchSubCategory() {
+      if (!usedId) {
+        setInitialFetchLoading(false);
+        return;
+      }
+
+      try {
+        setIsEdit(true);
+        const res = await fetch(`/api/admin/subcategories/${usedId}`);
+        const data = await res.json();
+        if (data.success && data.data) {
+          formik.setValues({
+            name: data.data.name || "",
+            description: data.data.description || "",
+            categoryId: data.data.categoryId?._id || "",
+            images: Array.isArray(data.data.images) ? data.data.images : [],
+            isOTC: data.data.isOTC || false,
+            isActive: data.data.isActive !== undefined ? data.data.isActive : true,
+          });
+        } else {
+          setError("Subcategory not found");
+        }
+      } catch {
+        setError("Failed to fetch subcategory");
+      } finally {
+        setInitialFetchLoading(false);
+      }
+    }
+
+    fetchSubCategory();
+  }, [usedId]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch(dropdownCategoriesPath);
+      const data = await res.json();
+      setCategories(data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+    }
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -50,52 +98,52 @@ export default function EditSubCategoryPage() {
     }),
     onSubmit: async (values, { setSubmitting, setErrors }) => {
       setLoading(true);
-      setError(null);
       try {
-        const res = await fetch(`/api/admin/subcategories/${id}`, {
-          method: "PUT",
+        const method = isEdit ? "PUT" : "POST";
+        const url = isEdit ? `/api/admin/subcategories/${usedId}` : "/api/admin/subcategories";
+
+        const res = await fetch(url, {
+          method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(values),
         });
         const data = await res.json();
-        if (data.success) {
+        if (res.ok && data.success) {
           Swal.fire({
             toast: true,
             position: "top-end",
             icon: "success",
-            title: ToastMessages.SUBCATEGORY_UPDATED,
+            title: isEdit ? ToastMessages.SUBCATEGORY_UPDATED : "Subcategory created successfully",
             showConfirmButton: false,
             timer: 2000,
           });
-          setTimeout(() => {
-            router.push("/dashboard/subcategories");
-          }, 1200);
+          setTimeout(() => router.push("/dashboard/subcategories"), 1200);
         } else {
+          setErrors(data.error || {});
           const errorMsg = Array.isArray(data.error)
             ? data.error.join(", ")
-            : data.error;
+            : data.error || (isEdit ? ToastMessages.SUBCATEGORY_UPDATE_FAILED : "Failed to create subcategory");
           Swal.fire({
             toast: true,
             position: "top-end",
             icon: "error",
-            title: "Update failed",
-            text: errorMsg || ToastMessages.SUBCATEGORY_UPDATE_FAILED,
+            title: isEdit ? "Update failed" : "Create failed",
+            text: errorMsg,
             showConfirmButton: false,
             timer: 2000,
           });
-          setError(errorMsg);
         }
-      } catch {
+      } catch (error) {
+        const errorMsg = isEdit ? ToastMessages.SUBCATEGORY_UPDATE_FAILED : "Failed to create subcategory";
         Swal.fire({
           toast: true,
           position: "top-end",
           icon: "error",
-          title: "Update failed",
-          text: ToastMessages.SUBCATEGORY_UPDATE_FAILED,
+          title: isEdit ? "Update failed" : "Create failed",
+          text: errorMsg,
           showConfirmButton: false,
           timer: 2000,
         });
-        setError(ToastMessages.SUBCATEGORY_UPDATE_FAILED);
       } finally {
         setLoading(false);
         setSubmitting(false);
@@ -106,44 +154,10 @@ export default function EditSubCategoryPage() {
     enableReinitialize: true,
   });
 
-  useEffect(() => {
-    async function fetchSubCategory() {
-      try {
-        const res = await fetch(`/api/admin/subcategories/${id}`);
-        const data = await res.json();
-        if (data.success && data.data) {
-          formik.setValues({
-            name: data.data.name || "",
-            description: data.data.description || "",
-            categoryId: data.data.categoryId?._id || "",
-            images: Array.isArray(data.data.images) ? data.data.images : [],
-            isOTC: data.data.isOTC,
-            isActive: data.data.isActive,
-          });
-        } else {
-          setError("Subcategory not found");
-        }
-      } catch {
-        setError("Failed to fetch subcategory");
-      } finally {
-        setLoading(false);
-      }
-    }
-    async function fetchCategories() {
-      try {
-        const res = await fetch(dropdownCategoriesPath);
-        const data = await res.json();
-        setCategories(data.data || []);
-      } catch { }
-    }
-    fetchSubCategory();
-    fetchCategories();
-    // eslint-disable-next-line
-  }, [id]);
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+
       const allowedTypes = [
         "image/jpeg",
         "image/jpg",
@@ -163,12 +177,13 @@ export default function EditSubCategoryPage() {
           timer: 2000,
         });
         const fileInput = document.getElementById(
-          "edit-subcategory-image-input"
+          "subcategory-image-input"
         ) as HTMLInputElement | null;
         if (fileInput) fileInput.value = "";
         return;
       }
-      const maxSize = 5 * 1024 * 1024; // 5MB
+
+      const maxSize = 5 * 1024 * 1024;
       if (file.size > maxSize) {
         Swal.fire({
           toast: true,
@@ -180,11 +195,12 @@ export default function EditSubCategoryPage() {
           timer: 2000,
         });
         const fileInput = document.getElementById(
-          "edit-subcategory-image-input"
+          "subcategory-image-input"
         ) as HTMLInputElement | null;
         if (fileInput) fileInput.value = "";
         return;
       }
+
       setUploading(true);
       const uploadFormData = new FormData();
       uploadFormData.append("file", file);
@@ -216,13 +232,14 @@ export default function EditSubCategoryPage() {
       }
       setUploading(false);
       const fileInput = document.getElementById(
-        "edit-subcategory-image-input"
+        "subcategory-image-input"
       ) as HTMLInputElement | null;
       if (fileInput) fileInput.value = "";
     }
   };
 
   const handleDeleteImage = async (url: string) => {
+      setUploading(true);
     const res = await fetch("/api/cloudinary/delete-image", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -239,6 +256,7 @@ export default function EditSubCategoryPage() {
         showConfirmButton: false,
         timer: 2000,
       });
+        setUploading(true);
     } else {
       Swal.fire({
         toast: true,
@@ -249,37 +267,46 @@ export default function EditSubCategoryPage() {
         showConfirmButton: false,
         timer: 2000,
       });
+        setUploading(true);
     }
   };
 
-  if (loading)
-    return (
-      <>
-        <div className="containerStyle scrollbar-hide">
-          <FormSkeleton />;
-        </div>
-      </>
-    );
+  const selectedCategory = categories.find(
+    (cat) => cat._id === formik.values.categoryId
+  );
 
-  if (error) return <div className="p-8 text-red-600">{error}</div>;
+  if (initialFetchLoading) {
+    return (
+      <div className="containerStyle scrollbar-hide">
+        <FormSkeleton />
+      </div>
+    );
+  }
+
+  if (error && !formik.isSubmitting) {
+    return (
+      <div className="containerStyle scrollbar-hide">
+        <div className="p-8 text-red-600 text-center">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
-        title="Edit Subcategory
-"
-        subtitle="Update subcategory details, images, and status.
-
-
-"
+        title={isEdit ? "Edit Subcategory" : "Add New Subcategory"}
+        subtitle={
+          isEdit
+            ? "Update subcategory details, images, and status."
+            : "Create a new medicine subcategory for your inventory"
+        }
         showBack={true}
         showSearch={false}
       />
 
       <div className="bg-white rounded-lg shadow p-6 sm:p-8">
         <form onSubmit={formik.handleSubmit} className="space-y-6">
-
-           <div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Parent Category *
             </label>
@@ -288,36 +315,44 @@ export default function EditSubCategoryPage() {
               value={formik.values.categoryId}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              required
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="">Select a category</option>
               {categories.map((cat) => (
                 <option key={cat._id} value={cat._id}>
-                  {cat.name}
+                  {cat.name} {cat.isOTC ? "(OTC)" : "(Prescription)"}
                 </option>
               ))}
             </select>
             {formik.touched.categoryId && formik.errors.categoryId && (
               <ErrorMessageCom error={formik.errors.categoryId} />
             )}
+            {selectedCategory && (
+              <p className="text-xs text-gray-500 mt-1">
+                Parent category is{" "}
+                {selectedCategory.isOTC ? "OTC" : "Prescription Required"}
+              </p>
+            )}
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Subcategory Name *
             </label>
             <input
+              type="text"
               name="name"
               value={formik.values.name}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              required
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              placeholder="e.g., Headache Relief, Cold & Flu, Multivitamins"
             />
             {formik.touched.name && formik.errors.name && (
               <ErrorMessageCom error={formik.errors.name} />
             )}
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Description *
@@ -327,27 +362,35 @@ export default function EditSubCategoryPage() {
               value={formik.values.description}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              required
-              rows={3}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              rows={4}
+              placeholder="Brief description of the subcategory"
             />
             {formik.touched.description && formik.errors.description && (
               <ErrorMessageCom error={formik.errors.description} />
             )}
           </div>
+
           <ImageUploadField
             formik={formik}
             handleFileChange={handleFileChange}
             handleDeleteImage={handleDeleteImage}
-            previewOpen={!!(formik.touched.images && formik.errors.images)}
-            setPreviewOpen={() => { }}
+            previewOpen={previewOpen && (formik.values.images?.length ?? 0) > 0}
+            setPreviewOpen={setPreviewOpen}
             uploading={uploading}
             deleting={false}
             label="Subcategory Image *"
-            id="category-image-input"
+            id="subcategory-image-input"
           />
-
-         
+          {formik.touched.images && formik.errors.images && (
+            <ErrorMessageCom
+              error={
+                Array.isArray(formik.errors.images)
+                  ? formik.errors.images.join(", ")
+                  : (formik.errors.images as string)
+              }
+            />
+          )}
 
           <StyledCheckboxWithDescription
             id="isOTC"
@@ -357,26 +400,20 @@ export default function EditSubCategoryPage() {
             description="Medicines in this subcategory can be purchased without a prescription"
           />
 
-          {/* <StandardFormCheckbox
-            id="isActive"
-            checked={formik.values.isActive}
-            onChange={formik.handleChange}
-            label="Active Subcategory"
-          /> */}
-
-          <div className=" ButtonOuter">
-            {" "}
-            <div className="buttoninner  ">
+          <div className="ButtonOuter">
+            <div className="buttoninner">
               <CustomButton
                 type="submit"
                 disabled={loading || uploading || formik.isSubmitting}
                 width="100%"
               >
-                {loading || formik.isSubmitting ? "Saving..." : (
+                {loading || formik.isSubmitting ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
                   <>
-                    <MdSave size={22} />{" "}
-
-                    Update Subcategory</>
+                    <MdSave size={22} />
+                    {isEdit ? "Update Subcategory" : "Add Subcategory"}
+                  </>
                 )}
               </CustomButton>
             </div>
@@ -386,4 +423,3 @@ export default function EditSubCategoryPage() {
     </div>
   );
 }
- 

@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";import Swal from "sweetalert2";
+import { ToastMessages } from "@/utils/ToasterMessage";
 import { CustomTable, Column } from "../components/CustomTable";
 import { CustomTooltip } from "../components/miniComponents";
 import { showConfirmStatusAlert } from "../components/ConfirmStatusAlert";
@@ -198,8 +198,24 @@ export default function StoreDashboard() {
                     status: row.status === 1 ? 0 : 1,
                   };
                   await UpdateStoreStatus(`${StorePath}?id=${row._id}`, updatedStore);
+                  Swal.fire({
+                    toast: true,
+                    position: "top-end",
+                    icon: "success",
+                    title: ToastMessages.STORE_STATUS_UPDATED,
+                    showConfirmButton: false,
+                    timer: 2000,
+                  });
                   GetStores({ url: StorePath, data: { isListRequest: true, search: search } });
                 } catch (err) {
+                  Swal.fire({
+                    toast: true,
+                    position: "top-end",
+                    icon: "error",
+                    title: ToastMessages.STORE_STATUS_UPDATE_FAILED,
+                    showConfirmButton: false,
+                    timer: 2000,
+                  });
                   console.error('Error updating store status:', err);
                 }
               },
@@ -252,7 +268,7 @@ export default function StoreDashboard() {
         showBack={false}
         showSearch={false}
         addShow={false}
-        addLabel="Add "
+        addLabel="Add " 
         // addShow={canEditStores}
         handleAdd={() => router.push(`/dashboard/store/new/`)}
       />

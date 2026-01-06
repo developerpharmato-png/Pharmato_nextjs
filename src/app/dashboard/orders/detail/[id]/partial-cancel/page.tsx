@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Swal from "sweetalert2";
-import Toast from "@/utils/Toast";
+import { ToastMessages } from "@/utils/ToasterMessage";
 import HeaderWithAction from "../../../../components/HeaderWithAction";
 import {
   Button,
@@ -52,7 +52,6 @@ export default function PartialCancelPage() {
   const [showCancelReasonDialog, setShowCancelReasonDialog] = useState(false);
   const [previewSelectedMeds, setPreviewSelectedMeds] = useState<any[]>([]);
   const [previewUnselectedMeds, setPreviewUnselectedMeds] = useState<any[]>([]);
-  const [toastMsg, setToastMsg] = useState<string>("");
   const [cancelReasonError, setCancelReasonError] = useState<string>("");
   const statusOptions = [{ value: "Delivered", label: "Delivered" }];
 
@@ -114,7 +113,7 @@ export default function PartialCancelPage() {
           toast: true,
           position: "top-end",
           icon: "success",
-          title: "Prescription approved successfully",
+          title: ToastMessages.PRESCRIPTION_APPROVED,
           showConfirmButton: false,
           timer: 2000,
         });
@@ -123,12 +122,19 @@ export default function PartialCancelPage() {
       } else {
         Swal.fire(
           "Error",
-          data.message || "Failed to approve prescription",
+          data.message || ToastMessages.PRESCRIPTION_APPROVE_FAILED,
           "error"
         );
       }
     } catch (e) {
-      Swal.fire("Error", "Failed to approve prescription", "error");
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "error",
+        title: ToastMessages.PRESCRIPTION_APPROVE_FAILED,
+        showConfirmButton: false,
+        timer: 2000,
+      });
     } finally {
       setApproveLoading(false);
     }
@@ -136,7 +142,14 @@ export default function PartialCancelPage() {
 
   const handleRejectPrescription = async () => {
     if (!rejectionReasonPresc.trim()) {
-      Swal.fire("Warning", "Provide rejection reason", "warning");
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "warning",
+        title: ToastMessages.PRESCRIPTION_REJECTION_REASON_REQUIRED,
+        showConfirmButton: false,
+        timer: 2000,
+      });
       return;
     }
     setRejectLoading(true);
@@ -303,7 +316,7 @@ export default function PartialCancelPage() {
 
   return (
     <div className="containerStyle scrollbar-hide">
-      {toastMsg && <Toast message={toastMsg} />}
+    
       <div
         style={{
           display: "flex",
@@ -431,7 +444,7 @@ export default function PartialCancelPage() {
                 );
               }
             }}
-          >
+          > 
             Confirm
           </Button>
         </DialogActions>
@@ -869,8 +882,14 @@ export default function PartialCancelPage() {
                 });
                 const data = await res.json();
                 if (data.success) {
-                  setToastMsg("Selected medicines accepted");
-                  setTimeout(() => setToastMsg(""), 3500);
+                  Swal.fire({
+                    toast: true,
+                    position: "top-end",
+                    icon: "success",
+                    title: ToastMessages.ORDER_ACCEPTED,
+                    showConfirmButton: false,
+                    timer: 2000,
+                  });
                   setSelected([]);
                   setCancelReason("");
                   setShowCancelReasonDialog(false);

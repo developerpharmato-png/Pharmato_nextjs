@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Swal from "sweetalert2";
+import { ToastMessages } from "@/utils/ToasterMessage";
 import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import {
@@ -35,7 +36,6 @@ import {
   StandardFormCheckbox,
   StyledCheckboxWithDescription,
 } from "../../components/StyledCheckboxWithDescription";
-import Toast from "@/utils/Toast";
 import HeaderWithAction from "../../components/HeaderWithAction";
 
 const MAX_DESCRIPTION_LENGTH = 1000;
@@ -46,10 +46,6 @@ export default function NewCategoryPage() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const theme = useTheme();
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
   // --- Formik Setup (Logic Unchanged) ---
   const formik = useFormik({
     initialValues: initCategory,
@@ -65,9 +61,13 @@ export default function NewCategoryPage() {
         });
         const data = await res.json();
         if (data.success) {
-          setToast({
-            message: "Category created successfully",
-            type: "success",
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "success",
+            title: ToastMessages.CATEGORY_CREATED,
+            showConfirmButton: false,
+            timer: 2000,
           });
           setTimeout(() => router.push("/dashboard/categories"), 1200);
         } else {
@@ -75,15 +75,23 @@ export default function NewCategoryPage() {
           if (data.errors && typeof data.errors === "object") {
             setErrors(data.errors as any);
           }
-          setToast({
-            message: errorMsg,
-            type: "error",
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "error",
+ showConfirmButton: false,
+            timer: 2000,
+            text: errorMsg,
           });
         }
       } catch (error) {
-        setToast({
-          message: "Failed to create category",
-          type: "error",
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "error",
+ showConfirmButton: false,
+            timer: 2000,
+          text: ToastMessages.CATEGORY_CREATE_FAILED,
         });
       } finally {
         setLoading(false);
@@ -109,7 +117,7 @@ export default function NewCategoryPage() {
         Swal.fire({
           icon: "error",
           title: "Invalid file type",
-          text: "Please upload only image files",
+          text: ToastMessages.INVALID_FILE_TYPE,
         });
         const fileInput = document.getElementById(
           "category-image-input"
@@ -123,7 +131,7 @@ export default function NewCategoryPage() {
         Swal.fire({
           icon: "error",
           title: "File too large",
-          text: "Please upload an image smaller than 5MB",
+          text: ToastMessages.FILE_TOO_LARGE,
         });
         const fileInput = document.getElementById(
           "category-image-input"
@@ -143,14 +151,19 @@ export default function NewCategoryPage() {
       if (data.success && data.url) {
         formik.setFieldValue("images", [data.url]);
 
-        setToast({
-          message: "Image uploaded successfully",
-          type: "success",
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: ToastMessages.IMAGES_UPLOADED(1),
+          showConfirmButton: false,
+          timer: 2000,
         });
       } else {
-        setToast({
-          message: "Image upload failed",
-          type: "error",
+        Swal.fire({
+          icon: "error",
+          title: "Image upload failed",
+          text: data.error || "Failed to upload image",
         });
       }
       setUploading(false);
@@ -174,7 +187,7 @@ export default function NewCategoryPage() {
         toast: true,
         position: "top-end",
         icon: "success",
-        title: "Image deleted",
+        title: ToastMessages.IMAGE_DELETED,
         showConfirmButton: false,
         timer: 2000,
       });
@@ -182,15 +195,13 @@ export default function NewCategoryPage() {
       Swal.fire({
         icon: "error",
         title: "Delete failed",
-        text: data.error || "Failed to delete image",
+        text: ToastMessages.IMAGE_DELETE_FAILED(data.error),
       });
     }
   };
 
   return (
     <div className="containerStyle scrollbar-hide">
-      {toast && <Toast message={toast.message} type={toast.type} />}
-
       <HeaderWithAction
         title=" Add New Category"
         subtitle=" Create a new medicine category for your inventory"

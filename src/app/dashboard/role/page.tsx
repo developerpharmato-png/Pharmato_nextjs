@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { ToastMessages } from "@/utils/ToasterMessage";
 import HeaderWithAction from "../components/HeaderWithAction";
 import { CustomTable, Column } from "../components/CustomTable";
 import { CustomTooltip, CustomButton } from "../components/miniComponents";
@@ -67,7 +68,7 @@ export default function RolePage() {
             toast: true,
             position: "top-end",
             icon: "success",
-            title: "Role updated",
+            title: ToastMessages.ROLE_UPDATED,
             showConfirmButton: false,
             timer: 2000,
           });
@@ -77,7 +78,7 @@ export default function RolePage() {
             toast: true,
             position: "top-end",
             icon: "success",
-            title: "Role added",
+            title: ToastMessages.ROLE_CREATED,
             showConfirmButton: false,
             timer: 2000,
           });
@@ -88,9 +89,13 @@ export default function RolePage() {
         fetchRoles();
       } catch (err: any) {
         Swal.fire({
+          toast: true,
+          position: "top-end",
           icon: "error",
-          title: "Error",
-          text: err?.response?.data?.message || "Failed",
+          title: editId ? ToastMessages.ROLE_UPDATE_FAILED : ToastMessages.ROLE_CREATE_FAILED,
+          text: err?.response?.data?.message || "An error occurred",
+          showConfirmButton: false,
+          timer: 2000,
         });
       }
     },
@@ -98,7 +103,14 @@ export default function RolePage() {
 
   const handleEdit = async (role: RoleItem) => {
     if (role.name === "SuperAdmin") {
-      alert("Cannot edit SuperAdmin role");
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "warning",
+        title: ToastMessages.SUPERADMIN_ROLE_LOCKED,
+        showConfirmButton: false,
+        timer: 2000,
+      });
       return;
     }
     setEditId(role._id);
@@ -113,7 +125,14 @@ export default function RolePage() {
   const handleToggle = (id: string, isActive: boolean) => {
     const role = roles.find((r) => r._id === id);
     if (role?.name === "SuperAdmin") {
-      alert("Cannot change status of SuperAdmin");
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "warning",
+        title: ToastMessages.SUPERADMIN_STATUS_LOCKED_ROLE,
+        showConfirmButton: false,
+        timer: 2000,
+      });
       return;
     }
 
@@ -134,9 +153,11 @@ export default function RolePage() {
             toast: true,
             position: "top-end",
             icon: "success",
-            title: "Status updated",
+            title: res.data.data?.isActive
+              ? ToastMessages.ROLE_ACTIVATED
+              : ToastMessages.ROLE_DEACTIVATED,
             showConfirmButton: false,
-            timer: 1500,
+            timer: 2000,
           });
           setRoles((prev) =>
             prev.map((r) =>
@@ -145,7 +166,14 @@ export default function RolePage() {
           );
         }
       } catch (err) {
-        Swal.fire({ icon: "error", title: "Failed to update status" });
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "error",
+          title: ToastMessages.ROLE_STATUS_UPDATE_FAILED,
+          showConfirmButton: false,
+          timer: 2000,
+        });
       }
     });
   };
