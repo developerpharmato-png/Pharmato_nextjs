@@ -89,8 +89,10 @@ export async function POST(request: NextRequest) {
 
         // Check if admin's role is active
         if (admin.roleId) {
-            const roleDoc = await Role.findById(admin.roleId).select('isActive').lean();
-            if (roleDoc && !roleDoc.isActive) {
+            const roleDoc: any = await Role.findById(admin.roleId).select('isActive').lean();
+            // normalize if an array was returned unexpectedly
+            const roleObj = Array.isArray(roleDoc) ? roleDoc[0] : roleDoc;
+            if (roleObj && !roleObj.isActive) {
                 return NextResponse.json(
                     { success: false, error: 'Your role has been deactivated. Please contact your administrator' },
                     { status: 403 }
@@ -179,7 +181,7 @@ export async function POST(request: NextRequest) {
             sameSite: 'lax',
             path: '/',
             maxAge: 60 * 60 * 24 // 1 day
-        });  
+        });
         // Also set refresh token as HTTP-only cookie (longer expiry)
         response.cookies.set('refreshToken', refreshToken, {
             httpOnly: true,
