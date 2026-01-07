@@ -3,7 +3,7 @@ import dbConnect from "@/lib/mongodb";
 import cron from 'node-cron';
 import { sendPushNotificationWithData } from '@/utils/firebase.helper';
 
-export async function POST(req: NextRequest) { 
+export async function POST(req: NextRequest) {  
   await dbConnect();
 
   // Example: run every minute
