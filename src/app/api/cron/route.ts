@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   await dbConnect();
 
   // Example: run every minute
-  // cron.schedule('* * * * *', async () => {
+  cron.schedule('* * * * *', async () => {
 
     console.log("🔥 CRON CHAL GAYA", new Date().toISOString());
 
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       data: {}
     });
   
-  // });
+  });
 
   return NextResponse.json({ success: true });
 }

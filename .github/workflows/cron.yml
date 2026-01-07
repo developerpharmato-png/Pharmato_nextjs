@@ -1,14 +1,14 @@
-name: Call Next.js Cron API
+name: Call Cron API on Deploy
 
 on:
-  schedule:
-    - cron: "* * * * *"
-  workflow_dispatch:
+  push:
+    branches:
+      - main   # 👈 jis branch se Vercel deploy hota hai
 
 jobs:
   call-cron-api:
     runs-on: ubuntu-latest
     steps:
-      - name: Call Next.js cron API
+      - name: Call /api/cron after deploy
         run: |
           curl -X POST https://pharmato-nextjs.vercel.app/api/cron
