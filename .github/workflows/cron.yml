@@ -9,6 +9,6 @@ jobs:
   call-cron-api:
     runs-on: ubuntu-latest
     steps:
-      - name: Call Next.js Cron API
+      - name: Call Next.js cron API
         run: |
-          curl -X POST ${{ secrets.CRON_URL }}/api/cron
+          curl -X POST https://pharmato-nextjs.vercel.app/api/cron
