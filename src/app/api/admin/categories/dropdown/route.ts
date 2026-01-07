@@ -10,13 +10,13 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
-    const categories = await Category.find({ isActive: true })
-      .select('name uniqueCode')
-      .sort({ name: 1 })
-      .lean()
-      .exec();
+      const categories = await Category.find({ isActive: true })
+        .select('name uniqueCode isOTC')
+        .sort({ name: 1 })
+        .lean()
+        .exec();
 
-    return NextResponse.json({ success: true, data: categories });
+      return NextResponse.json({ success: true, data: categories });
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: error.message },
