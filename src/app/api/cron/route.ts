@@ -3,10 +3,8 @@ import dbConnect from "@/lib/mongodb";
 import cron from 'node-cron';
 import { sendPushNotificationWithData } from '@/utils/firebase.helper';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest) { 
   await dbConnect();
-
-  console.log("🔥 CRON CHAL GAYA");
 
   // Example: run every minute
   cron.schedule('* * * * *', async () => {
@@ -19,7 +17,7 @@ export async function POST(req: NextRequest) {
       body: `🔥 CRON CHAL GAYA ${new Date().toISOString()}`,
       data: {}
     });
-    
+
   });
 
   return NextResponse.json({ success: true });
