@@ -2,6 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Swal from "sweetalert2";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
 import { ToastMessages } from "@/utils/ToasterMessage";
 import HeaderWithAction from "../../../../components/HeaderWithAction";
 import {
@@ -53,6 +57,10 @@ export default function PartialCancelPage() {
   const [previewSelectedMeds, setPreviewSelectedMeds] = useState<any[]>([]);
   const [previewUnselectedMeds, setPreviewUnselectedMeds] = useState<any[]>([]);
   const [cancelReasonError, setCancelReasonError] = useState<string>("");
+  // Prescription viewer state
+  const [showPrescriptionViewer, setShowPrescriptionViewer] = useState(false);
+  const [prescriptionViewerIndex, setPrescriptionViewerIndex] = useState(0);
+  const [prescriptionZoom, setPrescriptionZoom] = useState(1);
   const statusOptions = [{ value: "Delivered", label: "Delivered" }];
 
   const medidetails = (_id: String) => {
@@ -556,11 +564,24 @@ export default function PartialCancelPage() {
                         }}
                       />
                     )}
-                  </div>
+                  </div> 
 
                   {/* View Button at Bottom */}
                   <button
-                    onClick={() => downloadImageByUrl(url)}
+                    onClick={() => {
+                      const lowerUrl = url.toLowerCase();
+                      const isPdf = lowerUrl.endsWith(".pdf") || lowerUrl.includes("/raw/");
+                      
+                      if (isPdf) {
+                        // Open PDF in new tab
+                        window.open(url, '_blank');
+                      } else {
+                        // Open image in Swiper gallery
+                        setPrescriptionViewerIndex(idx);
+                        setPrescriptionZoom(1);
+                        setShowPrescriptionViewer(true);
+                      }
+                    }}
                     className="w-full py-3 text-center font-bold text-sm uppercase tracking-wide text-teal-600 hover:bg-teal-50 transition-all border-t border-gray-200"
                   >
                     View
@@ -914,6 +935,93 @@ export default function PartialCancelPage() {
         </DialogActions>
       </Dialog>
       {/* Cancel Selected dialog removed as per request */}
+
+      {/* Prescription Image Viewer Modal */}
+      {showPrescriptionViewer && order?.prescription_url && (
+        <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-1000 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl relative p-4">
+            {/* Top Right Controls */}
+            <div className="absolute top-0 right-0 m-4 flex items-center gap-2 z-10">
+              <button
+                onClick={() => {
+                  const currentUrl = order?.prescription_url?.[prescriptionViewerIndex];
+                  if (currentUrl) downloadImageByUrl(currentUrl);
+                }}
+                className="bg-white/80 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold hover:opacity-90"
+                title="Download"
+              >
+                ⬇
+              </button>
+              <button
+                onClick={() => setPrescriptionZoom((z) => Math.min(3, +(z + 0.25).toFixed(2)))}
+                className="bg-white/80 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold hover:opacity-90"
+                title="Zoom In"
+              >
+                +
+              </button>
+              <button
+                onClick={() => setPrescriptionZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))}
+                className="bg-white/80 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold hover:opacity-90"
+                title="Zoom Out"
+              >
+                −
+              </button>
+              <button
+                onClick={() => setPrescriptionZoom(1)}
+                className="bg-white/80 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold hover:opacity-90"
+                title="Reset Zoom"
+              >
+                1x
+              </button>
+              <button
+                onClick={() => setShowPrescriptionViewer(false)}
+                className="bg-white/80 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold hover:opacity-90"
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Swiper Gallery */}
+            <Swiper
+              initialSlide={prescriptionViewerIndex}
+              spaceBetween={10}
+              slidesPerView={1}
+              pagination={{ clickable: true }}
+              modules={[Pagination]}
+              className="w-full h-[70vh] max-h-[700px] rounded-xl overflow-hidden"
+              onSlideChange={(swiper) => {
+                setPrescriptionViewerIndex(swiper.activeIndex);
+                setPrescriptionZoom(1);
+              }}
+            >
+              {order?.prescription_url?.map((url: string, idx: number) => (
+                url && (
+                  <SwiperSlide
+                    key={idx}
+                    className="flex items-center justify-center bg-gray-100 rounded-xl"
+                  >
+                    <div className="w-full h-full flex items-center justify-center p-4">
+                      <img
+                        src={url}
+                        alt={`Prescription ${idx + 1}`}
+                        className="max-w-full w-full h-full object-contain"
+                        style={{ transform: `scale(${prescriptionZoom})`, transition: "transform 0.15s" }}
+                      />
+                    </div>
+                  </SwiperSlide>
+                )
+              ))}
+            </Swiper>
+
+            {/* Footer Info */}
+            <div className="flex items-center justify-between text-gray-700 font-semibold border-t border-gray-200 mt-2 px-3 py-2">
+              <div>Viewing Image {prescriptionViewerIndex + 1} of {order?.prescription_url?.filter(Boolean).length || 0}</div>
+              <div className="text-sm text-gray-600">Zoom: {prescriptionZoom.toFixed(2)}x</div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

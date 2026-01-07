@@ -31,8 +31,10 @@ export default function SettingsPage() {
   const [initialValues, setInitialValues] = useState({
     deliveryFee: "",
     deliveryFeeThreshold: "",
+    expectedDeliveryHours: "",
     deliveryFeeId: "",
     deliveryFeeThresholdId: "",
+    expectedDeliveryHoursId: "",
   });
   const [adminPermissions, setAdminPermissions] = useState<any>(null);
 
@@ -56,11 +58,14 @@ export default function SettingsPage() {
         if (!mounted) return;
         const fee = (list || []).find((s: any) => s.type === 'deliveryFee');
         const thresh = (list || []).find((s: any) => s.type === 'deliveryFeeThreshold');
+        const hours = (list || []).find((s: any) => s.type === 'expectedDeliveryHours');
         setInitialValues({
           deliveryFee: fee ? String(fee.data) : "",
           deliveryFeeThreshold: thresh ? String(thresh.data) : "",
+          expectedDeliveryHours: hours ? String(hours.data) : "",
           deliveryFeeId: fee ? String(fee._id) : "",
           deliveryFeeThresholdId: thresh ? String(thresh._id) : "",
+          expectedDeliveryHoursId: hours ? String(hours._id) : "",
         });
       } catch (err) {
         console.error(err);
@@ -79,6 +84,7 @@ export default function SettingsPage() {
       .test("is-greater", ToastMessages.THRESHOLD_VALIDATION, function (value) {
         return value >= (this.parent.deliveryFee || 0);
       }),
+    expectedDeliveryHours: Yup.number().required("Mandatory field").min(0, "No negative values").max(24, "Cannot exceed 24 hours"),
   });
 
   return (
@@ -107,6 +113,9 @@ export default function SettingsPage() {
               }
               if (values.deliveryFeeThresholdId || values.deliveryFeeThreshold !== undefined) {
                 updates.push({ _id: values.deliveryFeeThresholdId || undefined, type: 'deliveryFeeThreshold', data: String(values.deliveryFeeThreshold), data_value_in: 'number', description: 'free delivery threshold', is_active: 1 });
+              }
+              if (values.expectedDeliveryHoursId || values.expectedDeliveryHours !== undefined) {
+                updates.push({ _id: values.expectedDeliveryHoursId || undefined, type: 'expectedDeliveryHours', data: String(values.expectedDeliveryHours), data_value_in: 'number', description: 'expected delivery hours', is_active: 1 });
               }
               const res = await SettingsService.saveSettings(postData, { updates });
               Swal.fire({
@@ -174,6 +183,23 @@ export default function SettingsPage() {
                       fullWidth
                     />
                     {touched.deliveryFeeThreshold && errors.deliveryFeeThreshold && <ErrorMessageCom error={errors.deliveryFeeThreshold} />}
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <TextField
+                      label="Expected Delivery Hours"
+                      name="expectedDeliveryHours"
+               
+                      variant="outlined"
+                      value={values.expectedDeliveryHours}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      error={touched.expectedDeliveryHours && !!errors.expectedDeliveryHours}
+                      inputProps={{ step: "1", min: "0", max: "24" }}
+                      InputProps={{ startAdornment: <InputAdornment position="start">hrs</InputAdornment> }}
+                      fullWidth
+                    />
+                    {touched.expectedDeliveryHours && errors.expectedDeliveryHours && <ErrorMessageCom error={errors.expectedDeliveryHours} />}
                   </div>
                 </div>
               </div>
