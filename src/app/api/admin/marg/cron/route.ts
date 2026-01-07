@@ -6,5 +6,5 @@ export async function GET() {
 
   console.log("🔥 CRON CHAL GAYA");
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true }); 
 }
