@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       body: `🔥 CRON CHAL GAYA ${new Date().toISOString()}`,
       data: {}
     });
- 
+  
   });
 
   return NextResponse.json({ success: true });
