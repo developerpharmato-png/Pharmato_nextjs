@@ -128,6 +128,19 @@ export async function PUT(
         const params = await context.params;
         const body = await request.json();
         console.log('Category PUT API called with id:', params.id);
+        // Check for duplicate name (case-insensitive, global, excluding self)
+        if (body.name) {
+            const duplicate = await Category.findOne({
+                name: { $regex: `^${body.name.trim()}$`, $options: 'i' },
+                _id: { $ne: params.id }
+            });
+            if (duplicate) {
+                return NextResponse.json({
+                    success: false,
+                    error: 'Category with   already exists'
+                }, { status: 409 });
+            }
+        }
         const category = await Category.findByIdAndUpdate(
             params.id,
             body,

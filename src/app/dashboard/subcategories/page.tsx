@@ -106,11 +106,11 @@ function SubCategoriesTable({ canEdit }: { canEdit?: boolean }) {
   const handleToggleStatus = (id: string, isActive: boolean) => {
     showConfirmStatusAlert({
       isActive,
-      title: isActive ? "Inactivate Subcategory?" : "Activate Subcategory?",
+      title: isActive ? "Deactivate  Subcategory?" : "Activate Subcategory?",
       text: isActive
-        ? "Are you sure you want to inactivate this subcategory?"
+        ? "Are you sure you want to Deactivate  this subcategory?"
         : "Are you sure you want to activate this subcategory?",
-      confirmText: isActive ? "Inactivate" : "Activate",
+      confirmText: isActive ? "Deactivate " : "Activate",
       cancelText: "Cancel",
       onConfirm: () => confirmToggleStatusDirect(id, isActive),
     });

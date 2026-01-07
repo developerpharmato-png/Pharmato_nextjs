@@ -189,7 +189,7 @@ export default function SettingsPage() {
                     <TextField
                       label="Expected Delivery Hours"
                       name="expectedDeliveryHours"
-               
+                      type="number"
                       variant="outlined"
                       value={values.expectedDeliveryHours}
                       onChange={handleChange}

@@ -172,8 +172,8 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
               text:
                 confirmStatusMsg?.text ||
                 (row.isActive
-                  ? "Are you sure you want to deactivate this item?"
-                  : "Are you sure you want to activate this item?"),
+                  ? "Are you sure you want to deactivate this Category?"
+                  : "Are you sure you want to activate this Category?"),
               confirmText:
                 confirmStatusMsg?.confirmText ||
                 (row.isActive ? "Deactivate" : "Activate"),

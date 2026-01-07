@@ -73,21 +73,21 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
     }
   };
 
-    const getPrescriptionColor = (status: string) => {
-      const s = (status || "").toLowerCase();
-      switch (s) {
-        case "pending":
-          return "status-pending";
-        case "approved":
-          return "status-success";
-        case "rejected":
-          return "status-danger";
-        case "not required":
-          return "status-default";
-        default:
-          return "status-default";
-      }
-    };
+  const getPrescriptionColor = (status: string) => {
+    const s = (status || "").toLowerCase();
+    switch (s) {
+      case "pending":
+        return "status-pending";
+      case "approved":
+        return "status-success";
+      case "rejected":
+        return "status-danger";
+      case "not required":
+        return "status-default";
+      default:
+        return "status-default";
+    }
+  };
 
   const columns: Column<Order>[] = [
     {
@@ -98,7 +98,7 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
         <CustomTooltip title={row.order_id || "-"}>
           <span
             className="ID-List customTooltip"
-            onClick={() => router.push(`/dashboard/orders/detail/${row._id}`)}
+            onClick={() => router.push(`/dashboard/orders/detail/${row._id}?isCustomer=1`)}
           >
             {row.order_id || "-"}
           </span>
@@ -118,7 +118,7 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
         >
           <CustomTooltip title={row.userId?.mobile || row.userId?.phone || "-"}>
             <div className="font-medium text-gray-900 customTooltip">
-            +91 {row.userId?.mobile || "-"}
+              +91 {row.userId?.mobile || "-"}
             </div>
           </CustomTooltip>
           <CustomTooltip title={row.userId?.email || "-"}>
@@ -134,11 +134,11 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       label: "Items",
       minWidth: 70,
       selector: (row: Order) => (
-        
-          <span className="text-gray-700 customTooltip">
-            {row.medicineId?.length || 0}
-          </span>
-      
+
+        <span className="text-gray-700 customTooltip">
+          {row.medicineId?.length || 0}
+        </span>
+
       ),
     },
     {
@@ -156,11 +156,11 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       label: "Amount",
       minWidth: 100,
       selector: (row: Order) => (
-      
-          <span className="customTooltip">
-            ₹{row.total_order_amount?.toFixed(2) || "0.00"}
-          </span>
-      
+
+        <span className="customTooltip">
+          ₹{row.total_order_amount?.toFixed(2) || "0.00"}
+        </span>
+
       ),
     },
     {
@@ -168,12 +168,12 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       label: "Discount",
       minWidth: 90,
       selector: (row: Order) => (
-        
-        
-          <span className="font-medium text-green-600 customTooltip">
-            {row.discount > 0 ? `₹${row.discount.toFixed(2)}` : "-"}
-          </span>
-       
+
+
+        <span className="font-medium text-green-600 customTooltip">
+          {row.discount > 0 ? `₹${row.discount.toFixed(2)}` : "-"}
+        </span>
+
       ),
     },
     {

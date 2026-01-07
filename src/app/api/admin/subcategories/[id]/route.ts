@@ -123,6 +123,19 @@ export async function PUT(
         if (body.images && !Array.isArray(body.images)) {
             body.images = String(body.images).split(',').map((url: string) => url.trim()).filter(Boolean);
         }
+
+        // Check for duplicate name (case-insensitive, global, excluding self)
+        const duplicate = await SubCategory.findOne({
+            name: { $regex: `^${body.name}$`, $options: 'i' },
+            _id: { $ne: params.id }
+        });
+        if (duplicate) {
+            return NextResponse.json({
+                success: false,
+                error: 'Subcategory already exists'
+            }, { status: 400 });
+        }
+
         const subcategory = await SubCategory.findByIdAndUpdate(
             params.id,
             body,

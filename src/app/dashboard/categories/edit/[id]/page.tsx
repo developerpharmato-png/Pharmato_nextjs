@@ -167,7 +167,7 @@ export default function EditCategoryPage() {
             title: ToastMessages.CATEGORY_UPDATED,
             showConfirmButton: false,
             timer: 2000,
-            
+
           });
           setTimeout(() => router.push("/dashboard/categories"), 1200);
         } else {
@@ -268,7 +268,7 @@ export default function EditCategoryPage() {
           title: ToastMessages.IMAGES_UPLOADED(1),
           showConfirmButton: false,
           timer: 2000,
-        
+
         });
       } else {
         Swal.fire({
@@ -308,7 +308,7 @@ export default function EditCategoryPage() {
         title: ToastMessages.IMAGE_DELETED,
         showConfirmButton: false,
         timer: 2000,
-       
+
       });
     } else {
       Swal.fire({
@@ -332,23 +332,12 @@ export default function EditCategoryPage() {
     );
   }
 
-  if (error && !formik.isSubmitting) {
-    return (
-      <Box sx={{ p: 4, color: "error.main", textAlign: "center" }}>
-        <Typography variant="h6">{error}</Typography>
-      </Box>
-    );
-  }
 
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
-        title=" Edit Category
-"
-        subtitle="Update Category details, images, and status.
-
-
-"
+        title=" Edit Category"
+        subtitle="Update Category details, images, and status."
         showBack={true}
         showSearch={false}
       />
@@ -433,28 +422,28 @@ export default function EditCategoryPage() {
               label="Active Subcategory"
             /> */}
 
-      
-            <div className="ButtonOuter">
-              <div className="buttoninner">
-                {" "}
-                <CustomButton
-                  type="submit"
-                  // disabled={formik.isSubmitting || !formik.isValid}
-                  width="100%"
-                >
-                  {formik.isSubmitting ? (
-                    <CircularProgress size={24} color="inherit" />
-                  ) : (
-                    <>
-                      <MdSave size={22} />{" "}
 
-                      Update Category
-                    </>
-                  )}
-                </CustomButton>
-              </div>
-            </div>
-          
+        <div className="ButtonOuter">
+          <div className="buttoninner">
+            {" "}
+            <CustomButton
+              type="submit"
+              // disabled={formik.isSubmitting || !formik.isValid}
+              width="100%"
+            >
+              {formik.isSubmitting ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                <>
+                  <MdSave size={22} />{" "}
+
+                  Update Category
+                </>
+              )}
+            </CustomButton>
+          </div>
+        </div>
+
 
       </Box>
 

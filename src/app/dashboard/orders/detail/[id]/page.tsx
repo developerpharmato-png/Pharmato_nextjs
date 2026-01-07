@@ -16,6 +16,12 @@ import ProductTable from "../../../components/ProductTable";
 export default function OrderDetailPage() {
   const router = useRouter();
   const params = useParams();
+  // Read isCustomer from query string
+  let isCustomer = false;
+  if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search);
+    isCustomer = urlParams.get('isCustomer') === '1';
+  }
   const orderId = params?.id as string;
 
   const [order, setOrder] = useState<any>(null);
@@ -108,7 +114,13 @@ export default function OrderDetailPage() {
         title="Order Details"
         subtitle={`Order ID: ${order?.order_id}`}
         showBack={true}
-        onBack={() => router.push("/dashboard/orders")}
+        onBack={() => {
+          if (isCustomer) {
+            router.back();
+          } else {
+            router.push("/dashboard/orders");
+          }
+        }}
         showSearch={false}
         addShow={false}
         isunsaved={false}
