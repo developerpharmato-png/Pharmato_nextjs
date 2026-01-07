@@ -126,6 +126,7 @@ export default function AdminCustomerListPage() {
       selector: (row: Customer) => (
         <button
           onClick={async () => {
+            if (row.isDelete) return;
             showConfirmStatusAlert({
               isActive: row.isActive,
               title: row.isActive ? "Deactivate Customer?" : "Activate Customer?",
@@ -168,8 +169,9 @@ export default function AdminCustomerListPage() {
             });
           }}
           className="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-          style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
-          title={row.isActive ? "Click to deactivate" : "Click to activate"}
+          style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db", opacity: row.isDelete ? 0.5 : 1, cursor: row.isDelete ? 'not-allowed' : 'pointer' }}
+          title={row.isDelete ? "Account deleted" : row.isActive ? "Click to deactivate" : "Click to activate"}
+          disabled={row.isDelete}
         >
           <span
             className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
