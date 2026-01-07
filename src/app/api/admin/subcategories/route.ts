@@ -216,8 +216,19 @@ export async function POST(request: NextRequest) {
         if (body.images && !Array.isArray(body.images)) {
             body.images = String(body.images).split(',').map((url: string) => url.trim()).filter(Boolean);
         }
-        const subcategory = await SubCategory.create(body);
 
+        // Check for duplicate name (case-insensitive, global)
+        const duplicate = await SubCategory.findOne({
+            name: { $regex: `^${body.name}$`, $options: 'i' }
+        });
+        if (duplicate) {
+            return NextResponse.json({
+                success: false,
+                error: 'A subcategory with this name already exists.'
+            }, { status: 400 });
+        }
+
+        const subcategory = await SubCategory.create(body);
         const populatedSubCategory = await SubCategory.findById(subcategory._id)
             .populate('categoryId', 'name isOTC');
 

@@ -331,7 +331,7 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
               <p className="text-xs text-gray-500 mt-1">
                 Parent category is{" "}
                 {selectedCategory.isOTC ? "OTC" : "Prescription Required"}
-              </p>
+              </p> 
             )}
           </div>
 
