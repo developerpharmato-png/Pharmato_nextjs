@@ -56,9 +56,7 @@ export async function GET(request: NextRequest) {
         const name = searchParams.get('name') || '';
         const limit = parseInt(searchParams.get('limit') || '0', 10);
         const offset = parseInt(searchParams.get('offset') || '0', 10);
-        const sortBy = searchParams.get('sortBy') || 'createdAt';
-        const sortOrder = searchParams.get('sortOrder') || 'desc';
-
+        // Always return latest created categories (no sortBy/sortOrder)
         let query: any = {};
         if (isOTC !== null) {
             query.isOTC = isOTC === 'true';
@@ -67,12 +65,7 @@ export async function GET(request: NextRequest) {
             query.name = { $regex: name, $options: 'i' };
         }
 
-        // Validate sortBy field
-        const allowedSortFields = ['name', 'isOTC', 'isActive', 'createdAt', 'updatedAt'];
-        const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
-        const sortDirection = sortOrder === 'asc' ? 1 : -1;
-
-        let categoriesQuery = Category.find(query).sort({ [sortField]: sortDirection });
+        let categoriesQuery = Category.find(query).sort({ createdAt: -1 });
         if (offset) categoriesQuery = categoriesQuery.skip(offset);
         if (limit) categoriesQuery = categoriesQuery.limit(limit);
 
