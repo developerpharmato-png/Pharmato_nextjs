@@ -1,17 +1,11 @@
-import { 
-  Box, 
-  Button, 
-  CircularProgress, 
-  IconButton, 
-  Typography, 
-  useTheme,
-  Fade,
-  Paper
-} from "@mui/material";
-
-import { CloudUpload, X, ZoomIn, Upload, Trash2, RefreshCw } from "lucide-react";
-
-import { FormikProps } from 'formik';
+import React from "react";
+import { FormikProps } from "formik";
+// Moved imports to the top level
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 interface ImageUploadFieldProps {
   formik: FormikProps<any>;
@@ -25,6 +19,51 @@ interface ImageUploadFieldProps {
   id: string;
 }
 
+interface SwiperModalProps {
+  images: string[];
+  onClose: () => void;
+}
+
+// Extracted SwiperModal to a separate component (outside the main function)
+const SwiperModal: React.FC<SwiperModalProps> = ({ images, onClose }) => {
+  const [sliderIndex, setSliderIndex] = React.useState(0);
+  return (
+    <div className="fixed inset-0 z-[1300] flex items-center justify-center bg-black/80 backdrop-blur-sm p-2" onClick={onClose}>
+      <div className="w-full max-w-2xl bg-white rounded-xl shadow-2xl relative p-4" onClick={e => e.stopPropagation()}>
+        <button
+          onClick={onClose}
+          className="absolute top-0 right-0 m-4 bg-white/70 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold hover:bg-white hover:text-red-600 transition duration-150 z-10"
+          title="Close"
+        >
+          &times;
+        </button>
+        <Swiper
+          initialSlide={0}
+          spaceBetween={10}
+          slidesPerView={1}
+          pagination={{ clickable: true }}
+          modules={[Pagination]}
+          onSlideChange={swiper => setSliderIndex(swiper.activeIndex)}
+          className="w-full h-[60vh] max-h-[500px] rounded-xl overflow-hidden"
+        >
+          {images.map((url, index) => (
+            <SwiperSlide key={index} className="flex items-center justify-center bg-gray-100 rounded-xl">
+              <img
+                src={url}
+                alt={`Slide ${index}`}
+                className="max-w-full w-full h-full object-contain p-4"
+              />
+            </SwiperSlide>
+          ))}
+        </Swiper>
+        <div className="text-center py-2 text-gray-700 font-semibold border-t border-gray-200 mt-2">
+          Viewing Image {sliderIndex + 1} of {images.length}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const ImageUploadField = ({
   formik,
   handleFileChange,
@@ -36,352 +75,85 @@ export const ImageUploadField = ({
   label,
   id,
 }: ImageUploadFieldProps) => {
-  const theme = useTheme();
-
   return (
-    <Box sx={{ mb: 3 }}>
-      <Typography
-        variant="subtitle2"
-        fontWeight={600}
-        color="text.primary"
-        sx={{ mb: 1.5, letterSpacing: 0.1 }}
-      >
-        {label}
-        <Typography component="span" color="error.main" sx={{ ml: 0.5 }}>
-          *
-        </Typography>
-      </Typography>
+    <div className="mb-4">
+      <label className="block text-sm font-bold text-gray-800 mb-2">
+        {label} <span className="text-red-500">*</span>
+        <p className="text-xs text-gray-500 font-normal">PNG, JPG or WEBP (max. 5MB)</p>
+      </label>
 
-      {formik.values.images.length === 0 ? (
-        <Paper
-          variant="outlined"
-          sx={{
-            position: "relative",
-            borderRadius: 2,
-            borderWidth: 2,
-            borderStyle: "dashed",
-            borderColor: theme.palette.divider,
-            bgcolor: theme.palette.grey[50],
-            transition: "all 0.2s ease-in-out",
-            overflow: "hidden",
-            "&:hover": {
-              borderColor: theme.palette.primary.main,
-              bgcolor: theme.palette.primary.light + "08",
-              "& .upload-icon": {
-                transform: "scale(1.1)",
-                color: theme.palette.primary.main,
-              },
-            },
-          }}
+      {/* Hidden File Input */}
+      <input
+        id={id}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        disabled={uploading}
+        style={{ display: "none" }}
+      />
+
+      <div className="flex gap-4 items-start">
+        {/* Upload Button */}
+        <button
+          type="button"
+          onClick={() => document.getElementById(id)?.click()}
+          className="h-28 w-28 flex flex-col items-center justify-center bg-gray-50 border-2 border-dashed border-gray-400 rounded-lg hover:bg-gray-100 transition duration-150 shadow-inner relative text-gray-500"
+          disabled={uploading}
         >
-          <input
-            id={id}
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            disabled={uploading}
-            style={{ display: "none" }}
-          />
-          <Button
-            component="label"
-            htmlFor={id}
-            disabled={uploading}
-            sx={{
-              width: "100%",
-              minHeight: 140,
-              display: "flex",
-              flexDirection: "column",
-              gap: 1.5,
-              textTransform: "none",
-              color: "text.secondary",
-              "&:hover": {
-                bgcolor: "transparent",
-              },
-            }}
-          >
-            {uploading ? (
-              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                <CircularProgress size={40} thickness={4} />
-                <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                  Uploading...
-                </Typography>
-              </Box>
-            ) : (
-              <>
-                <CloudUpload
-                  className="upload-icon"
-                  style={{
-                    fontSize: 48,
-                    transition: "all 0.2s ease-in-out",
-                  }}
-                />
-                <Box sx={{ textAlign: "center" }}>
-                  <Typography
-                    variant="body2"
-                    fontWeight={600}
-                    color="text.primary"
-                    sx={{ mb: 0.5 }}
-                  >
-                    Click to upload or drag and drop
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    PNG, JPG or WEBP (max. 5MB)
-                  </Typography>
-                </Box>
-              </>
-            )}
-          </Button>
-        </Paper>
-      ) : (
-        <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
-          <Paper
-            variant="outlined"
-            sx={{
-              position: "relative",
-              borderRadius: 2,
-              overflow: "hidden",
-              width: "fit-content",
-              "&:hover .image-overlay": {
-                opacity: deleting ? 0 : 1,
-              },
-            }}
-          >
-            <Box
-              sx={{
-                position: "relative",
-                width: 200,
-                height: 200,
-              }}
-            >
-              <img
-                src={formik.values.images[0]}
-                alt={label}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  display: "block",
-                  opacity: deleting ? 0.5 : 1,
-                  transition: "opacity 0.2s ease-in-out",
-                }}
-              />
-
-              {/* Loading overlay for deletion */}
-              {deleting && (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    inset: 0,
-                    bgcolor: "rgba(0, 0, 0, 0.6)",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 1.5,
-                  }}
-                >
-                  <CircularProgress size={40} thickness={4} sx={{ color: "white" }} />
-                  <Typography variant="body2" color="white" fontWeight={600}>
-                    Deleting...
-                  </Typography>
-                </Box>
-              )}
-
-              {/* Overlay with actions */}
-              {!deleting && (
-                <Box
-                  className="image-overlay"
-                  sx={{
-                    position: "absolute",
-                    inset: 0,
-                    bgcolor: "rgba(0, 0, 0, 0.5)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 1,
-                    opacity: 0,
-                    transition: "opacity 0.2s ease-in-out",
-                  }}
-                >
-                  <IconButton
-                    size="small"
-                    onClick={() => setPreviewOpen(true)}
-                    sx={{
-                      bgcolor: "white",
-                      "&:hover": { bgcolor: "grey.100" },
-                      boxShadow: 2,
-                    }}
-                  >
-                    <ZoomIn style={{ fontSize: 18 }} />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleDeleteImage(formik.values.images[0])}
-                    sx={{
-                      bgcolor: "white",
-                      color: "error.main",
-                      "&:hover": {
-                        bgcolor: "error.main",
-                        color: "white",
-                      },
-                      boxShadow: 2,
-                    }}
-                  >
-                    <Trash2 style={{ fontSize: 18 }} />
-                  </IconButton>
-                </Box>
-              )}
-
-              {/* Status badge */}
-              {!deleting && (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: 8,
-                    left: 8,
-                    bgcolor: "success.main",
-                    color: "white",
-                    px: 1.5,
-                    py: 0.5,
-                    borderRadius: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 0.5,
-                    boxShadow: 2,
-                  }}
-                >
-                  <Upload style={{ fontSize: 14 }} />
-                  <Typography variant="caption" fontWeight={600}>
-                    Uploaded
-                  </Typography>
-                </Box>
-              )}
-            </Box>
-          </Paper>
-
-          {/* Change Image Button */}
-          {!deleting && (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <input
-                id={`${id}-replace`}
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                disabled={uploading}
-                style={{ display: "none" }}
-              />
-              <Button
-                component="label"
-                htmlFor={`${id}-replace`}
-                variant="outlined"
-                startIcon={<RefreshCw />}
-                disabled={uploading}
-                sx={{
-                  textTransform: "none",
-                  fontWeight: 600,
-                  borderWidth: 2,
-                  "&:hover": {
-                    borderWidth: 2,
-                  },
-                }}
-              >
-                {uploading ? "Uploading..." : "Change Image"}
-              </Button>
-              <Button
-                variant="outlined"
-                color="error"
-                startIcon={<Trash2 />}
-                onClick={() => handleDeleteImage(formik.values.images[0])}
-                sx={{
-                  textTransform: "none",
-                  fontWeight: 600,
-                  borderWidth: 2,
-                  "&:hover": {
-                    borderWidth: 2,
-                    bgcolor: "error.light",
-                    color: "white",
-                  },
-                }}
-              >
-                Delete
-              </Button>
-            </Box>
+          {uploading && (
+            <span className="absolute inset-0 flex items-center justify-center bg-white/70 z-10 rounded-lg">
+              <svg className="animate-spin h-8 w-8 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            </span>
           )}
-        </Box>
-      )}
+          <span className={uploading ? "opacity-30" : "opacity-100"}>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-9 h-9">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5V7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 16.5z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 12.75l2.25 3 3-4.5 4.5 6" />
+            </svg>
+          </span>
+        </button>
+
+        {/* Uploaded Image Card */}
+        {formik.values.images && formik.values.images.length > 0 && (
+          <div className="relative h-28 w-28 rounded-lg shadow-md border border-gray-300 overflow-hidden group cursor-pointer mt-1" onClick={() => setPreviewOpen(true)}>
+            <img
+              src={formik.values.images[0]}
+              alt={label}
+              className={`h-full w-full object-cover transition-opacity duration-200 ${deleting ? "opacity-50" : "opacity-100"}`}
+            />
+          
+            <button
+              type="button"
+              className="absolute top-1 right-1 bg-white text-red-600 rounded-full w-7 h-7 flex items-center justify-center shadow-lg hover:bg-red-600 hover:text-white transition z-10"
+              onClick={e => { e.stopPropagation(); handleDeleteImage(formik.values.images[0]); }}
+            >
+              <DeleteIcon />
+            </button>
+
+            {/* Deleting overlay */}
+            {deleting && (
+              <span className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-20">
+                <svg className="animate-spin h-8 w-8 text-white mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+                <span className="text-white font-semibold text-xs">Deleting...</span>
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Preview Modal */}
       {previewOpen && (
-        <Fade in={previewOpen}>
-          <Box
-            onClick={() => setPreviewOpen(false)}
-            sx={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 1300,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              bgcolor: "rgba(0, 0, 0, 0.8)",
-              backdropFilter: "blur(8px)",
-              p: 2,
-            }}
-          >
-            <Box
-              onClick={(e) => e.stopPropagation()}
-              sx={{
-                position: "relative",
-                maxWidth: "90vw",
-                maxHeight: "90vh",
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-              }}
-            >
-              <Paper
-                elevation={24}
-                sx={{
-                  borderRadius: 2,
-                  overflow: "hidden",
-                  maxHeight: "85vh",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <img
-                  src={formik.values.images[0]}
-                  alt="Preview"
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: "85vh",
-                    display: "block",
-                  }}
-                />
-              </Paper>
-
-              <Box sx={{ display: "flex", justifyContent: "center" }}>
-                <Button
-                  onClick={() => setPreviewOpen(false)}
-                  variant="contained"
-                  startIcon={<X />}
-                  sx={{
-                    bgcolor: "white",
-                    color: "text.primary",
-                    fontWeight: 600,
-                    px: 3,
-                    "&:hover": {
-                      bgcolor: "grey.100",
-                    },
-                  }}
-                >
-                  Close Preview
-                </Button>
-              </Box>
-            </Box>
-          </Box>
-        </Fade>
+        <SwiperModal
+          images={formik.values.images}
+          onClose={() => setPreviewOpen(false)}
+        />
       )}
-    </Box>
+    </div>
   );
 };
