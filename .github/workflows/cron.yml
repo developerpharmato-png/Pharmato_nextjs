@@ -8,7 +8,7 @@ on:
 
   # 2️⃣ हर 1 मिनट में चलेगा
   schedule:
-    - cron: "* * * * *"
+    - cron: "*/5 * * * *"
 
   # 3️⃣ Manually GitHub se run kar sakega
   workflow_dispatch:
