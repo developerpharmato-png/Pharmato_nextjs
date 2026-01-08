@@ -120,7 +120,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
           return;
         }
         // If editing, call PUT, else POST
-        let apiUrl = "/api/medicines";
+        let apiUrl = "/api/admin/medicines";
         let method = "POST";
         if (isEdit && usedId) {
           apiUrl = `/api/admin/medicines/${usedId}`;
