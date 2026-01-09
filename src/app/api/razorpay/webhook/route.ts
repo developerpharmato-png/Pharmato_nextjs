@@ -164,8 +164,8 @@ export async function POST(req: NextRequest) {
                     const orderData: any = updatedOrder || checkOrder;
                     const deliveredAddr: any = orderData.deliveredAddress.address || null;
                     if (user && typeof user === 'object' && !Array.isArray(user)) {
-                        userName = (user as any).name || deliveredAddr?.name || 'Customer';
-                        userEmail = (user as any).email || deliveredAddr?.email || '';
+                        userName = deliveredAddr?.name || 'Customer';
+                        userEmail = deliveredAddr?.email || '';
                     }
 
                     let deliveryAddressText = ''

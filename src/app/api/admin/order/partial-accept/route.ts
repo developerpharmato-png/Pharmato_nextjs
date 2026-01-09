@@ -91,7 +91,16 @@ export async function POST(req: NextRequest) {
             order.order_status = 'Confirmed';
         }
         await order.save();
-        
+
+        let userName = 'Customer';
+        let userEmail = '';
+        const deliveredAddr: any = order.deliveredAddress.address || null;
+        if (user && typeof user === 'object' && !Array.isArray(user)) {
+            userName = deliveredAddr?.name || 'Customer';
+            userEmail = deliveredAddr?.email || '';
+        }
+
+
         // Choose template based on create or update
         const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
         const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
@@ -120,26 +129,26 @@ export async function POST(req: NextRequest) {
         ]);
 
         // Build email HTML
-        let html = `${header}<div><p>Dear ${user?.name || 'Customer'},</p>`;
+        let html = `${header}<div><p>Dear ${userName},</p>`;
         html += `<p>The admin has updated your order (Order ID: <b>${order.order_id || order._id}</b>).</p>`;
 
 
-        let emailSubject : any = `Order Update: Partial Acceptance`;
+        let emailSubject: any = `Order Update: Partial Acceptance`;
 
         if (cancelledNames.length === 0) {
 
             emailSubject = `Order Confirmed Successfully– Order #${order.order_id}`;
             html += `<p>All medicines in your order have been accepted.</p>`;
-            
+
         }
 
         if (acceptedNames.length === 0) {
 
             emailSubject = `Order Cancelled Successfully– Order #${order.order_id}`;
             html += `<p>All medicines in your order have been cancelled.</p>`;
-            
+
         }
-        
+
         if (acceptedNames.length > 0) {
             html += '<p><b>Accepted Medicines:</b><ul>';
             acceptedNames.forEach((m: any) => { html += `<li>${m.name}</li>`; });
@@ -156,8 +165,8 @@ export async function POST(req: NextRequest) {
         html += '<p>Stay healthy,<br/>Team Pharmato<br/>Your trusted pharmacy partner</p></div>';
         html += `${footer}`;
 
-        if (user?.email) {
-            await sendEmail({ to: user.email, subject: emailSubject, html });
+        if (userEmail) {
+            await sendEmail({ to: userEmail, subject: emailSubject, html });
         }
 
         console.log("$$$acceptedNames$$$$$$$$cancelledNames$$", acceptedNames, cancelledNames);

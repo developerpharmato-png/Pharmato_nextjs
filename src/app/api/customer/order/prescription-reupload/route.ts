@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
 import mongoose from 'mongoose';
+import fs from 'fs';
+import path from 'path';
+import { sendEmail } from '@/utils/sendEmail';
 
 /**
  * @swagger
@@ -51,7 +54,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, message: 'Invalid orderId' }, { status: 400 });
         }
 
-        const orderDoc = await Order.findById(orderId).lean();
+        const orderDoc: any = await Order.findById(orderId).lean();
         if (!orderDoc) {
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
@@ -91,14 +94,14 @@ export async function POST(req: NextRequest) {
             let storeName = '';
             let adminName = '';
             let adminRoleName = '';
-            let customerName = '';
+            let customerName = 'Customer';
+            let userEmail = '';
             let storeId = (orderDoc as any).storeId;
-            let userId = (orderDoc as any).userId;
-            if (userId) {
-                const user = await User.findById(userId).lean();
-                if (user && typeof user === 'object' && !Array.isArray(user)) {
-                    customerName = user.name || 'Customer';
-                }
+
+            const deliveredAddr: any = orderDoc.deliveredAddress.address || null;
+            if (deliveredAddr) {
+                customerName = deliveredAddr?.name || 'Customer';
+                userEmail = deliveredAddr?.email || '';
             }
             if (storeId) {
                 const store = await Store.findById(storeId).lean();
@@ -162,6 +165,58 @@ export async function POST(req: NextRequest) {
                     }
                 }
             }
+
+
+            // Choose template based on create or update
+            const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+            const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+            const header = fs.readFileSync(headerPath, 'utf8');
+            const footer = fs.readFileSync(footerPath, 'utf8');
+
+            // If order is delivered, send delivered email to customer
+            try {
+                const statusLower = String(status || '').toLowerCase();
+                if (statusLower.includes('deliv')) {
+                    // format delivery address
+                    const deliveredAddr: any = orderDoc.deliveredAddress.address || null;
+
+                    let deliveryAddressText = ''
+
+                    if (deliveredAddr) {
+                        deliveryAddressText = `${deliveredAddr.houseNumber}, ${deliveredAddr.locality}, ${deliveredAddr.landmark}, ${deliveredAddr.city}, ${deliveredAddr.state} - ${deliveredAddr.pinCode}`;
+                    }
+
+                    const subject = `Prescription Re-uploaded – Action Required for Order #${orderDoc.order_id}`;
+                    const html = `${header}
+                    <div style="font-family: Arial, sans-serif; color:#333; line-height:1.4;">
+                        <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
+                            <p>Hello ${storeName},</p>
+                            <p>The customer has **re-uploaded a prescription** for order #${orderDoc.order_id} after previous rejection.</p>
+                            <h4>Order Summary:</h4>
+                            <p>Order ID: <strong>#${orderDoc.order_id}</strong></p>
+                            <p>Order Status: <strong>Delivered</strong></p>
+                            <p>Delivery Address: ${deliveryAddressText || 'Not available'}</p>
+                            <p><strong>Action Required</strong></p>
+                            <p>Please review the updated prescription and take appropriate action:</p>
+                            <p>* Approve to proceed with the order</p>
+                            <p>* Reject with reason if still not valid</p>
+                            <p>Log in to admin Portal  to continue.</p>
+                            <p>Stay healthy,<br/>Team Pharmato<br/>Your trusted pharmacy partner</p>
+                        </div>
+                    </div>
+                ${footer}
+                `;
+
+                    if (userEmail) {
+                        await sendEmail({ to: userEmail, subject, html });
+                    }
+                }
+            } catch (emailErr) {
+                console.error('Error sending delivered email:', emailErr);
+            }
+
+
+
         } catch (notifyErr) {
             console.error('Notification error on prescription re-upload:', notifyErr);
         }

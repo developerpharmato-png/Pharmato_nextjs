@@ -2,7 +2,6 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IBannerImage extends Document {
   images: any[];
-  bannerFor: string;
 }
 
 const AnyObjectSchema = new Schema(
@@ -15,8 +14,7 @@ const AnyObjectSchema = new Schema(
 
 const BannerImageSchema = new Schema(
   {
-    images: { type: [AnyObjectSchema], default: [] },
-    bannerFor: { type: String, default: '' }
+    images: { type: [AnyObjectSchema], default: [] }
   },
   { timestamps: true }
 );

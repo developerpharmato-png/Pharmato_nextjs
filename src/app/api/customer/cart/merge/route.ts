@@ -53,7 +53,8 @@ export async function POST(request: NextRequest) {
         }
         let userCart = await Cart.findOne({ userId, storeId });
         if (!userCart) {
-            userCart = await Cart.create({ userId, storeId, items: [] });
+            await Cart.create({ userId, storeId, items: [] });
+            userCart = await Cart.findOne({ userId, storeId });
         }
         // Merge logic: add/merge quantities for this store only
         guestCart.items.forEach((guestItem: any) => {

@@ -36,6 +36,12 @@ export async function POST(req: NextRequest) {
             });
         }
 
+        // Choose template based on create or update
+        const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+        const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+        const header = fs.readFileSync(headerPath, 'utf8');
+        const footer = fs.readFileSync(footerPath, 'utf8');
+
         // Send notification to user
         const user = await User.findById(order.userId);
         if (user && user.deviceToken) {
@@ -77,7 +83,7 @@ export async function POST(req: NextRequest) {
             userEmail = (user as any).email || deliveredAddr?.email || '';
         }
 
-        const store : any = await Store.findById(order.storeId).lean();
+        const store: any = await Store.findById(order.storeId).lean();
         const storeName = store ? (store.name || 'Store') : 'Store';
 
         // Notify all superadmins
@@ -121,17 +127,53 @@ export async function POST(req: NextRequest) {
                         console.error('Failed to send push notification to superadmin:', err);
                     }
 
+
+                    // If order is delivered, send delivered email to customer
+                    try {
+                        const statusLower = String(status || '').toLowerCase();
+                        if (statusLower.includes('deliv')) {
+                            // format delivery address
+                            const orderData: any = order;
+                            const deliveredAddr: any = orderData.deliveredAddress.address || null;
+
+                            let deliveryAddressText = ''
+
+                            if (deliveredAddr) {
+                                deliveryAddressText = `${deliveredAddr.houseNumber}, ${deliveredAddr.locality}, ${deliveredAddr.landmark}, ${deliveredAddr.city}, ${deliveredAddr.state} - ${deliveredAddr.pinCode}`;
+                            }
+
+                            const subject = `Order Delivered Successfully – Order #${order.order_id}`;
+                            const html = `${header}
+                    <div style="font-family: Arial, sans-serif; color:#333; line-height:1.4;">
+                        <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
+                            <p>Hello Admin,</p>
+                            <p>Order has been successfully delivered to the customer.</p>
+                            <h4>Order Summary:</h4>
+                            <p>Order ID: <strong>#${order.order_id || order._id}</strong></p>
+                            <p>Order Status: <strong>Delivered</strong></p>
+                            <p>Delivery Address: ${deliveryAddressText || 'Not available'}</p>
+                            <p>The order lifecycle has been completed successfully.</p>
+                            <p>Stay healthy,<br/>Team Pharmato<br/>Your trusted pharmacy partner</p>
+                        </div>
+                    </div>
+                ${footer}
+                `;
+
+                            if (superAdmin.email) {
+                                await sendEmail({ to: superAdmin.email, subject, html });
+                            }
+                        }
+                    } catch (emailErr) {
+                        console.error('Error sending delivered email:', emailErr);
+                    }
+
+
+
                 }
             }
         } catch (err) {
             console.error('Superadmin notification error:', err);
         }
-
-        // Choose template based on create or update
-        const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
-        const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
-        const header = fs.readFileSync(headerPath, 'utf8');
-        const footer = fs.readFileSync(footerPath, 'utf8');
 
         // If order is delivered, send delivered email to customer
         try {
@@ -147,8 +189,6 @@ export async function POST(req: NextRequest) {
                     deliveryAddressText = `${deliveredAddr.houseNumber}, ${deliveredAddr.locality}, ${deliveredAddr.landmark}, ${deliveredAddr.city}, ${deliveredAddr.state} - ${deliveredAddr.pinCode}`;
                 }
 
-                const userName = (user && (user as any).name) ? (user as any).name : 'Customer';
-                const userEmail = (user && (user as any).email) ? (user as any).email : '';
                 const subject = `Order Delivered Successfully – Order #${order.order_id}`;
                 const html = `${header}
                     <div style="font-family: Arial, sans-serif; color:#333; line-height:1.4;">
