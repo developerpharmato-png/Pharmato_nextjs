@@ -51,22 +51,52 @@ export async function POST(request: NextRequest) {
         if (!guestCart || !guestCart.items || guestCart.items.length === 0) {
             return NextResponse.json({ success: true, message: 'No items to merge', data: null });
         }
-        let userCart = await Cart.findOne({ userId, storeId });
-        if (!userCart) {
-            await Cart.create({ userId, storeId, items: [] });
-            userCart = await Cart.findOne({ userId, storeId });
+
+        const userCart = await Cart.findOneAndUpdate(
+            { userId, storeId },
+            { $setOnInsert: { items: [] } },
+            { new: true, upsert: true }
+        );
+
+        // // Merge logic: add/merge quantities for this store only
+        // guestCart.items.forEach((guestItem: any) => {
+        //     const userItemIndex = userCart.items.findIndex((item: any) => item.medicineId.toString() === guestItem.medicineId.toString());
+        //     if (userItemIndex > -1) {
+        //         userCart.items[userItemIndex].quantity += guestItem.quantity;
+        //     } else {
+        //         userCart.items.push({ medicineId: guestItem.medicineId, quantity: guestItem.quantity });
+        //     }
+        // });
+
+        const mergedGuestItemsMap = new Map<string, number>();
+
+        for (const item of guestCart.items) {
+            const medId = item.medicineId.toString();
+            mergedGuestItemsMap.set(
+                medId,
+                (mergedGuestItemsMap.get(medId) || 0) + item.quantity
+            );
         }
-        // Merge logic: add/merge quantities for this store only
-        guestCart.items.forEach((guestItem: any) => {
-            const userItemIndex = userCart.items.findIndex((item: any) => item.medicineId.toString() === guestItem.medicineId.toString());
-            if (userItemIndex > -1) {
-                userCart.items[userItemIndex].quantity += guestItem.quantity;
+
+        for (const [medicineId, quantity] of mergedGuestItemsMap.entries()) {
+            const index = userCart.items.findIndex(
+                (item: any) => item.medicineId.toString() === medicineId
+            );
+
+            if (index > -1) {
+                userCart.items[index].quantity += quantity;
             } else {
-                userCart.items.push({ medicineId: guestItem.medicineId, quantity: guestItem.quantity });
+                userCart.items.push({
+                    medicineId,
+                    quantity
+                });
             }
-        });
+        }
+
+        // 🔥 YAHAN save chahiye (kyunki items change hue)
         await userCart.save();
         await userCart.populate('items.medicineId');
+
         // Only delete the guest cart for this store
         await GuestCart.deleteOne({ guestId, storeId });
 
