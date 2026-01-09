@@ -52,13 +52,20 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: true, message: 'No items to merge', data: null });
         }
 
-        let checkUserCart = await Cart.findOne({ userId, storeId });
+        // let checkUserCart = await Cart.findOne({ userId, storeId });
 
-        if (!checkUserCart) {
-            checkUserCart = await Cart.create({ userId, storeId, items: [] });
-        }
+        // if (!checkUserCart) {
+        //     await Cart.create({ userId, storeId, items: [] });
+        // }
 
-        let userCart = await Cart.findOne({ userId, storeId });
+        // let userCart = await Cart.findOne({ userId, storeId });
+
+        const userCart = await Cart.findOneAndUpdate(
+            { userId, storeId },
+            { $setOnInsert: { items: [] } },
+            { new: true, upsert: true }
+        );
+
 
         // Merge logic: add/merge quantities for this store only
         guestCart.items.forEach((guestItem: any) => {

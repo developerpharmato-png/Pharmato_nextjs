@@ -54,6 +54,7 @@ import User from '@/models/User';
 import { signJwt } from '@/lib/jwt';
 import fs from 'fs';
 import path from 'path';
+import Cart from '@/models/Cart';
 
 export async function POST(request: NextRequest) {
     await connectDB();
