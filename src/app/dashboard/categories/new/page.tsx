@@ -45,6 +45,7 @@ export default function NewCategoryPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const theme = useTheme();
   // --- Formik Setup (Logic Unchanged) ---
   const formik = useFormik({
@@ -175,6 +176,7 @@ export default function NewCategoryPage() {
   };
 
   const handleDeleteImage = async (url: string) => {
+    setDeleting(true);
     const res = await fetch("/api/cloudinary/delete-image", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -198,6 +200,7 @@ export default function NewCategoryPage() {
         text: ToastMessages.IMAGE_DELETE_FAILED(data.error),
       });
     }
+    setDeleting(false);
   };
 
   return (
@@ -259,7 +262,7 @@ export default function NewCategoryPage() {
           previewOpen={previewOpen}
           setPreviewOpen={setPreviewOpen}
           uploading={uploading}
-          deleting={false}
+          deleting={deleting}
           label="Category Image"
           id="category-image-input"
         />

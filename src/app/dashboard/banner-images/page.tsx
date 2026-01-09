@@ -99,10 +99,17 @@ export default function BannerImagesDashboard() {
         onSave={async (img) => {
           setLoading(true);
           try {
+            // Find the selected category name
+            let categoryName = "";
+            if (img.targetId) {
+              const cat = categories.find((c) => c._id === img.targetId);
+              if (cat) categoryName = cat.name;
+            }
+            const imgWithCategory = { ...img, categoryName };
             if (modal.editIdx !== null) {
               // Edit
               const updated = images.map((i, idx) =>
-                idx === modal.editIdx ? { ...img } : i
+                idx === modal.editIdx ? imgWithCategory : i
               );
               setImages(updated);
               await axios.post("/api/admin/banner-images", { images: updated });
@@ -116,7 +123,7 @@ export default function BannerImagesDashboard() {
               });
             } else {
               // Add
-              const updated = [...images, img];
+              const updated = [...images, imgWithCategory];
               setImages(updated);
               await axios.post("/api/admin/banner-images", { images: updated });
               Swal.fire({
@@ -172,50 +179,44 @@ export default function BannerImagesDashboard() {
 
                 ),
               },
-              // {
-              //   id: "alt",
-              //   label: "Alt Text",
-              //   minWidth: 120,
-              //   selector: (row: any) => (
-              //     <CustomTooltip title={row.alt || "-"}>
-              //       <span
-              //         style={{
-              //           display: "inline-block",
-              //           width: 140,
-              //           overflow: "hidden",
-              //           textOverflow: "ellipsis",
-              //           whiteSpace: "nowrap",
-              //         }}
-              //       >
-              //         {row.alt || "-"}
-              //       </span>
-              //     </CustomTooltip>
-              //   ),
-              // },
+            
 
               {
-                id: "targetId",
+                id: "Category",
                 label: "Category",
                 minWidth: 120,
-                selector: (row: any) => {
-                  const cat = categories.find((c) => c._id === row.targetId);
-                  return (
-                    <CustomTooltip title={cat ? cat.name : "-"}>
-                      <span
-                        style={{
-                          display: "inline-block",
-                          width: 120,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {cat ? cat.name : "-"}
-                      </span>
-                    </CustomTooltip>
-                  );
-                },
+                selector: (row: any) => (
+                  <CustomTooltip title={row.categoryName || "-"}>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        width: 140,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {row.categoryName || "-"}
+                    </span>
+                  </CustomTooltip>
+                ),
               },
+              {
+                id: "webImage",
+                label: "Web Image",
+                minWidth: 120,
+                selector: (row: any) =>
+                  row.webImage ? (
+                    <img
+                      src={row.webImage}
+                      alt="Web Banner"
+                      style={{ width: 60, height: 40, objectFit: "cover", borderRadius: 6, border: "1px solid #eee" }}
+                    />
+                  ) : (
+                    <span style={{ color: '#aaa' }}>No Image</span>
+                  ),
+              },
+
             ];
 
             if (canEditBanner) {

@@ -1,3 +1,5 @@
+import { he } from "date-fns/locale";
+
 export const modalStyle = {
   position: "absolute" as "absolute",
   top: "50%",
@@ -8,6 +10,8 @@ export const modalStyle = {
   borderRadius: 2,
   boxShadow: 24,
   p: 4,
+  overflowY: "scroll",
+  height: "70vh",
 };
 
 export const modalStyles = {

@@ -69,13 +69,17 @@ export async function GET() {
                 categoryActive,
                 subcategoryAvailable,
                 medicineCount,
-                categoryName
+                categoryName,
+                webImage: img.webImage || ''
             };
         }));
     }
     return NextResponse.json({
         success: true,
         message: 'Banner images fetched successfully',
-        images
+        images: images.map(img => ({
+            ...img,
+            categoryName: img.categoryName || ''
+        }))
     });
 }
