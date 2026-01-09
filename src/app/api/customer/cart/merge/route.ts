@@ -66,7 +66,6 @@ export async function POST(request: NextRequest) {
             { new: true, upsert: true }
         );
 
-
         // Merge logic: add/merge quantities for this store only
         guestCart.items.forEach((guestItem: any) => {
             const userItemIndex = userCart.items.findIndex((item: any) => item.medicineId.toString() === guestItem.medicineId.toString());
@@ -76,7 +75,6 @@ export async function POST(request: NextRequest) {
                 userCart.items.push({ medicineId: guestItem.medicineId, quantity: guestItem.quantity });
             }
         });
-        await userCart.save();
         await userCart.populate('items.medicineId');
         // Only delete the guest cart for this store
         await GuestCart.deleteOne({ guestId, storeId });
