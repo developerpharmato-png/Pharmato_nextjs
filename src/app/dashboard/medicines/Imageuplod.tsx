@@ -267,3 +267,4 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
 };
 
 export default MedicineImageUploader;
+ 

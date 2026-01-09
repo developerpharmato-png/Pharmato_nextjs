@@ -78,7 +78,7 @@ export default function CategoriesPage() {
       const body: any = {
         limit: rowsPerPage,
         offset: page * rowsPerPage,
-        sortBy,
+        sortBy:"desc",
       };
       if (searchTerm) body.name = searchTerm;
       if (filterOTC !== "all") body.isOTC = filterOTC;
