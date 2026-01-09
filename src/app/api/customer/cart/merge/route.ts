@@ -75,7 +75,11 @@ export async function POST(request: NextRequest) {
                 userCart.items.push({ medicineId: guestItem.medicineId, quantity: guestItem.quantity });
             }
         });
+
+        // 🔥 YAHAN save chahiye (kyunki items change hue)
+        await userCart.save();
         await userCart.populate('items.medicineId');
+        
         // Only delete the guest cart for this store
         await GuestCart.deleteOne({ guestId, storeId });
 
