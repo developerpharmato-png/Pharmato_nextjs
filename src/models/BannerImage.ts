@@ -2,9 +2,10 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IBannerImage extends Document {
   images: any[];
+  bannerFor: string;
 }
 
-const AnyObjectSchema = new Schema( 
+const AnyObjectSchema = new Schema(
   {},
   {
     _id: true,      // <-- force mongoose to generate _id for each object
@@ -14,7 +15,8 @@ const AnyObjectSchema = new Schema(
 
 const BannerImageSchema = new Schema(
   {
-    images: { type: [AnyObjectSchema], default: [] }
+    images: { type: [AnyObjectSchema], default: [] },
+    bannerFor: { type: String, default: '' }
   },
   { timestamps: true }
 );

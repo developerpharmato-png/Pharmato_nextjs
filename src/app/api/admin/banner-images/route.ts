@@ -13,6 +13,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
     await dbConnect();
     const { images } = await req.json();
+    
     if (!Array.isArray(images)) {
         return NextResponse.json({ success: false, message: 'images must be an array of strings' }, { status: 400 });
     }
