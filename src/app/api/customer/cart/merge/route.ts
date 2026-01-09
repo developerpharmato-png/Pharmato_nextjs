@@ -51,11 +51,16 @@ export async function POST(request: NextRequest) {
         if (!guestCart || !guestCart.items || guestCart.items.length === 0) {
             return NextResponse.json({ success: true, message: 'No items to merge', data: null });
         }
-        let userCart = await Cart.findOne({ userId, storeId });
-        if (!userCart) {
-            await Cart.create({ userId, storeId, items: [] });
-            userCart = await Cart.findOne({ userId, storeId });
+
+        let checkUserCart = await Cart.findOne({ userId, storeId });
+
+        if (!checkUserCart) {
+            checkUserCart = await Cart.create({ userId, storeId, items: [] });
+            await checkUserCart.save();
         }
+
+        let userCart = await Cart.findOne({ userId, storeId });
+
         // Merge logic: add/merge quantities for this store only
         guestCart.items.forEach((guestItem: any) => {
             const userItemIndex = userCart.items.findIndex((item: any) => item.medicineId.toString() === guestItem.medicineId.toString());
