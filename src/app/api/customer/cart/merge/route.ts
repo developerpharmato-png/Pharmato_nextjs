@@ -56,7 +56,6 @@ export async function POST(request: NextRequest) {
 
         if (!checkUserCart) {
             checkUserCart = await Cart.create({ userId, storeId, items: [] });
-            await checkUserCart.save();
         }
 
         let userCart = await Cart.findOne({ userId, storeId });
