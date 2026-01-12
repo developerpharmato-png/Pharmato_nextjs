@@ -97,6 +97,7 @@ export default function EditCategoryPage() {
     useState(initEditCategory);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const theme = useTheme();
   // 1. Fetch initial data and set Formik's initial values
@@ -290,6 +291,7 @@ export default function EditCategoryPage() {
   };
 
   const handleDeleteImage = async (url: string) => {
+    setDeleting(true);
     const res = await fetch("/api/cloudinary/delete-image", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -308,7 +310,6 @@ export default function EditCategoryPage() {
         title: ToastMessages.IMAGE_DELETED,
         showConfirmButton: false,
         timer: 2000,
-
       });
     } else {
       Swal.fire({
@@ -321,7 +322,9 @@ export default function EditCategoryPage() {
         timer: 2000,
       });
     }
+    setDeleting(false);
   };
+
 
   // --- Component Rendering ---
   if (initialFetchLoading) {
@@ -393,7 +396,7 @@ export default function EditCategoryPage() {
           previewOpen={previewOpen}
           setPreviewOpen={setPreviewOpen}
           uploading={uploading}
-          deleting={false}
+          deleting={deleting}
           label="Category Image"
           id="category-image-input"
         />

@@ -23,6 +23,7 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
 
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
@@ -46,6 +47,7 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
             name: data.data.name || "",
             description: data.data.description || "",
             categoryId: data.data.categoryId?._id || "",
+            categoryname: data.data.categoryId?.name || "",
             images: Array.isArray(data.data.images) ? data.data.images : [],
             isOTC: data.data.isOTC || false,
             isActive: data.data.isActive !== undefined ? data.data.isActive : true,
@@ -85,7 +87,9 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
       images: [] as string[],
       isOTC: false,
       isActive: true,
+      categoryname: "",
     },
+    
     validationSchema: Yup.object({
       name: Yup.string()
         .min(2, "Subcategory name must be at least 2 characters.")
@@ -153,6 +157,7 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
     validateOnBlur: true,
     enableReinitialize: true,
   });
+    console.log(formik.values.categoryname ,"formik.values.categoryname");
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -239,7 +244,7 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
   };
 
   const handleDeleteImage = async (url: string) => {
-      setUploading(true);
+    setDeleting(true);
     const res = await fetch("/api/cloudinary/delete-image", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -256,7 +261,6 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
         showConfirmButton: false,
         timer: 2000,
       });
-        setUploading(true);
     } else {
       Swal.fire({
         toast: true,
@@ -267,8 +271,8 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
         showConfirmButton: false,
         timer: 2000,
       });
-        setUploading(true);
     }
+    setDeleting(false);
   };
 
   const selectedCategory = categories.find(
@@ -312,12 +316,17 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
             </label>
             <select
               name="categoryId"
-              value={formik.values.categoryId}
+              value={categories.some((cat) => cat._id === formik.values.categoryId) ? formik.values.categoryId : "__notfound__"}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="">Select a category</option>
+              {!categories.some((cat) => cat._id === formik.values.categoryId) && formik.values.categoryname && (
+                <option value="__notfound__" disabled selected>
+                  {formik.values.categoryname}
+                </option>
+              )}
               {categories.map((cat) => (
                 <option key={cat._id} value={cat._id}>
                   {cat.name} {cat.isOTC ? "(OTC)" : "(Prescription)"}
@@ -331,7 +340,7 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
               <p className="text-xs text-gray-500 mt-1">
                 Parent category is{" "}
                 {selectedCategory.isOTC ? "OTC" : "Prescription Required"}
-              </p> 
+              </p>
             )}
           </div>
 
@@ -378,9 +387,9 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
             previewOpen={previewOpen && (formik.values.images?.length ?? 0) > 0}
             setPreviewOpen={setPreviewOpen}
             uploading={uploading}
-            deleting={false}
+            deleting={deleting}
             label="Subcategory Image *"
-            id="subcategory-image-input"
+            id="category-image-input"
           />
           {formik.touched.images && formik.errors.images && (
             <ErrorMessageCom

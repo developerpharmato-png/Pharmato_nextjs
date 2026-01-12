@@ -116,23 +116,39 @@ export const ImageUploadField = ({
           </span>
         </button>
 
-        {/* Uploaded Image Card */}
-        {formik.values.images && formik.values.images.length > 0 && (
+       
+        {/* Show preview for web-banner-image-input, url, or images[0] (for categories) */}
+        {(id === "web-banner-image-input"
+          ? !!formik.values.webImage
+          : id === "category-image-input"
+            ? Array.isArray(formik.values.images) && formik.values.images.length > 0
+            : !!formik.values.url) && (
           <div className="relative h-28 w-28 rounded-lg shadow-md border border-gray-300 overflow-hidden group cursor-pointer mt-1" onClick={() => setPreviewOpen(true)}>
             <img
-              src={formik.values.images[0]}
+              src={id === "web-banner-image-input"
+                ? formik.values.webImage
+                : id === "category-image-input"
+                  ? formik.values.images[0]
+                  : formik.values.url}
               alt={label}
               className={`h-full w-full object-cover transition-opacity duration-200 ${deleting ? "opacity-50" : "opacity-100"}`}
             />
-          
             <button
               type="button"
               className="absolute top-1 right-1 bg-white text-red-600 rounded-full w-7 h-7 flex items-center justify-center shadow-lg hover:bg-red-600 hover:text-white transition z-10"
-              onClick={e => { e.stopPropagation(); handleDeleteImage(formik.values.images[0]); }}
+              onClick={e => {
+                e.stopPropagation();
+                handleDeleteImage(
+                  id === "web-banner-image-input"
+                    ? formik.values.webImage
+                    : id === "category-image-input"
+                      ? formik.values.images[0]
+                      : formik.values.url
+                );
+              }}
             >
               <DeleteIcon />
             </button>
-
             {/* Deleting overlay */}
             {deleting && (
               <span className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-20">
@@ -150,7 +166,13 @@ export const ImageUploadField = ({
       {/* Preview Modal */}
       {previewOpen && (
         <SwiperModal
-          images={formik.values.images}
+          images={
+            id === "web-banner-image-input"
+              ? (formik.values.webImage ? [formik.values.webImage] : [])
+              : id === "category-image-input" || id === "subcategory-image-input"
+                ? (Array.isArray(formik.values.images) ? formik.values.images : [])
+                : (formik.values.url ? [formik.values.url] : [])
+          }
           onClose={() => setPreviewOpen(false)}
         />
       )}
