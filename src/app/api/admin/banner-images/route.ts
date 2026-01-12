@@ -7,7 +7,7 @@ import Category from '@/models/Category';
 export async function GET() {
     await dbConnect();
     const doc = await BannerImage.findOne().lean();
-    if (doc && Array.isArray(doc.images)) {
+    if (doc && typeof doc === 'object' && !Array.isArray(doc) && Array.isArray(doc.images)) {
         doc.images = [...doc.images].reverse();
     }
     return NextResponse.json({ success: true, data: doc });
