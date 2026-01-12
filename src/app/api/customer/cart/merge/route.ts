@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import GuestCart from '@/models/GuestCart';
 import Cart from '@/models/Cart';
+import Medicine from '@/models/Medicine';
+const mongoose = require('mongoose');
+
 
 /**
  * @swagger
@@ -117,12 +120,14 @@ export async function POST(request: NextRequest) {
                 med.crossSellProducts.forEach((id: any) => allCrossSellIdsSet.add(id.toString()));
             }
         }
-        const mongoose = require('mongoose');
         const allCrossSellIds = Array.from(allCrossSellIdsSet).map(id => new mongoose.Types.ObjectId(id));
         let allCrossSellProducts: any[] = [];
         if (allCrossSellIds.length > 0) {
-            const crossSellMeds = await mongoose.model('Medicine').find({ _id: { $in: allCrossSellIds } },
-                '_id name manufacturer mrp price stock images discount').lean();
+            const crossSellMeds = await Medicine.find(
+                { _id: { $in: allCrossSellIds } },
+                '_id name manufacturer mrp price stock images discount'
+            ).lean();
+
             allCrossSellProducts = crossSellMeds.map((prod: any) => {
                 const inCart = cartQuantityMap[prod._id.toString()] || 0;
                 return {
