@@ -208,7 +208,7 @@ export default function LoginPage() {
                       });
 
                       setTimeout(() => {
-                        router.push("/dashboard");
+                        router.push("/dashboard/DashboardApp");
                       }, 1000);
                     }
                   } catch (err) {
