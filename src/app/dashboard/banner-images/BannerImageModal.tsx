@@ -391,9 +391,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
                 label="App Banner (1080 × 540 px)"
                 id="banner-image-input"
               />
-              <div style={{ fontSize: '12px', color: '#888', marginTop: 2 }}>
-                Required size: 1080 × 540 px
-              </div>
+
               {formik.touched.url && typeof formik.errors.url === "string" && (
                 <ErrorMessageCom error={formik.errors.url} />
               )}
@@ -411,9 +409,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
                 label="Web Banner Image (1920x600 px)"
                 id="web-banner-image-input"
               />
-              <div style={{ fontSize: '12px', color: '#888', marginTop: 2 }}>
-                Required size: 1920 × 600 px
-              </div>
+
               {formik.touched.webImage && typeof formik.errors.webImage === "string" && (
                 <ErrorMessageCom error={formik.errors.webImage} />
               )}

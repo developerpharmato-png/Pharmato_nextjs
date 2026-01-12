@@ -123,7 +123,7 @@ export default function BannerImagesDashboard() {
               });
             } else {
               // Add
-              const updated = [...images, imgWithCategory];
+              const updated = [imgWithCategory, ...images];
               setImages(updated);
               await axios.post("/api/admin/banner-images", { images: updated });
               Swal.fire({
@@ -156,7 +156,7 @@ export default function BannerImagesDashboard() {
         <CustomTable
           columns={(() => {
             const baseColumns = [
-                 {
+              {
                 id: "Category",
                 label: "Category",
                 minWidth: 120,
@@ -199,17 +199,17 @@ export default function BannerImagesDashboard() {
 
                 ),
               },
-            
 
-           
+
+
               {
                 id: "webImage",
                 label: "Web Image",
                 minWidth: 120,
                 selector: (row: any) =>
                   row.webImage ? (
-                  
-                       <CustomImage
+
+                    <CustomImage
                       coverImage={row.webImage}
                       images={[row.webImage]}
                       alt={row.alt || "Banner"}
