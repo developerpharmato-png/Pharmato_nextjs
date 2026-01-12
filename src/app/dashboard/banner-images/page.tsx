@@ -156,9 +156,29 @@ export default function BannerImagesDashboard() {
         <CustomTable
           columns={(() => {
             const baseColumns = [
+                 {
+                id: "Category",
+                label: "Category",
+                minWidth: 120,
+                selector: (row: any) => (
+                  <CustomTooltip title={row.categoryName || "-"}>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        width: 140,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {row.categoryName || "-"}
+                    </span>
+                  </CustomTooltip>
+                ),
+              },
               {
                 id: "image",
-                label: "Image",
+                label: "App Image",
                 minWidth: 100,
                 selector: (row: any) => (
 
@@ -181,36 +201,25 @@ export default function BannerImagesDashboard() {
               },
             
 
-              {
-                id: "Category",
-                label: "Category",
-                minWidth: 120,
-                selector: (row: any) => (
-                  <CustomTooltip title={row.categoryName || "-"}>
-                    <span
-                      style={{
-                        display: "inline-block",
-                        width: 140,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {row.categoryName || "-"}
-                    </span>
-                  </CustomTooltip>
-                ),
-              },
+           
               {
                 id: "webImage",
                 label: "Web Image",
                 minWidth: 120,
                 selector: (row: any) =>
                   row.webImage ? (
-                    <img
-                      src={row.webImage}
-                      alt="Web Banner"
-                      style={{ width: 60, height: 40, objectFit: "cover", borderRadius: 6, border: "1px solid #eee" }}
+                  
+                       <CustomImage
+                      coverImage={row.webImage}
+                      images={[row.webImage]}
+                      alt={row.alt || "Banner"}
+                      style={{
+                        height: 48,
+                        width: 120,
+                        objectFit: "cover",
+                        borderRadius: 6,
+                        cursor: "pointer",
+                      }}
                     />
                   ) : (
                     <span style={{ color: '#aaa' }}>No Image</span>

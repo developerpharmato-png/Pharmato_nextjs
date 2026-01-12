@@ -52,7 +52,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
 
   const formik = useFormik({
     initialValues: {
-     
+
       url: initial?.url || "",
       webImage: initial?.webImage || initial?.weburl || "",
       alt: initial?.alt || "",
@@ -74,7 +74,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
     }
   }, [open]);
 
-  // App image upload handler
+  // App image upload handler with dimension validation (1080x540)
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -119,6 +119,28 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
         return;
       }
 
+      // Validate image dimensions (1080x540)
+      const img = new window.Image();
+      img.src = URL.createObjectURL(file);
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+      if (img.width !== 1080 || img.height !== 540) {
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "error",
+          title: `App Banner must be 1080x540 px`,
+          showConfirmButton: false,
+          timer: 2500,
+        });
+        const fileInput = document.getElementById(
+          "category-image-input"
+        ) as HTMLInputElement | null;
+        if (fileInput) fileInput.value = "";
+        return;
+      }
+
       setUploading(true);
       const uploadFormData = new FormData();
       uploadFormData.append("file", file);
@@ -155,7 +177,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
       if (fileInput) fileInput.value = "";
     }
   };
-  // Web image upload handler (10MB limit)
+  // Web image upload handler with dimension validation (1920x600)
   const handleWebFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -192,6 +214,28 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
           title: ToastMessages.FILE_TOO_LARGE,
           showConfirmButton: false,
           timer: 2000,
+        });
+        const fileInput = document.getElementById(
+          "web-banner-image-input"
+        ) as HTMLInputElement | null;
+        if (fileInput) fileInput.value = "";
+        return;
+      }
+
+      // Validate image dimensions (1920x600)
+      const img = new window.Image();
+      img.src = URL.createObjectURL(file);
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+      if (img.width !== 1920 || img.height !== 600) {
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "error",
+          title: `Web Banner must be 1920x600 px`,
+          showConfirmButton: false,
+          timer: 2500,
         });
         const fileInput = document.getElementById(
           "web-banner-image-input"
@@ -344,9 +388,12 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
                 setPreviewOpen={() => { }}
                 uploading={uploading}
                 deleting={deleting}
-                label="App Banner Image"
+                label="App Banner (1080 × 540 px)"
                 id="banner-image-input"
               />
+              <div style={{ fontSize: '12px', color: '#888', marginTop: 2 }}>
+                Required size: 1080 × 540 px
+              </div>
               {formik.touched.url && typeof formik.errors.url === "string" && (
                 <ErrorMessageCom error={formik.errors.url} />
               )}
@@ -361,9 +408,12 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
                 setPreviewOpen={() => { }}
                 uploading={webUploading}
                 deleting={webDeleting}
-                label="Web Banner Image (Large)"
+                label="Web Banner Image (1920x600 px)"
                 id="web-banner-image-input"
               />
+              <div style={{ fontSize: '12px', color: '#888', marginTop: 2 }}>
+                Required size: 1920 × 600 px
+              </div>
               {formik.touched.webImage && typeof formik.errors.webImage === "string" && (
                 <ErrorMessageCom error={formik.errors.webImage} />
               )}
