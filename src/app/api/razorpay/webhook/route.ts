@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
                     let userName = 'Customer';
                     let userEmail = '';
                     const orderData: any = updatedOrder || checkOrder;
-                    const deliveredAddr: any = orderData.deliveredAddress.address || null;
+                    const deliveredAddr: any = orderData.deliveredAddress || null;
 
                     if (deliveredAddr) {
                         userName = deliveredAddr?.name || 'Customer';
@@ -172,7 +172,7 @@ export async function POST(req: NextRequest) {
                     let deliveryAddressText = ''
 
                     if (deliveredAddr) {
-                        deliveryAddressText = `${deliveredAddr.houseNumber}, ${deliveredAddr.locality}, ${deliveredAddr.landmark}, ${deliveredAddr.city}, ${deliveredAddr.state} - ${deliveredAddr.pinCode}`;
+                        deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
                     }
 
                     const html = `${header}
@@ -214,6 +214,7 @@ export async function POST(req: NextRequest) {
                         </div>
                     ${footer}
                     `;
+
                     if (userEmail) {
                         await sendEmail({ to: userEmail, subject, html });
                     }

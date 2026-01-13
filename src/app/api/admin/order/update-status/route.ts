@@ -77,8 +77,8 @@ export async function POST(req: NextRequest) {
 
         let userName = 'Customer';
         let userEmail = '';
-        const deliveredAddr: any = order.deliveredAddress.address || null;
-        if (user && typeof user === 'object' && !Array.isArray(user)) {
+        const deliveredAddr: any = order.deliveredAddress || null;
+        if (deliveredAddr) {
             userName = (user as any).name || deliveredAddr?.name || 'Customer';
             userEmail = (user as any).email || deliveredAddr?.email || '';
         }
@@ -134,12 +134,11 @@ export async function POST(req: NextRequest) {
                         if (statusLower.includes('deliv')) {
                             // format delivery address
                             const orderData: any = order;
-                            const deliveredAddr: any = orderData.deliveredAddress.address || null;
 
                             let deliveryAddressText = ''
 
                             if (deliveredAddr) {
-                                deliveryAddressText = `${deliveredAddr.houseNumber}, ${deliveredAddr.locality}, ${deliveredAddr.landmark}, ${deliveredAddr.city}, ${deliveredAddr.state} - ${deliveredAddr.pinCode}`;
+                                deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
                             }
 
                             const subject = `Order Delivered Successfully – Order #${order.order_id}`;
@@ -181,12 +180,11 @@ export async function POST(req: NextRequest) {
             if (statusLower.includes('deliv')) {
                 // format delivery address
                 const orderData: any = order;
-                const deliveredAddr: any = orderData.deliveredAddress.address || null;
 
                 let deliveryAddressText = ''
 
                 if (deliveredAddr) {
-                    deliveryAddressText = `${deliveredAddr.houseNumber}, ${deliveredAddr.locality}, ${deliveredAddr.landmark}, ${deliveredAddr.city}, ${deliveredAddr.state} - ${deliveredAddr.pinCode}`;
+                    deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
                 }
 
                 const subject = `Order Delivered Successfully – Order #${order.order_id}`;

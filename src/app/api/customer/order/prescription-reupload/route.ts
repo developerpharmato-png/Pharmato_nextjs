@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
             let userEmail = '';
             let storeId = (orderDoc as any).storeId;
 
-            const deliveredAddr: any = orderDoc.deliveredAddress.address || null;
+            const deliveredAddr: any = orderDoc.deliveredAddress || null;
             if (deliveredAddr) {
                 customerName = deliveredAddr?.name || 'Customer';
                 userEmail = deliveredAddr?.email || '';
@@ -166,7 +166,6 @@ export async function POST(req: NextRequest) {
                 }
             }
 
-
             // Choose template based on create or update
             const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
             const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
@@ -177,13 +176,11 @@ export async function POST(req: NextRequest) {
             try {
                 const statusLower = String(status || '').toLowerCase();
                 if (statusLower.includes('deliv')) {
-                    // format delivery address
-                    const deliveredAddr: any = orderDoc.deliveredAddress.address || null;
 
                     let deliveryAddressText = ''
 
                     if (deliveredAddr) {
-                        deliveryAddressText = `${deliveredAddr.houseNumber}, ${deliveredAddr.locality}, ${deliveredAddr.landmark}, ${deliveredAddr.city}, ${deliveredAddr.state} - ${deliveredAddr.pinCode}`;
+                        deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
                     }
 
                     const subject = `Prescription Re-uploaded – Action Required for Order #${orderDoc.order_id}`;
