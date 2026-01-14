@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
         payment_id: paymentId,
         recharge_status: 'Pending',
         payment_status: 'Pending',
+        wallet_transaction_type: 'Wallet Top-up',
         paymentHistory: [],
     });
 

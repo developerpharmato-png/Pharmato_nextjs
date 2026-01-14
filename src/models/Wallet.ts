@@ -10,6 +10,7 @@ export interface IWallet extends Document {
     recharge_status: string;
     payment_id: string;
     payment_status: string;
+    wallet_transaction_type: string;
     paymentHistory: object[];
     createdAt?: Date;
     updatedAt?: Date;
@@ -26,6 +27,7 @@ const WalletSchema: Schema<IWallet> = new Schema(
         recharge_status: { type: String, default: '' },
         payment_id: { type: String, default: '' },
         payment_status: { type: String, default: '' },
+        wallet_transaction_type: { type: String, default: '' },
         paymentHistory: { type: [Object], default: [] },
     },
     {
