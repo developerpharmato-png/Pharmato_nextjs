@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
             }
 
             if (body.event === 'payment.captured') {
-                
+
                 await Wallet.updateOne(
                     { _id: checkWallet._id },
                     {
@@ -91,6 +91,19 @@ export async function POST(req: NextRequest) {
                         }
                     }
                 );
+
+                const user: any = await User.findById(checkWallet.userId).select('_id walletAmount');
+
+                if (user) {
+
+                    const newWalletAmount = (user?.walletAmount || 0) + (checkWallet.amount || 0);
+
+                    await User.updateOne(
+                        { _id: user._id },
+                        { $set: { walletAmount: newWalletAmount } }
+                    );
+
+                }
 
             }
 
