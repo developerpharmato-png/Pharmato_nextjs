@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   console.log("🔥 CRON JOB EXECUTED", new Date().toISOString());
 
   await sendPushNotificationWithData({
-    token: "f0dMsw4nTtyZ8ZbRCYY3FC:APA91bHnKR2YYcDnkZPyNC9oVO0Xpi57dCIhWR2DDjYEdmgpBgk2weQ6vp1yjvXiFpqQV4jg7B7pHmRsENhP5mwkUZvFn6eFpcK4b2ZcZ6NpD0SA4M7K-kk",
+    token: "en9Qc-BYT26emCwhoWHHFv:APA91bECQqRUUuC36gc70z6ZSre9kkGtvtCdThkj9g5Exw_bxXP7x98_KIN4C3inDgV17MW3UWn8qo2hXRm89qIZZVb62K1vpm4FoBN-GeoXjeqCcI-eMrI",
     title: "Pharmato",
     body: `🔥 CRON JOB EXECUTED ${new Date().toISOString()}`,
     data: {}
