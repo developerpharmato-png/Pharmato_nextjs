@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
                         ? new mongoose.Types.ObjectId(checkWallet.userId)
                         : checkWallet.userId;
 
-                const user: any = await User.findById(checkWallet.userId).select('_id walletAmount');
+                const user: any = await User.findById(userObjectId).select('_id walletAmount');
 
                 if (user) {
 
