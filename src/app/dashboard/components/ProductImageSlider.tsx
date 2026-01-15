@@ -1,3 +1,4 @@
+import { Image } from 'lucide-react';
 import React, { useState } from 'react';
 
 interface ProductImageSliderProps {
@@ -14,10 +15,12 @@ const ProductImageSlider: React.FC<ProductImageSliderProps> = ({ images, product
     if (!hasImages) {
         // Show avatar/placeholder if no images
         return (
-            <div className="lg:col-span-1">
-                <div className="w-full h-96 flex flex-col items-center justify-center text-8xl text-gray-500 bg-gray-100 rounded-lg">
-                    <span className="material-icons text-8xl">account_circle</span>
-                    <span className="text-base mt-2">No Images Available</span>
+            <div className="lg:col-span-1 flex items-center justify-center">
+                <div className="h-44 w-44 flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl shadow-md border border-gray-200">
+                    <div className="flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-2">
+                        <Image size={48} className="text-gray-400" />
+                    </div>
+                    <span className="text-gray-500 font-medium text-base mt-1">No Images Available</span>
                 </div>
             </div>
         );

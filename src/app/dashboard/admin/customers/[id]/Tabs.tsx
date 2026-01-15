@@ -5,6 +5,8 @@ import Swal from "sweetalert2";
 import { Tab, TabList, TabPanel, Tabs } from "react-tabs";
 import "react-tabs/style/react-tabs.css";
 import OrdersTable from "../../../orders/OrdersTable";
+import WalletTable from "./WalletTable";
+import { WalletListPath } from "../../../storeAPICall/API/BaseApi";
 
 // --- Type Definitions ---
 
@@ -36,6 +38,50 @@ type Customer = {
 // --- Refactored Component ---
 
 export default function AdminCustomerDetail({ id }: { id?: string }) {
+  // Wallet state
+  const [wallet, setWallet] = useState<any[]>([]);
+  const [walletPage, setWalletPage] = useState(0);
+  const [walletRowsPerPage, setWalletRowsPerPage] = useState(10);
+  const [walletTotalCount, setWalletTotalCount] = useState(0);
+  const [walletLoading, setWalletLoading] = useState(false);
+
+  // Fetch Wallet for this customer
+  useEffect(() => {
+    if (id) {
+      fetchWallet();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, walletPage, walletRowsPerPage]);
+
+  const fetchWallet = async () => {
+    if (!id) return;
+    setWalletLoading(true);
+    try {
+      const body = {
+        userId: id,
+        limit: walletRowsPerPage,
+        offset: walletPage * walletRowsPerPage,
+      };
+      const res = await fetch(WalletListPath, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (data.status) {
+        setWallet(data.data || []);
+        setWalletTotalCount(data.total || (data.data ? data.data.length : 0));
+      } else {
+        setWallet([]);
+        setWalletTotalCount(0);
+      }
+    } catch (error) {
+      setWallet([]);
+      setWalletTotalCount(0);
+    } finally {
+      setWalletLoading(false);
+    }
+  };
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -359,6 +405,7 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
         <TabList className="TabList">
           <Tab className="Tab">Details</Tab>
           <Tab className="Tab">Orders</Tab>
+          <Tab className="Tab">Wallet</Tab>
         </TabList>
 
         <TabPanel className="TabPanel">
@@ -370,45 +417,57 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
 
         <TabPanel className="TabPanel">
           <div className="">
-          
-             
-              {!loading && customer && (
-                <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    
-                    <div>
-                      <span className="text-gray-600">Email:</span>{" "}
-                      <span className="font-medium">
-                        {customer.email || "-"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Mobile:</span>{" "}
-                      <span className="font-medium">
-                       {customer.countryCode}   {customer.mobile || "-"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Wallet:</span>{" "}
-                      <span className="font-medium text-green-600">
-                        ₹{(customer.walletAmount ?? 0).toFixed(2)}
-                      </span>
-                    </div>
+            {!loading && customer && (
+              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Email:</span>{" "}
+                    <span className="font-medium">
+                      {customer.email || "-"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Mobile:</span>{" "}
+                    <span className="font-medium">
+                      {customer.countryCode}   {customer.mobile || "-"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Wallet:</span>{" "}
+                    <span className="font-medium text-green-600">
+                      ₹{(customer.walletAmount ?? 0).toFixed(2)}
+                    </span>
                   </div>
                 </div>
-              )}
-              <OrdersTable
-                data={orders}
-                page={ordersPage}
-                rowsPerPage={ordersRowsPerPage}
-                totalCount={ordersTotalCount}
-                onPageChange={setOrdersPage}
-                onRowsPerPageChange={setOrdersRowsPerPage}
-                loading={ordersLoading}
-              />
+              </div>
+            )}
+            <OrdersTable
+              data={orders}
+              page={ordersPage}
+              rowsPerPage={ordersRowsPerPage}
+              totalCount={ordersTotalCount}
+              onPageChange={setOrdersPage}
+              onRowsPerPageChange={setOrdersRowsPerPage}
+              loading={ordersLoading}
+            />
+          </div>
+        </TabPanel>
+
+        <TabPanel className="TabPanel">
+          <div className="">
+            <WalletTable
+              data={wallet}
+              page={walletPage}
+              rowsPerPage={walletRowsPerPage}
+              totalCount={walletTotalCount}
+              onPageChange={setWalletPage}
+              onRowsPerPageChange={setWalletRowsPerPage}
+              loading={walletLoading}
+            />
           </div>
         </TabPanel>
       </Tabs>
     </div>
   );
 }
+ 

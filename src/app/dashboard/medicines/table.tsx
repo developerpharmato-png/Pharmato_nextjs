@@ -8,7 +8,7 @@ import { showConfirmStatusAlert } from "../components/ConfirmStatusAlert";
 import axios from "axios";
 import Avatar from "@mui/material/Avatar";
 import { useRouter } from "next/navigation";
-import { EditIcon } from "lucide-react";
+import { EditIcon, Image } from "lucide-react";
 import { GetServerSideProps } from "next";
 import { MedicinesListPath, MedicinesStatusPath } from "../storeAPICall/API/BaseApi";
 
@@ -35,7 +35,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     props: {
       initialData: data.data || [],
       initialTotalCount: data.total || 0,
-    },  
+    },
   };
 };
 
@@ -53,7 +53,7 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
   const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-console.log(searchValue,"searchValue");
+  console.log(searchValue, "searchValue");
 
   const [adminPermissions, setAdminPermissions] = useState<any>(null);
 
@@ -67,13 +67,13 @@ console.log(searchValue,"searchValue");
   }, []);
 
   useEffect(() => {
-   
+
     setLoading(true);
     const params = new URLSearchParams();
     params.set("limit", String(rowsPerPage));
     params.set("offset", String(page * rowsPerPage));
     if (searchValue && searchValue.trim() !== "") {
-        params.set("search", String(searchValue));
+      params.set("search", String(searchValue));
     }
     if (categoryId) params.set("categoryId", String(categoryId));
     if (subCategoryId) params.set("subCategoryId", String(subCategoryId));
@@ -189,7 +189,7 @@ console.log(searchValue,"searchValue");
       selector: (row) => (
         <CustomTooltip title={row.uniqueCode || "-"}>
           <span
-           className="ID-List"
+            className="ID-List"
             onClick={() => router.push(`/dashboard/medicines/${row._id}`)}
           >
             {row.uniqueCode || "-"}
@@ -217,9 +217,10 @@ console.log(searchValue,"searchValue");
             />
           </div>
         ) : (
-          <Avatar sx={{ width: 32, height: 32, fontSize: 14 }}>
-            {row.name ? row.name[0] : "?"}
-          </Avatar>
+          <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-md">
+
+            <Image size={48} className="text-gray-400" />
+          </div>
         ),
     },
     {
@@ -445,9 +446,8 @@ console.log(searchValue,"searchValue");
           title={row.isActive ? "Click to deactivate" : "Click to activate"}
         >
           <span
-            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
-              row.isActive ? "translate-x-6" : "translate-x-1"
-            }`}
+            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${row.isActive ? "translate-x-6" : "translate-x-1"
+              }`}
           />
         </button>
       ),
@@ -470,7 +470,7 @@ console.log(searchValue,"searchValue");
 
   return (
     <>
-     
+
       <CustomTable
         columns={columns}
         data={data}

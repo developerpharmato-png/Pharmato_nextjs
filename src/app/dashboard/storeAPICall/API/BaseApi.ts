@@ -1,3 +1,5 @@
+// Wallet
+export const WalletListPath = "/api/admin/customers/wallet/list";
 // Analytics API paths
 export const OrderAnalyticsPath = `/api/admin/data-analytics/orders`;
 

@@ -227,7 +227,7 @@ export default function BannerImagesDashboard() {
               },
 
             ];
-
+ 
             if (canEditBanner) {
               baseColumns.push({
                 id: "isActive",
@@ -254,28 +254,40 @@ export default function BannerImagesDashboard() {
                           const updated = images.map((img, i) =>
                             i === idx ? { ...img, isActive: !img.isActive } : img
                           );
-                          setImages(updated);
                           setLoading(true);
                           try {
-                            await axios.post("/api/admin/banner-images", {
+                            const res = await axios.post("/api/admin/banner-images", {
                               images: updated,
                             });
-                            Swal.fire({
-                              toast: true,
-                              position: "top-end",
-                              icon: "success",
-                              title: updated[idx].isActive
-                                ? ToastMessages.BANNER_IMAGE_CREATED
-                                : ToastMessages.BANNER_STATUS_UPDATED,
-                              showConfirmButton: false,
-                              timer: 2000,
-                            });
-                          } catch (err) {
+                            if (res.data && res.data.success === false) {
+                              Swal.fire({
+                                toast: true,
+                                position: "top-end",
+                                icon: "error",
+                                title: res.data.message || ToastMessages.BANNER_STATUS_UPDATE_FAILED,
+                                showConfirmButton: false,
+                                timer: 2000,
+                              });
+                            } else {
+                              setImages(updated);
+                              Swal.fire({
+                                toast: true,
+                                position: "top-end",
+                                icon: "success",
+                                title: updated[idx].isActive
+                                  ? ToastMessages.BANNER_IMAGE_CREATED
+                                  : ToastMessages.BANNER_STATUS_UPDATED,
+                                showConfirmButton: false,
+                                timer: 2000,
+                              });
+                            }
+                          } catch (err: any) {
                             Swal.fire({
                               toast: true,
                               position: "top-end",
                               icon: "error",
                               title: ToastMessages.BANNER_STATUS_UPDATE_FAILED,
+                              text: err?.response?.data?.message || err?.message || "An error occurred",
                               showConfirmButton: false,
                               timer: 2000,
                             });
