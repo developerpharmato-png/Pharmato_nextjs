@@ -66,6 +66,16 @@ export async function POST(req: NextRequest) {
 
     ]);
 
+    for (const wallet of walletList) {
+
+        if (wallet.createdAt) {
+            wallet.createdAt = moment(wallet.createdAt)
+                .tz('Asia/Kolkata')
+                .format('MMM D, YYYY HH:mm z');
+        }
+
+    }
+
 
     return NextResponse.json({ status: true, data: walletList });
 }
