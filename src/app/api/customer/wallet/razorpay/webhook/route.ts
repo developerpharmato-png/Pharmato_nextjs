@@ -103,7 +103,6 @@ export async function POST(req: NextRequest) {
                     { $inc: { walletAmount: Number(checkWallet.amount || 0) } }
                 );
 
-
             }
 
             if (body.event === 'payment.failed') {

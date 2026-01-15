@@ -36,10 +36,15 @@ export interface IMedicine {
     createdAt: Date;
     updatedAt: Date;
     margData?: any;
+    previousMargData?: any;
 }
 
 const MedicineSchema = new Schema<IMedicine>({
     margData: {
+        type: Schema.Types.Mixed,
+        default: {},
+    },
+    previousMargData: {
         type: Schema.Types.Mixed,
         default: {},
     },

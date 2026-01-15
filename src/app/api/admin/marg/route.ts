@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
             const expiry = convertExpiry(p.exp);
             const { categoryId, subCategoryId } = getRandomCategoryAndSubcategory();
             if (checkMedicine) {
-                if (!p) continue;
+
                 const medObj = {
                     price: computePriceFromMrp(p.MRP),
                     purchasePrice: Number(p.PRate) || 0,
@@ -141,20 +141,24 @@ export async function POST(request: NextRequest) {
                     isDeleted: p.Is_Deleted === "1",
                     expiryDate: expiry instanceof Date && !isNaN(expiry.getTime()) ? expiry : null,
                     margData: p,
+                    previousMargData: checkMedicine.margData,
                 };
+
                 bulkOps.push({
                     updateOne: {
                         filter: { uniqueIdentity: p.rid },     // If exists → update
-                        update: { $set: medObj },
-                        upsert: true                            // If not exists → insert
+                        update: {
+                            $set: medObj
+                        }                          // If not exists → insert
                     }
                 });
+
             } else {
                 medCount++;
                 const uniqueCode = `MED-${medCount}`;
                 bulkInsertArray.push({
                     uniqueIdentity: p.rid,
-                    name: p.name,                    
+                    name: p.name,
                     manufacturer: p.company,
                     price: computePriceFromMrp(p.MRP),
                     purchasePrice: Number(p.PRate) || 0,
@@ -164,11 +168,13 @@ export async function POST(request: NextRequest) {
                     isDeleted: p.Is_Deleted === "1",
                     expiryDate: expiry instanceof Date && !isNaN(expiry.getTime()) ? expiry : null,
                     margData: p,
+                    previousMargData: {},
                     categoryId: new mongoose.Types.ObjectId(categoryId),
                     subCategoryId: new mongoose.Types.ObjectId(subCategoryId),
                     uniqueCode
                 });
             }
+
         }
 
         // 🚀 BULK WRITE (super fast for both insert + update)
@@ -182,7 +188,7 @@ export async function POST(request: NextRequest) {
         }
 
         // return NextResponse.json({ success: true, message: 'Medicines imported successfully.', data : products , count : products.length});
-        return NextResponse.json({ success: true, message: 'Medicines imported successfully.', totalCount : products.length , insertedCount : bulkInsertArray.length , updatedCount : bulkOps.length });
+        return NextResponse.json({ success: true, message: 'Medicines imported successfully.', totalCount: products.length, insertedCount: bulkInsertArray.length, updatedCount: bulkOps.length });
 
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message || 'MargERP API error' }, { status: 500 });
