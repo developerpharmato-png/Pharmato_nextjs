@@ -93,17 +93,17 @@ export async function POST(req: NextRequest) {
                     }
                 );
 
+                const userObjectId =
+                    typeof checkWallet.userId === 'string'
+                        ? new mongoose.Types.ObjectId(checkWallet.userId)
+                        : checkWallet.userId;
+
                 const user: any = await User.findById(checkWallet.userId).select('_id walletAmount');
 
                 if (user) {
 
-                    const userObjectId =
-                        typeof user._id === 'string'
-                            ? new mongoose.Types.ObjectId(user._id)
-                            : user._id;
-
                     await User.updateOne(
-                        { _id: userObjectId },
+                        { _id: user._id },
                         { $inc: { walletAmount: Number(checkWallet.amount || 0) } }
                     );
 
