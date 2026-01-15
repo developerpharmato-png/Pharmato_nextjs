@@ -12,6 +12,7 @@ import { getDb } from '@/utils/firebase.helper';
 import fs from 'fs';
 import path from 'path';
 import Wallet from '@/models/Wallet';
+import mongoose from 'mongoose';
 
 const razorpayInstance = new Razorpay({
     key_id: process.env.razorPay_Key_Id || '',
@@ -94,17 +95,16 @@ export async function POST(req: NextRequest) {
 
                 const user: any = await User.findById(checkWallet.userId).select('_id walletAmount');
 
-                console.log(user);
-
                 if (user) {
 
-                    const newWalletAmount = Number(user?.walletAmount || 0) + Number(checkWallet.amount || 0);
-
-                    console.log(newWalletAmount);
+                    const userObjectId =
+                        typeof user._id === 'string'
+                            ? new mongoose.Types.ObjectId(user._id)
+                            : user._id;
 
                     await User.updateOne(
-                        { _id: user._id },
-                        { $set: { walletAmount: newWalletAmount } }
+                        { _id: userObjectId },
+                        { $inc: { walletAmount: Number(checkWallet.amount || 0) } }
                     );
 
                 }
