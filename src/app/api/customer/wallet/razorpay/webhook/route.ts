@@ -94,9 +94,13 @@ export async function POST(req: NextRequest) {
 
                 const user: any = await User.findById(checkWallet.userId).select('_id walletAmount');
 
+                console.log(user);
+
                 if (user) {
 
-                    const newWalletAmount = (user?.walletAmount || 0) + (checkWallet.amount || 0);
+                    const newWalletAmount = Number(user?.walletAmount || 0) + Number(checkWallet.amount || 0);
+
+                    console.log(newWalletAmount);
 
                     await User.updateOne(
                         { _id: user._id },

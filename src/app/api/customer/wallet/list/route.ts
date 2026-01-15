@@ -9,6 +9,8 @@ import Wallet from '@/models/Wallet';
  * /api/customer/wallet/list:
  *   post:
  *     summary: Get list of orders for a customer
+ *     tags:
+ *       - Wallet
  *     requestBody:
  *       required: true
  *       content:
