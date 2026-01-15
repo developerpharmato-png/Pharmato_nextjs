@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
                     }
                 );
 
-                const userObjectId =
+                const userObjectId = 
                     typeof checkWallet.userId === 'string'
                         ? new mongoose.Types.ObjectId(checkWallet.userId)
                         : checkWallet.userId;
