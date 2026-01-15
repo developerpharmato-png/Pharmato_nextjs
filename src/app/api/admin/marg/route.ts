@@ -78,7 +78,7 @@ function gzinflate(base64Str: string): string {
 function safeJSONParse(str: string) {
     // Remove BOM if exists
     str = str.replace(/^\uFEFF/, '');
-    return JSON.parse(str);
+    return JSON.parse(str); 
 }
 
 /**
