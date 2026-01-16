@@ -45,6 +45,7 @@ import crypto from 'crypto';
 import pako from 'pako';
 import Medicine from '@/models/Medicine';
 import mongoose from 'mongoose';
+import Marg from '@/models/Marg';
 
 // Decrypt AES-128-CBC (no padding)
 function decryptAES(encryptedBase64: string, key: string): Buffer {
@@ -124,11 +125,19 @@ async function importMedicinesFromMarg() {
 
     const encryptedResponse = response.data;
     const decrypted = decryptAES(encryptedResponse, key);
-    const inflated = gzinflate(decrypted.toString()); 
+    const inflated = gzinflate(decrypted.toString());
     const jsonData = safeJSONParse(inflated);
-    const products = jsonData?.Details?.pro_N || []; 
+    const products = jsonData?.Details?.pro_N || [];
     const bulkInsertArray: any[] = [];
     const bulkOps: any[] = [];
+
+    const createMarg = await Marg.create({
+      margGetDataCount: products.length,
+      margInsertDataCount: 0,
+      margUpdateDataCount: 0,
+      status: 'Import Started',
+      type: 'Cron Import'
+    });
 
     let medCount = await Medicine.countDocuments();
     for (const p of products) {
@@ -191,6 +200,16 @@ async function importMedicinesFromMarg() {
     if (bulkInsertArray.length > 0) {
       await Medicine.insertMany(bulkInsertArray, { ordered: false });
     }
+
+    // Update Marg document with counts
+    const insertCount = bulkInsertArray.length;
+    const updateCount = bulkOps.length;
+    await Marg.findByIdAndUpdate(createMarg._id, {
+      margInsertDataCount: insertCount,
+      margUpdateDataCount: updateCount,
+      status: 'Completed',
+      type: 'Cron Import'
+    });
 
   } catch (err) {
     console.error(err);
