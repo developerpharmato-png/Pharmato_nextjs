@@ -20,7 +20,7 @@ function getRandomCategoryAndSubcategory() {
     const subCategoryId = mapping.subcategoryIds[
         Math.floor(Math.random() * mapping.subcategoryIds.length)
     ];
-    return { categoryId, subCategoryId };
+    return { categoryId, subCategoryId }; 
 }
 // Convert expiry string (YYYYMMDD) to Date
 function convertExpiry(exp: string): Date | null {
