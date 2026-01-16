@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
                     isDeleted: p.Is_Deleted === "1",
                     expiryDate: expiry instanceof Date && !isNaN(expiry.getTime()) ? expiry : null,
                     margData: p,
-                    previousMargData: checkMedicine.margData,
+                    previousMargData: checkMedicine
                 };
 
                 bulkOps.push({
