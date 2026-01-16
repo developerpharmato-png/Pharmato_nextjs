@@ -1,4 +1,5 @@
 export const WalletListStore = createApiStore<any>();
+import api from "./API/api";
 // src/store/useUserStore.ts
 import { createApiStore } from "./createApiStore";
 
@@ -25,7 +26,7 @@ export const StoreUpdateStore = createApiStore<any>();
 
 export const ProductDAshboardStore = createApiStore<any>();
 export const OrderDAshboardStore = createApiStore<any>();
-  
+   
 
 export const unreadNotificationStore = createApiStore<any>();
 export const NotificationsListStore = createApiStore<any>(); 
@@ -34,3 +35,11 @@ export const markreadNotificationsStore = createApiStore<any>();
 // Settings & Policies
 export const PaymentSettingsStore = createApiStore<any>();
 export const PolicySettingsStore = createApiStore<any>();  
+
+
+// Marg
+export const MargStore = createApiStore<any>();
+
+export const fetchMargList =createApiStore<any>();
+
+export const importMargData =createApiStore<any>();

@@ -1,11 +1,4 @@
 
-
-
-
-
-
-
-
 "use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -55,6 +48,7 @@ const iconMap = {
   settings: Settings,
   fileText: FileText,
   management: User,
+  hospital: Hospital,
 };
 
 const renderIcon = (
@@ -165,6 +159,7 @@ export default function DashboardLayout({
     { name: "Customers", path: "/dashboard/admin/customers", icon: "person", isActive: true },
     { name: "Stores", path: "/dashboard/store", icon: "store", isActive: true },
     { name: "Banner Management", path: "/dashboard/banner-images", icon: "image", isActive: true },
+    { name: "Marg", path: "/dashboard/marg", icon: "hospital", isActive: true },
     {
       name: "Data Analytics",
       icon: "dashboard",

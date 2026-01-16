@@ -105,7 +105,7 @@ export function CustomTable<T>({
   return (
     <Paper sx={{ width: "100%", overflow: "hidden" }}>
     
-      <TableContainer sx={{ height: { xs: '30vh', sm: '23vh', md: '44vh', lg: '50vh', xl: '60vh' } }}>
+      <TableContainer sx={{ height: { xs: '53vh', sm: '53vh', md: '54vh', lg: '50vh', xl: '60vh' } }}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>
