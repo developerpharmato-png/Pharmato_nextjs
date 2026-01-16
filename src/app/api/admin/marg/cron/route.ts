@@ -126,7 +126,7 @@ async function importMedicinesFromMarg() {
     const decrypted = decryptAES(encryptedResponse, key);
     const inflated = gzinflate(decrypted.toString()); 
     const jsonData = safeJSONParse(inflated);
-    const products = jsonData?.Details?.pro_N || [];
+    const products = jsonData?.Details?.pro_N || []; 
     const bulkInsertArray: any[] = [];
     const bulkOps: any[] = [];
 
