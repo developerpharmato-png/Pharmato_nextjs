@@ -40,3 +40,7 @@ export const unreadNotificationPath = `/api/notifications/unread-count`;
 export const PaymentSettingsPath = `/api/admin/settings/admin-list`;
 export const SettingsGetByTypePath = `/api/admin/settings/get-by-type`;
 export const PolicySettingsPath = `/api/admin/settings/policy`;
+
+// MARG
+export const MargImportPath = `/api/admin/marg/cron`;
+export const MargListPath = `/api/admin/marg/list`;

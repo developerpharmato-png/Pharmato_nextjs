@@ -1,5 +1,6 @@
-import { CustomTable,Column } from "@/app/dashboard/components/CustomTable";
+import { CustomTable, Column } from "@/app/dashboard/components/CustomTable";
 import { CustomTooltip } from "@/app/dashboard/components/miniComponents";
+import { formatMargDate } from "@/utils/function";
 import React from "react";
 
 
@@ -109,7 +110,7 @@ const WalletTable: React.FC<WalletTableProps> = ({
       label: "Date",
       minWidth: 120,
       selector: (row) => (
-        <span>{row.createdAt || "-"}</span>
+        <span>{formatMargDate(row.createdAt ?? "") || "-"}</span>
       ),
     },
   ];
