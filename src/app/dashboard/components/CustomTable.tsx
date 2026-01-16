@@ -2,8 +2,68 @@
 import React from "react";
 import Skeleton from "@mui/material/Skeleton";
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Paper
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Paper, IconButton
 } from "@mui/material";
+import FirstPageIcon from '@mui/icons-material/FirstPage';
+import LastPageIcon from '@mui/icons-material/LastPage';
+import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
+import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
+function TablePaginationActions(props: any) {
+  const { count, page, rowsPerPage, onPageChange } = props;
+
+  const handleFirstPageButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    onPageChange(event, 0);
+  };
+
+  const handleBackButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    onPageChange(event, page - 1);
+  };
+
+  const handleNextButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    onPageChange(event, page + 1);
+  };
+
+  const handleLastPageButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    onPageChange(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
+  };
+
+  return (
+    <div style={{ flexShrink: 0, marginLeft: 16, display: 'flex' }}>
+      <IconButton
+        onClick={handleFirstPageButtonClick}
+        disabled={page === 0}
+        aria-label="first page"
+        size="small"
+      >
+        <FirstPageIcon />
+      </IconButton>
+      <IconButton
+        onClick={handleBackButtonClick}
+        disabled={page === 0}
+        aria-label="previous page"
+        size="small"
+      >
+        <KeyboardArrowLeft />
+      </IconButton>
+      <IconButton
+        onClick={handleNextButtonClick}
+        disabled={page >= Math.ceil(count / rowsPerPage) - 1}
+        aria-label="next page"
+        size="small"
+      >
+        <KeyboardArrowRight />
+      </IconButton>
+      <IconButton
+        onClick={handleLastPageButtonClick}
+        disabled={page >= Math.ceil(count / rowsPerPage) - 1}
+        aria-label="last page"
+        size="small"
+      >
+        <LastPageIcon />
+      </IconButton>
+    </div>
+  );
+}
 
 export type Column<T> = {
   id: string;
@@ -99,6 +159,7 @@ export function CustomTable<T>({
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={e => onRowsPerPageChange?.(parseInt(e.target.value, 10))}
         rowsPerPageOptions={[5, 10, 25, 50]}
+        ActionsComponent={TablePaginationActions}
       />
     </Paper>
   );
