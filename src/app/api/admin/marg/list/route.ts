@@ -11,7 +11,7 @@ import Marg from '@/models/Marg';
  *   post:
  *     summary: Get list of orders for a customer
  *     tags:
- *       - Wallet
+ *       - Admin
  *     requestBody:
  *       required: true
  *       content:
