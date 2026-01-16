@@ -67,7 +67,7 @@ export default function MedicineDetailPage() {
     } catch (err) {
       setMedicine(null);
     } finally {
-      setLoading(false);
+      setLoading(false); 
     }
   };
 
