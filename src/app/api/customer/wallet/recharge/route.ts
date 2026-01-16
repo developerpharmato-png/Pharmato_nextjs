@@ -53,7 +53,7 @@ import Wallet from '@/models/Wallet';
 import moment from 'moment';
 
 export async function POST(request: NextRequest) {
-    
+
     await dbConnect();
     const body = await request.json();
     const { userId, rechargeData } = body;
@@ -78,7 +78,8 @@ export async function POST(request: NextRequest) {
         payment_id: paymentId,
         recharge_status: 'Pending',
         payment_status: 'Pending',
-        wallet_transaction_type: 'Wallet Top-up',
+        wallet_transaction_type: 'Top-up',
+        transaction_to: `Wallet`,
         paymentHistory: [],
     });
 

@@ -8,6 +8,7 @@ export interface IWallet extends Document {
     razorPay_total_tax_charged: number;
     recharge_id: string;
     recharge_status: string;
+    transaction_to: string;
     payment_id: string;
     payment_status: string;
     wallet_transaction_type: string;
@@ -25,6 +26,7 @@ const WalletSchema: Schema<IWallet> = new Schema(
         razorPay_total_tax_charged: { type: Number, default: 0 },
         recharge_id: { type: String, default: '' },
         recharge_status: { type: String, default: '' },
+        transaction_to: { type: String, default: '' },
         payment_id: { type: String, default: '' },
         payment_status: { type: String, default: '' },
         wallet_transaction_type: { type: String, default: '' },

@@ -6,6 +6,7 @@ import UserAddress from '@/models/UserAddress';
 import Store from '@/models/Store';
 import Medicine from '@/models/Medicine';
 import mongoose from 'mongoose';
+import Wallet from '@/models/Wallet';
 
 /**
  * @swagger
@@ -234,6 +235,21 @@ export async function POST(req: NextRequest) {
             typeof createOrder.userId === 'string'
                 ? new mongoose.Types.ObjectId(createOrder.userId)
                 : createOrder.userId;
+
+        const walletDoc = await Wallet.create({
+            userId: userCheck._id,
+            payment_mode: 'wallet deduction',
+            amount: totalOrderAmount || 0,
+            totalAmount: totalOrderAmount || 0,
+            razorPay_total_tax_charged: totalAmountRazorPayCharged || 0,
+            recharge_id: '',
+            payment_id: '',
+            recharge_status: 'Success',
+            payment_status: 'Credited',
+            wallet_transaction_type: 'Paid to',
+            transaction_to: `Pharmato`,
+            paymentHistory: [],
+        });
 
         await User.updateOne(
             { _id: userObjectId },

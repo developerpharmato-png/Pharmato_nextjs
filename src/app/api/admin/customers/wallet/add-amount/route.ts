@@ -62,7 +62,8 @@ export async function POST(request: NextRequest) {
         payment_id: '',
         recharge_status: 'Success',
         payment_status: 'Credited',
-        wallet_transaction_type: 'Credit Point',
+        wallet_transaction_type: 'Credit to',
+        transaction_to: `Wallet`,
         paymentHistory: [],
     });
 
