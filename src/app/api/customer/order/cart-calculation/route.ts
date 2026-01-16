@@ -87,8 +87,6 @@ function calculateDeliveryFee(
  *                             type: number
  */
 
-
-
 export async function POST(req: NextRequest) {
     await dbConnect();
     const { userId, guestId, storeId, discount } = await req.json();
