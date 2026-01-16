@@ -19,6 +19,12 @@ import mongoose from 'mongoose';
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - userId
+ *               - storeId
+ *               - calculationData
+ *               - addressId
+ *               - isPaymentByWallet
  *             properties:
  *               userId:
  *                 type: string
@@ -40,6 +46,9 @@ import mongoose from 'mongoose';
  *                 items:
  *                   type: string
  *                 description: Array of prescription image/pdf URLs
+ *               isPaymentByWallet:
+ *                 type: boolean
+ *                 description: Whether payment is by wallet
  *     responses:
  *       200:
  *         description: Order created successfully
@@ -91,7 +100,11 @@ import mongoose from 'mongoose';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { userId, storeId, calculationData, addressId, isPrescriptionRequired, prescription_url } = await req.json();
+    const { userId, storeId, calculationData, addressId, isPrescriptionRequired, prescription_url, isPaymentByWallet } = await req.json();
+
+    if (typeof isPaymentByWallet !== 'boolean') {
+        return NextResponse.json({ success: false, message: 'isPaymentByWallet is required and must be boolean' }, { status: 400 });
+    }
 
     // Normalize prescription_url to array of strings
     let prescriptionUrlArr: string[] = [];
@@ -124,7 +137,7 @@ export async function POST(req: NextRequest) {
     if (!addressDoc) {
         return NextResponse.json({ success: false, message: 'Address not found' }, { status: 404 });
     }
-    console.log('Order address:', addressDoc);
+    // console.log('Order address:', addressDoc);
     // Prepare medicineId array
     const medicineId = (calculationData.medicineId || []).map((id: string) => new mongoose.Types.ObjectId(id));
     // Generate unique order and payment IDs
@@ -137,7 +150,7 @@ export async function POST(req: NextRequest) {
         now.getSeconds().toString().padStart(2, '0') +
         now.getMilliseconds().toString().padStart(3, '0');
     const orderID = `SB-ORDER-${uniqueNumber}`;
-    const paymentId = `PAYID-PNT-${uniqueNumber}M`;
+    const paymentId = isPaymentByWallet ? `PAYID-WALLET-PMT-${uniqueNumber}M` : `PAYID-PMT-${uniqueNumber}M`;
     const discount = calculationData.discount || 0;
     const userTotalTaxCharged = calculationData.platformFee || 0;
     const totalOrderAmount = calculationData.totalOrderAmount || 0;
@@ -192,7 +205,7 @@ export async function POST(req: NextRequest) {
         userId: userCheck._id,
         storeId: storeObjectId,
         medicineId,
-        payment_mode: calculationData.payment_mode || 'online',
+        payment_mode: isPaymentByWallet ? 'Wallet' : 'online',
         total_order_amount: totalOrderAmount,
         actual_amount: calculationData.priceTotalSumBeforeDiscount || 0,
         user_total_tax_charged: userTotalTaxCharged,
@@ -202,9 +215,9 @@ export async function POST(req: NextRequest) {
         order_id: orderID,
         invoice_url: '',
         payment_id: paymentId,
-        payment_status: 'Pending',
+        payment_status: isPaymentByWallet ? 'Deducted From Wallet' : 'Pending',
         is_order_rated: 0,
-        order_status: 'Pending',
+        order_status: isPaymentByWallet ? 'Order Placed' : 'Pending',
         medicineQuantity: calculationData.medicineQuantity || [],
         calculationData,
         paymentHistory: [{}],
@@ -212,8 +225,22 @@ export async function POST(req: NextRequest) {
         prescription_url: prescriptionUrlArr,
         prescription_status: isPrescriptionRequired ? 'Pending' : 'Not Required',
         deliveredAddress: addressDoc.toObject(),
-        expectedDeliveryDate
+        expectedDeliveryDate,
     });
+
+    if (isPaymentByWallet) {
+
+        const userObjectId =
+            typeof createOrder.userId === 'string'
+                ? new mongoose.Types.ObjectId(createOrder.userId)
+                : createOrder.userId;
+
+        await User.updateOne(
+            { _id: userObjectId },
+            { $inc: { walletAmount: -Number(totalOrderAmount || 0) } }
+        );
+
+    }
 
     if (createOrder) {
         return NextResponse.json({
@@ -222,7 +249,7 @@ export async function POST(req: NextRequest) {
             data: {
                 order_id_fk: createOrder.id,
                 orderID: createOrder.order_id,
-                isPaymentTake: true,
+                isPaymentTake: isPaymentByWallet ? false : true,
                 razorPayKeyId: process.env.razorPay_Key_Id || '',
                 razorPaySecretKey: process.env.razorPay_Secret_Key || ''
             }
