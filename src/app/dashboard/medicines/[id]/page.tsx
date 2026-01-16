@@ -17,6 +17,7 @@ export default function MedicineDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const [medicine, setMedicine] = useState<any>(null);
+  const [previousMedicine, setPreviousMedicine] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [tabIndex, setTabIndex] = useState(0);
   const [showRelatedPopup, setShowRelatedPopup] = useState(false);
@@ -40,6 +41,7 @@ export default function MedicineDetailPage() {
         const res = await fetch(`${MedicinesGetBYIDPath}${id}`);
         const data = await res.json();
         setMedicine(data.data);
+        setPreviousMedicine(data.data.previousMargData || null);
       } catch (err) {
         setMedicine(null);
       } finally {
@@ -346,13 +348,13 @@ export default function MedicineDetailPage() {
                 <div className="flex flex-wrap gap-3 items-center">
                   <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold">
                     <span className="material-icons text-sm">category</span>
-                    <span>{medicine.category || "Other"}</span>
+                    <span>{previousMedicine.category || "Other"}</span>
                   </span>
                   <span className="inline-flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-semibold">
                     <span className="material-icons text-sm">
                       local_pharmacy
                     </span>
-                    <span>OTC: {medicine.isOTC ? "Yes" : "No"}</span>
+                    <span>OTC: {previousMedicine.isOTC ? "Yes" : "No"}</span>
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -362,7 +364,7 @@ export default function MedicineDetailPage() {
                     </span>
                     <div className="text-xs text-gray-500">Price</div>
                     <div className="text-lg font-bold text-green-700">
-                      ₹{medicine.price ?? 0}
+                      ₹{previousMedicine.price ?? 0}
                     </div>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-md text-center">
@@ -371,7 +373,7 @@ export default function MedicineDetailPage() {
                     </span>
                     <div className="text-xs text-gray-500">Stock</div>
                     <div className="text-sm font-semibold">
-                      {medicine.stock ?? 0} units
+                      {previousMedicine.stock ?? 0} units
                     </div>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-md text-center">
@@ -380,8 +382,8 @@ export default function MedicineDetailPage() {
                     </span>
                     <div className="text-xs text-gray-500">Expiry</div>
                     <div className="text-sm">
-                      {medicine.expiryDate
-                        ? new Date(medicine.expiryDate).toLocaleDateString()
+                      {previousMedicine.expiryDate
+                        ? new Date(previousMedicine.expiryDate).toLocaleDateString()
                         : "-"}
                     </div>
                   </div>
@@ -390,7 +392,7 @@ export default function MedicineDetailPage() {
                       local_offer
                     </span>
                     <div className="text-xs text-gray-500">Batch</div>
-                    <div className="text-sm">{medicine.batchNumber || "-"}</div>
+                    <div className="text-sm">{previousMedicine.batchNumber || "-"}</div>
                   </div>
                 </div>
                 <section className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
@@ -401,15 +403,15 @@ export default function MedicineDetailPage() {
                     Overview
                   </h2>
                   <div className="mt-3 text-gray-700">
-                    {medicine.description }
+                    {previousMedicine.description }
                   </div>
                   <div className="mt-4">
                     <div className="text-sm font-semibold text-gray-800 mb-2">
                       Highlights
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {medicine.highlights && medicine.highlights.length > 0 ? (
-                        medicine.highlights.map((h: string, i: number) => (
+                      {previousMedicine.highlights && previousMedicine.highlights.length > 0 ? (
+                        previousMedicine.highlights.map((h: string, i: number) => (
                           <div
                             key={i}
                             className="px-3 py-1 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded text-sm font-medium"
@@ -437,7 +439,7 @@ export default function MedicineDetailPage() {
                       <div>
                         <div className="text-sm text-gray-500">MRP</div>
                         <div className="text-lg font-semibold text-gray-800">
-                          ₹{medicine.mrp ?? 0}
+                          ₹{previousMedicine.mrp ?? 0}
                         </div>
                       </div>
                       <div>
@@ -445,7 +447,7 @@ export default function MedicineDetailPage() {
                           Purchase Price
                         </div>
                         <div className="text-lg font-semibold text-red-600">
-                          ₹{medicine.purchasePrice ?? 0}
+                          ₹{previousMedicine.purchasePrice ?? 0}
                         </div>
                       </div>
                     </div>
@@ -461,13 +463,13 @@ export default function MedicineDetailPage() {
                       <div>
                         <div className="text-sm text-gray-500">Price</div>
                         <div className="text-2xl font-bold text-green-700">
-                          ₹{medicine.price ?? 0}
+                          ₹{previousMedicine.price ?? 0}
                         </div>
                       </div>
                       <div>
                         <div className="text-sm text-gray-500">Discount</div>
                         <div className="text-lg font-semibold text-blue-600">
-                          {medicine.discount ?? 0}%
+                          {previousMedicine.discount ?? 0}%
                         </div>
                       </div>
                     </div>
@@ -484,21 +486,21 @@ export default function MedicineDetailPage() {
                     <div className="bg-gray-50 p-3 rounded text-center border border-gray-200">
                       <div className="text-xs text-gray-500">Stock</div>
                       <div className="text-lg font-semibold">
-                        {medicine.stock ?? 0} units
+                        {previousMedicine.stock ?? 0} units
                       </div>
                     </div>
                     <div className="bg-gray-50 p-3 rounded text-center border border-gray-200">
                       <div className="text-xs text-gray-500">Expiry</div>
                       <div className="text-sm">
-                        {medicine.expiryDate
-                          ? new Date(medicine.expiryDate).toLocaleDateString()
+                        {previousMedicine.expiryDate
+                          ? new Date(previousMedicine.expiryDate).toLocaleDateString()
                           : "-"}
                       </div>
                     </div>
                     <div className="bg-gray-50 p-3 rounded text-center border border-gray-200">
                       <div className="text-xs text-gray-500">Batch</div>
                       <div className="text-sm">
-                        {medicine.batchNumber || "-"}
+                        {previousMedicine.batchNumber || "-"}
                       </div>
                     </div>
                   </div>
@@ -511,9 +513,9 @@ export default function MedicineDetailPage() {
                     Composition
                   </h3>
                   <div className="mt-3 text-gray-700">
-                    {medicine.composition && medicine.composition.length > 0 ? (
+                    {previousMedicine.composition && previousMedicine.composition.length > 0 ? (
                       <ul className="list-disc pl-5 space-y-1">
-                        {medicine.composition.map((c: any, i: number) =>
+                        {previousMedicine.composition.map((c: any, i: number) =>
                           c.name || c.value ? (
                             <li key={c._id || i}>
                               {c.name}
@@ -524,7 +526,7 @@ export default function MedicineDetailPage() {
                         )}
                       </ul>
                     ) : (
-                      medicine.margData?.Salt || "No composition info"
+                      previousMedicine.margData?.Salt || "No composition info"
                     )}
                   </div>
                 </section>
