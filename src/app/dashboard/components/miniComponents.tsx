@@ -62,10 +62,9 @@ export const CustomButton = ({
       disabled={disabled}
       style={buttonStyle}
       className={`relative cursor-pointer overflow-hidden px-8 py-2 rounded-xl font-semibold text-white shadow-lg 
-        ${
-          disabled
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-(--primary) hover:bg-(--primary)"
+        ${disabled
+          ? "bg-gray-400 cursor-not-allowed"
+          : "bg-(--primary) hover:bg-(--primary)"
         } 
         transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-(--primary) focus:ring-offset-2 group
         ${className}`}
@@ -93,7 +92,7 @@ export const CustomTooltip = styled(
       {children}
     </Tooltip>
   )
-)(({}) => ({
+)(({ }) => ({
   [`& .${tooltipClasses.tooltip}`]: {
     backgroundColor: "var(--primary)",
     color: "var(--color-white)",
@@ -329,38 +328,43 @@ export function ModalHeader({ title, onClose }: ModalHeaderProps) {
   return (
     <Box
       sx={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        mb: 3,
-        pb: 1,
-        // New: Subtle background color and bottom margin for separation
         backgroundColor: "rgba(0, 128, 0, 0.05)", // Light green tint
         borderRadius: "8px 8px 0 0",
-        mx: -4, // Extend to modal edges (compensates for box padding)
-        mt: -4,
-        px: 4,
-        py: 2,
+        padding: "16px",
       }}
     >
-      <Typography
-        id="modal-title"
-        variant="h6"
-        component="h2"
+
+      <Box
         sx={{
-          fontWeight: 700,
-          color: "var(--primary)", // Use theme primary color (green)
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+
+          // New: Subtle background color and bottom margin for separation
+
+
         }}
       >
-        {title}
-      </Typography>
-      <IconButton
-        onClick={onClose}
-        aria-label="close"
-        sx={{ color: "var(--primary)" }}
-      >
-        <CloseIcon />
-      </IconButton>
+        <Typography
+          id="modal-title"
+          variant="h6"
+          component="h2"
+          sx={{
+            fontWeight: 700,
+            color: "var(--primary)", // Use theme primary color (green)
+          }}
+        >
+          {title}
+        </Typography>
+        <IconButton
+          onClick={onClose}
+          aria-label="close"
+          sx={{ color: "var(--primary)" }}
+        >
+          <CloseIcon />
+        </IconButton>
+      </Box>
+
     </Box>
   );
 }

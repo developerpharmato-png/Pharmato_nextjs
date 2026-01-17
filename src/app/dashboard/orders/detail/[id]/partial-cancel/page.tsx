@@ -753,7 +753,7 @@ export default function PartialCancelPage() {
                 for cancellation. This note will be sent to the customer.
               </Typography>
             </Box>
-          )}
+          )} 
 
 
           <Stack spacing={2}>

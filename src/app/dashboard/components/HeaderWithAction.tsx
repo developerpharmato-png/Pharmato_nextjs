@@ -95,7 +95,7 @@ export default function HeaderWithAction({
   handleAdd,
   isunsaved = true,
   onBack,
-  ExportButton, showclearAll = true
+  ExportButton, showclearAll = true,
 }: Props) {
   const router = useRouter();
 

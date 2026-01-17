@@ -1,5 +1,6 @@
 // Wallet
 export const WalletListPath = "/api/admin/customers/wallet/list";
+export const WalletAddAmountPath = "/api/admin/customers/wallet/add-amount";
 // Analytics API paths
 export const OrderAnalyticsPath = `/api/admin/data-analytics/orders`;
 
@@ -14,7 +15,7 @@ export const dropdownCategoriesPath = `/api/admin/categories/dropdown`;
 export const SubcategoriesPath = `/api/admin/subcategories`;
 
 export const MedicinesExportPath = `/api/admin/medicines/export`;
-
+ 
 export const StoreManagersPath = `/api/admins/store-managers`;
 export const StorePath = `/api/admin/store`;
  

@@ -57,6 +57,9 @@ export async function POST(req: NextRequest) {
     const safeLimit = Math.max(1, Math.min(Number(limit) || 10, 100));
     const safeOffset = Math.max(0, Number(offset) || 0);
 
+    // Get total count for pagination
+    const total = await Wallet.countDocuments({ userId: userObjectId });
+
     const walletList = await Wallet.aggregate([
         { $match: { userId: userObjectId } },
         { $sort: { createdAt: -1 } }, // Newest first
@@ -72,6 +75,6 @@ export async function POST(req: NextRequest) {
         }
     }
 
-    return NextResponse.json({ status: true, data: walletList });
+    return NextResponse.json({ status: true, data: walletList, total });
 }
 
