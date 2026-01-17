@@ -364,7 +364,6 @@ export async function POST(req: NextRequest) {
                                             console.error('Failed to send push notification to admin:', err);
                                         }
 
-
                                     }
                                 }
                             }

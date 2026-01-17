@@ -93,6 +93,7 @@ export async function POST(req: NextRequest) {
             // Get store and admin manager
             let storeName = '';
             let adminName = '';
+            let adminEmail = '';
             let adminRoleName = '';
             let customerName = 'Customer';
             let userEmail = '';
@@ -111,6 +112,7 @@ export async function POST(req: NextRequest) {
                         const admin = await Admin.findById(store.adminManagerId).lean();
                         if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
                             adminName = admin.name || '';
+                            adminEmail = admin.email || '';
                             // Try to get admin's role name
                             if ('roleId' in admin && admin.roleId) {
                                 const roleDoc = await Role.findById(admin.roleId).lean();
@@ -135,6 +137,39 @@ export async function POST(req: NextRequest) {
                                     order_id: (orderDoc as any).order_id
                                 }
                             });
+
+                            // Send email to adminEmail
+                            if (adminEmail) {
+                                const adminHtml = `
+                                    <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.4;">
+                                        <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
+                                            <h2 style="margin-bottom: 16px;">Prescription Re-uploaded – Action Required for Order #${orderDoc.order_id}</h2>
+                                            <p>Hello ${adminName},</p>
+                                            <p>The customer has <b>re-uploaded a prescription</b> for order <b>#${orderDoc.order_id}</b> after previous rejection.</p>
+                                            <h4 style="margin:12px 0 6px;">Order Details</h4>
+                                            <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+                                                <tr>
+                                                    <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+                                                    <td style="padding:8px;border:1px solid #eee;">${orderDoc.order_id}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+                                                    <td style="padding:8px;border:1px solid #eee;">Prescription Re-uploaded</td>
+                                                </tr>
+                                            </table>
+                                            <h4 style="margin:12px 0 6px;">Action Required</h4>
+                                            <p>Please review the updated prescription and take appropriate action:</p>
+                                            <ul>
+                                                <li>Approve to proceed with the order</li>
+                                                <li>Reject with reason if still not valid</li>
+                                            </ul>
+                                            <p>Log in to admin Portal to continue.</p>
+                                            <p style="margin:6px 0 0;color:#333;font-weight:600;">Regards,<br/>Team Pharmato</p>
+                                        </div>
+                                    </div>
+                                `;
+                                await sendEmail({ to: adminEmail, subject: `Prescription Re-uploaded – Action Required for Order #${orderDoc.order_id}`, html: adminHtml });
+                            }
                         }
                     }
                 }
@@ -162,6 +197,40 @@ export async function POST(req: NextRequest) {
                                 order_id: (orderDoc as any).order_id
                             }
                         });
+
+                        // Send email to super admin
+                        const superAdminEmail = (superAdmin as any).email;
+                        if (superAdminEmail) {
+                            const superAdminHtml = `
+                                <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.4;">
+                                    <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
+                                        <h2 style="margin-bottom: 16px;">Prescription Re-uploaded – Order #${orderDoc.order_id}</h2>
+                                        <p>Hello Admin,</p>
+                                        <p>User ${customerName} has <b>re-uploaded a prescription</b> for order <b>#${orderDoc.order_id}</b> after a previous rejection.</p>
+                                        <h4 style="margin:12px 0 6px;">Order Details</h4>
+                                        <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+                                            <tr>
+                                                <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+                                                <td style="padding:8px;border:1px solid #eee;">${orderDoc.order_id}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+                                                <td style="padding:8px;border:1px solid #eee;">Prescription Re-uploaded</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding:8px;border:1px solid #eee;font-weight:600;">Store</td>
+                                                <td style="padding:8px;border:1px solid #eee;">${storeName || 'N/A'}</td>
+                                            </tr>
+                                        </table>
+                                        <h4 style="margin:12px 0 6px;">Action Overview</h4>
+                                        <p>The prescription is pending review by the store manager.</p>
+                                        <p>You may track the review status from the <b>Admin Portal</b>.</p>
+                                        <p style="margin:6px 0 0;color:#333;font-weight:600;">Regards,<br/>Team Pharmato</p>
+                                    </div>
+                                </div>
+                            `;
+                            await sendEmail({ to: superAdminEmail, subject: `Prescription Re-uploaded – Order #${orderDoc.order_id}`, html: superAdminHtml });
+                        }
                     }
                 }
             }
