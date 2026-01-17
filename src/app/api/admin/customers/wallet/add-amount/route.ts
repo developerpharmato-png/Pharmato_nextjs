@@ -1,6 +1,6 @@
 /**
  * @swagger
- * /api/customer/wallet/add-amount:
+ * /api/admin/customers/wallet/add-amount:
  *   post:
  *     summary: Recharge customer wallet
  *     tags:

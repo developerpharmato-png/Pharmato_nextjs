@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+
 import HeaderWithAction from "../../../components/HeaderWithAction";
 import Swal from "sweetalert2";
 import { Tab, TabList, TabPanel, Tabs } from "react-tabs";
@@ -7,6 +8,7 @@ import "react-tabs/style/react-tabs.css";
 import OrdersTable from "../../../orders/OrdersTable";
 import WalletTable from "./WalletTable";
 import { WalletListPath } from "../../../storeAPICall/API/BaseApi";
+import WalletAddAmountDialog from "./WalletAddAmountDialog";
 
 // --- Type Definitions ---
 
@@ -38,6 +40,7 @@ type Customer = {
 // --- Refactored Component ---
 
 export default function AdminCustomerDetail({ id }: { id?: string }) {
+    const [showWalletDialog, setShowWalletDialog] = useState(false);
   // Wallet state
   const [wallet, setWallet] = useState<any[]>([]);
   const [walletPage, setWalletPage] = useState(0);
@@ -388,9 +391,10 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
       </div>
     );
   };
-
+ 
   // --- Main Render ---
 
+  const [tabIndex, setTabIndex] = useState(0);
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
@@ -399,9 +403,35 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
         showBack={true}
         showSearch={false}
         isunsaved={false}
+        addShow={tabIndex === 2}
+        handleAdd={tabIndex === 2 ? () => setShowWalletDialog(true) : undefined}
+        rightNode={
+          customer && (
+            <div style={{
+              background: '#e8f5e9',
+              color: '#388e3c',
+              fontWeight: 700,
+              fontSize: 18,
+              borderRadius: 8,
+              padding: '8px 20px',
+              minWidth: 120,
+              textAlign: 'center',
+              boxShadow: '0 1px 4px #0001',
+              border: '1px solid #a5d6a7',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6
+            }}>
+              <span>Wallet:</span>
+              <span style={{ fontWeight: 900, fontSize: 20 }}>
+                ₹{(customer.walletAmount ?? 0).toFixed(2)}
+              </span>
+            </div>
+          )
+        }
       />
 
-      <Tabs>
+      <Tabs selectedIndex={tabIndex} onSelect={setTabIndex}>
         <TabList className="TabList">
           <Tab className="Tab">Details</Tab>
           <Tab className="Tab">Orders</Tab>
@@ -464,10 +494,18 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
               onRowsPerPageChange={setWalletRowsPerPage}
               loading={walletLoading}
             />
+            {customer && (
+              <WalletAddAmountDialog
+                userId={customer._id}
+                onSuccess={fetchWallet}
+                open={showWalletDialog}
+                setOpen={setShowWalletDialog}
+              />
+            )}
           </div>
         </TabPanel>
       </Tabs>
     </div>
   );
 }
- 
+  

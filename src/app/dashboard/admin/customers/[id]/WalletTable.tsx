@@ -33,7 +33,7 @@ const WalletTable: React.FC<WalletTableProps> = ({
   rowsPerPage,
   totalCount,
   onPageChange,
-  onRowsPerPageChange,
+  onRowsPerPageChange,  
   loading = false,
 }) => {
   const columns: Column<WalletEntry>[] = [

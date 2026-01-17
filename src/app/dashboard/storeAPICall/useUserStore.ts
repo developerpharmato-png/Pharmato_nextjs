@@ -1,4 +1,5 @@
 export const WalletListStore = createApiStore<any>();
+export const WalletAddAmountStore = createApiStore<any>();
 import api from "./API/api";
 // src/store/useUserStore.ts
 import { createApiStore } from "./createApiStore";

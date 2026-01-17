@@ -163,7 +163,7 @@ export default function EditCategoryPage() {
         if (data.success) {
           Swal.fire({
             toast: true,
-            position: "top-end",
+            position: "top-end", 
             icon: "success",
             title: ToastMessages.CATEGORY_UPDATED,
             showConfirmButton: false,

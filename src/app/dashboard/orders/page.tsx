@@ -68,7 +68,7 @@ export default function OrdersPage() {
     }
   };
 
-  useEffect(() => {
+  useEffect(() => { 
     if (!OrderListData) return;
     try {
       const success = (OrderListData as any).success;
