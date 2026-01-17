@@ -26,8 +26,8 @@ const MargPage = () => {
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
         title="Marg"
-        subtitle="Import data from Marg ERP"
-        addLabel="Import from Marg"
+        subtitle="Sync data from Marg ERP"
+        addLabel="Sync from Marg"
         handleAdd={handleImport}
         addShow={true}
         showBack={false}
