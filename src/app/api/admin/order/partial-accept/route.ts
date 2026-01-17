@@ -9,6 +9,7 @@ import Medicine from '@/models/Medicine';
 import { sendEmail } from '@/utils/sendEmail';
 import fs from 'fs';
 import path from 'path';
+import Wallet from '@/models/Wallet';
 
 const razorpayInstance = new Razorpay({
     key_id: process.env.razorPay_Key_Id || '',
@@ -113,13 +114,40 @@ export async function POST(req: NextRequest) {
         const cancelledForRefund = order.medicineQuantity.filter((item: any) => item.status === 'cancelled');
 
         if (cancelledForRefund.length > 0) {
-            refundAmount = cancelledForRefund.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
-            try {
-                const refundResponse = await razorpayInstance.payments.refund(order.payment_id, {
-                    amount: refundAmount * 100
+
+            if (order.payment_mode === 'Wallet') {                
+                
+                    await User.updateOne(
+                        { _id: user._id },
+                        { $inc: { walletAmount: Number(refundAmount || 0) } }
+                    );
+
+                const walletDoc = await Wallet.create({
+                    userId: user._id,
+                    payment_mode: 'Admin Refund',
+                    amount: refundAmount || 0,
+                    totalAmount: refundAmount || 0,
+                    razorPay_total_tax_charged: 0,
+                    recharge_id: "",
+                    payment_id: "",
+                    recharge_status: 'Success',
+                    payment_status: 'Refunded',
+                    wallet_transaction_type: 'Refund',
+                    transaction_to: `Wallet`,
+                    paymentHistory: [],
                 });
-            } catch (error) {}
-            console.log("$$$$$refundAmount$$$$$$", refundAmount);
+
+            } else {
+
+                refundAmount = cancelledForRefund.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+                try {
+                    const refundResponse = await razorpayInstance.payments.refund(order.payment_id, {
+                        amount: refundAmount * 100
+                    });
+                } catch (error) { }
+                // console.log("$$$$$refundAmount$$$$$$", refundAmount);
+
+            }
         }
 
         // Fetch medicine names for both accepted and cancelled

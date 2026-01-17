@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     const walletDoc = await Wallet.create({
         userId: userCheck._id,
-        payment_mode: 'online',
+        payment_mode: 'Admin Added',
         amount: amount || 0,
         totalAmount: amount || 0,
         razorPay_total_tax_charged: 0,
