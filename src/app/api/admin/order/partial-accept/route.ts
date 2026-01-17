@@ -115,12 +115,14 @@ export async function POST(req: NextRequest) {
 
         if (cancelledForRefund.length > 0) {
 
-            if (order.payment_mode === 'Wallet') {                
-                
-                    await User.updateOne(
-                        { _id: user._id },
-                        { $inc: { walletAmount: Number(refundAmount || 0) } }
-                    );
+            refundAmount = cancelledForRefund.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+
+            if (order.payment_mode === 'Wallet') {
+
+                await User.updateOne(
+                    { _id: user._id },
+                    { $inc: { walletAmount: Number(refundAmount || 0) } }
+                );
 
                 const walletDoc = await Wallet.create({
                     userId: user._id,
@@ -139,7 +141,6 @@ export async function POST(req: NextRequest) {
 
             } else {
 
-                refundAmount = cancelledForRefund.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
                 try {
                     const refundResponse = await razorpayInstance.payments.refund(order.payment_id, {
                         amount: refundAmount * 100
