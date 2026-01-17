@@ -238,7 +238,7 @@ export async function POST(req: NextRequest) {
 
         const walletDoc = await Wallet.create({
             userId: userCheck._id,
-            payment_mode: 'wallet deduction',
+            payment_mode: 'Wallet',
             amount: totalOrderAmount || 0,
             totalAmount: totalOrderAmount || 0,
             razorPay_total_tax_charged: totalAmountRazorPayCharged || 0,
