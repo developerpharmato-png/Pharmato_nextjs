@@ -1,6 +1,6 @@
 import { CustomTable, Column } from "@/app/dashboard/components/CustomTable";
 import { CustomTooltip } from "@/app/dashboard/components/miniComponents";
-import { formatMargDate } from "@/utils/function";
+import { formatMargDate, getStatusColor } from "@/utils/function";
 import React from "react";
 
 
@@ -33,7 +33,7 @@ const WalletTable: React.FC<WalletTableProps> = ({
   rowsPerPage,
   totalCount,
   onPageChange,
-  onRowsPerPageChange,  
+  onRowsPerPageChange,
   loading = false,
 }) => {
   const columns: Column<WalletEntry>[] = [
@@ -70,8 +70,14 @@ const WalletTable: React.FC<WalletTableProps> = ({
       label: "Recharge Status",
       minWidth: 100,
       selector: (row) => (
-        <span className={row.recharge_status === "Success" ? "text-green-700" : row.recharge_status === "Pending" ? "text-yellow-600" : "text-red-600"}>
-          {row.recharge_status || "-"}
+
+        <span
+          className={`px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase text-center inline-flex justify-center items-center customTooltip ${getStatusColor(
+            row.recharge_status
+          )}`}
+          style={{ minWidth: 110, letterSpacing: 0.4 }}
+        >
+          {row.recharge_status || "Pending"}
         </span>
       ),
     },
@@ -80,8 +86,14 @@ const WalletTable: React.FC<WalletTableProps> = ({
       label: "Payment Status",
       minWidth: 100,
       selector: (row) => (
-        <span className={row.payment_status === "captured" ? "text-green-700" : row.payment_status === "Pending" ? "text-yellow-600" : "text-red-600"}>
-          {row.payment_status || "-"}
+
+        <span
+          className={`px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase text-center inline-flex justify-center items-center customTooltip ${getStatusColor(
+            row.payment_status
+          )}`}
+          style={{ minWidth: 110, letterSpacing: 0.4 }}
+        >
+          {row.payment_status || "Pending"}
         </span>
       ),
     },
