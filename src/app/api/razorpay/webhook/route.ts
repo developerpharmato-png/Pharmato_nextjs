@@ -166,7 +166,7 @@ export async function POST(req: NextRequest) {
 
                     if (deliveredAddr) {
                         userName = deliveredAddr?.name || 'Customer';
-                        userEmail = deliveredAddr?.email || '';                        
+                        userEmail = deliveredAddr?.email || '';
                     }
 
                     let deliveryAddressText = ''
@@ -267,6 +267,7 @@ export async function POST(req: NextRequest) {
                     // Notify admin (store manager) and superadmins with detailed message
                     let storeName = '';
                     let adminName = '';
+                    let adminEmail = '';
                     let adminRoleName = '';
                     let customerName = userName;
                     if (updatedOrder && typeof updatedOrder === 'object' && !Array.isArray(updatedOrder) && 'storeId' in updatedOrder) {
@@ -279,6 +280,7 @@ export async function POST(req: NextRequest) {
                                     const admin = await Admin.findById((store as any).adminManagerId).lean();
                                     if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
                                         adminName = (admin as any).name || '';
+                                        adminEmail = (admin as any).email || '';
                                         // Try to get admin's role name
                                         if ('roleId' in admin && admin.roleId) {
                                             const roleDoc = await (await import('@/models/Role')).default.findById(admin.roleId).lean();
@@ -286,8 +288,6 @@ export async function POST(req: NextRequest) {
                                                 adminRoleName = (roleDoc as any).name || '';
                                             }
                                         }
-
-                                        // Order #{OrderID} has been placed by {User Name} at your store. Review and proceed Further.
 
                                         // Notify store admin
                                         await Notification.create({
@@ -307,6 +307,38 @@ export async function POST(req: NextRequest) {
                                             }
                                         });
 
+                                        // Send email to adminEmail
+                                        if (adminEmail) {
+                                            const adminHtml = `
+                                                <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.4;">
+                                                    <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
+                                                        <h2 style="margin-bottom: 16px;">New Order Received- ${checkOrder.order_id}</h2>
+                                                        <p>Hello ${adminName},</p>
+                                                        <p>A new order <b>#${checkOrder.order_id}</b> has been placed on Pharmato and requires your review.</p>
+                                                        <h4 style="margin:12px 0 6px;">Order Details</h4>
+                                                        <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+                                                            <tr>
+                                                                <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+                                                                <td style="padding:8px;border:1px solid #eee;">${checkOrder.order_id}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+                                                                <td style="padding:8px;border:1px solid #eee;">Order Placed</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td style="padding:8px;border:1px solid #eee;font-weight:600;">Delivery Address</td>
+                                                                <td style="padding:8px;border:1px solid #eee;">${deliveryAddressText || 'Address will be updated soon.'}</td>
+                                                            </tr>
+                                                        </table>
+                                                        <h4 style="margin:12px 0 6px;">Action Required</h4>
+                                                        <p>Please review and confirm the Order. You can review this order by Admin Portal.</p>
+                                                        <p style="margin-top:18px;color:#777;font-size:13px;">Thank you for ensuring safe and compliant medicine delivery.</p>
+                                                        <p style="margin:6px 0 0;color:#333;font-weight:600;">Regards,<br/>Team Pharmato</p>
+                                                    </div>
+                                                </div>
+                                            `;
+                                            await sendEmail({ to: adminEmail, subject: `New Order Received- ${checkOrder.order_id}`, html: adminHtml });
+                                        }
 
                                         try {
                                             const adminToken = (admin as any).deviceToken;
@@ -345,9 +377,7 @@ export async function POST(req: NextRequest) {
                         if (superAdminRole && superAdminRole._id) {
                             const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
                             for (const superAdmin of superAdmins) {
-
                                 // User {User Name} has placed order #{OrderID} at store {Store Name}. Waiting for store Manager to accept order.
-
                                 await Notification.create({
                                     userId: (superAdmin as any)._id.toString(),
                                     role: 'admin',
@@ -364,6 +394,44 @@ export async function POST(req: NextRequest) {
                                         status: entity.status
                                     }
                                 });
+
+                                // Send email to super admin
+                                const superAdminEmail = (superAdmin as any).email;
+                                if (superAdminEmail) {
+                                    const superAdminHtml = `
+                                        <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.4;">
+                                            <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
+                                                <h2 style="margin-bottom: 16px;">New Order Received – Order #${checkOrder.order_id}</h2>
+                                                <p>Hello Admin,</p>
+                                                <p>A new order <b>#${checkOrder.order_id}</b> has been placed on Pharmato.</p>
+                                                <h4 style="margin:12px 0 6px;">Order Details</h4>
+                                                <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+                                                    <tr>
+                                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+                                                        <td style="padding:8px;border:1px solid #eee;">${checkOrder.order_id}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+                                                        <td style="padding:8px;border:1px solid #eee;">Order Placed</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Store Assigned</td>
+                                                        <td style="padding:8px;border:1px solid #eee;">${storeName || 'N/A'}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Delivery Address</td>
+                                                        <td style="padding:8px;border:1px solid #eee;">${deliveryAddressText || 'Address will be updated soon.'}</td>
+                                                    </tr>
+                                                </table>
+                                                <h4 style="margin:12px 0 6px;">Action Overview</h4>
+                                                <p>The order is pending review and confirmation by the assigned store manager.</p>
+                                                <p>You can monitor this order from the <b>Admin Portal</b>.</p>
+                                                <p style="margin:6px 0 0;color:#333;font-weight:600;">Regards,<br/>Team Pharmato</p>
+                                            </div>
+                                        </div>
+                                    `;
+                                    await sendEmail({ to: superAdminEmail, subject: `New Order Received – Order #${checkOrder.order_id}`, html: superAdminHtml });
+                                }
 
                                 try {
                                     const superToken = (superAdmin as any).deviceToken;
