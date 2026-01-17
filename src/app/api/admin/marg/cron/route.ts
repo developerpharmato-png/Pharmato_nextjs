@@ -135,8 +135,8 @@ async function importMedicinesFromMarg() {
       margGetDataCount: products.length,
       margInsertDataCount: 0,
       margUpdateDataCount: 0,
-      status: 'Import Started',
-      type: 'Cron Import'
+      status: 'Sync Started',
+      type: 'Sync Marg Data'
     });
 
     let medCount = await Medicine.countDocuments();
@@ -208,7 +208,7 @@ async function importMedicinesFromMarg() {
       margInsertDataCount: insertCount,
       margUpdateDataCount: updateCount,
       status: 'Completed',
-      type: 'Cron Import'
+      type: 'Sync Marg Data'
     });
 
   } catch (err) {
