@@ -7,17 +7,19 @@ export interface IMarg extends Document {
     margUpdateDataCount: number;
     status: string;
     type: string;
+    margInsertData: [{}];
     createdAt?: Date;
     updatedAt?: Date;
 }
 
 const MargSchema: Schema<IMarg> = new Schema(
     {
-        margGetDataCount: { type: Number , default: 0},
-        margInsertDataCount: { type: Number , default: 0},
-        margUpdateDataCount: { type: Number, default: 0},
+        margGetDataCount: { type: Number, default: 0 },
+        margInsertDataCount: { type: Number, default: 0 },
+        margUpdateDataCount: { type: Number, default: 0 },
         status: { type: String, default: '' },
-        type: { type: String, default: '' }
+        type: { type: String, default: '' },
+        margInsertData: [{ type: Object, default: {} }],
     },
     {
         timestamps: true,

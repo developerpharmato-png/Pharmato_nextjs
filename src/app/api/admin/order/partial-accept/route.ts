@@ -106,7 +106,6 @@ export async function POST(req: NextRequest) {
         const store: any = await Store.findById(order.storeId).lean();
         const storeName = store ? (store.name || 'Store') : 'Store';
 
-
         // Choose template based on create or update
         const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
         const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');

@@ -130,13 +130,15 @@ async function importMedicinesFromMarg() {
     const products = jsonData?.Details?.pro_N || [];
     const bulkInsertArray: any[] = [];
     const bulkOps: any[] = [];
+    let data: any[] = [];
 
     const createMarg = await Marg.create({
       margGetDataCount: products.length,
       margInsertDataCount: 0,
       margUpdateDataCount: 0,
       status: 'Sync Started',
-      type: 'Sync Marg Data'
+      type: 'Sync Marg Data',
+      margInsertData: []
     });
 
     let medCount = await Medicine.countDocuments();
@@ -198,7 +200,9 @@ async function importMedicinesFromMarg() {
 
     // 🚀 Bulk Insert — MUCH faster than .create()
     if (bulkInsertArray.length > 0) {
-      await Medicine.insertMany(bulkInsertArray, { ordered: false });
+
+      data = await Medicine.insertMany(bulkInsertArray, { ordered: false });
+
     }
 
     // Update Marg document with counts
@@ -208,7 +212,8 @@ async function importMedicinesFromMarg() {
       margInsertDataCount: insertCount,
       margUpdateDataCount: updateCount,
       status: 'Completed',
-      type: 'Sync Marg Data'
+      type: 'Sync Marg Data',
+      margInsertData: data
     });
 
   } catch (err) {

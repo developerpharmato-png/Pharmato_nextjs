@@ -3,8 +3,6 @@ import { CustomTooltip } from "@/app/dashboard/components/miniComponents";
 import { formatMargDate, getStatusColor } from "@/utils/function";
 import React from "react";
 
-
-
 interface WalletEntry {
   _id: string;
   amount: number;
