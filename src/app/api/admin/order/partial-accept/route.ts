@@ -12,6 +12,9 @@ import path from 'path';
 import Wallet from '@/models/Wallet';
 import Admin from '@/models/Admin';
 import Store from '@/models/Store';
+import moment from 'moment-timezone';
+import { uploadToCloudinary } from '@/lib/cloudinaryUtils';
+import puppeteer from 'puppeteer';
 
 const razorpayInstance = new Razorpay({
     key_id: process.env.razorPay_Key_Id || '',
@@ -156,10 +159,21 @@ export async function POST(req: NextRequest) {
         }
 
         // Fetch medicine names for both accepted and cancelled
-        const [acceptedNames, cancelledNames] = await Promise.all([
+        // Fetch medicine names for both accepted and cancelled, and merge with quantity/price for accepted
+        const [acceptedRaw, cancelledNames] = await Promise.all([
             Medicine.find({ _id: { $in: unCancelledItems.map((i: any) => i.medicineId) } }).select('name coverImage'),
             Medicine.find({ _id: { $in: cancelledForRefund.map((i: any) => i.medicineId) } }).select('name coverImage'),
         ]);
+
+        // Merge acceptedRaw with unCancelledItems to include quantity and price
+        const acceptedNames = acceptedRaw.map((m: any) => {
+            const item = unCancelledItems.find((i: any) => i.medicineId.toString() === m._id.toString());
+            return {
+                ...m._doc,
+                quantity: item ? item.quantity : 0,
+                price: item ? item.price : 0
+            };
+        });
 
         // Build email HTML
         let html = `${header}<div><p>Dear ${userName},</p>`;
@@ -215,8 +229,6 @@ export async function POST(req: NextRequest) {
         if (userEmail) {
             await sendEmail({ to: userEmail, subject: emailSubject, html });
         }
-
-        console.log("$$$acceptedNames$$$$$$$$cancelledNames$$", acceptedNames, cancelledNames);
 
         // Update orderStatus in Firebase Realtime Database
         if (order?.order_id) {
@@ -351,6 +363,210 @@ export async function POST(req: NextRequest) {
             console.error('Superadmin notification error:', err);
         }
 
+        if (acceptedNames.length > 0) {
+
+            let invoiceMedicinesHtml = ``
+            let invoiceNumber = '';
+            let invoiceDate = moment()
+                .tz('Asia/Kolkata')
+                .format('MMM D, YYYY HH:mm z');
+            ;
+            let grandTotal = 0;
+            let subTotal = 0;
+            const deliveryFee = order.calculationData.deliveryFee || 0;
+            const discount = order.calculationData.discount || 0;
+            const platformFee = order.calculationData.platformFee || 0;
+            const razorPayCommissionAmount = order.calculationData.razorPayCommissionAmount || 0;
+            const razorPayCommissionGstAmount = order.calculationData.razorPayCommissionGstAmount || 0;
+            const allCharges = platformFee + razorPayCommissionAmount + razorPayCommissionGstAmount;
+
+            grandTotal = order.calculationData.totalOrderAmount || 0;
+            subTotal = order.calculationData.priceTotalSumAfterDiscount || 0;
+            grandTotal = grandTotal - refundAmount
+            subTotal = subTotal - refundAmount
+
+            acceptedNames.forEach((m: any) => {
+                invoiceMedicinesHtml += `<!-- LOOP START -->
+                <tr>
+                    <td style="border:1px solid #eaeaea;padding:10px;font-size:14px;color:#555;">
+                        ${m.name}
+                    </td>
+                    <td style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#555;">
+                        ${m.quantity}
+                    </td>
+                    <td style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#555;">
+                        ₹${m.price}
+                    </td>
+                    <td style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#555;">
+                        ₹${m.quantity * m.price}
+                    </td>
+                </tr>
+                <!-- LOOP END -->`
+            });
+
+            // Update orderStatus in Firebase Realtime Database
+            if (order) {
+                const db = getDb();
+                const firebaseRef = db.ref(`pharmato`);
+                const snapshot = await firebaseRef.once('value');
+                const currentInvoiceNumber: any = Number(snapshot.val()?.currentInvoiceNumber || 0) + 1;
+                invoiceNumber = `PH-INV-${currentInvoiceNumber}`;
+                await firebaseRef.update({
+                    currentInvoiceNumber: currentInvoiceNumber
+                });
+            }
+
+
+            let invoiceHtml = `
+        <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice</title>
+</head>
+
+<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;">
+
+    <div style="max-width:800px;margin:24px auto;background-color:#ffffff;padding:32px;border-radius:8px;">
+
+        <!-- HEADER -->
+        <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+            <tr>
+                <td style="vertical-align:top;">
+                    <h2 style="margin:0;color:#2c3e50;">Pharmato Pharmacy</h2>
+                    <p style="margin:4px 0;font-size:14px;color:#555;">Near City Hospital</p>
+                    <p style="margin:4px 0;font-size:14px;color:#555;">Indore, Madhya Pradesh</p>
+                    <p style="margin:4px 0;font-size:14px;color:#555;">Phone: +91 9XXXXXXXXX</p>
+                </td>
+                <td style="vertical-align:top;text-align:right;">
+                    <p style="margin:4px 0;font-size:14px;"><strong>Invoice No:</strong> ${invoiceNumber}</p>
+                    <p style="margin:4px 0;font-size:14px;"><strong>Date:</strong> ${invoiceDate}</p>
+                </td>
+            </tr>
+        </table>
+
+        <div style="height:2px;background-color:#eaeaea;margin-bottom:24px;"></div>
+
+        <!-- TITLE -->
+        <h3 style="margin:0 0 16px 0;color:#333;">Invoice for Accepted Medicines</h3>
+
+        <!-- ITEMS TABLE -->
+        <table style="width:100%;border-collapse:collapse;">
+            <thead>
+                <tr style="background-color:#f8f9fa;">
+                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:left;color:#333;">Medicine</th>
+                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Quantity</th>
+                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Price</th>
+                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+
+${invoiceMedicinesHtml}
+
+            </tbody>
+        </table>
+
+        <!-- SUMMARY -->
+        <table style="width:100%;margin-top:16px;border-collapse:collapse;">
+            <tr>
+                <td style="padding:6px 10px;text-align:right;font-size:14px;color:#333;">
+                    Subtotal:
+                </td>
+                <td style="padding:6px 10px;text-align:right;font-size:14px;font-weight:bold;">
+                    ₹${subTotal}
+                </td>
+            </tr>
+            ${discount == 0 ? '' : `<tr>
+                <td style="padding:6px 10px;text-align:right;font-size:14px;color:#333;">
+                    Discount:
+                </td>
+                <td style="padding:6px 10px;text-align:right;font-size:14px;font-weight:bold;">
+                    ₹${discount}
+                </td>
+            </tr>`}
+            ${allCharges == 0 ? '' : `<tr>
+                <td style="padding:6px 10px;text-align:right;font-size:14px;color:#333;">
+                    Platform Fee:
+                </td>
+                <td style="padding:6px 10px;text-align:right;font-size:14px;font-weight:bold;">
+                    ₹${allCharges}
+                </td>
+            </tr>`}
+            ${deliveryFee == 0 ? '' : `<tr>
+                <td style="padding:6px 10px;text-align:right;font-size:14px;color:#333;">
+                    Delivery Fee:
+                </td>
+                <td style="padding:6px 10px;text-align:right;font-size:14px;font-weight:bold;">
+                    ₹${deliveryFee}
+                </td>
+            </tr>`}
+            <tr>
+                <td style="padding:10px 10px;text-align:right;font-size:18px;font-weight:bold;color:#000;">
+                    Grand Total:
+                </td>
+                <td style="padding:10px 10px;text-align:right;font-size:18px;font-weight:bold;color:#000;">
+                    ₹${grandTotal}
+                </td>
+            </tr>
+        </table>
+
+        <!-- FOOTER -->
+        <div style="margin-top:32px;border-top:1px dashed #ddd;padding-top:16px;text-align:center;">
+            <p style="margin:6px 0;font-size:13px;color:#777;">
+                Thank you for your purchase!
+            </p>
+            <p style="margin:6px 0;font-size:13px;color:#777;">
+                This is a system generated invoice.
+            </p>
+        </div>
+
+    </div>
+
+</body>
+</html>`
+
+            const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+
+            const page = await browser.newPage();
+
+            await page.setCacheEnabled(false); // Disable cache
+
+            // Set the page content with an increased timeout
+            await page.setContent(invoiceHtml, { timeout: 60000, waitUntil: 'networkidle0' });// Wait for network to be idle
+
+            const pdfBuffer: any = await page.pdf({
+                format: 'A4',
+                margin: {
+                    top: 70,
+                    right: 50,
+                    bottom: 50,
+                    left: 50,
+                },
+                timeout: 60000 // Increase timeout here as well
+            });
+
+            const publicId = `admin_${Date.now()}`;
+            // const result = await uploadToCloudinary(buffer, publicId);
+            const result = await uploadToCloudinary(
+                pdfBuffer,
+                publicId,
+                'raw'
+            );
+
+            let invoiceUrl = '';
+            if (result && (result as any).secure_url) {
+                invoiceUrl = (result as any).secure_url;
+            }
+
+            await Order.updateOne(
+                { _id: order._id },
+                {
+                    $set: { invoice_url: invoiceUrl }
+                }
+            );
+
+        }
 
         return NextResponse.json({ success: true, message: 'Selected medicines accepted, rest cancelled', data: order });
     } catch (error) {

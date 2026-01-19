@@ -82,8 +82,7 @@ export async function POST(req: NextRequest) {
                     currency: body?.payload?.refund?.entity?.currency || '',
                     reason: body?.payload?.refund?.entity?.reason || '',
                     created_at: body?.payload?.refund?.entity?.created_at || 0,
-                    payload: body?.payload,
-
+                    payload: body?.payload
                 }
 
                 refundHistory.push(data);
