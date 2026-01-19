@@ -183,7 +183,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (acceptedNames.length > 0) {
-            const defaultImg = 'https://pharmato-nextjs.vercel.app/public/images/medicine_default_img.jpg';
+            const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
             html += '<p><b>Accepted Medicines:</b><ul style="list-style:none;padding:0;">';
             acceptedNames.forEach((m: any) => {
                 const imgSrc = m.coverImage && m.coverImage.trim() !== '' ? m.coverImage : defaultImg;
@@ -195,7 +195,7 @@ export async function POST(req: NextRequest) {
             html += '</ul></p>';
         }
         if (cancelledNames.length > 0) {
-            const defaultImg = 'https://pharmato-nextjs.vercel.app/public/images/medicine_default_img.jpg';
+            const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
             html += '<p><b>Cancelled Medicines:</b><ul style="list-style:none;padding:0;">';
             cancelledNames.forEach((m: any) => {
                 const imgSrc = m.coverImage && m.coverImage.trim() !== '' ? m.coverImage : defaultImg;
