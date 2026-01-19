@@ -10,6 +10,8 @@ import { sendEmail } from '@/utils/sendEmail';
 import fs from 'fs';
 import path from 'path';
 import Wallet from '@/models/Wallet';
+import Admin from '@/models/Admin';
+import Store from '@/models/Store';
 
 const razorpayInstance = new Razorpay({
     key_id: process.env.razorPay_Key_Id || '',
@@ -101,6 +103,9 @@ export async function POST(req: NextRequest) {
             userEmail = deliveredAddr?.email || '';
         }
 
+        const store: any = await Store.findById(order.storeId).lean();
+        const storeName = store ? (store.name || 'Store') : 'Store';
+
 
         // Choose template based on create or update
         const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
@@ -153,8 +158,8 @@ export async function POST(req: NextRequest) {
 
         // Fetch medicine names for both accepted and cancelled
         const [acceptedNames, cancelledNames] = await Promise.all([
-            Medicine.find({ _id: { $in: unCancelledItems.map((i: any) => i.medicineId) } }).select('name'),
-            Medicine.find({ _id: { $in: cancelledForRefund.map((i: any) => i.medicineId) } }).select('name'),
+            Medicine.find({ _id: { $in: unCancelledItems.map((i: any) => i.medicineId) } }).select('name coverImage'),
+            Medicine.find({ _id: { $in: cancelledForRefund.map((i: any) => i.medicineId) } }).select('name coverImage'),
         ]);
 
         // Build email HTML
@@ -179,13 +184,27 @@ export async function POST(req: NextRequest) {
         }
 
         if (acceptedNames.length > 0) {
-            html += '<p><b>Accepted Medicines:</b><ul>';
-            acceptedNames.forEach((m: any) => { html += `<li>${m.name}</li>`; });
+            const defaultImg = 'https://pharmato-nextjs.vercel.app/public/images/medicine_default_img.jpg';
+            html += '<p><b>Accepted Medicines:</b><ul style="list-style:none;padding:0;">';
+            acceptedNames.forEach((m: any) => {
+                const imgSrc = m.coverImage && m.coverImage.trim() !== '' ? m.coverImage : defaultImg;
+                html += `<li style="margin-bottom:10px;display:flex;align-items:center;">
+                    <img src="${imgSrc}" alt="${m.name}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:10px;border:1px solid #eee;" />
+                    <span>${m.name}</span>
+                </li>`;
+            });
             html += '</ul></p>';
         }
         if (cancelledNames.length > 0) {
-            html += '<p><b>Cancelled Medicines:</b><ul>';
-            cancelledNames.forEach((m: any) => { html += `<li>${m.name}</li>`; });
+            const defaultImg = 'https://pharmato-nextjs.vercel.app/public/images/medicine_default_img.jpg';
+            html += '<p><b>Cancelled Medicines:</b><ul style="list-style:none;padding:0;">';
+            cancelledNames.forEach((m: any) => {
+                const imgSrc = m.coverImage && m.coverImage.trim() !== '' ? m.coverImage : defaultImg;
+                html += `<li style="margin-bottom:10px;display:flex;align-items:center;">
+                    <img src="${imgSrc}" alt="${m.name}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:10px;border:1px solid #eee;" />
+                    <span>${m.name}</span>
+                </li>`;
+            });
             html += `</ul><b>Refund Amount:</b> ₹${refundAmount}</p>`;
         }
         html += '<p>You can track your order status anytime from the My Orders section on the Pharmato app or website.</p>';
@@ -250,6 +269,89 @@ export async function POST(req: NextRequest) {
         } catch (notifErr) {
             console.error('Notification create/send error (partial-accept):', notifErr);
         }
+
+        // Notify all superadmins
+        try {
+            const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
+            if (superAdminRole && superAdminRole._id) {
+                const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+                // Find store manager name
+                let storeManagerName = '';
+                if (store && store.adminManagerId) {
+                    const storeManager: any = await Admin.findById(store.adminManagerId).lean();
+                    storeManagerName = storeManager?.name || '';
+                }
+                for (const superAdmin of superAdmins) {
+                    await Notification.create({
+                        userId: (superAdmin as any)._id.toString(),
+                        role: 'admin',
+                        title: 'Order Update',
+                        message: `Order #${order.order_id} placed by ${userName} at store ${storeName} is now ${order.order_status}.`,
+                        type: 'order',
+                        targetScreen: 'orders/detail',
+                        targetId: order._id.toString()
+                    });
+
+                    // Send custom confirmation email to super admin if order is confirmed
+                    const superAdminEmail = (superAdmin as any).email;
+                    if (superAdminEmail && order.order_status === 'Confirmed') {
+                        const superAdminHtml = `
+                        ${header}
+                            <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width:600px; margin:0 auto;">
+                                <p>Hello Admin,</p>
+                                <p>Order <b>#${order.order_id}</b> has been successfully confirmed.</p>
+                                <h4>Order Details</h4>
+                                <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+                                    <tr>
+                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+                                        <td style="padding:8px;border:1px solid #eee;">${order.order_id}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+                                        <td style="padding:8px;border:1px solid #eee;">Confirmed</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Confirmed By</td>
+                                        <td style="padding:8px;border:1px solid #eee;">${storeManagerName || 'Store Manager'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Store</td>
+                                        <td style="padding:8px;border:1px solid #eee;">${storeName}</td>
+                                    </tr>
+                                </table>
+                                <p>The order is now being prepared for dispatch.</p>
+                                <p>Regards,<br/><b>Team Pharmato</b></p>
+                            </div>
+                            ${footer}
+                        `;
+                        await sendEmail({ to: superAdminEmail, subject: `Order Confirmed Successfully – Order #${order.order_id}`, html: superAdminHtml });
+                    }
+
+                    // Optionally, still send push notification
+                    try {
+                        const superToken = (superAdmin as any).deviceToken;
+                        if (superToken) {
+                            await sendPushNotificationWithData({
+                                token: superToken,
+                                title: 'Pharmato',
+                                body: `Order #${order.order_id} placed by ${userName} at store ${storeName} is now ${order.order_status}.`,
+                                data: {
+                                    targetId: order._id.toString(),
+                                    orderId: order.order_id,
+                                    type: 'order_placed',
+                                    targetScreen: 'orders/detail',
+                                }
+                            });
+                        }
+                    } catch (err) {
+                        console.error('Failed to send push notification to superadmin:', err);
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Superadmin notification error:', err);
+        }
+
 
         return NextResponse.json({ success: true, message: 'Selected medicines accepted, rest cancelled', data: order });
     } catch (error) {

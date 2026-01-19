@@ -7,6 +7,7 @@ import Store from '@/models/Store';
 import Medicine from '@/models/Medicine';
 import mongoose from 'mongoose';
 import Wallet from '@/models/Wallet';
+import { getDb } from '@/utils/firebase.helper';
 
 /**
  * @swagger
@@ -255,6 +256,19 @@ export async function POST(req: NextRequest) {
             { _id: userObjectId },
             { $inc: { walletAmount: -Number(totalOrderAmount || 0) } }
         );
+
+        // Update paymentStatus in Firebase Realtime Database
+        if (createOrder?.order_id) {
+            const db = getDb();
+            //Firebase realtime data update
+            const firebaseRef = db.ref(`orders/${createOrder.order_id}`);
+            const snapshot = await firebaseRef.once('value');
+            const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+            await firebaseRef.update({
+                isOrderStatusChanged: isOrderStatusChanged,
+                paymentStatus: createOrder.payment_status
+            });
+        }
 
     }
 

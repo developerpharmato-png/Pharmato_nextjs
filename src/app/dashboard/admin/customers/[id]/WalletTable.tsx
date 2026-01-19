@@ -73,7 +73,7 @@ const WalletTable: React.FC<WalletTableProps> = ({
 
         <span
           className={`px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase text-center inline-flex justify-center items-center customTooltip ${getStatusColor(
-            row.recharge_status
+            row.recharge_status || ""
           )}`}
           style={{ minWidth: 110, letterSpacing: 0.4 }}
         >
@@ -89,7 +89,7 @@ const WalletTable: React.FC<WalletTableProps> = ({
 
         <span
           className={`px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase text-center inline-flex justify-center items-center customTooltip ${getStatusColor(
-            row.payment_status
+            row.payment_status || ""
           )}`}
           style={{ minWidth: 110, letterSpacing: 0.4 }}
         >

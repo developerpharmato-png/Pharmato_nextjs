@@ -3,6 +3,8 @@ import { sendEmail } from '@/utils/sendEmail';
 import { NextRequest, NextResponse } from 'next/server';
 import User from '@/models/User';
 import dbConnect from '@/lib/mongodb';
+import fs from 'fs';
+import path from 'path';
 
 function generateOTP() {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -58,6 +60,13 @@ export async function POST(req: NextRequest) {
     if (!user) {
         return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
+
+    // Choose template based on create or update
+    const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+    const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+    const header = fs.readFileSync(headerPath, 'utf8');
+    const footer = fs.readFileSync(footerPath, 'utf8');
+
     // user.email = email;
     const otp = generateOTP();
     user.otp = otp;
@@ -66,7 +75,16 @@ export async function POST(req: NextRequest) {
     await sendEmail({
         to: email,
         subject: OTP_EMAIL_SUBJECT,
-        html: `<p>Your OTP is <b>${otp}</b>. It is valid for 5 minutes.</p>`
+        html: `${header}
+            <p>Hello,</p>
+            <p>We received a request to update your email address on <b>Pharmato</b>.</p>
+            <p>Your One-Time Password (OTP) is:</p>
+            <h2 style="color:#2e7d32;letter-spacing:2px;">${otp}</h2>
+            <p>This OTP is valid for <b>5 minutes</b>. Please do not share this code with anyone.</p>
+            <p>If you did not request this change, please ignore this email or contact our support team immediately.</p>
+            <p>Thank you,<br><b>Team Pharmato</b></p>
+            ${footer}
+        `
     });
     return NextResponse.json({ success: true, message: 'OTP Sent Successfully.' });
 }

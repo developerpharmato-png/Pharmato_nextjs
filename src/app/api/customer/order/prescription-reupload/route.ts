@@ -90,6 +90,14 @@ export async function POST(req: NextRequest) {
             const Role = (await import('@/models/Role')).default;
             const User = (await import('@/models/User')).default;
 
+            
+
+            // Choose template based on create or update
+            const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+            const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+            const header = fs.readFileSync(headerPath, 'utf8');
+            const footer = fs.readFileSync(footerPath, 'utf8');
+
             // Get store and admin manager
             let storeName = '';
             let adminName = '';
@@ -141,6 +149,7 @@ export async function POST(req: NextRequest) {
                             // Send email to adminEmail
                             if (adminEmail) {
                                 const adminHtml = `
+                                ${header}
                                     <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.4;">
                                         <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
                                             <h2 style="margin-bottom: 16px;">Prescription Re-uploaded – Action Required for Order #${orderDoc.order_id}</h2>
@@ -167,6 +176,7 @@ export async function POST(req: NextRequest) {
                                             <p style="margin:6px 0 0;color:#333;font-weight:600;">Regards,<br/>Team Pharmato</p>
                                         </div>
                                     </div>
+                                    ${footer}
                                 `;
                                 await sendEmail({ to: adminEmail, subject: `Prescription Re-uploaded – Action Required for Order #${orderDoc.order_id}`, html: adminHtml });
                             }
@@ -202,6 +212,7 @@ export async function POST(req: NextRequest) {
                         const superAdminEmail = (superAdmin as any).email;
                         if (superAdminEmail) {
                             const superAdminHtml = `
+                            ${header}
                                 <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.4;">
                                     <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
                                         <h2 style="margin-bottom: 16px;">Prescription Re-uploaded – Order #${orderDoc.order_id}</h2>
@@ -228,18 +239,13 @@ export async function POST(req: NextRequest) {
                                         <p style="margin:6px 0 0;color:#333;font-weight:600;">Regards,<br/>Team Pharmato</p>
                                     </div>
                                 </div>
+                                ${footer}
                             `;
                             await sendEmail({ to: superAdminEmail, subject: `Prescription Re-uploaded – Order #${orderDoc.order_id}`, html: superAdminHtml });
                         }
                     }
                 }
             }
-
-            // Choose template based on create or update
-            const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
-            const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
-            const header = fs.readFileSync(headerPath, 'utf8');
-            const footer = fs.readFileSync(footerPath, 'utf8');
 
             // If order is delivered, send delivered email to customer
             try {

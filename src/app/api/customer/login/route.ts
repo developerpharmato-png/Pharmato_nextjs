@@ -40,6 +40,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import fs from 'fs';
+import path from 'path';
 
 function generateOTP() {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -141,6 +143,12 @@ export async function POST(request: NextRequest) {
         await user.save();
     }
 
+    // Choose template based on create or update
+    const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+    const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+    const header = fs.readFileSync(headerPath, 'utf8');
+    const footer = fs.readFileSync(footerPath, 'utf8');
+
     // =====================================
     // 5️⃣ New User → Create Welcome Notification
     // =====================================
@@ -168,6 +176,7 @@ export async function POST(request: NextRequest) {
                 const name = user.name || '';
                 const displayName = name ? name : (user.mobile || 'Customer');
                 const html = `
+                ${header}
                     <div style="font-family: Arial, sans-serif; color: #333; line-height:1.5;">
                       <p>Hello ${displayName},</p>
                       <p>Welcome to "Pharmato"! 👋<br/>We’re glad to have you with us.</p>
@@ -182,6 +191,7 @@ export async function POST(request: NextRequest) {
                       <p>Start exploring now and experience hassle-free healthcare delivery.</p>
                       <p>Stay healthy,<br/>Team Pharmato<br/>Your trusted pharmacy partner</p>
                     </div>
+                    ${footer}
                 `;
 
                 await sendEmail({
