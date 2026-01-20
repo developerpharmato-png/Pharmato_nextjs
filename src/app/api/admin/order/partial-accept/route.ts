@@ -546,7 +546,7 @@ ${invoiceMedicinesHtml}
                 timeout: 60000 // Increase timeout here as well
             });
 
-            const publicId = `admin_${Date.now()}`;
+            const publicId = `INV_${Date.now()}`;
             // const result = await uploadToCloudinary(buffer, publicId);
             const result = await uploadToCloudinary(
                 pdfBuffer,

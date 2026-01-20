@@ -84,6 +84,18 @@ export async function POST(request: NextRequest) {
     user.isBlocked = 0;
     user.userBlockedTime = undefined;
     if (deviceToken) {
+
+         const checkDeviceToken = await User.find({ deviceToken: deviceToken });
+
+         if (checkDeviceToken && checkDeviceToken.length > 0) {
+            for (const element of checkDeviceToken) {
+
+                element.deviceToken = "";
+                await element.save();
+                
+            }
+         }
+
         user.deviceToken = deviceToken;
     } else {
         user.deviceToken = undefined;
