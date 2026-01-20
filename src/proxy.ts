@@ -16,6 +16,7 @@ export const PROTECTED_PATHS: string[] = [
 export const UNPROTECTED_PATHS: string[] = [
   '/api/admin/marg',
   '/api/admin/marg/cron',
+  '/api/admin/customers/notifications',
 ];
 
 /**
