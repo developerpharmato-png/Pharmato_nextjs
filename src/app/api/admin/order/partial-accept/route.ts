@@ -99,10 +99,12 @@ export async function POST(req: NextRequest) {
         await order.save();
 
         let userName = 'Customer';
+        let userMobile = '';
         let userEmail = '';
         const deliveredAddr: any = order.deliveredAddress || null;
         if (deliveredAddr) {
             userName = deliveredAddr?.name || 'Customer';
+            userMobile = deliveredAddr?.mobile || '';
             userEmail = deliveredAddr?.email || '';
         }
 
@@ -433,31 +435,63 @@ export async function POST(req: NextRequest) {
     <div style="max-width:800px;margin:24px auto;background-color:#ffffff;padding:32px;border-radius:8px;">
 
         <!-- HEADER -->
-        <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="width: 35%;">
+                <img src="apollo-logo.png" alt="Apollo Pharmacy" style="height: 60px;"><br>
+                <strong>TREASURE FANTASY</strong><br>
+                GF PLOT NO A-01, LABHAM GREEN GRAM,<br>
+                Phone: 7225026829
+            </div>
+
+            <div style="width: 30%; text-align: center;">
+                <div style="font-size: 18px; font-weight: bold; margin-top: 30px;">INVOICE</div>
+            </div>
+
+            <div style="width: 35%; text-align: right; font-size: 12px;">
+                <strong>Registered Office:</strong><br>
+                No.19 Bishop Garden, Raja Annamalaipuram,<br>
+                Chennai-600028<br><br>
+                <strong>Admin Office:</strong><br>
+                AI Towers, 3rd Floor, No 55,<br>
+                Greams Road, Chennai - 600006
+            </div>
+        </div>
+
+        <hr style="margin: 15px 0;">
+
+        <!-- LICENSE INFO -->
+        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+            <div>
+                FSSAI No: 11424850000976<br>
+                D.L.No: 20/3838-41/110/2024-20,21,20B,21B
+            </div>
+            <div style="text-align: right;">
+                GST No: 23AAPCA5954P1ZZ<br>
+                CIN: U52500TN2016PLC111328
+            </div>
+        </div>
+
+        <hr style="margin: 15px 0;">
+
+        <!-- CUSTOMER DETAILS -->
+        <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
             <tr>
-                <td style="vertical-align:top;">
-                    <h2 style="margin:0;color:#2c3e50;">Pharmato Pharmacy</h2>
-                    <p style="margin:4px 0;font-size:14px;color:#555;">Near City Hospital</p>
-                    <p style="margin:4px 0;font-size:14px;color:#555;">Indore, Madhya Pradesh</p>
-                    <p style="margin:4px 0;font-size:14px;color:#555;">Phone: +91 9XXXXXXXXX</p>
-                </td>
-                <td style="vertical-align:top;text-align:right;">
-                    <p style="margin:4px 0;font-size:14px;"><strong>Invoice No:</strong> ${invoiceNumber}</p>
-                    <p style="margin:4px 0;font-size:14px;"><strong>Date:</strong> ${invoiceDate}</p>
-                </td>
+                <td><strong>Name:</strong> ${userName}</td>
+                <td><strong>Invoice No:</strong> ${invoiceNumber}</td>
+            </tr>
+            <tr>
+                <td><strong>Mobile:</strong> ${userMobile}</td>
+                <td><strong>Bill Date:</strong> ${invoiceDate}</td>
             </tr>
         </table>
 
-        <div style="height:2px;background-color:#eaeaea;margin-bottom:24px;"></div>
-
-        <!-- TITLE -->
-        <h3 style="margin:0 0 16px 0;color:#333;text-align:center;">Invoice</h3>
+        <hr style="margin: 15px 0;">
 
         <!-- ITEMS TABLE -->
         <table style="width:100%;border-collapse:collapse;">
             <thead>
                 <tr style="background-color:#f8f9fa;">
-                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:left;color:#333;">Medicine</th>
+                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:left;color:#333;">Product Name</th>
                     <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Quantity</th>
                     <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">MRP</th>
                     <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Selling Price</th>

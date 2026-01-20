@@ -1,5 +1,17 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
+
+/* ---------------- DISCOUNT UTILITY ---------------- */
+function calculateDiscount(mrp?: number, price?: number) {
+    if (typeof mrp === 'number' && typeof price === 'number' && mrp > 0) {
+        let discount = Math.round(((mrp - price) / mrp) * 100);
+        if (discount < 0) discount = 0;
+        if (discount > 100) discount = 100;
+        return discount;
+    }
+    return 0;
+}
+
 export interface IMedicine {
     uniqueCode?: string;
     uniqueIdentity: string;
@@ -118,22 +130,12 @@ const MedicineSchema = new Schema<IMedicine>({
         default: 0,
         min: [0, 'Purchase price cannot be negative'],
     },
-    mrp: { 
+    mrp: {
         type: Number,
         default: 0,
         min: [0, 'MRP cannot be negative'],
     },
-    discount: {
-        type: Number,
-        min: [0, 'Discount cannot be negative'],
-        max: [100, 'Discount cannot be more than 100%'],
-        default: function () {
-            if (this.mrp && this.price) {
-                return Math.round(((this.mrp - this.price) / this.mrp) * 100);
-            }
-            return 0;
-        }
-    },
+    discount: { type: Number, default: 0 },
     stock: {
         type: Number,
         default: 0,
@@ -185,15 +187,47 @@ const MedicineSchema = new Schema<IMedicine>({
     timestamps: true,
 });
 
-// Auto-increment uniqueCode on new medicine creation (count-based) before save
+
+/* ---------------- SAVE (INSERT / DOC SAVE) ---------------- */
 MedicineSchema.pre('save', async function (next) {
-    // @ts-ignore
+    this.discount = calculateDiscount(this.mrp, this.price);
+
     if (this.isNew && !this.uniqueCode) {
-        const Medicine = mongoose.models.Medicine || mongoose.model<IMedicine>('Medicine', MedicineSchema);
+        const Medicine = mongoose.models.Medicine || mongoose.model('Medicine', MedicineSchema);
         const count = await Medicine.countDocuments();
-        // @ts-ignore
         this.uniqueCode = `MED-${count + 1}`;
     }
+
+    next();
+});
+
+/* ---------------- UPDATE (findOneAndUpdate) ---------------- */
+MedicineSchema.pre('findOneAndUpdate', function (next) {
+    const update: any = this.getUpdate();
+
+    const mrp = update.mrp ?? update.$set?.mrp;
+    const price = update.price ?? update.$set?.price;
+
+    if (mrp !== undefined || price !== undefined) {
+        if (!update.$set) update.$set = {};
+        update.$set.discount = calculateDiscount(mrp, price);
+    }
+
+    next();
+});
+
+/* ---------------- BULK UPDATE ---------------- */
+MedicineSchema.pre(['updateOne', 'updateMany'], function (next) {
+    const update: any = this.getUpdate();
+
+    const mrp = update.mrp ?? update.$set?.mrp;
+    const price = update.price ?? update.$set?.price;
+
+    if (mrp !== undefined || price !== undefined) {
+        if (!update.$set) update.$set = {};
+        update.$set.discount = calculateDiscount(mrp, price);
+    }
+
     next();
 });
 

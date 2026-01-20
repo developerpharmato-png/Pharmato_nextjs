@@ -82,6 +82,17 @@ function safeJSONParse(str: string) {
   return JSON.parse(str);
 }
 
+function calculateDiscount(mrp?: number, price?: number) {
+  if (typeof mrp === 'number' && typeof price === 'number' && mrp > 0) {
+    let d = Math.round(((mrp - price) / mrp) * 100);
+    if (d < 0) d = 0;
+    if (d > 100) d = 100;
+    return d;
+  }
+  return 0;
+}
+
+
 /**
  * @swagger
  * /api/admin/marg/cron:
@@ -147,12 +158,17 @@ async function importMedicinesFromMarg() {
       const checkMedicine = await Medicine.findOne({ uniqueIdentity: p.rid });
       const expiry = convertExpiry(p.exp);
       const { categoryId, subCategoryId } = getRandomCategoryAndSubcategory();
+
+      const price = computePriceFromMrp(p.MRP);
+      const mrp = Number(p.MRP) || 0;
+
       if (checkMedicine) {
 
         const medObj = {
-          price: computePriceFromMrp(p.MRP),
+          price,
+          mrp,
+          discount: calculateDiscount(mrp, price), // ✅ MANUAL
           purchasePrice: Number(p.PRate) || 0,
-          mrp: Number(p.MRP) || 0,
           stock: Number(p.stock) || 0,
           isDeleted: p.Is_Deleted === "1",
           expiryDate: expiry instanceof Date && !isNaN(expiry.getTime()) ? expiry : null,
@@ -172,13 +188,17 @@ async function importMedicinesFromMarg() {
       } else {
         medCount++;
         const uniqueCode = `MED-${medCount}`;
+
         bulkInsertArray.push({
           uniqueIdentity: p.rid,
           name: p.name,
           manufacturer: p.company,
-          price: computePriceFromMrp(p.MRP),
+
+          price,
+          mrp,
+          discount: calculateDiscount(mrp, price), // ✅ REQUIRED
+
           purchasePrice: Number(p.PRate) || 0,
-          mrp: Number(p.MRP) || 0,
           stock: Number(p.stock) || 0,
           batchNumber: p.code,
           isDeleted: p.Is_Deleted === "1",
