@@ -101,11 +101,14 @@ export async function POST(req: NextRequest) {
         let userName = 'Customer';
         let userMobile = '';
         let userEmail = '';
+        let deliveryAddressText = ''
+
         const deliveredAddr: any = order.deliveredAddress || null;
         if (deliveredAddr) {
             userName = deliveredAddr?.name || 'Customer';
             userMobile = deliveredAddr?.mobile || '';
-            userEmail = deliveredAddr?.email || '';
+            userEmail = deliveredAddr?.email || '';            
+            deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
         }
 
         const store: any = await Store.findById(order.storeId).lean();
@@ -448,26 +451,10 @@ export async function POST(req: NextRequest) {
             </div>
 
             <div style="width: 35%; text-align: right; font-size: 12px;">
-                <strong>Registered Office:</strong><br>
-                No.19 Bishop Garden, Raja Annamalaipuram,<br>
-                Chennai-600028<br><br>
-                <strong>Admin Office:</strong><br>
-                AI Towers, 3rd Floor, No 55,<br>
-                Greams Road, Chennai - 600006
-            </div>
-        </div>
-
-        <hr style="margin: 15px 0;">
-
-        <!-- LICENSE INFO -->
-        <div style="display: flex; justify-content: space-between; font-size: 12px;">
-            <div>
-                FSSAI No: 11424850000976<br>
-                D.L.No: 20/3838-41/110/2024-20,21,20B,21B
-            </div>
-            <div style="text-align: right;">
-                GST No: 23AAPCA5954P1ZZ<br>
-                CIN: U52500TN2016PLC111328
+                <strong>FSSAI No:</strong> 11424850000976<br>
+                <strong>D.L.No:</strong> 20/3838-41/110/2024-20,21,20B,21B<br>
+                <strong>GST No:</strong> 23AAPCA5954P1ZZ<br>
+                <strong>CIN:</strong> U52500TN2016PLC111328
             </div>
         </div>
 
@@ -482,6 +469,9 @@ export async function POST(req: NextRequest) {
             <tr>
                 <td><strong>Mobile:</strong> ${userMobile}</td>
                 <td><strong>Bill Date:</strong> ${invoiceDate}</td>
+            </tr>
+            <tr>
+                <td><strong>Address:</strong> ${deliveryAddressText}</td>
             </tr>
         </table>
 
