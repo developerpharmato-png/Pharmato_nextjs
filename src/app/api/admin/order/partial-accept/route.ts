@@ -161,8 +161,8 @@ export async function POST(req: NextRequest) {
         // Fetch medicine names for both accepted and cancelled
         // Fetch medicine names for both accepted and cancelled, and merge with quantity/price for accepted
         const [acceptedRaw, cancelledNames] = await Promise.all([
-            Medicine.find({ _id: { $in: unCancelledItems.map((i: any) => i.medicineId) } }).select('name coverImage'),
-            Medicine.find({ _id: { $in: cancelledForRefund.map((i: any) => i.medicineId) } }).select('name coverImage'),
+            Medicine.find({ _id: { $in: unCancelledItems.map((i: any) => i.medicineId) } }).select('name coverImage mrp'),
+            Medicine.find({ _id: { $in: cancelledForRefund.map((i: any) => i.medicineId) } }).select('name coverImage mrp'),
         ]);
 
         // Merge acceptedRaw with unCancelledItems to include quantity and price
@@ -171,7 +171,7 @@ export async function POST(req: NextRequest) {
             return {
                 ...m._doc,
                 quantity: item ? item.quantity : 0,
-                price: item ? item.price : 0
+                price: item ? item.price : 0,
             };
         });
 
@@ -395,6 +395,9 @@ export async function POST(req: NextRequest) {
                         ${m.quantity}
                     </td>
                     <td style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#555;">
+                        ₹${m.mrp}
+                    </td>
+                    <td style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#555;">
                         ₹${m.price}
                     </td>
                     <td style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#555;">
@@ -448,7 +451,7 @@ export async function POST(req: NextRequest) {
         <div style="height:2px;background-color:#eaeaea;margin-bottom:24px;"></div>
 
         <!-- TITLE -->
-        <h3 style="margin:0 0 16px 0;color:#333;">Invoice for Accepted Medicines</h3>
+        <h3 style="margin:0 0 16px 0;color:#333;text-align:center;">Invoice</h3>
 
         <!-- ITEMS TABLE -->
         <table style="width:100%;border-collapse:collapse;">
@@ -456,7 +459,8 @@ export async function POST(req: NextRequest) {
                 <tr style="background-color:#f8f9fa;">
                     <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:left;color:#333;">Medicine</th>
                     <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Quantity</th>
-                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Price</th>
+                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">MRP</th>
+                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Selling Price</th>
                     <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Total</th>
                 </tr>
             </thead>
@@ -546,7 +550,7 @@ ${invoiceMedicinesHtml}
                 timeout: 60000 // Increase timeout here as well
             });
 
-            const publicId = `admin_${Date.now()}`;
+            const publicId = `INV_${Date.now()}`;
             // const result = await uploadToCloudinary(buffer, publicId);
             const result = await uploadToCloudinary(
                 pdfBuffer,

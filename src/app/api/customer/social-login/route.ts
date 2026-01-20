@@ -124,14 +124,26 @@ export async function POST(request: NextRequest) {
             }
         }
 
-    } else {
-        if (deviceToken) {
-            user.deviceToken = deviceToken;
-        } else {
-            user.deviceToken = undefined;
-        }
-        await user.save();
     }
+
+    if (deviceToken) {
+
+        const checkDeviceToken = await User.find({ deviceToken: deviceToken });
+
+        if (checkDeviceToken && checkDeviceToken.length > 0) {
+            for (const element of checkDeviceToken) {
+
+                element.deviceToken = "";
+                await element.save();
+
+            }
+        }
+
+        user.deviceToken = deviceToken;
+    } else {
+        user.deviceToken = "";
+    }
+
     // Issue access and refresh tokens
     const accessToken = signJwt({ userId: user._id, mobile: user.mobile, provider, role: 'customer' }, '24h');
     const refreshToken = signJwt({ userId: user._id, mobile: user.mobile, provider, role: 'customer' }, undefined); // default: no expiry
