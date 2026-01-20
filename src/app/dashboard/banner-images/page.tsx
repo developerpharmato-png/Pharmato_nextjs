@@ -25,7 +25,7 @@ export default function BannerImagesDashboard() {
   const [images, setImages] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [inputImages, setInputImages] = useState<string>("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);

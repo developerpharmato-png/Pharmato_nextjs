@@ -34,6 +34,7 @@ import { downloadImageByUrl } from "@/utils/function";
 import PartialCancel from "@/app/dashboard/components/skeleton/PartialCancel";
 import ProductManageTable from "@/app/dashboard/components/ProductManageTable";
 import TextareaField from "@/app/dashboard/components/skeleton/FieldCom";
+import OdermangeSkeleton from "@/app/dashboard/components/skeleton/odermangeSkeleton";
 
 export default function PartialCancelPage() {
   const router = useRouter();
@@ -294,10 +295,10 @@ export default function PartialCancelPage() {
   };
 
 
-  if (loading)
+  if (!loading)
     return (
       <div className="scrollbar-hide containerStyle">
-        <PartialCancel />
+        <OdermangeSkeleton />
       </div>
     );
   if (!order) return null;
@@ -324,7 +325,7 @@ export default function PartialCancelPage() {
 
   return (
     <div className="containerStyle scrollbar-hide">
-    
+
       <div
         style={{
           display: "flex",
@@ -452,7 +453,7 @@ export default function PartialCancelPage() {
                 );
               }
             }}
-          > 
+          >
             Confirm
           </Button>
         </DialogActions>
@@ -564,14 +565,14 @@ export default function PartialCancelPage() {
                         }}
                       />
                     )}
-                  </div> 
+                  </div>
 
                   {/* View Button at Bottom */}
                   <button
                     onClick={() => {
                       const lowerUrl = url.toLowerCase();
                       const isPdf = lowerUrl.endsWith(".pdf") || lowerUrl.includes("/raw/");
-                      
+
                       if (isPdf) {
                         // Open PDF in new tab
                         window.open(url, '_blank');
@@ -629,12 +630,16 @@ export default function PartialCancelPage() {
         fullWidth
         PaperProps={{ sx: modalStyles.paper }}
       >
-        <DialogTitle>
-          <ModalHeader
-            title="Reject Prescription"
-            onClose={() => setShowRejectModalPresc(false)}
-          />
+
+        <ModalHeader
+          title="Reject Prescription"
+          onClose={() => setShowRejectModalPresc(false)}
+        /> <DialogTitle sx={{ p: 2 }}>
+
         </DialogTitle>
+
+
+
         <DialogContent sx={modalStyles.content}>
           <Box sx={modalStyles.noticeBox}>
             <p className="text-xs font-semibold text-[var(--status-danger-text)] leading-relaxed">
@@ -730,15 +735,16 @@ export default function PartialCancelPage() {
         fullWidth
         PaperProps={{ sx: modalStyles.paper }}
       >
+        <ModalHeader
+          title={
+            allPendingSelected
+              ? "Confirm Selected"
+              : "Reason for cancelling remaining items"
+          }
+          onClose={() => setShowCancelReasonDialog(false)}
+        />
         <DialogTitle sx={{ p: 2 }}>
-          <ModalHeader
-            title={
-              allPendingSelected
-                ? "Confirm Selected"
-                : "Reason for cancelling remaining items"
-            }
-            onClose={() => setShowCancelReasonDialog(false)}
-          />
+
         </DialogTitle>
 
         {/* overflowY: "auto" ensures only the content scrolls, not the whole dialog */}
@@ -753,7 +759,7 @@ export default function PartialCancelPage() {
                 for cancellation. This note will be sent to the customer.
               </Typography>
             </Box>
-          )} 
+          )}
 
 
           <Stack spacing={2}>

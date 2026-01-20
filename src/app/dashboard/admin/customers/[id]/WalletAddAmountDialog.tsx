@@ -92,13 +92,13 @@ export default function WalletAddAmountDialog({ userId, onSuccess, open, setOpen
             fullWidth
             PaperProps={{ sx: modalStyles.paper }}
         >
+            <ModalHeader title="Add Amount to Wallet" onClose={() => setOpen(false)} />
             <form onSubmit={formik.handleSubmit}>
-                <DialogTitle >
-                    <ModalHeader title="Add Amount to Wallet" onClose={() => setOpen(false)} />
-                </DialogTitle>
+
+
                 <DialogContent
 
-                    sx={{ ...modalStyles.content, overflowY: "auto", maxHeight: "70vh" }}
+                    sx={{ ...modalStyles.content,  }}
                 >
                     <TextField
                         label="Amount"
@@ -117,9 +117,7 @@ export default function WalletAddAmountDialog({ userId, onSuccess, open, setOpen
                 <DialogActions
                     sx={modalStyles.sectionHeader}
                 >
-                    <Button onClick={() => setOpen(false)} color="inherit" disabled={addLoading || formik.isSubmitting}>
-                        Cancel
-                    </Button>
+                  
                     <CustomButton type="submit"
                         disabled={addLoading || formik.isSubmitting}>
                         {addLoading || formik.isSubmitting ? "Adding..." : "Add"}

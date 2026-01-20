@@ -44,7 +44,7 @@ export function AddEditPincodeModal({
   console.log(id, "id");
 
   const [inputValue, setInputValue] = useState(pincode || ""); // Initialize with pincode value if editing
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [modalTitle, setModalTitle] = useState(
     id ? "Edit Pincode" : "Add New Pincode(s)"
   ); // Dynamic title

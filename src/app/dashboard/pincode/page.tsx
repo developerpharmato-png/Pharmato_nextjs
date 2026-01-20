@@ -25,7 +25,7 @@ export default function PincodeDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPincode, setCurrentPincode] = useState<Pincode | null>(null);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);

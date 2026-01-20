@@ -17,7 +17,7 @@ function ResetPasswordForm({ router }: { router: ReturnType<typeof useRouter> })
     const token = searchParams.get('token') || "";
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
 

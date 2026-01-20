@@ -9,6 +9,7 @@ import OrdersTable from "../../../orders/OrdersTable";
 import WalletTable from "./WalletTable";
 import { WalletListPath } from "../../../storeAPICall/API/BaseApi";
 import WalletAddAmountDialog from "./WalletAddAmountDialog";
+import CustomerDetailsSekelton from "@/app/dashboard/components/skeleton/CustomerDetailsSekelton";
 
 // --- Type Definitions ---
 
@@ -100,41 +101,42 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
   const [ordersLoading, setOrdersLoading] = useState(false);
 
   // 1. Fetch Customer Details
-  useEffect(() => {
-    if (id) {
-      let mounted = true;
-      fetch(`/api/admin/customers/detail/${id}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (!mounted) return;
-          if (data?.success) {
-            setCustomer(data.data || null);
-          } else {
-            setCustomer(null);
-            Swal.fire({
-              icon: "error",
-              title: "Load failed",
-              text: data?.message || "Failed to fetch customer",
-            });
-          }
-          setLoading(false);
-        })
-        .catch((err) => {
-          if (!mounted) return;
-          setLoading(false);
-          setCustomer(null);
-          Swal.fire({
-            icon: "error",
-            title: "Network error",
-            text: "Unable to fetch customer details",
-          });
+  const fetchCustomerDetail = async () => {
+    if (!id) return;
+    setLoading(true);
+    let mounted = true;
+    try {
+      const res = await fetch(`/api/admin/customers/detail/${id}`);
+      const data = await res.json();
+      if (!mounted) return;
+      if (data?.success) {
+        setCustomer(data.data || null);
+      } else {
+        setCustomer(null);
+        Swal.fire({
+          icon: "error",
+          title: "Load failed",
+          text: data?.message || "Failed to fetch customer",
         });
-      return () => {
-        mounted = false;
-      };
-    } else {
+      }
+    } catch (err) {
+      if (!mounted) return;
+      setCustomer(null);
+      Swal.fire({
+        icon: "error",
+        title: "Network error",
+        text: "Unable to fetch customer details",
+      });
+    } finally {
       setLoading(false);
     }
+    return () => {
+      mounted = false;
+    };
+  };
+  useEffect(() => {
+    fetchCustomerDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // 2. Fetch Addresses
@@ -224,7 +226,7 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
 
   // Renders Customer Details
   const CustomerDetails = () => {
-    if (loading) return <LoadingSpinner />;
+    if (loading) return <CustomerDetailsSekelton />;
 
     if (!customer) {
       return (
@@ -497,7 +499,10 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
             {customer && (
               <WalletAddAmountDialog
                 userId={customer._id}
-                onSuccess={fetchWallet}
+                onSuccess={() => {
+                  fetchWallet();
+                  fetchCustomerDetail();
+                }}
                 open={showWalletDialog}
                 setOpen={setShowWalletDialog}
               />

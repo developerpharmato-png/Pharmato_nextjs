@@ -15,6 +15,7 @@ import {
 import { dropdownCategoriesPath } from "@/app/dashboard/storeAPICall/API/BaseApi";
 import { MdSave } from "react-icons/md";
 import FormSkeleton from "@/app/dashboard/components/skeleton/FormSkeleton";
+import SubCategorySekelton from "@/app/dashboard/components/skeleton/SubCategorySekelton";
 
 export default function AddEditSubCategoryPage({ id }: { id?: string }) {
   const router = useRouter();
@@ -27,7 +28,7 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
   const [categories, setCategories] = useState<any[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  const [initialFetchLoading, setInitialFetchLoading] = useState(true);
+  const [initialFetchLoading, setInitialFetchLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch initial data if editing
@@ -40,6 +41,7 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
 
       try {
         setIsEdit(true);
+        setInitialFetchLoading(true);
         const res = await fetch(`/api/admin/subcategories/${usedId}`);
         const data = await res.json();
         if (data.success && data.data) {
@@ -89,7 +91,7 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
       isActive: true,
       categoryname: "",
     },
-    
+
     validationSchema: Yup.object({
       name: Yup.string()
         .min(2, "Subcategory name must be at least 2 characters.")
@@ -157,7 +159,7 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
     validateOnBlur: true,
     enableReinitialize: true,
   });
-    console.log(formik.values.categoryname ,"formik.values.categoryname");
+  console.log(formik.values.categoryname, "formik.values.categoryname");
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -281,9 +283,9 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
 
   if (initialFetchLoading) {
     return (
-      <div className="containerStyle scrollbar-hide">
-        <FormSkeleton />
-      </div>
+
+      <SubCategorySekelton />
+
     );
   }
 
@@ -417,7 +419,10 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
                 width="100%"
               >
                 {loading || formik.isSubmitting ? (
-                  <CircularProgress size={24} color="inherit" />
+                  <>
+                    <CircularProgress size={24} color="inherit" />
+                    {isEdit ? "Update Subcategory" : "Add Subcategory"}
+                  </>
                 ) : (
                   <>
                     <MdSave size={22} />

@@ -153,11 +153,20 @@ export default function PermissionPage() {
 
   // Full Page Skeleton
   const PageSkeleton = () => (
-    <div className="animate-pulse space-y-6">
-      <div className="bg-gray-200 h-12 w-1/4 rounded-lg" />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-8">
+      {/* Header Skeleton */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="h-10 w-64 rounded skeleton-loading" />
+        <div className="h-10 w-40 rounded-xl skeleton-loading" />
+      </div>
+      {/* Grid Skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[...Array(12)].map((_, i) => (
-          <div key={i} className="bg-gray-100 h-32 rounded-xl border border-gray-200" />
+          <div key={i} className="bg-white h-32 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-center items-center p-4">
+            <div className="h-6 w-2/3 rounded skeleton-loading mb-4" />
+            <div className="h-4 w-1/2 rounded skeleton-loading mb-2" />
+            <div className="h-4 w-1/3 rounded skeleton-loading" />
+          </div>
         ))}
       </div>
     </div>
@@ -175,6 +184,7 @@ export default function PermissionPage() {
       <div className="mt-6">
         {loading && roles.length === 0 ? (
           <PageSkeleton />
+         
         ) : (
           <div className="space-y-6">
             {/* Role Switcher */}

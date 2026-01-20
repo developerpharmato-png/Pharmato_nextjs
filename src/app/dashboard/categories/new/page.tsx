@@ -80,7 +80,7 @@ export default function NewCategoryPage() {
             toast: true,
             position: "top-end",
             icon: "error",
- showConfirmButton: false,
+            showConfirmButton: false,
             timer: 2000,
             text: errorMsg,
           });
@@ -90,8 +90,8 @@ export default function NewCategoryPage() {
           toast: true,
           position: "top-end",
           icon: "error",
- showConfirmButton: false,
-            timer: 2000,
+          showConfirmButton: false,
+          timer: 2000,
           text: ToastMessages.CATEGORY_CREATE_FAILED,
         });
       } finally {
@@ -298,7 +298,10 @@ export default function NewCategoryPage() {
               {" "}
               <CustomButton type="submit" disabled={loading} width="100%">
                 {loading || formik.isSubmitting ? (
-                  <CircularProgress size={24} color="inherit" />
+                  <>
+                    <CircularProgress size={24} color="inherit" />
+                    Add Category
+                  </>
                 ) : (
                   <>
                     <MdSave size={22} />{" "}
