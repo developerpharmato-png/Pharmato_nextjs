@@ -9,3 +9,4 @@ export default function AdminCustomerDetailPage() {
     const id = params?.id as string;
     return <AdminCustomerDetailTabs id={id} />;
 }
+ 

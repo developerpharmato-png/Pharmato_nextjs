@@ -24,7 +24,7 @@ type Role = { _id: string; name: string };
 
 export default function ManagementPage() {
   const [admins, setAdmins] = useState<Admin[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);

@@ -1,5 +1,6 @@
 import { he } from "date-fns/locale";
 
+
 export const modalStyle = {
   position: "absolute" as "absolute",
   top: "50%",
@@ -9,10 +10,22 @@ export const modalStyle = {
   bgcolor: "background.paper",
   borderRadius: 2,
   boxShadow: 24,
-  p: 4,
+  // p: 4,
   overflowY: "scroll",
   height: "70vh",
 };
+
+// To hide scrollbars for modal, add the following CSS to your global stylesheet (e.g., globals.css):
+//
+// .modalStyle {
+//   scrollbar-width: none; /* Firefox */
+//   -ms-overflow-style: none; /* IE 10+ */
+// }
+// .modalStyle::-webkit-scrollbar {
+//   display: none; /* Chrome, Safari, Opera */
+// }
+
+
 
 export const modalStyles = {
   paper: {

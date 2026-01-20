@@ -84,7 +84,10 @@ export default function SettingsPage() {
       .test("is-greater", ToastMessages.THRESHOLD_VALIDATION, function (value) {
         return value >= (this.parent.deliveryFee || 0);
       }),
-    expectedDeliveryHours: Yup.number().required("Mandatory field").min(0, "No negative values").max(24, "Cannot exceed 24 hours"),
+    expectedDeliveryHours: Yup.number()
+      .required("Mandatory field")
+      .min(1, "Must be at least 1 hour")
+      .max(24, "Cannot exceed 24 hours"),
   });
 
   return (
@@ -195,7 +198,7 @@ export default function SettingsPage() {
                       onChange={handleChange}
                       onBlur={handleBlur}
                       error={touched.expectedDeliveryHours && !!errors.expectedDeliveryHours}
-                      inputProps={{ step: "1", min: "0", max: "24" }}
+                      inputProps={{ step: "1", min: "1", max: "24" }}
                       InputProps={{ startAdornment: <InputAdornment position="start">hrs</InputAdornment> }}
                       fullWidth
                     />

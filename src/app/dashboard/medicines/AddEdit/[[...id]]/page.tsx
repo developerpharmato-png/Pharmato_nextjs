@@ -8,6 +8,7 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
+  CircularProgress,
 } from "@mui/material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -30,6 +31,7 @@ import { useParams } from "next/navigation";
 import { initialMedicineFormValues } from "@/utils/initCategory";
 import { medicineFormValidationSchema } from "@/utils/validateCategory";
 import TextareaField from "@/app/dashboard/components/skeleton/FieldCom";
+import MedicineAddEditSkeleton from "@/app/dashboard/components/Skelton/MedicineAddEditSkeleton";
 
 export default function MedicineAddEditForm({ id }: { id?: string }) {
   const router = useRouter();
@@ -38,11 +40,13 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
 
   const [initialValues, setInitialValues] = useState(initialMedicineFormValues);
   const [isEdit, setIsEdit] = useState(false);
-
+  const [getByidLoading, setGetByidLoading] = useState(true);
   // Fetch medicine if id is present
+  console.log(getByidLoading, "getByidLoading");
+
   useEffect(() => {
     if (usedId) {
-      setLoading(true);
+      setGetByidLoading(true);
       setIsEdit(true);
       fetch(`/api/admin/medicines/${usedId}`)
         .then(async (res) => {
@@ -75,7 +79,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
           }
         })
         .catch(() => setError("Failed to fetch medicine"))
-        .finally(() => setLoading(false));
+        .finally(() => setGetByidLoading(false));
     } else {
       setIsEdit(false);
       setInitialValues(initialMedicineFormValues);
@@ -548,7 +552,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
         });
         setTimeout(() => {
           try {
-            // router.back();
+            router.back();
           } catch (e) {
             if (typeof window !== "undefined") window.history.back();
           }
@@ -571,680 +575,697 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
 
   return (
     <>
-      <div className="containerStyle scrollbar-hide">
-        <HeaderWithAction
-          title={isEdit ? "Edit Medicine" : "Add New Medicine"}
-          subtitle={
-            isEdit
-              ? "Update medicine details"
-              : "Enter medicine details to add to inventory"
-          }
-          showBack={true}
-          showSearch={false}
-        />
+      {getByidLoading ? (
+        <>
+          <div className="containerStyle scrollbar-hide">
 
-        <div>
-          <form onSubmit={formik.handleSubmit} className="space-y-8">
-            <MedicineImageUploader
-              form={{
-                images: formik.values.images,
-                coverImage: formik.values.coverImage || "",
-              }}
-              touched={{ images: Array.isArray(formik.touched.images) }} // Convert to boolean explicitly
-              errors={formik.errors}
-              uploading={uploading}
-              handleFileChange={handleFileChange}
-              setPrimaryImage={(url) => formik.setFieldValue("coverImage", url)}
-              handleDeleteImage={handleDeleteImage}
-              openSlider={() => { }} // Provided a no-op function
-            />
+            <MedicineAddEditSkeleton />
+          </div>
+        </>
+      ) :
+        (
+          <>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="">
-                <TextField
-                  name="name"
-                  label="Medicine Name *"
-                  value={formik.values.name}
-                  onChange={handleChange}
-                  onBlur={formik.handleBlur}
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Enter medicine name"
-                  error={formik.touched.name && Boolean(formik.errors.name)}
-                  InputProps={{
-                    style: {
-                      borderRadius: "0.75rem",
-                      background: "#fff",
-                    },
-                  }}
-                />
-                {formik.touched.name && formik.errors.name && (
-                  <ErrorMessageCom error={formik.errors.name} />
-                )}
-              </div>
-
-              <div>
-                <FormControl fullWidth variant="outlined">
-                  <InputLabel id="store-select-label">Store</InputLabel>
-                  <Select
-                    labelId="store-select-label"
-                    name="storeId"
-                    value={formik.values.storeId}
-                    label="Store"
-                    onChange={(e) => {
-                      handleChange({
-                        target: {
-                          name: "storeId",
-                          value: e.target.value,
-                          type: "select-one",
-                        },
-                      } as React.ChangeEvent<HTMLSelectElement>);
-                    }}
-                  >
-                    <MenuItem value="">
-                      <em>Default / None</em>
-                    </MenuItem>
-                    {stores.map((s) => (
-                      <MenuItem key={String(s._id)} value={String(s._id)}>
-                        {s.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {formik.touched.storeId && formik.errors.storeId && (
-                    <ErrorMessageCom error={formik.errors.storeId} />
-                  )}
-                </FormControl>
-              </div>
-            </div>
-
-            <div>
-              <TextareaField
-                id="targetScreen"
-                name="alt"
-                label="Description"
-                value={formik.values.description}
-                onChange={(e) => {
-                  console.log("Description updated:", e.target.value); // Debugging log
-                  formik.setFieldValue("description", e.target.value);
-                }}
-                placeholder="Enter description here"
-                maxLength={400}
-                rows={5}
-                showCount={true}
-                error={
-                  formik.touched.description &&
-                    typeof formik.errors.description === "string"
-                    ? formik.errors.description
-                    : undefined
+            <div className="containerStyle scrollbar-hide">
+              <HeaderWithAction
+                title={isEdit ? "Edit Medicine" : "Add New Medicine"}
+                subtitle={
+                  isEdit
+                    ? "Update medicine details"
+                    : "Enter medicine details to add to inventory"
                 }
-                className="mb-4"
+                showBack={true}
+                showSearch={false}
               />
-              {formik.touched.description && formik.errors.description && (
-                <ErrorMessageCom error={formik.errors.description} />
-              )}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <TextField
-                  name="manufacturer"
-                  label="Manufacturer *"
-                  value={formik.values.manufacturer}
-                  onChange={handleChange}
-                  onBlur={formik.handleBlur}
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Manufacturer name"
-                  error={
-                    formik.touched.manufacturer &&
-                    Boolean(formik.errors.manufacturer)
-                  }
-                  InputProps={{
-                    style: {
-                      borderRadius: "0.75rem",
-                      background: "#fff",
-                    },
-                  }}
-                />
-                {formik.touched.manufacturer && formik.errors.manufacturer && (
-                  <ErrorMessageCom error={formik.errors.manufacturer} />
-                )}
-              </div>
 
               <div>
-                <TextField
-                  name="stock"
-                  label="Stock Quantity *"
-                  type="text"
-                  value={formik.values.stock}
-                  onChange={handleChange}
-                  onBlur={formik.handleBlur}
-                  fullWidth
-                  disabled={isEdit}
-                  variant="outlined"
-                  placeholder="0"
-                  error={formik.touched.stock && Boolean(formik.errors.stock)}
-                  InputProps={{
-                    style: {
-                      borderRadius: "0.75rem",
-                      background: "#fff",
-                    },
-                  }}
-                />
-                {formik.touched.stock && formik.errors.stock && (
-                  <ErrorMessageCom error={formik.errors.stock} />
-                )}
-              </div>
-
-              {/* Form Type */}
-              <div className="flex gap-4 items-end">
-                <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                  <InputLabel id="form-type-label">Form Type *</InputLabel>
-                  <Select
-                    labelId="form-type-label"
-                    name="category"
-                    value={formik.values.category}
-                    onChange={(event) => {
-                      handleChange({
-                        target: {
-                          name: "category",
-                          value: event.target.value,
-                          type: "select-one",
-                        },
-                      } as React.ChangeEvent<HTMLSelectElement>);
-                      // Reset unit when category changes
-                      formik.setFieldValue("unitInput", "");
-                      formik.setFieldValue("unit", "");
+                <form onSubmit={formik.handleSubmit} className="space-y-8">
+                  <MedicineImageUploader
+                    form={{
+                      images: formik.values.images,
+                      coverImage: formik.values.coverImage || "",
                     }}
-                    // onBlur removed from DatePicker (should be on TextField only)
-                    label="Form Type *"
-                  >
-                    {[
-                      "Tablet",
-                      "Capsule",
-                      "Syrup",
-                      "Injection",
-                      "Cream",
-                      "Drops",
-                      "Other",
-                    ].map((c) => (
-                      <MenuItem key={c} value={c}>
-                        {c}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                {formik.touched.category && formik.errors.category && (
-                  <ErrorMessageCom error={formik.errors.category} />
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {formik.values.category && (
-                  <TextField
-                    name="unitInput"
-                    label="Unit"
-                    value={formik.values.unitInput || ""}
-                    disabled={formik.values.category === "Other"}
-                    onChange={(e) => {
-                      let val = e.target.value;
-                      let suffix = "";
-                      switch (formik.values.category) {
-                        case "Tablet":
-                          suffix = " Tablets";
-                          break;
-                        case "Capsule":
-                          suffix = " Capsules";
-                          break;
-                        case "Syrup":
-                        case "Drops":
-                        case "Injection":
-                          suffix = " ml";
-                          break;
-                        case "Cream":
-                          suffix = " g";
-                          break;
-                        case "Other":
-                          suffix = "";
-                          break;
-                      }
-                      // Remove suffix if user types it
-                      if (val.endsWith(suffix))
-                        val = val.slice(0, -suffix.length);
-                      formik.setFieldValue("unitInput", val);
-                      formik.setFieldValue("unit", val + suffix);
-                    }}
-                    onBlur={formik.handleBlur}
-                    variant="outlined"
-                    placeholder={(() => {
-                      switch (formik.values.category) {
-                        case "Tablet":
-                          return "e.g. 10";
-                        case "Capsule":
-                          return "e.g. 10";
-                        case "Syrup":
-                          return "e.g. 250";
-                        case "Cream":
-                          return "e.g. 15";
-                        case "Drops":
-                          return "e.g. 10";
-                        case "Injection":
-                          return "e.g. 5";
-                        default:
-                          return "e.g. 1 Unit";
-                      }
-                    })()}
-                    InputProps={{
-                      endAdornment: (() => {
-                        switch (formik.values.category) {
-                          case "Tablet":
-                            return (
-                              <span style={{ marginLeft: 8 }}>Tablets</span>
-                            );
-                          case "Capsule":
-                            return (
-                              <span style={{ marginLeft: 8 }}>Capsules</span>
-                            );
-                          case "Syrup":
-                            return <span style={{ marginLeft: 8 }}>ml</span>;
-                          case "Cream":
-                            return <span style={{ marginLeft: 8 }}>g</span>;
-                          case "Drops":
-                            return <span style={{ marginLeft: 8 }}>ml</span>;
-                          case "Injection":
-                            return <span style={{ marginLeft: 8 }}>ml</span>;
-                          default:
-                            return null;
-                        }
-                      })(),
-                      style: {
-                        borderRadius: "0.75rem",
-                        background: "#fff",
-                      },
-                    }}
+                    touched={{ images: Array.isArray(formik.touched.images) }} // Convert to boolean explicitly
+                    errors={formik.errors}
+                    uploading={uploading}
+                    handleFileChange={handleFileChange}
+                    setPrimaryImage={(url) => formik.setFieldValue("coverImage", url)}
+                    handleDeleteImage={handleDeleteImage}
+                    openSlider={() => { }} // Provided a no-op function
                   />
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {" "}
-              {/* Increased grid gap */}
-              {/* Category */}
-              <div>
-                <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                  <InputLabel id="category-label">Category</InputLabel>
-                  <Select
-                    labelId="category-label"
-                    name="categoryId"
-                    value={formik.values.categoryId}
-                    onChange={(event) => {
-                      handleChange({
-                        target: {
-                          name: "categoryId",
-                          value: event.target.value,
-                          type: "select-one",
-                        },
-                      } as React.ChangeEvent<HTMLSelectElement>);
-                    }}
-                    label="Category"
-                  >
-                    <MenuItem value="">Select a category</MenuItem>
-                    {categories.map((cat) => (
-                      <MenuItem key={cat._id} value={cat._id}>
-                        {cat.name} {cat.isOTC ? "(OTC)" : ""}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </div>
-              {/* Subcategory */}
-              <div>
-                <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                  <InputLabel id="subcategory-label">Subcategory</InputLabel>
-                  <Select
-                    labelId="subcategory-label"
-                    name="subCategoryId"
-                    value={formik.values.subCategoryId}
-                    onChange={(event) => {
-                      handleChange({
-                        target: {
-                          name: "subCategoryId",
-                          value: event.target.value,
-                          type: "select-one",
-                        },
-                      } as React.ChangeEvent<HTMLSelectElement>);
-                    }}
-                    onBlur={formik.handleBlur}
-                    label="Subcategory"
-                    disabled={!formik.values.categoryId}
-                  >
-                    <MenuItem value="">Select a subcategory</MenuItem>
-                    {filteredSubcategories.map((sub) => (
-                      <MenuItem key={sub._id} value={sub._id}>
-                        {sub.name} {sub.isOTC ? "(OTC)" : ""}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="w-full">
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <DatePicker
-                    label="Expiry Date *"
-                    value={
-                      formik.values.expiryDate
-                        ? new Date(formik.values.expiryDate)
-                        : null
-                    }
-                    onChange={(date: Date | null) => {
-                      formik.setFieldValue(
-                        "expiryDate",
-                        date ? date.toISOString().slice(0, 10) : ""
-                      );
-                    }}
-                    minDate={new Date()}
-                    slotProps={{
-                      textField: {
-                        name: "expiryDate",
-                        fullWidth: true,
-                        variant: "outlined",
-                        onBlur: formik.handleBlur,
-                        error:
-                          formik.touched.expiryDate &&
-                          Boolean(formik.errors.expiryDate),
 
-                        InputProps: {
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="">
+                      <TextField
+                        name="name"
+                        label="Medicine Name *"
+                        value={formik.values.name}
+                        onChange={handleChange}
+                        onBlur={formik.handleBlur}
+                        fullWidth
+                        variant="outlined"
+                        placeholder="Enter medicine name"
+                        error={formik.touched.name && Boolean(formik.errors.name)}
+                        InputProps={{
                           style: {
                             borderRadius: "0.75rem",
                             background: "#fff",
                           },
-                        },
-                      },
-                    }}
-                  />
-                </LocalizationProvider>
-                {formik.touched.expiryDate && formik.errors.expiryDate && (
-                  <ErrorMessageCom error={formik.errors.expiryDate} />
-                )}
-              </div>
-
-              <div className="">
-                <TextField
-                  name="batchNumber"
-                  label="Batch Number*"
-                  type="text"
-                  value={formik.values.batchNumber}
-                  onChange={handleChange}
-                  onBlur={formik.handleBlur}
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Batch number"
-                  error={
-                    formik.touched.batchNumber &&
-                    Boolean(formik.errors.batchNumber)
-                  }
-                  InputProps={{
-                    style: {
-                      borderRadius: "0.75rem",
-                      background: "#fff",
-                    },
-                  }}
-                />
-                {formik.touched.batchNumber && formik.errors.batchNumber && (
-                  <ErrorMessageCom error={formik.errors.batchNumber} />
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {" "}
-              <div>
-                <TextField
-                  name="mrp"
-                  label="MRP (₹) *"
-                  type="text"
-                  value={formik.values.mrp}
-                  onChange={handleChange}
-                  onBlur={formik.handleBlur}
-                  fullWidth
-                  variant="outlined"
-                  placeholder="MRP"
-                  error={formik.touched.mrp && Boolean(formik.errors.mrp)}
-                  InputProps={{
-                    style: {
-                      borderRadius: "0.75rem",
-                      background: "#fff",
-                    },
-                  }}
-                />
-                {formik.touched.mrp && formik.errors.mrp && (
-                  <ErrorMessageCom error={formik.errors.mrp} />
-                )}
-              </div>
-              {/* Purchase Price */}
-              <div>
-                <TextField
-                  name="purchasePrice"
-                  label="Purchase Price (₹) *"
-                  type="text"
-                  value={formik.values.purchasePrice}
-                  onChange={handleChange}
-                  onBlur={formik.handleBlur}
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Purchase Price"
-                  error={
-                    formik.touched.purchasePrice &&
-                    Boolean(formik.errors.purchasePrice)
-                  }
-                  InputProps={{
-                    style: {
-                      borderRadius: "0.75rem",
-                      background: "#fff",
-                    },
-                  }}
-                />
-                {formik.touched.purchasePrice &&
-                  formik.errors.purchasePrice && (
-                    <ErrorMessageCom error={formik.errors.purchasePrice} />
-                  )}
-              </div>
-              {/* Selling Price */}
-              <div>
-                <TextField
-                  name="price"
-                  label="Selling Price (₹) *"
-                  type="text"
-                  value={formik.values.price}
-                  onChange={handleChange}
-                  onBlur={formik.handleBlur}
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Selling Price"
-                  error={formik.touched.price && Boolean(formik.errors.price)}
-                  InputProps={{
-                    style: {
-                      borderRadius: "0.75rem",
-                      background: "#fff",
-                    },
-                  }}
-                />
-                {formik.touched.price && formik.errors.price && (
-                  <ErrorMessageCom error={formik.errors.price} />
-                )}
-              </div>
-              {/* Discount */}
-              <div>
-                <TextField
-                  name="discount"
-                  label="Discount (%)"
-                  type="text"
-                  value={formik.values.discount}
-                  InputProps={{
-                    readOnly: true,
-                    style: {
-                      borderRadius: "0.75rem",
-                      background: "#f3f4f6",
-                      color: "#374151",
-                      boxShadow: "inset 0 1px 2px rgba(0,0,0,0.03)",
-                    },
-                  }}
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Discount %"
-                />
-              </div>
-            </div>
-            {/* Composition Section Styling */}
-            <div>
-              <label className="block text-sm font-bold text-gray-800 mb-2">
-                Composition
-              </label>
-              {composition.map((c, idx) => (
-                <div
-                  key={idx}
-                  className="flex gap-4 mb-3 items-center p-3 border border-gray-200 rounded-lg bg-gray-50 shadow-sm"
-                >
-                  {" "}
-                  {/* Added box styling */}
-                  <input
-                    type="text"
-                    placeholder="Name"
-                    value={c.name}
-                    onChange={(e) =>
-                      handleCompositionChange(idx, "name", e.target.value)
-                    }
-                    className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-green-500 focus:border-green-500 transition"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Value"
-                    value={c.value}
-                    onChange={(e) =>
-                      handleCompositionChange(idx, "value", e.target.value)
-                    }
-                    className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-green-500 focus:border-green-500 transition"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeCompositionRow(idx)}
-                    className="text-red-600 hover:text-red-800 font-medium p-1 transition"
-                  >
-                    <DeleteIcon />
-                  </button>
-                </div>
-              ))}
-              {(composition || []).length < 5 && (
-                <button
-                  type="button"
-                  onClick={addCompositionRow}
-                  className="text-green-600 hover:text-green-700 font-semibold mt-2 inline-flex items-center gap-1 transition"
-                >
-                  <span className="text-xl">+</span> Add Composition
-                </button>
-              )}
-            </div>
-            {/* Highlights Section Styling */}
-            <div>
-              <label className="block text-sm font-bold text-gray-800 mb-2">
-                Highlights
-              </label>
-              {formik.values.highlights.length === 0 && (
-                <p className="text-xs text-gray-500 mb-2">
-                  Add short bullet points to highlight key info.
-                </p>
-              )}
-              {formik.values.highlights.map((h, idx) => (
-                <div
-                  key={idx}
-                  className="flex gap-4 mb-3 items-center p-3 border border-gray-200 rounded-lg bg-yellow-50 shadow-sm"
-                >
-                  {" "}
-                  {/* Added box styling with yellow tint */}
-                  <input
-                    type="text"
-                    placeholder={`Highlight #${idx + 1}`}
-                    value={h}
-                    onChange={(e) => handleHighlightChange(idx, e.target.value)}
-                    onBlur={formik.handleBlur}
-                    className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-yellow-500 focus:border-yellow-500 transition"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeHighlightRow(idx)}
-                    className="text-red-600 hover:text-red-800 font-medium p-1 transition"
-                  >
-                    <DeleteIcon />
-                  </button>
-                </div>
-              ))}
-              {(formik.values.highlights || []).length < 5 && (
-                <button
-                  type="button"
-                  onClick={addHighlightRow}
-                  className="text-green-600 hover:text-green-700 font-semibold mt-2 inline-flex items-center gap-1 transition"
-                >
-                  <span className="text-xl">+</span> Add Highlight
-                </button>
-              )}
-            </div>
-            <div className="space-y-4 border-t pt-8">
-              {" "}
-              <h3 className="text-xl font-bold text-gray-800">
-                {" "}
-                Medicine Classification
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-300 rounded-xl shadow-md">
-                  {" "}
-                  <input
-                    type="checkbox"
-                    id="isPrescription"
-                    name="isPrescription"
-                    checked={formik.values.isPrescription}
-                    onChange={handleChange}
-                    onBlur={formik.handleBlur}
-                    className="w-6 h-6 text-orange-600 bg-white border-gray-300 rounded focus:ring-orange-500"
-                  />
-                  <label
-                    htmlFor="isPrescription"
-                    className="text-base font-medium text-gray-900 cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span>📋 Requires Prescription</span>
+                        }}
+                      />
+                      {formik.touched.name && formik.errors.name && (
+                        <ErrorMessageCom error={formik.errors.name} />
+                      )}
                     </div>
-                    <p className="text-sm text-gray-700 mt-1 font-normal">
-                      Prescription needed for purchase
-                    </p>
-                  </label>
-                </div>
+
+                    <div>
+                      <FormControl fullWidth variant="outlined">
+                        <InputLabel id="store-select-label">Store</InputLabel>
+                        <Select
+                          labelId="store-select-label"
+                          name="storeId"
+                          value={formik.values.storeId}
+                          label="Store"
+                          onChange={(e) => {
+                            handleChange({
+                              target: {
+                                name: "storeId",
+                                value: e.target.value,
+                                type: "select-one",
+                              },
+                            } as React.ChangeEvent<HTMLSelectElement>);
+                          }}
+                        >
+                          <MenuItem value="">
+                            <em>Default / None</em>
+                          </MenuItem>
+                          {stores.map((s) => (
+                            <MenuItem key={String(s._id)} value={String(s._id)}>
+                              {s.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {formik.touched.storeId && formik.errors.storeId && (
+                          <ErrorMessageCom error={formik.errors.storeId} />
+                        )}
+                      </FormControl>
+                    </div>
+                  </div>
+
+                  <div>
+                    <TextareaField
+                      id="targetScreen"
+                      name="alt"
+                      label="Description"
+                      value={formik.values.description}
+                      onChange={(e) => {
+                        console.log("Description updated:", e.target.value); // Debugging log
+                        formik.setFieldValue("description", e.target.value);
+                      }}
+                      placeholder="Enter description here"
+                      maxLength={400}
+                      rows={5}
+                      showCount={true}
+                      error={
+                        formik.touched.description &&
+                          typeof formik.errors.description === "string"
+                          ? formik.errors.description
+                          : undefined
+                      }
+                      className="mb-4"
+                    />
+                    {formik.touched.description && formik.errors.description && (
+                      <ErrorMessageCom error={formik.errors.description} />
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                      <TextField
+                        name="manufacturer"
+                        label="Manufacturer *"
+                        value={formik.values.manufacturer}
+                        onChange={handleChange}
+                        onBlur={formik.handleBlur}
+                        fullWidth
+                        variant="outlined"
+                        placeholder="Manufacturer name"
+                        error={
+                          formik.touched.manufacturer &&
+                          Boolean(formik.errors.manufacturer)
+                        }
+                        InputProps={{
+                          style: {
+                            borderRadius: "0.75rem",
+                            background: "#fff",
+                          },
+                        }}
+                      />
+                      {formik.touched.manufacturer && formik.errors.manufacturer && (
+                        <ErrorMessageCom error={formik.errors.manufacturer} />
+                      )}
+                    </div>
+
+                    <div>
+                      <TextField
+                        name="stock"
+                        label="Stock Quantity *"
+                        type="text"
+                        value={formik.values.stock}
+                        onChange={handleChange}
+                        onBlur={formik.handleBlur}
+                        fullWidth
+                        disabled={isEdit}
+                        variant="outlined"
+                        placeholder="0"
+                        error={formik.touched.stock && Boolean(formik.errors.stock)}
+                        InputProps={{
+                          style: {
+                            borderRadius: "0.75rem",
+                            background: "#fff",
+                          },
+                        }}
+                      />
+                      {formik.touched.stock && formik.errors.stock && (
+                        <ErrorMessageCom error={formik.errors.stock} />
+                      )}
+                    </div>
+
+                    {/* Form Type */}
+                    <div className="flex gap-4 items-end">
+                      <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                        <InputLabel id="form-type-label">Form Type *</InputLabel>
+                        <Select
+                          labelId="form-type-label"
+                          name="category"
+                          value={formik.values.category}
+                          onChange={(event) => {
+                            handleChange({
+                              target: {
+                                name: "category",
+                                value: event.target.value,
+                                type: "select-one",
+                              },
+                            } as React.ChangeEvent<HTMLSelectElement>);
+                            // Reset unit when category changes
+                            formik.setFieldValue("unitInput", "");
+                            formik.setFieldValue("unit", "");
+                          }}
+                          // onBlur removed from DatePicker (should be on TextField only)
+                          label="Form Type *"
+                        >
+                          {[
+                            "Tablet",
+                            "Capsule",
+                            "Syrup",
+                            "Injection",
+                            "Cream",
+                            "Drops",
+                            "Other",
+                          ].map((c) => (
+                            <MenuItem key={c} value={c}>
+                              {c}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+
+                      {formik.touched.category && formik.errors.category && (
+                        <ErrorMessageCom error={formik.errors.category} />
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {formik.values.category && (
+                        <TextField
+                          name="unitInput"
+                          label="Unit"
+                          value={formik.values.unitInput || ""}
+                          disabled={formik.values.category === "Other"}
+                          onChange={(e) => {
+                            let val = e.target.value;
+                            let suffix = "";
+                            switch (formik.values.category) {
+                              case "Tablet":
+                                suffix = " Tablets";
+                                break;
+                              case "Capsule":
+                                suffix = " Capsules";
+                                break;
+                              case "Syrup":
+                              case "Drops":
+                              case "Injection":
+                                suffix = " ml";
+                                break;
+                              case "Cream":
+                                suffix = " g";
+                                break;
+                              case "Other":
+                                suffix = "";
+                                break;
+                            }
+                            // Remove suffix if user types it
+                            if (val.endsWith(suffix))
+                              val = val.slice(0, -suffix.length);
+                            formik.setFieldValue("unitInput", val);
+                            formik.setFieldValue("unit", val + suffix);
+                          }}
+                          onBlur={formik.handleBlur}
+                          variant="outlined"
+                          placeholder={(() => {
+                            switch (formik.values.category) {
+                              case "Tablet":
+                                return "e.g. 10";
+                              case "Capsule":
+                                return "e.g. 10";
+                              case "Syrup":
+                                return "e.g. 250";
+                              case "Cream":
+                                return "e.g. 15";
+                              case "Drops":
+                                return "e.g. 10";
+                              case "Injection":
+                                return "e.g. 5";
+                              default:
+                                return "e.g. 1 Unit";
+                            }
+                          })()}
+                          InputProps={{
+                            endAdornment: (() => {
+                              switch (formik.values.category) {
+                                case "Tablet":
+                                  return (
+                                    <span style={{ marginLeft: 8 }}>Tablets</span>
+                                  );
+                                case "Capsule":
+                                  return (
+                                    <span style={{ marginLeft: 8 }}>Capsules</span>
+                                  );
+                                case "Syrup":
+                                  return <span style={{ marginLeft: 8 }}>ml</span>;
+                                case "Cream":
+                                  return <span style={{ marginLeft: 8 }}>g</span>;
+                                case "Drops":
+                                  return <span style={{ marginLeft: 8 }}>ml</span>;
+                                case "Injection":
+                                  return <span style={{ marginLeft: 8 }}>ml</span>;
+                                default:
+                                  return null;
+                              }
+                            })(),
+                            style: {
+                              borderRadius: "0.75rem",
+                              background: "#fff",
+                            },
+                          }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {" "}
+                    {/* Increased grid gap */}
+                    {/* Category */}
+                    <div>
+                      <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                        <InputLabel id="category-label">Category</InputLabel>
+                        <Select
+                          labelId="category-label"
+                          name="categoryId"
+                          value={formik.values.categoryId}
+                          onChange={(event) => {
+                            handleChange({
+                              target: {
+                                name: "categoryId",
+                                value: event.target.value,
+                                type: "select-one",
+                              },
+                            } as React.ChangeEvent<HTMLSelectElement>);
+                          }}
+                          label="Category"
+                        >
+                          <MenuItem value="">Select a category</MenuItem>
+                          {categories.map((cat) => (
+                            <MenuItem key={cat._id} value={cat._id}>
+                              {cat.name} {cat.isOTC ? "(OTC)" : ""}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </div>
+                    {/* Subcategory */}
+                    <div>
+                      <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                        <InputLabel id="subcategory-label">Subcategory</InputLabel>
+                        <Select
+                          labelId="subcategory-label"
+                          name="subCategoryId"
+                          value={formik.values.subCategoryId}
+                          onChange={(event) => {
+                            handleChange({
+                              target: {
+                                name: "subCategoryId",
+                                value: event.target.value,
+                                type: "select-one",
+                              },
+                            } as React.ChangeEvent<HTMLSelectElement>);
+                          }}
+                          onBlur={formik.handleBlur}
+                          label="Subcategory"
+                          disabled={!formik.values.categoryId}
+                        >
+                          <MenuItem value="">Select a subcategory</MenuItem>
+                          {filteredSubcategories.map((sub) => (
+                            <MenuItem key={sub._id} value={sub._id}>
+                              {sub.name} {sub.isOTC ? "(OTC)" : ""}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="w-full">
+                      <LocalizationProvider dateAdapter={AdapterDateFns}>
+                        <DatePicker
+                          label="Expiry Date *"
+                          value={
+                            formik.values.expiryDate
+                              ? new Date(formik.values.expiryDate)
+                              : null
+                          }
+                          onChange={(date: Date | null) => {
+                            formik.setFieldValue(
+                              "expiryDate",
+                              date ? date.toISOString().slice(0, 10) : ""
+                            );
+                          }}
+                          minDate={new Date()}
+                          slotProps={{
+                            textField: {
+                              name: "expiryDate",
+                              fullWidth: true,
+                              variant: "outlined",
+                              onBlur: formik.handleBlur,
+                              error:
+                                formik.touched.expiryDate &&
+                                Boolean(formik.errors.expiryDate),
+
+                              InputProps: {
+                                style: {
+                                  borderRadius: "0.75rem",
+                                  background: "#fff",
+                                },
+                              },
+                            },
+                          }}
+                        />
+                      </LocalizationProvider>
+                      {formik.touched.expiryDate && formik.errors.expiryDate && (
+                        <ErrorMessageCom error={formik.errors.expiryDate} />
+                      )}
+                    </div>
+
+                    <div className="">
+                      <TextField
+                        name="batchNumber"
+                        label="Batch Number*"
+                        type="text"
+                        value={formik.values.batchNumber}
+                        onChange={handleChange}
+                        onBlur={formik.handleBlur}
+                        fullWidth
+                        variant="outlined"
+                        placeholder="Batch number"
+                        error={
+                          formik.touched.batchNumber &&
+                          Boolean(formik.errors.batchNumber)
+                        }
+                        InputProps={{
+                          style: {
+                            borderRadius: "0.75rem",
+                            background: "#fff",
+                          },
+                        }}
+                      />
+                      {formik.touched.batchNumber && formik.errors.batchNumber && (
+                        <ErrorMessageCom error={formik.errors.batchNumber} />
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    {" "}
+                    <div>
+                      <TextField
+                        name="mrp"
+                        label="MRP (₹) *"
+                        type="text"
+                        value={formik.values.mrp}
+                        onChange={handleChange}
+                        onBlur={formik.handleBlur}
+                        fullWidth
+                        variant="outlined"
+                        placeholder="MRP"
+                        error={formik.touched.mrp && Boolean(formik.errors.mrp)}
+                        InputProps={{
+                          style: {
+                            borderRadius: "0.75rem",
+                            background: "#fff",
+                          },
+                        }}
+                      />
+                      {formik.touched.mrp && formik.errors.mrp && (
+                        <ErrorMessageCom error={formik.errors.mrp} />
+                      )}
+                    </div>
+                    {/* Purchase Price */}
+                    <div>
+                      <TextField
+                        name="purchasePrice"
+                        label="Purchase Price (₹) *"
+                        type="text"
+                        value={formik.values.purchasePrice}
+                        onChange={handleChange}
+                        onBlur={formik.handleBlur}
+                        fullWidth
+                        variant="outlined"
+                        placeholder="Purchase Price"
+                        error={
+                          formik.touched.purchasePrice &&
+                          Boolean(formik.errors.purchasePrice)
+                        }
+                        InputProps={{
+                          style: {
+                            borderRadius: "0.75rem",
+                            background: "#fff",
+                          },
+                        }}
+                      />
+                      {formik.touched.purchasePrice &&
+                        formik.errors.purchasePrice && (
+                          <ErrorMessageCom error={formik.errors.purchasePrice} />
+                        )}
+                    </div>
+                    {/* Selling Price */}
+                    <div>
+                      <TextField
+                        name="price"
+                        label="Selling Price (₹) *"
+                        type="text"
+                        value={formik.values.price}
+                        onChange={handleChange}
+                        onBlur={formik.handleBlur}
+                        fullWidth
+                        variant="outlined"
+                        placeholder="Selling Price"
+                        error={formik.touched.price && Boolean(formik.errors.price)}
+                        InputProps={{
+                          style: {
+                            borderRadius: "0.75rem",
+                            background: "#fff",
+                          },
+                        }}
+                      />
+                      {formik.touched.price && formik.errors.price && (
+                        <ErrorMessageCom error={formik.errors.price} />
+                      )}
+                    </div>
+                    {/* Discount */}
+                    <div>
+                      <TextField
+                        name="discount"
+                        label="Discount (%)"
+                        type="text"
+                        value={formik.values.discount}
+                        InputProps={{
+                          readOnly: true,
+                          style: {
+                            borderRadius: "0.75rem",
+                            background: "#f3f4f6",
+                            color: "#374151",
+                            boxShadow: "inset 0 1px 2px rgba(0,0,0,0.03)",
+                          },
+                        }}
+                        fullWidth
+                        variant="outlined"
+                        placeholder="Discount %"
+                      />
+                    </div>
+                  </div>
+                  {/* Composition Section Styling */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-800 mb-2">
+                      Composition
+                    </label>
+                    {composition.map((c, idx) => (
+                      <div
+                        key={idx}
+                        className="flex gap-4 mb-3 items-center p-3 border border-gray-200 rounded-lg bg-gray-50 shadow-sm"
+                      >
+                        {" "}
+                        {/* Added box styling */}
+                        <input
+                          type="text"
+                          placeholder="Name"
+                          value={c.name}
+                          onChange={(e) =>
+                            handleCompositionChange(idx, "name", e.target.value)
+                          }
+                          className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-green-500 focus:border-green-500 transition"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Value"
+                          value={c.value}
+                          onChange={(e) =>
+                            handleCompositionChange(idx, "value", e.target.value)
+                          }
+                          className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-green-500 focus:border-green-500 transition"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeCompositionRow(idx)}
+                          className="text-red-600 hover:text-red-800 font-medium p-1 transition"
+                        >
+                          <DeleteIcon />
+                        </button>
+                      </div>
+                    ))}
+                    {(composition || []).length < 5 && (
+                      <button
+                        type="button"
+                        onClick={addCompositionRow}
+                        className="text-green-600 hover:text-green-700 font-semibold mt-2 inline-flex items-center gap-1 transition"
+                      >
+                        <span className="text-xl">+</span> Add Composition
+                      </button>
+                    )}
+                  </div>
+                  {/* Highlights Section Styling */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-800 mb-2">
+                      Highlights
+                    </label>
+                    {formik.values.highlights.length === 0 && (
+                      <p className="text-xs text-gray-500 mb-2">
+                        Add short bullet points to highlight key info.
+                      </p>
+                    )}
+                    {formik.values.highlights.map((h, idx) => (
+                      <div
+                        key={idx}
+                        className="flex gap-4 mb-3 items-center p-3 border border-gray-200 rounded-lg bg-yellow-50 shadow-sm"
+                      >
+                        {" "}
+                        {/* Added box styling with yellow tint */}
+                        <input
+                          type="text"
+                          placeholder={`Highlight #${idx + 1}`}
+                          value={h}
+                          onChange={(e) => handleHighlightChange(idx, e.target.value)}
+                          onBlur={formik.handleBlur}
+                          className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-yellow-500 focus:border-yellow-500 transition"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeHighlightRow(idx)}
+                          className="text-red-600 hover:text-red-800 font-medium p-1 transition"
+                        >
+                          <DeleteIcon />
+                        </button>
+                      </div>
+                    ))}
+                    {(formik.values.highlights || []).length < 5 && (
+                      <button
+                        type="button"
+                        onClick={addHighlightRow}
+                        className="text-green-600 hover:text-green-700 font-semibold mt-2 inline-flex items-center gap-1 transition"
+                      >
+                        <span className="text-xl">+</span> Add Highlight
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-4 border-t pt-8">
+                    {" "}
+                    <h3 className="text-xl font-bold text-gray-800">
+                      {" "}
+                      Medicine Classification
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-300 rounded-xl shadow-md">
+                        {" "}
+                        <input
+                          type="checkbox"
+                          id="isPrescription"
+                          name="isPrescription"
+                          checked={formik.values.isPrescription}
+                          onChange={handleChange}
+                          onBlur={formik.handleBlur}
+                          className="w-6 h-6 text-orange-600 bg-white border-gray-300 rounded focus:ring-orange-500"
+                        />
+                        <label
+                          htmlFor="isPrescription"
+                          className="text-base font-medium text-gray-900 cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span>📋 Requires Prescription</span>
+                          </div>
+                          <p className="text-sm text-gray-700 mt-1 font-normal">
+                            Prescription needed for purchase
+                          </p>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  {error && (
+                    <div className="bg-red-50 border border-red-300 rounded-xl p-4 shadow-sm">
+                      {" "}
+                      <p className="text-sm font-medium text-red-800">{error}</p>
+                    </div>
+                  )}
+                  <div className="  ButtonOuter">
+                    {" "}
+                    <div className="buttoninner  ">
+                      <CustomButton type="submit" disabled={loading} width="100%">
+                        {loading ? (
+                          <CircularProgress size={24} color="inherit" />
+                        ) : (
+
+                          <MdSave size={22} />
+                        )}
+                        {isEdit
+                          ? "Update Medicine"
+                          : "Add Medicine"}
+                      </CustomButton>
+                    </div>
+                  </div>
+                </form>
               </div>
             </div>
-            {error && (
-              <div className="bg-red-50 border border-red-300 rounded-xl p-4 shadow-sm">
-                {" "}
-                <p className="text-sm font-medium text-red-800">{error}</p>
-              </div>
-            )}
-            <div className="  ButtonOuter">
-              {" "}
-              <div className="buttoninner  ">
-                <CustomButton type="submit" disabled={loading} width="100%">
-                  <MdSave size={22} />{" "}
-                  {loading
-                    ? isEdit
-                      ? "Saving..."
-                      : "Saving..."
-                    : isEdit
-                      ? "Update Medicine"
-                      : "Add Medicine"}
-                </CustomButton>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
+          </>
+        )
+
+      }
+
     </>
   );
 }

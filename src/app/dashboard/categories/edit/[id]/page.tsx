@@ -163,7 +163,7 @@ export default function EditCategoryPage() {
         if (data.success) {
           Swal.fire({
             toast: true,
-            position: "top-end", 
+            position: "top-end",
             icon: "success",
             title: ToastMessages.CATEGORY_UPDATED,
             showConfirmButton: false,
@@ -431,11 +431,14 @@ export default function EditCategoryPage() {
             {" "}
             <CustomButton
               type="submit"
-              // disabled={formik.isSubmitting || !formik.isValid}
+              disabled={formik.isSubmitting || !formik.isValid}
               width="100%"
             >
               {formik.isSubmitting ? (
-                <CircularProgress size={24} color="inherit" />
+                <>
+
+                  <CircularProgress size={24} color="inherit" />
+                  Update Category</>
               ) : (
                 <>
                   <MdSave size={22} />{" "}

@@ -346,12 +346,16 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
 
   return (
     <Modal open={open} onClose={onClose} aria-labelledby="modal-title">
-      <Box sx={{ ...modalStyle, width: "50vw" }}>
+      <Box sx={{ ...modalStyle, width: "50vw" }}
+        className="scrollbar-hide"
+      >
         <ModalHeader
           title={initial?._edit ? "Edit Banner" : "Add New Banner"}
           onClose={onClose}
         />
-        <form onSubmit={formik.handleSubmit}>
+        <form onSubmit={formik.handleSubmit}
+          className="p-10"
+        >
 
           <TextField
             name="targetId"

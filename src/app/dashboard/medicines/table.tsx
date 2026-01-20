@@ -51,7 +51,7 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(initialTotalCount);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
   console.log(searchValue, "searchValue");
 

@@ -13,6 +13,17 @@
 
 @import "tailwindcss";
 
+@keyframes skeleton-loading {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+.skeleton-loading {
+  background: linear-gradient(90deg, #f3f3f3 25%, #e0e0e0 50%, #f3f3f3 75%);
+  background-size: 200% 100%;
+  border-radius: 8px;
+  animation: skeleton-loading 1.2s infinite linear;
+}
+
 :root {
   --primary: green;
   --secondary: rgb(93, 172, 93);

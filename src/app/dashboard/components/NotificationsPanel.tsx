@@ -26,7 +26,7 @@ export default function NotificationsPanel({
   onClose: () => void;
 }) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);

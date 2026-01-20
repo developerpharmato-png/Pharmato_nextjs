@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import Skeleton from "@mui/material/Skeleton";
+// import Skeleton from "@mui/material/Skeleton";
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Paper, IconButton
 } from "@mui/material";
@@ -126,7 +126,10 @@ export function CustomTable<T>({
                 <TableRow key={idx}>
                   {columns.map((col) => (
                     <TableCell key={col.id} align={col.align || "left"}>
-                      <Skeleton variant="rectangular" width={col.minWidth || 80} height={32} />
+                      <div
+                        className="skeleton-loading"
+                        style={{ width: col.minWidth || 80, height: 32 }}
+                      />
                     </TableCell>
                   ))}
                 </TableRow>

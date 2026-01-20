@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Box } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import Swal from "sweetalert2";
@@ -39,8 +39,8 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
   const canEditPolicy = lowerType.includes("privacy")
     ? adminPermissions?.["Privacy Policies"]?.edit ?? adminPermissions?.PrivacyPolicies?.edit ?? true
     : lowerType.includes("term") || lowerType.includes("condition")
-    ? adminPermissions?.["Term & Condition"]?.edit ?? adminPermissions?.TermCondition?.edit ?? adminPermissions?.Term?.edit ?? true
-    : true;
+      ? adminPermissions?.["Term & Condition"]?.edit ?? adminPermissions?.TermCondition?.edit ?? adminPermissions?.Term?.edit ?? true
+      : true;
 
   useEffect(() => {
     let mounted = true;
@@ -63,7 +63,7 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
       }
       try {
         await import("quill/dist/quill.snow.css");
-      } catch (e) {}
+      } catch (e) { }
     })();
     return () => { mounted = false; };
   }, [type]);
@@ -122,7 +122,7 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
           <Form onSubmit={handleSubmit} className="space-y-4 mt-4">
             <div>
               {loadingContent ? (
-                <PrivacySkeleton  />
+                <PrivacySkeleton />
               ) : (
                 <>
                   <QuillEditor
@@ -142,14 +142,18 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
             </div>
 
             {canEditPolicy && (
-           <div className="ButtonOuter">
-                  {" "}
-                  <div className="buttoninner">
+              <div className="ButtonOuter">
+                {" "}
+                <div className="buttoninner">
                   <CustomButton type="submit" disabled={isSubmitting || loading}>
-                    
-                     <MdSave size={22} />{" "}
-                                           
-                    {loading ? "Saving..." : `Update ${title}`}
+                    {loading ? <CircularProgress size={24} color="inherit" />: (
+
+                      <MdSave size={22} />
+                    )
+                    }
+
+
+                    {`Update ${title}`}
                   </CustomButton>
                 </div>
               </div>

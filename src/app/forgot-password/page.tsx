@@ -9,7 +9,7 @@ import { ToastContainer, toast } from "react-toastify";
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     // Using toast for success/error messages to match RegisterPage UX
     const [status, setStatus] = useState("");
 

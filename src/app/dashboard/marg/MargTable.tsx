@@ -2,6 +2,8 @@
 
 import { formatMargDate } from "@/utils/function";
 import { CustomTable, Column } from "../components/CustomTable";
+import { useRouter } from "next/navigation";
+import { CustomTooltip } from "../components/miniComponents";
 
 interface MargItem {
   _id: string;
@@ -12,6 +14,7 @@ interface MargItem {
   type: string;
   createdAt: string;
   updatedAt: string;
+  margInsertData?: any[];
 }
 
 interface MargTableProps {
@@ -24,21 +27,49 @@ interface MargTableProps {
   loading?: boolean;
 }
 
-const columns: Column<MargItem>[] = [
-  { id: "_id", label: "ID", minWidth: 80, selector: (row) => row._id },
-  { id: "status", label: "Status", minWidth: 100, selector: (row) => row.status },
-  { id: "type", label: "Type", minWidth: 100, selector: (row) => row.type },
-  { id: "margGetDataCount", label: "Get Count", minWidth: 80, selector: (row) => row.margGetDataCount },
-  { id: "margInsertDataCount", label: "Insert Count", minWidth: 80, selector: (row) => row.margInsertDataCount },
-  { id: "margUpdateDataCount", label: "Update Count", minWidth: 80, selector: (row) => row.margUpdateDataCount },
-  { id: "createdAt", label: "Created At", minWidth: 140, selector: (row) => formatMargDate(row.createdAt) },
-  { id: "updatedAt", label: "Updated At", minWidth: 140, selector: (row) => formatMargDate(row.updatedAt) },
-];
-
 const MargTable: React.FC<MargTableProps> = ({ data, page, rowsPerPage, totalCount, onPageChange, onRowsPerPageChange, loading }) => {
+  const router = useRouter();
+
+  const handleOpenDetail = (row: MargItem) => {
+
+    try {
+      sessionStorage.setItem("margDetail", JSON.stringify(row));
+    } catch (e) {
+      // ignore storage failures
+    }
+    router.push("/dashboard/marg/detail");
+  };
+
+  const columns: Column<MargItem>[] = [
+    {
+      id: "_id",
+      label: "ID",
+      minWidth: 100,
+      selector: (row) => (
+        <CustomTooltip
+          title={row._id}
+        >
+          <span
+            className={`ID-List ${row.margInsertDataCount === 1 ? "cursor-pointer text-green-600" : "text-gray-700"}`}
+            onClick={() => handleOpenDetail(row)}
+          >
+            {row._id}
+          </span>
+        </CustomTooltip>
+      ),
+    },
+    { id: "status", label: "Status", minWidth: 100, selector: (row) => row.status },
+    { id: "type", label: "Type", minWidth: 100, selector: (row) => row.type },
+    { id: "margGetDataCount", label: "Get Count", minWidth: 90, selector: (row) => row.margGetDataCount },
+    { id: "margInsertDataCount", label: "Insert Count", minWidth: 100, selector: (row) => row.margInsertDataCount },
+    { id: "margUpdateDataCount", label: "Update Count", minWidth: 100, selector: (row) => row.margUpdateDataCount },
+    { id: "createdAt", label: "Created At", minWidth: 140, selector: (row) => formatMargDate(row.createdAt) },
+    { id: "updatedAt", label: "Updated At", minWidth: 140, selector: (row) => formatMargDate(row.updatedAt) },
+  ];
+
   return (
     <CustomTable
-      columns={columns} 
+      columns={columns}
       data={data}
       page={page}
       rowsPerPage={rowsPerPage}
