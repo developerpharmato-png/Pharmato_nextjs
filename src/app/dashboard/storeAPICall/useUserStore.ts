@@ -33,6 +33,10 @@ export const unreadNotificationStore = createApiStore<any>();
 export const NotificationsListStore = createApiStore<any>(); 
 export const markreadNotificationsStore = createApiStore<any>();  
 
+// Customer Notifications
+export const CustomerDropdownStore = createApiStore<any>();
+export const SendCustomerNotificationsStore = createApiStore<any>();
+
 // Settings & Policies
 export const PaymentSettingsStore = createApiStore<any>();
 export const PolicySettingsStore = createApiStore<any>();  

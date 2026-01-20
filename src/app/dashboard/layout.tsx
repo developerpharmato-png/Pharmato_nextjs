@@ -25,6 +25,7 @@ import {
   LogOut,
   Hospital,
   ChevronDown,
+  Bell,
 } from "lucide-react";
 import { requestPermissionAndGetToken } from "../firebase/firebaseConfig";
 
@@ -49,6 +50,7 @@ const iconMap = {
   fileText: FileText,
   management: User,
   hospital: Hospital,
+  bell: Bell,
 };
 
 const renderIcon = (
@@ -176,6 +178,7 @@ export default function DashboardLayout({
     { name: "Subcategories", path: "/dashboard/subcategories", icon: "folder", isActive: true },
     { name: "Orders", path: "/dashboard/orders", icon: "receipt_long", isActive: true },
     { name: "Customers", path: "/dashboard/admin/customers", icon: "person", isActive: true },
+    { name: "Send Notifications", path: "/dashboard/notifications", icon: "bell", isActive: true, superAdminOnly: true },
     { name: "Stores", path: "/dashboard/store", icon: "store", isActive: true },
     { name: "Banner Management", path: "/dashboard/banner-images", icon: "image", isActive: true },
     { name: "Marg", path: "/dashboard/marg", icon: "hospital", isActive: true },
@@ -214,6 +217,11 @@ export default function DashboardLayout({
   const visibleMenuItems = menuItems
     .filter((item) => item.isActive)
     .map((item: any) => {
+      // Check if item is SuperAdmin only
+      if (item.superAdminOnly && !isCurrentSuperAdmin) {
+        return { ...item, isVisible: false };
+      }
+
       // 1. Permission check for parent (if it has no children)
       let parentHasViewPermission = true;
       if (permissions) {
