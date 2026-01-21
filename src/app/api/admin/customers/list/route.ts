@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import User from '@/models/User';
 import dbConnect from '@/lib/mongodb';
-import { requireAdminAuth } from '../../requireAdminAuth';
 
 /**
  * @swagger
@@ -35,8 +34,6 @@ import { requireAdminAuth } from '../../requireAdminAuth';
  *                     type: object
  */
 export async function GET(req: NextRequest) {
-    // const adminOrError = await requireAdminAuth(req);
-    // if (adminOrError instanceof NextResponse) return adminOrError;
 
     await dbConnect();
 

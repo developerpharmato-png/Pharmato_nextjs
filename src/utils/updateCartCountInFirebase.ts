@@ -7,9 +7,12 @@ import { getDb } from '@/utils/firebase.helper';
 
 export async function updateCartCountInFirebase({ userId, storeId }: { userId?: string; storeId?: string }) {
 
+    if (!userId || !storeId) return;
+
+    // Ensure DB connected (idempotent, safe)
     await dbConnect();
 
-    // Get cart with medicine details, store-based
+    // 🔥 LIGHT & FAST aggregation (NO lookup)
     const cartAgg = await Cart.aggregate([
         {
             $match: {
@@ -18,36 +21,21 @@ export async function updateCartCountInFirebase({ userId, storeId }: { userId?: 
             }
         },
         {
-            $lookup: {
-                from: "medicines",
-                localField: "items.medicineId",
-                foreignField: "_id",
-                as: "medicines"
+            $project: {
+                _id: 0,
+                count: { $size: "$items" }
             }
         }
     ]);
 
-    const cart = cartAgg?.[0] || null;
+    const count = cartAgg?.[0]?.count || 0;
 
-    // Update paymentStatus in Firebase Realtime Database
-    if (cart && cart.items) {
-
-        const db = getDb();
-        await db
-            .ref(`cart/${userId}/${storeId}`)
-            .update({
-                count: cart.items.length
-            });
-
-    }else{
-
-        const db = getDb();
-        await db
-            .ref(`cart/${userId}/${storeId}`)
-            .update({
-                count: 0
-            });
-
-    }
+    // 🔥 Firebase update
+    const db = getDb();
+    await db
+        .ref(`cart/${userId}/${storeId}`)
+        .update({
+            count
+        });
 
 }
