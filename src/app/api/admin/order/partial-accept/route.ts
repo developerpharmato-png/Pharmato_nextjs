@@ -106,8 +106,8 @@ export async function POST(req: NextRequest) {
         const deliveredAddr: any = order.deliveredAddress || null;
         if (deliveredAddr) {
             userName = deliveredAddr?.name || 'Customer';
-            userMobile = deliveredAddr?.mobile || '';
-            userEmail = deliveredAddr?.email || '';            
+            userMobile = deliveredAddr?.phone || '';
+            userEmail = deliveredAddr?.email || '';
             deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
         }
 
@@ -425,9 +425,9 @@ export async function POST(req: NextRequest) {
             }
 
 
-            let invoiceHtml = `
-        <!DOCTYPE html>
+            let invoiceHtml = `<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Invoice</title>
@@ -437,24 +437,38 @@ export async function POST(req: NextRequest) {
 
     <div style="max-width:800px;margin:24px auto;background-color:#ffffff;padding:32px;border-radius:8px;">
 
-        <!-- HEADER -->
-        <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-start;">
-            <div style="width: 35%;">
-                <img src="apollo-logo.png" alt="Apollo Pharmacy" style="height: 60px;"><br>
-                <strong>TREASURE FANTASY</strong><br>
-                GF PLOT NO A-01, LABHAM GREEN GRAM,<br>
-                Phone: 7225026829
+ <!-- HEADER -->
+        <div
+            style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #eee;">
+ 
+            <div
+                style="text-align: center; letter-spacing: 2px; font-weight: bold; font-size: 20px; margin-bottom: 30px; color: #000; border-bottom: 2px solid #333; padding-bottom: 10px;">
+                INVOICE
             </div>
-
-            <div style="width: 30%; text-align: center;">
-                <div style="font-size: 18px; font-weight: bold; margin-top: 30px;">INVOICE</div>
-            </div>
-
-            <div style="width: 35%; text-align: right; font-size: 12px;">
-                <strong>FSSAI No:</strong> 11424850000976<br>
-                <strong>D.L.No:</strong> 20/3838-41/110/2024-20,21,20B,21B<br>
-                <strong>GST No:</strong> 23AAPCA5954P1ZZ<br>
-                <strong>CIN:</strong> U52500TN2016PLC111328
+ 
+            <div
+                style="width: 100%; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
+ 
+                <div style="flex: 1;">
+                    <img src="https://res.cloudinary.com/dqkyleb0t/image/upload/v1768915476/Icon_wsihmm.png"
+                        alt="Apollo Pharmacy" style="height: 50px; margin-bottom: 12px; display: block;">
+ 
+                    <div style="font-size: 16px; font-weight: 700; color: #000; margin-bottom: 4px;">TREASURE FANTASY
+                    </div>
+                    <div style="font-size: 13px; line-height: 1.5; color: #555;">
+                        GF PLOT NO A-01, LABHAM GREEN GRAM,<br>
+                        <span style="font-weight: 600;">Phone:</span> 7225026829
+                    </div>
+                </div>
+ 
+                <div
+                    style="flex: 1; text-align: right; font-size: 11px; line-height: 1.8; color: #444;  padding: 10px; border-radius: 4px;">
+                    <div><strong style="color: #000;">FSSAI No:</strong> 11424850000976</div>
+                    <div><strong style="color: #000;">D.L. No:</strong> 20/3838-41/110/2024-20,21,20B,21B</div>
+                    <div><strong style="color: #000;">GST No:</strong> 23AAPCA5954P1ZZ</div>
+                    <div><strong style="color: #000;">CIN:</strong> U52500TN2016PLC111328</div>
+                </div>
+ 
             </div>
         </div>
 
@@ -481,16 +495,21 @@ export async function POST(req: NextRequest) {
         <table style="width:100%;border-collapse:collapse;">
             <thead>
                 <tr style="background-color:#f8f9fa;">
-                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:left;color:#333;">Product Name</th>
-                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Quantity</th>
-                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">MRP</th>
-                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Selling Price</th>
-                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Total</th>
+                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:left;color:#333;">Product
+                        Name</th>
+                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">
+                        Quantity</th>
+                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">MRP
+                    </th>
+                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">
+                        Selling Price</th>
+                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Total
+                    </th>
                 </tr>
             </thead>
             <tbody>
 
-${invoiceMedicinesHtml}
+                ${invoiceMedicinesHtml}
 
             </tbody>
         </table>
@@ -552,6 +571,7 @@ ${invoiceMedicinesHtml}
     </div>
 
 </body>
+
 </html>`
 
             const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });

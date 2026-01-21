@@ -295,7 +295,7 @@ export default function PartialCancelPage() {
   };
 
 
-  if (!loading)
+  if (loading)
     return (
       <div className="scrollbar-hide containerStyle">
         <OdermangeSkeleton />
