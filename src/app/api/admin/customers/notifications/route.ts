@@ -112,4 +112,5 @@ export async function POST(request: NextRequest) {
         sentTo: foundUserIds,
         notFound
     });
+    
 }

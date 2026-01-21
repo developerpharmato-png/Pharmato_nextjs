@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import GuestCart from '@/models/GuestCart';
 import Medicine from '@/models/Medicine';
+import { updateGuestCartCountInFirebase } from '@/utils/updateGuestCartCountInFirebase';
 
 /**
  * @swagger
@@ -107,15 +108,14 @@ export async function POST(request: NextRequest) {
             };
         }
     }
-    // Calculate totalCartQuantity
-    const totalCartQuantity = cart && Array.isArray(cart.items)
-        ? cart.items.reduce((sum: number, item: any) => sum + (typeof item.quantity === 'number' ? item.quantity : 0), 0)
-        : 0;
+    
+        // Update cart count in Firebase
+        updateGuestCartCountInFirebase({ guestId, storeId }); // fire-and-forget, don't await
+
     return NextResponse.json({
         success: true,
         cart,
         medicineInCart,
-        message: 'Added to Cart',
-        totalCartQuantity
+        message: 'Added to Cart'
     });
 }

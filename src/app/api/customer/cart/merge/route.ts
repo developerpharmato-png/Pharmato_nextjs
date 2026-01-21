@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb';
 import GuestCart from '@/models/GuestCart';
 import Cart from '@/models/Cart';
 import Medicine from '@/models/Medicine';
+import { updateCartCountInFirebase } from '@/utils/updateCartCountInFirebase';
 const mongoose = require('mongoose');
 
 
@@ -161,6 +162,9 @@ export async function POST(request: NextRequest) {
 
         // Determine if any item requires a prescription
         const isPrescriptionRequired = itemsWithDetails.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
+
+        // Update cart count in Firebase
+        updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
 
         return NextResponse.json({
             success: true,

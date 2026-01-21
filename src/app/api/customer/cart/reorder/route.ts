@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Cart from '@/models/Cart';
 import Medicine from '@/models/Medicine';
+import { updateCartCountInFirebase } from '@/utils/updateCartCountInFirebase';
 
 /**
  * @swagger
@@ -82,5 +83,9 @@ export async function POST(req: NextRequest) {
     }
     await cart.save();
     await cart.populate('items.medicineId');
+    
+    // Update cart count in Firebase
+    updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
+
     return NextResponse.json({ success: true, message: 'Items reordered and added to cart', cart });
 }

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import GuestCart from '@/models/GuestCart';
+import { updateGuestCartCountInFirebase } from '@/utils/updateGuestCartCountInFirebase';
 
 /**
  * @swagger
@@ -99,6 +100,10 @@ export async function POST(request: NextRequest) {
             // Items array remains unchanged except for .toObject()
             const itemsWithoutCrossSell = cart.items.map((item: any) => item.toObject());
             const isPrescriptionRequired = itemsWithoutCrossSell.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
+            
+            // Update cart count in Firebase
+            updateGuestCartCountInFirebase({ guestId, storeId }); // fire-and-forget, don't await
+
             return NextResponse.json({ success: true, message: 'Cart Updated', cart: { ...cart.toObject(), items: itemsWithoutCrossSell, crossSellProducts: allCrossSellProducts, isPrescriptionRequired } });
         }
         // Only add if quantity is positive
@@ -137,6 +142,10 @@ export async function POST(request: NextRequest) {
             // Items array remains unchanged except for .toObject()
             const itemsWithoutCrossSell = cart.items.map((item: any) => item.toObject());
             const isPrescriptionRequired = itemsWithoutCrossSell.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
+            
+            // Update cart count in Firebase
+            updateGuestCartCountInFirebase({ guestId, storeId }); // fire-and-forget, don't await
+
             return NextResponse.json({ success: true, message: 'Cart Updated', cart: { ...cart.toObject(), items: itemsWithoutCrossSell, crossSellProducts: allCrossSellProducts, isPrescriptionRequired } });
         }
         return NextResponse.json({ success: false, error: 'Item not found in guest cart and quantity is negative' }, { status: 404 });

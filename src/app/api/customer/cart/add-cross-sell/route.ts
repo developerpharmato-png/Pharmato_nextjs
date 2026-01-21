@@ -45,6 +45,7 @@ import dbConnect from '@/lib/mongodb';
 import Cart from '@/models/Cart';
 import Medicine from '@/models/Medicine';
 import mongoose from 'mongoose';
+import { updateCartCountInFirebase } from '@/utils/updateCartCountInFirebase';
 
 export async function POST(request: NextRequest) {
     await dbConnect();
@@ -182,6 +183,9 @@ export async function POST(request: NextRequest) {
         }));
 
         const isPrescriptionRequired = itemsWithDetails.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
+        
+            // Update cart count in Firebase
+            updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
 
         return NextResponse.json({
             success: true,

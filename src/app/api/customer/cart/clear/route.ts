@@ -36,6 +36,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Cart from '@/models/Cart';
 import Medicine from '@/models/Medicine';
+import { updateCartCountInFirebase } from '@/utils/updateCartCountInFirebase';
 
 export async function POST(request: NextRequest) {
     await dbConnect();
@@ -54,5 +55,9 @@ export async function POST(request: NextRequest) {
     }
     cart.items = [];
     await cart.save();
+    
+    // Update cart count in Firebase
+    updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
+
     return NextResponse.json({ success: true, message: 'Cart cleared', cart });
 }

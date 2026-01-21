@@ -49,6 +49,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Cart from '@/models/Cart';
 import Medicine from '@/models/Medicine';
+import { updateCartCountInFirebase } from '@/utils/updateCartCountInFirebase';
 
 export async function POST(request: NextRequest) {
     await dbConnect();
@@ -98,6 +99,7 @@ export async function POST(request: NextRequest) {
         }
         await cart.save();
     }
+
     let message = 'Added to Cart';
     if (typeof quantity === 'number' && quantity < 0) {
         message = 'Removed from Cart';
@@ -118,15 +120,14 @@ export async function POST(request: NextRequest) {
             };
         }
     }
-    // Calculate totalCartQuantity
-    const totalCartQuantity = cart && Array.isArray(cart.items)
-        ? cart.items.reduce((sum: number, item: any) => sum + (typeof item.quantity === 'number' ? item.quantity : 0), 0)
-        : 0;
+    
+    // Update cart count in Firebase
+    updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
+
     return NextResponse.json({
         success: true,
         cart,
         medicineInCart,
-        message,
-        totalCartQuantity
+        message
     });
 }

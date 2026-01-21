@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import GuestCart from '@/models/GuestCart';
 import mongoose from 'mongoose';
+import { updateGuestCartCountInFirebase } from '@/utils/updateGuestCartCountInFirebase';
 
 /**
  * @swagger
@@ -137,6 +138,9 @@ export async function POST(request: NextRequest) {
     }));
 
     const isPrescriptionRequired = itemsWithDetails.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
+
+    // Update cart count in Firebase
+    updateGuestCartCountInFirebase({ guestId, storeId }); // fire-and-forget, don't await
 
     return NextResponse.json({
         success: true,
