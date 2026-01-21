@@ -32,6 +32,9 @@ export const updaterelatedPath = `/api/medicines/update-related`;
 export const PincodeListPath = `/api/admin/pincode/list`;
 export const PincodeActiveListPath = `/api/admin/pincode/active-list`;
 
+// Customer Notifications
+export const CustomerDropdownPath = `/api/admin/customers/dropdown`;
+export const SendCustomerNotificationsPath = `/api/admin/customers/notifications`;
 
 export const markreadNotificationsPath = `/api/notifications/mark-read`;
 export const NotificationsListPath = `/api/notifications`;

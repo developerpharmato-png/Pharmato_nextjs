@@ -22,6 +22,7 @@ import {
   InputLabel,
   Typography,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import {
   ModalHeader,
@@ -51,6 +52,7 @@ export default function PartialCancelPage() {
   const [approvalNotesPresc, setApprovalNotesPresc] = useState("");
   const [approveLoading, setApproveLoading] = useState(false);
   const [rejectLoading, setRejectLoading] = useState(false);
+  const [acceptLoading, setAcceptLoading] = useState(false);
   // Order status update dialog
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [statusToUpdate, setStatusToUpdate] = useState("");
@@ -894,6 +896,7 @@ export default function PartialCancelPage() {
                 } catch (e) { }
                 return;
               }
+              setAcceptLoading(true);
               try {
                 const res = await fetch("/api/admin/order/partial-accept", {
                   method: "POST",
@@ -930,13 +933,23 @@ export default function PartialCancelPage() {
                 }
               } catch (e) {
                 Swal.fire("Error", "Failed to accept", "error");
+              } finally {
+                setAcceptLoading(false);
               }
             }}
             variant="contained"
+            disabled={acceptLoading}
             disableElevation
             sx={modalStyles.confirmBtn}
           >
-            {previewUnselectedMeds.length > 0 ? "Confirm " : "Confirm Selected"}
+            {acceptLoading ? (
+              <>
+                <CircularProgress size={18} color="inherit" sx={{ mr: 1 }} />
+                Confirming...
+              </>
+            ) : (
+              previewUnselectedMeds.length > 0 ? "Confirm " : "Confirm Selected"
+            )}
           </Button>
         </DialogActions>
       </Dialog>
