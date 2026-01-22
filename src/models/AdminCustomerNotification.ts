@@ -26,7 +26,7 @@ AdminCustomerNotificationSchema.pre('validate', async function (next) {
     if (this.isNew && !this.uniqueCode) {
         const AdminCustomerNotification = mongoose.models.AdminCustomerNotification || mongoose.model<IAdminCustomerNotification>('AdminCustomerNotification', AdminCustomerNotificationSchema);
         const count = await AdminCustomerNotification.countDocuments();
-        this.uniqueCode = `CAT-${count + 1}`;
+        this.uniqueCode = `NOTIF-${count + 1}`;
     }
     next();
 });
