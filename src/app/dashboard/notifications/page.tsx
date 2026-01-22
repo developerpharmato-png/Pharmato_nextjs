@@ -1,15 +1,22 @@
 "use client";
 import React, { useState } from "react";
-import { Box, Tabs, Tab } from "@mui/material";
+import { Box, Modal } from "@mui/material";
 import HeaderWithAction from "@/app/dashboard/components/HeaderWithAction";
+import { ModalHeader } from "@/app/dashboard/components/miniComponents";
+import { modalStyle } from "@/utils/style";
 import SendNotificationForm from "./SendNotificationForm";
 import NotificationList from "./NotificationList";
 
 export default function NotificationsPage() {
-  const [activeTab, setActiveTab] = useState(0);
+  const [open, setOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue);
+  const handleAdd = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+  
+  const handleSuccess = () => {
+    handleClose();
+    setRefreshTrigger(prev => prev + 1); // Trigger list refresh
   };
 
   return (
@@ -19,34 +26,26 @@ export default function NotificationsPage() {
         subtitle="Send and manage customer notifications."
         showBack={true}
         showSearch={false}
+        addShow={true}
+        addLabel="Send Notification"
+        handleAdd={handleAdd}
       />
 
-      <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
-        <Tabs
-          value={activeTab}
-          onChange={handleTabChange}
-          aria-label="notification tabs"
-          sx={{
-            "& .MuiTab-root": {
-              textTransform: "none",
-              fontSize: "16px",
-              fontWeight: 500,
-            },
-            "& .Mui-selected": {
-              color: "#16a34a",
-            },
-            "& .MuiTabs-indicator": {
-              backgroundColor: "#16a34a",
-            },
-          }}
-        >
-          <Tab label="Send Notification" />
-          <Tab label="Notification History" />
-        </Tabs>
-      </Box>
+      {/* Notification list always visible */}
+      <NotificationList refreshTrigger={refreshTrigger} />
 
-      {activeTab === 0 && <SendNotificationForm />}
-      {activeTab === 1 && <NotificationList />}
+      {/* Modal for sending notification */}
+      <Modal open={open} onClose={handleClose}>
+        <Box sx={{ ...modalStyle, width: "50vw" }} className="scrollbar-hide">
+          <ModalHeader title="Send Notification" onClose={handleClose} />
+          <div className="mt-4 p-10">
+            <SendNotificationForm 
+            handleClose={handleSuccess}
+            />
+          </div>
+        </Box>
+      </Modal>
     </div>
   );
 }
+  

@@ -345,13 +345,14 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
                       {addr.name}
                     </span>
                     <span className="text-gray-600 text-sm">
-                      {addr.phone}
+                     +91 {addr.phone}
                       {addr.email && ` | ${addr.email}`}
                     </span>
                   </div>
                   <div className="text-sm text-gray-700">
                     {/* Make the address text a link to Google Maps */}
                     {formattedQuery ? (
+                      
                       <a
                         href={googleMapsUrl}
                         target="_blank"
@@ -359,8 +360,7 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
                         className="text-blue-600 hover:text-blue-800 hover:underline transition-colors flex items-center"
                         title="Click to view on Google Maps"
                       >
-                        {addressDisplayText}
-                        <svg
+                           <svg
                           className="w-4 h-4 ml-2 flex-shrink-0"
                           fill="none"
                           stroke="currentColor"
@@ -380,6 +380,8 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
                             d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                           ></path>
                         </svg>
+                        {addressDisplayText}
+                     
                       </a>
                     ) : (
                       addressDisplayText

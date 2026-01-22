@@ -21,6 +21,7 @@ import {
 } from "@/app/dashboard/components/miniComponents";
 import { CustomerDropdownStore, SendCustomerNotificationsStore } from "@/app/dashboard/storeAPICall/useUserStore";
 import { CustomerDropdownPath, SendCustomerNotificationsPath } from "@/app/dashboard/storeAPICall/API/BaseApi";
+import TextareaField from "../components/skeleton/FieldCom";
 
 const MAX_TITLE_LENGTH = 100;
 const MAX_MESSAGE_LENGTH = 500;
@@ -64,17 +65,17 @@ const validateNotification = (
 
     // Message (Body) validation
     if (!values.message || values.message.trim().length === 0) {
-        errors.message = "Body is mandatory";
+        errors.message = "Message is mandatory";
     } else if (values.message.trim().length < 10) {
-        errors.message = "Body must be at least 10 characters";
+        errors.message = "Message must be at least 10 characters";
     } else if (values.message.trim().length > 500) {
-        errors.message = "Body must not exceed 500 characters";
+        errors.message = "Message must not exceed 500 characters";
     }
 
     return errors;
 };
 
-export default function SendNotificationForm() {
+export default function SendNotificationForm({ handleClose  }) {
     const router = useRouter();
     const [customers, setCustomers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -121,6 +122,7 @@ export default function SendNotificationForm() {
                         showConfirmButton: false,
                         timer: 2500,
                     });
+                    handleClose();
                     resetForm();
                 } else {
                     Swal.fire({
@@ -209,7 +211,7 @@ export default function SendNotificationForm() {
                 value={selectedOptions}
                 onChange={handleAutocompleteChange}
                 // This prevents the UI from becoming massive when 50+ items are selected
-                limitTags={4}
+                limitTags={2}
                 getOptionLabel={(option) => {
                     if (option._id === 'all') return 'All Active Users';
                     return option.mobile && option.email ? `${option.mobile} • ${option.email}` : (option.mobile || option.email || 'Unknown');
@@ -289,7 +291,7 @@ export default function SendNotificationForm() {
             </Box>
 
             {/* Message Textarea */}
-            <TextField
+            {/* <TextField
                 label="Notification Message *"
                 multiline
                 rows={6}
@@ -297,45 +299,52 @@ export default function SendNotificationForm() {
                 inputProps={{ maxLength: MAX_MESSAGE_LENGTH }}
                 {...formik.getFieldProps("message")}
                 error={formik.touched.message && Boolean(formik.errors.message)}
+            /> */}
+
+            <TextareaField
+                id="targetScreen"
+                name="alt"
+                label="Message"
+                value={formik.values.message}
+                onChange={(e) => {
+                    console.log("message updated:", e.target.value); // Debugging log
+                    formik.setFieldValue("message", e.target.value);
+                }}
+                placeholder="Enter message here"
+                maxLength={500}
+                rows={5}
+                showCount={true}
+              
+                className=""
             />
             {formik.touched.message && formik.errors.message && (
                 <ErrorMessageCom error={formik.errors.message} />
             )}
 
-            {/* Submit & Cancel Buttons */}
-            <Box sx={{ display: 'flex', gap: 2 }}>
-                <div className="ButtonOuter mr-4" style={{ flex: 1 }}>
-                    <div className="buttoninner mr-4" >
-                        <CustomButton
-                            type="submit"
-                            disabled={loading}
-                            width="100%"
-                        >
-                            {formik.isSubmitting ? (
-                                <>
-                                    <CircularProgress size={24} color="inherit" />
-                                    Sending Notifications...
-                                </>
-                            ) : (
-                                <>
-                                    <MdSend size={22} />
-                                    Send Notification
-                                </>
-                            )}
-                        </CustomButton>
-                        <div className="ml-3">
-                            <CustomButton
-                                type="button"
-                                onClick={handleCancel}
-                                disabled={formik.isSubmitting}
-                                width="100%"
-                            >
-                                Cancel
-                            </CustomButton>
-                        </div>
-                    </div>
+
+            <div className="ButtonOuter ">
+                <div className="buttoninner " >
+                    <CustomButton
+                        type="submit"
+                        disabled={loading}
+                        width="100%"
+                    >
+                        {formik.isSubmitting ? (
+                            <>
+                                <CircularProgress size={24} color="inherit" />
+                                Sending Notifications...
+                            </>
+                        ) : (
+                            <>
+                                <MdSend size={22} />
+                                Send Notification
+                            </>
+                        )}
+                    </CustomButton>
+
                 </div>
-            </Box>
+            </div>
+
         </Box>
     );
 }
