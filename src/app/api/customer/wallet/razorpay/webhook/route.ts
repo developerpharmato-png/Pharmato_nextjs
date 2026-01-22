@@ -108,8 +108,8 @@ export async function POST(req: NextRequest) {
                 await Notification.create({
                     userId: userObjectId.toString(),
                     role: 'customer',
-                    title: 'Wallet Credit',
-                    message: `Your wallet has been credited with ₹${checkWallet.amount}.`,
+                    title: 'Wallet Recharged',
+                    message: `Top-up wallet credited with ₹${checkWallet.amount} successfully.`,
                     type: 'payment',
                     targetScreen: 'wallet',
                     targetId: userObjectId.toString(),
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
                         await sendPushNotificationWithData({
                             token: (user as any).deviceToken,
                             title: 'Pharmato',
-                            body: `Your wallet has been credited with ₹${checkWallet.amount}.`,
+                            body: `Top-up wallet credited with ₹${checkWallet.amount} successfully.`,
                             data: {
                                 targetId: userObjectId.toString(),
                                 targetScreen: 'wallet'
