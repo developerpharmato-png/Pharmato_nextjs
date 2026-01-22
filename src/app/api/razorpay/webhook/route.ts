@@ -177,38 +177,28 @@ export async function POST(req: NextRequest) {
                     const html = `${header}
                         <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.4;">
                             <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
-                             
-                                <p>Hi ${userName},</p>
-                                <p>Thank you for placing your order with Pharmato. We have successfully received your payment and your order is now confirmed.</p>
-
+                                <p>Hello ${userName},</p>
+                                <p>Thank you for your order!<br>
+                                Your order <b>#${checkOrder.order_id}</b> has been placed successfully and is being processed.✅</p>
+                                <p>Our partner pharmacy is reviewing your order. Once your order is confirmed, your medicines will be packed and delivered to you soon.</p>
+                                <h4 style="margin:12px 0 6px;">Order Summary:</h4>
                                 <table style="width:100%;border-collapse:collapse;margin:16px 0;">
                                     <tr>
                                         <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
                                         <td style="padding:8px;border:1px solid #eee;">${checkOrder.order_id}</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Payment ID</td>
-                                        <td style="padding:8px;border:1px solid #eee;">${entity.id}</td>
+                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+                                        <td style="padding:8px;border:1px solid #eee;">Order Placed</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Amount</td>
-                                        <td style="padding:8px;border:1px solid #eee;">${amountValue} ${entity.currency || ''}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Payment Method</td>
-                                        <td style="padding:8px;border:1px solid #eee;">${entity.method || ''}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Status</td>
-                                        <td style="padding:8px;border:1px solid #eee;">${entity.status || ''}</td>
+                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Delivery Address</td>
+                                        <td style="padding:8px;border:1px solid #eee;">${deliveryAddressText || 'Address will be updated soon.'}</td>
                                     </tr>
                                 </table>
-
-                                <h4 style="margin:12px 0 6px;">Delivery Address</h4>
-                                <p style="margin:0 0 12px;color:#555;">${deliveryAddressText || 'Address will be updated soon.'}</p>                                
-
-                                <p style="margin-top:18px;color:#777;font-size:13px;">If you have any questions, reply to this email or contact our support.</p>
-                                <p style="margin:6px 0 0;color:#333;font-weight:600;">Thanks,<br/>Team Pharmato</p>
+                                <p>You can track your order status anytime from the My Orders section in the Pharmato app or website.</p>
+                                <p>Thank you for choosing Pharmato for your healthcare needs. We’re committed to delivering your medicines safely and on time.</p>
+                                <p>Stay healthy,<br/>Team Pharmato<br/>Your trusted pharmacy partner</p>
                             </div>
                         </div>
                     ${footer}
