@@ -13,9 +13,16 @@ export default function GlobalFetchInterceptor() {
             data?.success === false &&
             data?.error === "Auth error: Session expired or logged in elsewhere"
           ) {
+            // Clear all cookies and localStorage
             document.cookie =
               "access_token=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
-            window.location.href = "/";
+            document.cookie =
+              "accessToken=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+            document.cookie =
+              "refreshToken=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+            localStorage.removeItem("admin");
+            localStorage.removeItem("adminPermissions");
+            window.location.href = "/login";
             return response;
           }
         } catch (e) {}

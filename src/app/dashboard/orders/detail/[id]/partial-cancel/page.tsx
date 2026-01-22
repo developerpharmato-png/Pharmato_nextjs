@@ -182,7 +182,7 @@ export default function PartialCancelPage() {
           toast: true,
           position: "top-end",
           icon: "success",
-          title: "Prescription rejected",
+          title:   data.message,
           showConfirmButton: false,
           timer: 2000,
         });

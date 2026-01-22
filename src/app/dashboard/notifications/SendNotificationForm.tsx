@@ -75,7 +75,11 @@ const validateNotification = (
     return errors;
 };
 
-export default function SendNotificationForm({ handleClose  }) {
+interface SendNotificationFormProps {
+    handleClose: () => void;
+}
+
+export default function SendNotificationForm({ handleClose }: SendNotificationFormProps) {
     const router = useRouter();
     const [customers, setCustomers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -281,13 +285,28 @@ export default function SendNotificationForm({ handleClose  }) {
                     size="medium"
                     fullWidth
                     InputLabelProps={{ shrink: true }}
+                    value={formik.values.title}
+                    onChange={(e) => {
+                        const value = e.target.value;
+                        if (value.length <= MAX_TITLE_LENGTH) {
+                            formik.setFieldValue("title", value);
+                        }
+                    }}
+                    onBlur={formik.handleBlur}
+                    name="title"
                     inputProps={{ maxLength: MAX_TITLE_LENGTH }}
-                    {...formik.getFieldProps("title")}
                     error={formik.touched.title && Boolean(formik.errors.title)}
                 />
-                {formik.touched.title && formik.errors.title && (
-                    <ErrorMessageCom error={formik.errors.title} />
-                )}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 0.5 }}>
+                    <Box>
+                        {formik.touched.title && formik.errors.title && (
+                            <ErrorMessageCom error={formik.errors.title} />
+                        )}
+                    </Box>
+                    <Typography variant="caption" sx={{ color: '#999', fontSize: '12px' }}>
+                        {formik.values.title.length}/{MAX_TITLE_LENGTH}
+                    </Typography>
+                </Box>
             </Box>
 
             {/* Message Textarea */}
@@ -314,7 +333,7 @@ export default function SendNotificationForm({ handleClose  }) {
                 maxLength={500}
                 rows={5}
                 showCount={true}
-              
+
                 className=""
             />
             {formik.touched.message && formik.errors.message && (
