@@ -53,29 +53,26 @@ import Wallet from '@/models/Wallet';
 import moment from 'moment';
 import { sendPushNotificationWithData } from '@/utils/firebase.helper';
 
+import AdminCustomerNotification from '@/models/AdminCustomerNotification';
 
-export async function POST(request: NextRequest) {
-    await dbConnect();
-    const body = await request.json();
-    const { userIds, title, message } = body;
-
-    if (!Array.isArray(userIds) || userIds.length === 0 || !userIds.every(id => typeof id === 'string' && id.trim() !== '')) {
-        return NextResponse.json({ status: false, message: 'userIds must be a non-empty array of strings' }, { status: 400 });
-    }
-    if (!title || typeof title !== 'string') {
-        return NextResponse.json({ status: false, message: 'title is required and must be a string' }, { status: 400 });
-    }
-    if (!message || typeof message !== 'string') {
-        return NextResponse.json({ status: false, message: 'message is required and must be a string' }, { status: 400 });
-    }
+// Refactored to accept userIds, title, message
+export async function sendAdminCustomerNotification({ userIds, title, message }: { userIds: string[]; title: string; message: string }) {
 
     // Check which userIds are valid
     const users = await User.find({ _id: { $in: userIds } }).select('_id email deviceToken');
     const foundUserIds = users.map(u => u._id.toString());
     const notFound = userIds.filter(id => !foundUserIds.includes(id));
 
+    const notificationRecord = await AdminCustomerNotification.create({
+        title,
+        message,
+        recipients: userIds,
+        status: 'In Progress',
+        sentCount: 0,
+        failedCount: 0,
+    });
+
     for (const user of users) {
-        console.log("$$$$$$$$$user$$$$$$$$$$$",user);
         if (user?.deviceToken) {
             try {
                 const Notification = (await import('@/models/Notification')).default;
@@ -102,15 +99,39 @@ export async function POST(request: NextRequest) {
             } catch (err) {
                 console.error('Failed to send push notification:', err);
             }
-
+        } else {
         }
     }
 
+    // Update notification record status
+    notificationRecord.status = 'Completed';
+    notificationRecord.sentCount = users.length - notFound.length;
+    notificationRecord.failedCount = notFound.length;
+    await notificationRecord.save();
+}
+
+export async function POST(request: NextRequest) {
+    await dbConnect();
+    const body = await request.json();
+    const { userIds, title, message } = body;
+
+    if (!Array.isArray(userIds) || userIds.length === 0 || !userIds.every(id => typeof id === 'string' && id.trim() !== '')) {
+        return NextResponse.json({ status: false, message: 'userIds must be a non-empty array of strings' }, { status: 400 });
+    }
+    if (!title || typeof title !== 'string') {
+        return NextResponse.json({ status: false, message: 'title is required and must be a string' }, { status: 400 });
+    }
+    if (!message || typeof message !== 'string') {
+        return NextResponse.json({ status: false, message: 'message is required and must be a string' }, { status: 400 });
+    }
+
+    // background me chala do
+    setImmediate(() => {
+        sendAdminCustomerNotification({ userIds, title, message });
+    });
+
     return NextResponse.json({
         status: true,
-        message: `Notification sent to ${foundUserIds.length} user(s).` + (notFound.length ? ` User(s) not found: ${notFound.join(', ')}` : ''),
-        sentTo: foundUserIds,
-        notFound
+        message: `Notification sent successfully`,
     });
-    
 }
