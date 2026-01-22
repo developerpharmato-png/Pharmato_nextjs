@@ -31,4 +31,4 @@ AdminCustomerNotificationSchema.pre('validate', async function (next) {
     next();
 });
 
-export default mongoose.model<IAdminCustomerNotification>('AdminCustomerNotification', AdminCustomerNotificationSchema);
+export default mongoose.models.AdminCustomerNotification || mongoose.model<IAdminCustomerNotification>('AdminCustomerNotification', AdminCustomerNotificationSchema);

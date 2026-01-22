@@ -197,7 +197,7 @@ export default function AdminCustomerListPage() {
         showBack={false}
         showSearch={false}
         searchValue={searchTerm}
-        onSearchChange={setSearchTerm}
+        onSearchChange={setSearchTerm} 
         isunsaved={false}
       />
       <FilterSearch

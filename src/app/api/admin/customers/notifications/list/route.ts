@@ -1,44 +1,3 @@
-
-/**
- * @swagger
- * /api/admin/customers/notifications/list:
- *   post:
- *     summary: Get admin customer notifications list
- *     tags:
- *       - Admin-Customer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               limit:
- *                 type: integer
- *                 example: 10
- *               offset:
- *                 type: integer
- *                 example: 1
- *     responses:
- *       200:
- *         description: List of admin customer notifications
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/AdminCustomerNotification'
- *                 total:
- *                   type: integer
- *       500:
- *         description: Failed to fetch notifications
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import AdminCustomerNotification from '@/models/AdminCustomerNotification';
@@ -46,21 +5,50 @@ import AdminCustomerNotification from '@/models/AdminCustomerNotification';
 export async function POST(request: NextRequest) {
     await dbConnect();
     try {
-        const body = await request.json();
-        let { limit, offset } = body;
+        // 1. Safety check for empty body
+        const body = await request.json().catch(() => ({})); 
+        
+        let { limit, offset, search } = body;
+        
         limit = Number(limit) || 10;
-        offset = (Number(offset) - 1) * limit || 0;
+        // Ensure offset doesn't result in a negative number
+        const page = Math.max(1, Number(offset) || 1); 
+        const skip = (page - 1) * limit;
 
-        const notifications = await AdminCustomerNotification.find()
-            .sort({ createdAt: -1 })
-            .skip(offset)
-            .limit(limit);
+        // 2. Build Query - Use fields that DEFINITELY exist in your schema
+        let query: any = {};
+        if (search && typeof search === 'string' && search.trim() !== "") {
+            const searchRegex = { $regex: search.trim(), $options: 'i' };
+            
+            query.$or = [
+                { title: searchRegex },   // Make sure 'title' exists in AdminCustomerNotification model
+                { message: searchRegex }  // Make sure 'message' exists in AdminCustomerNotification model
+            ];
+        }
 
-        const total = await AdminCustomerNotification.countDocuments();
+        // 3. Execution
+        const [notifications, total] = await Promise.all([
+            AdminCustomerNotification.find(query)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(), // lean() improves performance for read-only ops
+            AdminCustomerNotification.countDocuments(query)
+        ]);
 
-        return NextResponse.json({ status: true, data: notifications, total });
-    } catch (err) {
-        console.error('Failed to fetch admin customer notifications:', err);
-        return NextResponse.json({ status: false, message: 'Failed to fetch notifications' }, { status: 500 });
+        return NextResponse.json({ 
+            status: true, 
+            data: notifications, 
+            total 
+        });
+
+    } catch (err: any) {
+        // This log will appear in your VS Code / Terminal console
+        console.error('API Error:', err.message); 
+        
+        return NextResponse.json({ 
+            status: false, 
+            message: err.message || 'Failed to fetch notifications' 
+        }, { status: 500 });
     }
 }

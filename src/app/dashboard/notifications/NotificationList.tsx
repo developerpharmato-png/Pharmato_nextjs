@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { CustomTable, Column } from "../components/CustomTable";
+import FilterSearch from "../components/FilterSearch";
 import { CustomerNotificationsListStore } from "@/app/dashboard/storeAPICall/useUserStore";
 import { CustomerNotificationsListPath } from "@/app/dashboard/storeAPICall/API/BaseApi";
 
@@ -23,8 +24,9 @@ export default function NotificationList() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [limit, setLimit] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const fetchNotifications = async (pageNum: number, rowsPerPage: number) => {
+  const fetchNotifications = async (pageNum: number, rowsPerPage: number, search: string = "") => {
     setLoading(true);
     try {
       const result = await CustomerNotificationsListStore.getState().postData(
@@ -32,6 +34,7 @@ export default function NotificationList() {
         {
           limit: rowsPerPage,
           offset: pageNum + 1,
+          search: search,
         }
       );
 
@@ -41,14 +44,14 @@ export default function NotificationList() {
       }
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
-    } finally {
+    } finally { 
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchNotifications(page, limit);
-  }, [page, limit]);
+    fetchNotifications(page, limit, searchTerm);
+  }, [page, limit, searchTerm]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -150,15 +153,25 @@ export default function NotificationList() {
   }
 
   return (
-    <CustomTable
-      columns={columns}
-      data={notifications}
-      page={page}
-      rowsPerPage={limit}
-      totalCount={total}
-      onPageChange={setPage}
-      onRowsPerPageChange={setLimit}
-      loading={loading}
-    />
+    <>
+      <FilterSearch
+        onChange={({ search }) => {
+          setSearchTerm(search || "");
+        }}
+        placeholder="Search by notification title..."
+        isSearchShow={true}
+        showApply={false}
+      />
+      <CustomTable
+        columns={columns}
+        data={notifications}
+        page={page}
+        rowsPerPage={limit}
+        totalCount={total}
+        onPageChange={setPage}
+        onRowsPerPageChange={setLimit}
+        loading={loading}
+      />
+    </>
   );
 }
