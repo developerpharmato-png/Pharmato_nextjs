@@ -38,6 +38,8 @@ import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import Wallet from '@/models/Wallet';
 import moment from 'moment';
+import Notification from '@/models/Notification';
+import { sendPushNotificationWithData } from '@/utils/firebase.helper';
 
 export async function POST(request: NextRequest) {
 
@@ -71,6 +73,34 @@ export async function POST(request: NextRequest) {
         { _id: userCheck._id },
         { $inc: { walletAmount: Number(amount || 0) } }
     );
+
+    await Notification.create({
+        userId: userCheck._id.toString(),
+        role: 'customer',
+        title: 'Wallet Credited',
+        message: `🎉 Good news! ₹${amount} has been successfully credited to your wallet by Admin. You can use it for your next purchase. Happy shopping!`,
+        type: 'payment',
+        targetScreen: 'wallet',
+        targetId: userCheck._id.toString(),
+        meta: {}
+    });
+
+    // Send push notification to customer if deviceToken exists
+    if (userCheck && (userCheck as any).deviceToken) {
+        try {
+            await sendPushNotificationWithData({
+                token: (userCheck as any).deviceToken,
+                title: 'Pharmato',
+                body: `🎉 Good news! ₹${amount} has been successfully credited to your wallet by Admin. You can use it for your next purchase. Happy shopping!`,
+                data: {
+                    targetId: userCheck._id.toString(),
+                    targetScreen: 'wallet'
+                }
+            });
+        } catch (err) {
+            console.error('Failed to send push notification:', err);
+        }
+    }
 
     return NextResponse.json({
         status: true,
