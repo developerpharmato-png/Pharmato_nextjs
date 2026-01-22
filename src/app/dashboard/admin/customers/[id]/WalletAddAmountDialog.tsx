@@ -5,6 +5,7 @@ import { WalletAddAmountStore } from "@/app/dashboard/storeAPICall/useUserStore"
 import { WalletAddAmountPath } from "@/app/dashboard/storeAPICall/API/BaseApi";
 import { useFormik } from "formik";
 import { modalStyles } from "@/utils/style";
+import { InputAdornment } from "@mui/material";
 
 
 
@@ -98,26 +99,43 @@ export default function WalletAddAmountDialog({ userId, onSuccess, open, setOpen
 
                 <DialogContent
 
-                    sx={{ ...modalStyles.content,  }}
+                    sx={{ ...modalStyles.content, }}
                 >
+
                     <TextField
                         label="Amount"
-                        type="number"
+                        type="text"
                         fullWidth
                         name="amount"
                         value={formik.values.amount}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
                         margin="normal"
                         disabled={addLoading || formik.isSubmitting}
                         error={formik.touched.amount && Boolean(formik.errors.amount)}
                         helperText={formik.touched.amount && formik.errors.amount}
+                        inputProps={{
+                            inputMode: "numeric",
+                            pattern: "[0-9]*"
+                        }}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">₹</InputAdornment>
+                            ),
+                        }}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^\d*$/.test(value)) {
+                                formik.setFieldValue("amount", value);
+                            }
+                        }}
+                        onBlur={formik.handleBlur}
                     />
+
+
                 </DialogContent>
                 <DialogActions
                     sx={modalStyles.sectionHeader}
                 >
-                  
+
                     <CustomButton type="submit"
                         disabled={addLoading || formik.isSubmitting}>
                         {addLoading || formik.isSubmitting ? "Adding..." : "Add"}

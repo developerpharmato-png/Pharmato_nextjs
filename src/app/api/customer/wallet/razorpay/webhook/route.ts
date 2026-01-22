@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
                     }
                 );
 
-                const userObjectId = 
+                const userObjectId =
                     typeof checkWallet.userId === 'string'
                         ? new mongoose.Types.ObjectId(checkWallet.userId)
                         : checkWallet.userId;
@@ -102,6 +102,36 @@ export async function POST(req: NextRequest) {
                     { _id: userObjectId },
                     { $inc: { walletAmount: Number(checkWallet.amount || 0) } }
                 );
+
+                const user = await User.findOne({ _id: userObjectId })
+
+                await Notification.create({
+                    userId: userObjectId.toString(),
+                    role: 'customer',
+                    title: 'Wallet Credit',
+                    message: `Your wallet has been credited with ₹${checkWallet.amount}.`,
+                    type: 'payment',
+                    targetScreen: 'wallet',
+                    targetId: userObjectId.toString(),
+                    meta: {}
+                });
+
+                // Send push notification to customer if deviceToken exists
+                if (user && (user as any).deviceToken) {
+                    try {
+                        await sendPushNotificationWithData({
+                            token: (user as any).deviceToken,
+                            title: 'Pharmato',
+                            body: `Your wallet has been credited with ₹${checkWallet.amount}.`,
+                            data: {
+                                targetId: userObjectId.toString(),
+                                targetScreen: 'wallet'
+                            }
+                        });
+                    } catch (err) {
+                        console.error('Failed to send push notification:', err);
+                    }
+                }
 
             }
 

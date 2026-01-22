@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
             }, { status: 400 });
         }
 
-          // Build the query object
+        // Build the query object
         const query: any = {};
         if (status === 'active') {
             query.isActive = true;
@@ -86,10 +86,13 @@ export async function GET(req: NextRequest) {
 
         // Fetch customers based on the query with pagination
         const total = await User.countDocuments(query);
+
         const customers = await User.find(query)
+            .sort({ createdAt: -1 }) // latest first
             .skip(offset)
             .limit(limit)
             .lean();
+
 
         // Ensure walletAmount is present for all
         const data = customers.map(c => ({
