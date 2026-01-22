@@ -98,6 +98,7 @@ export async function POST(req: NextRequest) {
         }
         await order.save();
 
+        let responseMessage = '';
         let userName = 'Customer';
         let userMobile = '';
         let userEmail = '';
@@ -109,6 +110,10 @@ export async function POST(req: NextRequest) {
             userMobile = deliveredAddr?.phone || '';
             userEmail = deliveredAddr?.email || '';
             deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
+        }
+
+        if (unCancelledItems.length == 0) {
+            responseMessage = 'Order cancelled successfully.';
         }
 
         const store: any = await Store.findById(order.storeId).lean();
@@ -124,6 +129,10 @@ export async function POST(req: NextRequest) {
 
         // Use the same cancelledItems array for refund logic
         const cancelledForRefund = order.medicineQuantity.filter((item: any) => item.status === 'cancelled');
+       
+        if (cancelledForRefund.length == 0) {
+            responseMessage = 'Order accepted successfully.';
+        }
 
         if (cancelledForRefund.length > 0) {
 
@@ -161,6 +170,10 @@ export async function POST(req: NextRequest) {
                 // console.log("$$$$$refundAmount$$$$$$", refundAmount);
 
             }
+        }        
+
+        if (unCancelledItems.length !== 0 && cancelledForRefund.length !== 0) {
+            responseMessage = 'Order partially accepted and cancelled successfully.';
         }
 
         // Fetch medicine names for both accepted and cancelled
