@@ -49,5 +49,6 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
         return NextResponse.json({ success: false, message: 'Customer not found', data: null }, { status: 404 });
     }
     if (typeof user.walletAmount === 'undefined') user.walletAmount = 0;
+    user.walletAmount = parseFloat(Number(user.walletAmount).toFixed(2));
     return NextResponse.json({ success: true, message: 'Customer details fetched successfully', data: user });
 }
