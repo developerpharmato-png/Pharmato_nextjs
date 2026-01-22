@@ -159,12 +159,12 @@ export default function LoginPage() {
 
                     if (!data.success) {
                       Swal.fire({
-                        toast: true,
-                        position: "top-end",
                         icon: "error",
-                        title: data.error || ToastMessages.INVALID_CREDENTIALS,
-                        showConfirmButton: false,
-                        timer: 2000,
+                        title: "Login Failed",
+                        text: data.error || ToastMessages.INVALID_CREDENTIALS,
+                        showConfirmButton: true,
+                        confirmButtonText: "OK",
+                        confirmButtonColor: "#16a34a",
                       });
                     } else {
                       // Store all admin data

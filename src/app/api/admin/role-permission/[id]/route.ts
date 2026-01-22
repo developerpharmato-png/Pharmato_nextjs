@@ -20,7 +20,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
 
   if (!perm) {
     const permissions: Record<string, any> = {};
-    menuItems.forEach(name => { permissions[name] = { view: true, edit: true }; });
+    menuItems.forEach(name => { permissions[name] = { viīew: true, edit: true }; });
     // If role is SuperAdmin, return all-true and ensure DB has it
     try {
       const roleDoc: any = await Role.findById(id).lean();
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     menuItems.forEach((name) => {
       merged[name] = { view: true, edit: true };
     });
-    // Override defaults with saved values where present
+    // Override defaults with saved values where presentī
     Object.keys(saved).forEach((k) => {
       if (menuItems.includes(k)) {
         const entry = saved[k] || {};

@@ -366,7 +366,7 @@ export default function EditCategoryPage() {
           {formik.touched.name && formik.errors.name && (
             <ErrorMessageCom error={formik.errors.name} />
           )}
-        </Box>
+        </Box> 
 
         {/* Description Textarea (Character Counter) */}
         <TextField

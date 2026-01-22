@@ -36,6 +36,7 @@ export const markreadNotificationsStore = createApiStore<any>();
 // Customer Notifications
 export const CustomerDropdownStore = createApiStore<any>();
 export const SendCustomerNotificationsStore = createApiStore<any>();
+export const CustomerNotificationsListStore = createApiStore<any>();
 
 // Settings & Policies
 export const PaymentSettingsStore = createApiStore<any>();
@@ -47,4 +48,4 @@ export const MargStore = createApiStore<any>();
 
 export const fetchMargList =createApiStore<any>();
 
-export const importMargData =createApiStore<any>();
+export const importMargData =createApiStore<any>(); 

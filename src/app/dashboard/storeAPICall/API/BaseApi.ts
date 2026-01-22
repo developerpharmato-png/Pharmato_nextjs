@@ -35,6 +35,7 @@ export const PincodeActiveListPath = `/api/admin/pincode/active-list`;
 // Customer Notifications
 export const CustomerDropdownPath = `/api/admin/customers/dropdown`;
 export const SendCustomerNotificationsPath = `/api/admin/customers/notifications`;
+export const CustomerNotificationsListPath = `/api/admin/customers/notifications/list`;
 
 export const markreadNotificationsPath = `/api/notifications/mark-read`;
 export const NotificationsListPath = `/api/notifications`;
@@ -48,3 +49,4 @@ export const PolicySettingsPath = `/api/admin/settings/policy`;
 // MARG
 export const MargImportPath = `/api/admin/marg/cron`;
 export const MargListPath = `/api/admin/marg/list`;
+ 

@@ -238,7 +238,7 @@ export default function RolePage() {
   ];
 
   return (
-    <div className="containerStyle scrollbar-hide">
+    <div className="containerStyle scrollbar-hide">ī
       <HeaderWithAction
         title="Admin Roles"
         subtitle="Manage admin roles and permissions"
