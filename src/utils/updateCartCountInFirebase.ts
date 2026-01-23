@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import Cart from "@/models/Cart";
 import { getDb } from '@/utils/firebase.helper';
+// 🔥 Firebase update
+const db = getDb();
 
 export async function updateCartCountInFirebase({ userId, storeId }: { userId?: string; storeId?: string }) {
 
@@ -30,8 +32,6 @@ export async function updateCartCountInFirebase({ userId, storeId }: { userId?: 
 
     const count = cartAgg?.[0]?.count || 0;
 
-    // 🔥 Firebase update
-    const db = getDb();
     await db
         .ref(`cart/${userId}/${storeId}`)
         .update({
