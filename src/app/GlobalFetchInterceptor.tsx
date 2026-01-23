@@ -1,12 +1,33 @@
 "use client";
 import { useEffect } from "react";
+import axios from "axios";
 
 export default function GlobalFetchInterceptor() {
+  
   useEffect(() => {
+    console.log("ssdfdfgdf");
+    
     if (typeof window !== "undefined") {
+      // Axios interceptor for 401 errors
+      axios.interceptors.response.use(
+        (response) => response,
+        (error) => {
+          if (error?.response?.status === 401) {
+            window.location.href = "/";
+          }
+          return Promise.reject(error);
+        }
+      );
+
       const originalFetch = window.fetch;
       window.fetch = async (...args) => {
         const response = await originalFetch(...args);
+        console.log(response,"responseresponse");
+        
+        if (response.status === 401) {
+          window.location.href = "/";
+          return response;
+        }
         try {
           const data = await response.clone().json();
           if (

@@ -82,6 +82,7 @@ type CustomTableProps<T> = {
   onPageChange: (newPage: number) => void;
   onRowsPerPageChange?: (rows: number) => void;
   loading?: boolean;
+  NoDataMessage?: string;
 };
 
 export function CustomTable<T>({
@@ -94,6 +95,7 @@ export function CustomTable<T>({
   onRowsPerPageChange,
   loading = false,
   onFilterChange,
+  NoDataMessage
 }: CustomTableProps<T> & { onFilterChange?: (filter: string) => void }) {
 
   const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -137,7 +139,7 @@ export function CustomTable<T>({
             ) : !data || !Array.isArray(data) || data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={columns.length} align="center">
-                  No data found
+                  {NoDataMessage || "No data found"}
                 </TableCell>
               </TableRow>
             ) : (

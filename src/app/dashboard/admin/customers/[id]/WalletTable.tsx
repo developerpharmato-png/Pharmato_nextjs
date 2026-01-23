@@ -135,6 +135,7 @@ const WalletTable: React.FC<WalletTableProps> = ({
       onPageChange={onPageChange}
       onRowsPerPageChange={onRowsPerPageChange}
       loading={loading}
+      NoDataMessage={"No wallet transactions found."}
     />
   );
 };
