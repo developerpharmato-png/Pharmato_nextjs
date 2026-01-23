@@ -36,10 +36,45 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Cart from '@/models/Cart';
 import Medicine from '@/models/Medicine';
-import { updateCartCountInFirebase } from '@/utils/updateCartCountInFirebase';
+import mongoose from 'mongoose';
+import { getDb } from '@/utils/firebase.helper';
+import connectDB from '@/lib/mongodb';
+// 🔥 Firebase update
+const db = getDb();
+await connectDB();
+
+
+async function updateCartCountInFirebase({ userId, storeId }: { userId?: string; storeId?: string }) {
+
+    if (!userId || !storeId) return;
+
+    // 🔥 LIGHT & FAST aggregation (NO lookup)
+    const cartAgg = await Cart.aggregate([
+        {
+            $match: {
+                userId: new mongoose.Types.ObjectId(userId),
+                storeId: new mongoose.Types.ObjectId(storeId)
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                count: { $size: "$items" }
+            }
+        }
+    ]);
+
+    const count = cartAgg?.[0]?.count || 0;
+
+    await db
+        .ref(`cart/${userId}/${storeId}`)
+        .update({
+            count
+        });
+
+}
 
 export async function POST(request: NextRequest) {
-    await dbConnect();
     const body = await request.json();
     const userId = body.userId || request.headers.get('x-user-id');
     const storeId = body.storeId;

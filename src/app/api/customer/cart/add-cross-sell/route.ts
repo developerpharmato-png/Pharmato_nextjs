@@ -45,10 +45,44 @@ import dbConnect from '@/lib/mongodb';
 import Cart from '@/models/Cart';
 import Medicine from '@/models/Medicine';
 import mongoose from 'mongoose';
-import { updateCartCountInFirebase } from '@/utils/updateCartCountInFirebase';
+import { getDb } from '@/utils/firebase.helper';
+import connectDB from '@/lib/mongodb';
+// 🔥 Firebase update
+const db = getDb();
+await connectDB();
+
+
+async function updateCartCountInFirebase({ userId, storeId }: { userId?: string; storeId?: string }) {
+
+    if (!userId || !storeId) return;
+
+    // 🔥 LIGHT & FAST aggregation (NO lookup)
+    const cartAgg = await Cart.aggregate([
+        {
+            $match: {
+                userId: new mongoose.Types.ObjectId(userId),
+                storeId: new mongoose.Types.ObjectId(storeId)
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                count: { $size: "$items" }
+            }
+        }
+    ]);
+
+    const count = cartAgg?.[0]?.count || 0;
+
+    await db
+        .ref(`cart/${userId}/${storeId}`)
+        .update({
+            count
+        });
+
+}
 
 export async function POST(request: NextRequest) {
-    await dbConnect();
 
     try {
         const body = await request.json();
@@ -109,8 +143,8 @@ export async function POST(request: NextRequest) {
             await cart.save();
         }
 
-            // Update cart count in Firebase
-            updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
+        // Update cart count in Firebase
+        updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
 
         // Re-aggregate cart exactly like cart/get to mirror response
         const cartAgg = await Cart.aggregate([
@@ -186,7 +220,7 @@ export async function POST(request: NextRequest) {
         }));
 
         const isPrescriptionRequired = itemsWithDetails.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
-        
+
 
         return NextResponse.json({
             success: true,

@@ -1,8 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
 import GuestCart from '@/models/GuestCart';
 import Medicine from '@/models/Medicine';
-import { updateGuestCartCountInFirebase } from '@/utils/updateGuestCartCountInFirebase';
+import connectDB from '@/lib/mongodb';
+import mongoose from 'mongoose';
+import { getDb } from '@/utils/firebase.helper';
+const db = getDb();
+await connectDB();
+
+
+export async function updateGuestCartCountInFirebase({ guestId, storeId }: { guestId?: string; storeId?: string }) {
+
+    if (!guestId || !storeId) return;
+
+    // 🔥 LIGHT & FAST aggregation (NO lookup)
+    const cartAgg = await GuestCart.aggregate([
+        {
+            $match: {
+                guestId: guestId,
+                storeId: new mongoose.Types.ObjectId(storeId)
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                count: { $size: "$items" }
+            }
+        }
+    ]);
+
+    const count = cartAgg?.[0]?.count || 0;
+
+    await db
+        .ref(`cart/${guestId}/${storeId}`)
+        .update({
+            count
+        });
+
+}
 
 /**
  * @swagger
@@ -49,7 +83,6 @@ import { updateGuestCartCountInFirebase } from '@/utils/updateGuestCartCountInFi
  *                   type: string
  */
 export async function POST(request: NextRequest) {
-    await connectDB();
     const body = await request.json();
     const { guestId, storeId, medicineId, quantity } = body;
     if (!guestId || typeof guestId !== 'string') {

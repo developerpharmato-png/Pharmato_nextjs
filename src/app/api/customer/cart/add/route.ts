@@ -54,12 +54,10 @@ import { getDb } from '@/utils/firebase.helper';
 import connectDB from '@/lib/mongodb';
 // 🔥 Firebase update
 const db = getDb();
-// import { updateCartCountInFirebase } from '@/utils/updateCartCountInFirebase';
-
 await connectDB();
 
 
-export async function updateCartCountInFirebase({ userId, storeId }: { userId?: string; storeId?: string }) {
+async function updateCartCountInFirebase({ userId, storeId }: { userId?: string; storeId?: string }) {
 
     if (!userId || !storeId) return;
 
