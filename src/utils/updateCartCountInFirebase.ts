@@ -7,15 +7,11 @@ import { getDb } from '@/utils/firebase.helper';
 import connectDB from '@/lib/mongodb';
 // 🔥 Firebase update
 const db = getDb();
+await connectDB();
 
 export async function updateCartCountInFirebase({ userId, storeId }: { userId?: string; storeId?: string }) {
 
     if (!userId || !storeId) return;
-
-    // Ensure DB connected (idempotent, safe)
-    // await dbConnect();
-
-    await connectDB();
 
     // 🔥 LIGHT & FAST aggregation (NO lookup)
     const cartAgg = await Cart.aggregate([
