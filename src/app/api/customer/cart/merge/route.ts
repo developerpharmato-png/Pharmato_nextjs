@@ -72,6 +72,32 @@ export async function POST(request: NextRequest) {
         //     }
         // });
 
+        // const mergedGuestItemsMap = new Map<string, number>();
+
+        // for (const item of guestCart.items) {
+        //     const medId = item.medicineId.toString();
+        //     mergedGuestItemsMap.set(
+        //         medId,
+        //         (mergedGuestItemsMap.get(medId) || 0) + item.quantity
+        //     );
+        // }
+
+        // for (const [medicineId, quantity] of mergedGuestItemsMap.entries()) {
+        //     const index = userCart.items.findIndex(
+        //         (item: any) => item.medicineId.toString() === medicineId
+        //     );
+
+        //     if (index > -1) {
+        //         userCart.items[index].quantity += quantity;
+        //     } else {
+        //         userCart.items.push({
+        //             medicineId,
+        //             quantity
+        //         });
+        //     }
+        // }
+
+
         const mergedGuestItemsMap = new Map<string, number>();
 
         for (const item of guestCart.items) {
@@ -83,12 +109,13 @@ export async function POST(request: NextRequest) {
         }
 
         for (const [medicineId, quantity] of mergedGuestItemsMap.entries()) {
-            const index = userCart.items.findIndex(
+
+            const existingItem = userCart.items.find(
                 (item: any) => item.medicineId.toString() === medicineId
             );
 
-            if (index > -1) {
-                userCart.items[index].quantity += quantity;
+            if (existingItem) {
+                existingItem.quantity += quantity;
             } else {
                 userCart.items.push({
                     medicineId,
@@ -97,13 +124,15 @@ export async function POST(request: NextRequest) {
             }
         }
 
+
+
         // 🔥 YAHAN save chahiye (kyunki items change hue)
         await userCart.save();
         await userCart.populate('items.medicineId');
 
         // Only delete the guest cart for this store
         await GuestCart.deleteOne({ guestId, storeId });
-        
+
         // Update cart count in Firebase
         updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
 
@@ -174,7 +203,7 @@ export async function POST(request: NextRequest) {
                 medicines: undefined // remove medicines array from response
             }
         });
-        
+
     } catch (error) {
         let errorMessage = 'Error merging carts';
         if (error && typeof error === 'object' && 'message' in error) {
