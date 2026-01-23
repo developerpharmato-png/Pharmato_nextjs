@@ -1,42 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import GuestCart from '@/models/GuestCart';
 import Medicine from '@/models/Medicine';
+import { updateGuestCartCountInFirebase } from '@/utils/updateGuestCartCountInFirebase';
 import connectDB from '@/lib/mongodb';
-import mongoose from 'mongoose';
-import { getDb } from '@/utils/firebase.helper';
-const db = getDb();
 await connectDB();
-
-
-export async function updateGuestCartCountInFirebase({ guestId, storeId }: { guestId?: string; storeId?: string }) {
-
-    if (!guestId || !storeId) return;
-
-    // 🔥 LIGHT & FAST aggregation (NO lookup)
-    const cartAgg = await GuestCart.aggregate([
-        {
-            $match: {
-                guestId: guestId,
-                storeId: new mongoose.Types.ObjectId(storeId)
-            }
-        },
-        {
-            $project: {
-                _id: 0,
-                count: { $size: "$items" }
-            }
-        }
-    ]);
-
-    const count = cartAgg?.[0]?.count || 0;
-
-    await db
-        .ref(`cart/${guestId}/${storeId}`)
-        .update({
-            count
-        });
-
-}
 
 /**
  * @swagger
@@ -131,7 +98,6 @@ export async function POST(request: NextRequest) {
     // Update cart count in Firebase
     updateGuestCartCountInFirebase({ guestId, storeId }); // fire-and-forget, don't await
 
-
     if (cart) {
         const updatedItem = cart.items.find((item: any) => item.medicineId.toString() === medicineId);
         if (updatedItem) {
@@ -146,7 +112,6 @@ export async function POST(request: NextRequest) {
             };
         }
     }
-
 
     return NextResponse.json({
         success: true,
