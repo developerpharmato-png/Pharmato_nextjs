@@ -61,7 +61,19 @@ export async function POST(request: NextRequest) {
     const { provider, socialId, name, email, deviceToken } = await request.json();
     if (!provider || !socialId) {
         return NextResponse.json({ success: false, error: 'Provider and socialId required' }, { status: 400 });
-    }
+    }    
+
+        const checkDeviceToken = await User.find({ deviceToken: deviceToken });
+
+        if (checkDeviceToken && checkDeviceToken.length > 0) {
+            for (const element of checkDeviceToken) {
+
+                element.deviceToken = "";
+                await element.save();
+
+            }
+        }
+
     let user = await User.findOne({ socialProvider: provider, socialId });
     if (!user) {
         user = await User.create({ socialProvider: provider, socialId, name, email, isVerified: true, deviceToken });
@@ -127,18 +139,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (deviceToken) {
-
-        const checkDeviceToken = await User.find({ deviceToken: deviceToken });
-
-        if (checkDeviceToken && checkDeviceToken.length > 0) {
-            for (const element of checkDeviceToken) {
-
-                element.deviceToken = "";
-                await element.save();
-
-            }
-        }
-
         user.deviceToken = deviceToken;
     } else {
         user.deviceToken = "";
