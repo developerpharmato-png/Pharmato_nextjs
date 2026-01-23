@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import Cart from "@/models/Cart";
 import { getDb } from '@/utils/firebase.helper';
+import connectDB from '@/lib/mongodb';
 // 🔥 Firebase update
 const db = getDb();
 
@@ -12,7 +13,9 @@ export async function updateCartCountInFirebase({ userId, storeId }: { userId?: 
     if (!userId || !storeId) return;
 
     // Ensure DB connected (idempotent, safe)
-    await dbConnect();
+    // await dbConnect();
+
+    await connectDB();
 
     // 🔥 LIGHT & FAST aggregation (NO lookup)
     const cartAgg = await Cart.aggregate([

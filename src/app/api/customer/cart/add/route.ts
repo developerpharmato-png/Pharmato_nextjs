@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
             }
         }
         await cart.save();
-    }    
+    }   
     
     // Update cart count in Firebase
     updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
