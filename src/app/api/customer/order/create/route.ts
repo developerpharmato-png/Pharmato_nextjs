@@ -8,6 +8,7 @@ import Medicine from '@/models/Medicine';
 import mongoose from 'mongoose';
 import Wallet from '@/models/Wallet';
 import { getDb } from '@/utils/firebase.helper';
+import Cart from '@/models/Cart';
 
 /**
  * @swagger
@@ -178,6 +179,36 @@ export async function POST(req: NextRequest) {
 
     if (!store || !Array.isArray(store.servicePinCodes) || !store.servicePinCodes.includes(addressDoc.address.pinCode)) {
         return NextResponse.json({ success: false, message: 'Pin code not serviceable by this store' }, { status: 400 });
+    }
+
+    const cart = await Cart.findOne({ userId, storeId })
+
+    if (cart?.items?.length > 0) {
+
+        const calculationItems = calculationData.medicineQuantity;
+        const cartItems = cart.items;
+
+        // Loop over calculation medicines
+        for (const calcItem of calculationItems) {
+
+            const cartItem = cartItems.find(
+                (item: any) => item.medicineId.toString() === calcItem.medicineId.toString()
+            );
+
+            // Agar cart me medicine hi nahi mili
+            if (!cartItem) {
+                return NextResponse.json({ success: false, message: 'Cart item changed' }, { status: 400 });
+            }
+
+            // Agar quantity mismatch hai
+            if (cartItem.quantity !== calcItem.quantity) {
+                return NextResponse.json({ success: false, message: 'Cart item changed' }, { status: 400 });
+            }
+        }
+
+
+    } else {
+        return NextResponse.json({ success: false, message: 'Cart empty' }, { status: 400 });
     }
 
     // Calculate expectedDeliveryDate (only date, no time)
