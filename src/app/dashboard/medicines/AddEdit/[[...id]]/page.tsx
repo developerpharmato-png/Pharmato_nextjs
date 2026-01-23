@@ -575,7 +575,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
 
   return (
     <>
-      {getByidLoading ? (
+      {getByidLoading&&isEdit ? (
         <>
           <div className="containerStyle scrollbar-hide">
 
@@ -686,13 +686,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                       maxLength={400}
                       rows={5}
                       showCount={true}
-                      error={
-                        formik.touched.description &&
-                          typeof formik.errors.description === "string"
-                          ? formik.errors.description
-                          : undefined
-                      }
-                      className="mb-4"
+                   
                     />
                     {formik.touched.description && formik.errors.description && (
                       <ErrorMessageCom error={formik.errors.description} />
