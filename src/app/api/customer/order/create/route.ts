@@ -206,6 +206,47 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        // Loop over calculation medicines
+        for (const calcItem of calculationItems) {
+
+            const cartItem = cartItems.find(
+                (item: any) => item.medicineId.toString() === calcItem.medicineId.toString()
+            );
+
+            // Agar cart me medicine hi nahi mili
+            if (!cartItem) {
+                return NextResponse.json({ success: false, message: 'Cart item changed' }, { status: 400 });
+            }
+
+            // Agar quantity mismatch hai
+            if (cartItem.quantity !== calcItem.quantity) {
+                return NextResponse.json({ success: false, message: 'Cart item changed' }, { status: 400 });
+            }
+        }
+
+        // Loop over cart items
+        for (const cartItem of cartItems) {
+
+            const calcItem = calculationItems.find(
+                (item: any) => item.medicineId.toString() === cartItem.medicineId.toString()
+            );
+
+            // Agar calculationData me medicine hi nahi mili
+            if (!calcItem) {
+                return NextResponse.json(
+                    { success: false, message: 'Cart item changed' },
+                    { status: 400 }
+                );
+            }
+
+            // Agar quantity mismatch hai
+            if (cartItem.quantity !== calcItem.quantity) {
+                return NextResponse.json(
+                    { success: false, message: 'Cart item changed' },
+                    { status: 400 }
+                );
+            }
+        }
 
     } else {
         return NextResponse.json({ success: false, message: 'Cart empty' }, { status: 400 });
