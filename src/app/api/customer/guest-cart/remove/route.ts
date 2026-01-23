@@ -60,6 +60,10 @@ export async function POST(request: NextRequest) {
     cartDoc.items = cartDoc.items.filter((item: any) => item.medicineId.toString() !== medicineId);
     await cartDoc.save();
 
+    
+    // Update cart count in Firebase
+    updateGuestCartCountInFirebase({ guestId, storeId }); // fire-and-forget, don't await
+
     // AGGREGATE PIPELINE (FULL GUEST CART WITH MEDICINE DETAILS, SELECTED FIELDS)
     const cartAgg = await GuestCart.aggregate([
         {
@@ -139,8 +143,6 @@ export async function POST(request: NextRequest) {
 
     const isPrescriptionRequired = itemsWithDetails.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
 
-    // Update cart count in Firebase
-    updateGuestCartCountInFirebase({ guestId, storeId }); // fire-and-forget, don't await
 
     return NextResponse.json({
         success: true,

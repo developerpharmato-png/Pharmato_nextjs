@@ -75,6 +75,10 @@ export async function POST(request: NextRequest) {
                 cart.items.splice(itemIndex, 1);
             }
             await cart.save();
+
+            // Update cart count in Firebase
+            updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
+
             cart = await Cart.findOne({ userId, storeId }).populate({
                 path: 'items.medicineId',
                 select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount images stock coverImage crossSellProducts'
@@ -108,8 +112,6 @@ export async function POST(request: NextRequest) {
             const itemsWithoutCrossSell = cart.items.map((item: any) => item.toObject());
             const isPrescriptionRequired = itemsWithoutCrossSell.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
 
-            // Update cart count in Firebase
-            updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
 
             return NextResponse.json({ success: true, message: 'Cart Updated', cart: { ...cart.toObject(), items: itemsWithoutCrossSell, crossSellProducts: allCrossSellProducts, isPrescriptionRequired } });
         }
@@ -117,6 +119,10 @@ export async function POST(request: NextRequest) {
         if (quantity > 0) {
             cart.items.push({ medicineId, quantity });
             await cart.save();
+
+            // Update cart count in Firebase
+            updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
+
             cart = await Cart.findOne({ userId, storeId }).populate({
                 path: 'items.medicineId',
                 select: '_id name categoryId subCategoryId manufacturer isPrescription mrp price discount stock images coverImage crossSellProducts'
@@ -150,8 +156,6 @@ export async function POST(request: NextRequest) {
             const itemsWithoutCrossSell = cart.items.map((item: any) => item.toObject());
             const isPrescriptionRequired = itemsWithoutCrossSell.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
 
-            // Update cart count in Firebase
-            updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
 
             return NextResponse.json({ success: true, message: 'Cart Updated', cart: { ...cart.toObject(), items: itemsWithoutCrossSell, crossSellProducts: allCrossSellProducts, isPrescriptionRequired } });
         }

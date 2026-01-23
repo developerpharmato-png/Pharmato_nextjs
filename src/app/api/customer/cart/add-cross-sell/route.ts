@@ -109,6 +109,9 @@ export async function POST(request: NextRequest) {
             await cart.save();
         }
 
+            // Update cart count in Firebase
+            updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
+
         // Re-aggregate cart exactly like cart/get to mirror response
         const cartAgg = await Cart.aggregate([
             {
@@ -184,8 +187,6 @@ export async function POST(request: NextRequest) {
 
         const isPrescriptionRequired = itemsWithDetails.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
         
-            // Update cart count in Firebase
-            updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
 
         return NextResponse.json({
             success: true,

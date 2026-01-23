@@ -107,6 +107,9 @@ export async function POST(request: NextRequest) {
             }
             await cart.save();
         }
+        
+        // Update cart count in Firebase
+        updateGuestCartCountInFirebase({ guestId, storeId }); // fire-and-forget, don't await
 
         // Populate medicines and compute crossSellProducts similar to guest-cart/update
         cart = await GuestCart.findOne({ guestId, storeId }).populate({
@@ -156,8 +159,6 @@ export async function POST(request: NextRequest) {
         });
         const isPrescriptionRequired = itemsWithoutCrossSell.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
            
-        // Update cart count in Firebase
-        updateGuestCartCountInFirebase({ guestId, storeId }); // fire-and-forget, don't await
 
         return NextResponse.json({
             success: true,

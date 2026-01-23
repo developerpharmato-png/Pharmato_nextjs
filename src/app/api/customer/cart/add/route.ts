@@ -98,7 +98,10 @@ export async function POST(request: NextRequest) {
             }
         }
         await cart.save();
-    }
+    }    
+    
+    // Update cart count in Firebase
+    updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
 
     let message = 'Added to Cart';
     if (typeof quantity === 'number' && quantity < 0) {
@@ -120,9 +123,6 @@ export async function POST(request: NextRequest) {
             };
         }
     }
-    
-    // Update cart count in Firebase
-    updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
 
     return NextResponse.json({
         success: true,

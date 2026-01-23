@@ -103,15 +103,15 @@ export async function POST(request: NextRequest) {
 
         // Only delete the guest cart for this store
         await GuestCart.deleteOne({ guestId, storeId });
+        
+        // Update cart count in Firebase
+        updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
 
         // Build medicineId -> cart quantity map
         const cartQuantityMap: Record<string, number> = {};
         for (const item of userCart.items) {
             cartQuantityMap[item.medicineId._id ? item.medicineId._id.toString() : item.medicineId.toString()] = item.quantity;
         }
-
-        // Attach medicine details and crossSellProducts
-        const medicines = userCart.items.map((item: any) => item.medicineId && item.medicineId._id ? item.medicineId : null).filter(Boolean);
 
         // Collect all crossSellProduct IDs from all medicines in the cart
         const allCrossSellIdsSet = new Set<string>();
@@ -163,9 +163,6 @@ export async function POST(request: NextRequest) {
         // Determine if any item requires a prescription
         const isPrescriptionRequired = itemsWithDetails.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
 
-        // Update cart count in Firebase
-        updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
-
         return NextResponse.json({
             success: true,
             message: 'Cart fetched successfully',
@@ -177,6 +174,7 @@ export async function POST(request: NextRequest) {
                 medicines: undefined // remove medicines array from response
             }
         });
+        
     } catch (error) {
         let errorMessage = 'Error merging carts';
         if (error && typeof error === 'object' && 'message' in error) {

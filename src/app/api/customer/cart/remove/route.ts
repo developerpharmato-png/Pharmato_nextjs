@@ -95,7 +95,9 @@ export async function POST(request: NextRequest) {
     }
     cartDoc.items = cartDoc.items.filter((item: any) => item.medicineId.toString() !== medicineId);
     await cartDoc.save();
-
+    
+    // Update cart count in Firebase
+    updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
 
     // Get cart with medicine details
     const cartAgg = await Cart.aggregate([
@@ -174,9 +176,6 @@ export async function POST(request: NextRequest) {
 
     const isPrescriptionRequired = itemsWithDetails.some((item: any) => item.medicineId && item.medicineId.isPrescription === true);
     
-    // Update cart count in Firebase
-    updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
-
     return NextResponse.json({
         success: true,
         cart: {

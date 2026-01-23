@@ -94,6 +94,11 @@ export async function POST(request: NextRequest) {
         }
         await cart.save();
     }
+
+    // Update cart count in Firebase
+    updateGuestCartCountInFirebase({ guestId, storeId }); // fire-and-forget, don't await
+
+
     if (cart) {
         const updatedItem = cart.items.find((item: any) => item.medicineId.toString() === medicineId);
         if (updatedItem) {
@@ -108,9 +113,7 @@ export async function POST(request: NextRequest) {
             };
         }
     }
-    
-        // Update cart count in Firebase
-        updateGuestCartCountInFirebase({ guestId, storeId }); // fire-and-forget, don't await
+
 
     return NextResponse.json({
         success: true,
