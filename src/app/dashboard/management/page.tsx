@@ -387,5 +387,5 @@ export default function ManagementPage() {
         editing={!!editing}
       />
     </div>
-  );
+  ); 
 }

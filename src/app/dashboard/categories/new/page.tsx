@@ -212,6 +212,7 @@ export default function NewCategoryPage() {
         showSearch={false}
         addLabel="Add "
         addShow={false}
+        isunsaved={formik.dirty}
       />
       {/* Form Card */}
 
@@ -236,20 +237,14 @@ export default function NewCategoryPage() {
         </Box>
 
         <TextField
-          label="Description *"
+          label="Description (Optional)"
+
           multiline
           rows={4}
           InputLabelProps={{ shrink: true }}
           inputProps={{ maxLength: MAX_DESCRIPTION_LENGTH }}
           {...formik.getFieldProps("description")}
-          error={
-            formik.touched.description && Boolean(formik.errors.description)
-          }
-          helperText={
-            formik.touched.description && formik.errors.description
-              ? formik.errors.description
-              : `${formik.values.description.length} / ${MAX_DESCRIPTION_LENGTH} characters`
-          }
+       
           FormHelperTextProps={{
             sx: { textAlign: "right", mr: 0, mt: 0.5 },
           }}
@@ -281,8 +276,8 @@ export default function NewCategoryPage() {
           id="isOTC"
           checked={formik.values.isOTC}
           onChange={formik.handleChange}
-          title="Over-the-Counter (OTC) Subcategory"
-          description="Medicines in this subcategory can be purchased without a prescription"
+          title="Over-the-Counter (OTC) category"
+          description="Medicines in this category can be purchased without a prescription"
         />
 
         {/* <StandardFormCheckbox

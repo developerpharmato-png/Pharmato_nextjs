@@ -13,6 +13,7 @@ import {
   ErrorMessageCom,
   ModalHeader,
 } from "../components/miniComponents";
+import showUnsavedConfirm from "../components/ConfirmNavigation";
 import Swal from "sweetalert2";
 import { ToastMessages } from "@/utils/ToasterMessage";
 import TextareaField from "../components/skeleton/FieldCom";
@@ -344,17 +345,38 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
     setWebDeleting(false);
   };
 
+  // Close handler that prompts when form is dirty
+  const handleClose = async () => {
+    try {
+      if (formik?.dirty) {
+        const confirm = await showUnsavedConfirm({
+          title: "Unsaved Changes",
+          text: "Your data is not saved. Are you sure you want to close?",
+        });
+        if (!confirm) return;
+      }
+    } catch (e) {
+      // ignore
+    }
+    try {
+      formik.resetForm();
+    } catch (e) {
+      /* ignore */
+    }
+    onClose();
+  };
+
   return (
-    <Modal open={open} onClose={onClose} aria-labelledby="modal-title">
+    <Modal open={open} onClose={handleClose} aria-labelledby="modal-title">
       <Box sx={{ ...modalStyle, width: "50vw" }}
         className="scrollbar-hide"
       >
         <ModalHeader
           title={initial?._edit ? "Edit Banner" : "Add New Banner"}
-          onClose={onClose}
+          onClose={handleClose}
         />
         <form onSubmit={formik.handleSubmit}
-          className="p-10"
+          className="p-4"
         >
 
           <TextField
@@ -364,6 +386,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             fullWidth
+            size="small"
             SelectProps={{ native: true }}
             sx={{ mb: 2 }}
             error={formik.touched.targetId && !!formik.errors.targetId}

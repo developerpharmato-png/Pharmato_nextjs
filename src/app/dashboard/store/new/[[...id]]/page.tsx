@@ -128,20 +128,22 @@ export default function AddStorePage() {
   React.useEffect(() => {
     if (isEditMode && storeDetailData?.data) {
       const store = storeDetailData.data;
-      formik.setValues({
-        name: store.name || "",
-        servicePinCodes: store.servicePinCodes || [],
-        address: store.address || {
-          street: "",
-          city: "",
-          state: "",
-          country: "India",
-          pincode: "",
-          gps: "",
+      formik.resetForm({
+        values: {
+          name: store.name || "",
+          servicePinCodes: store.servicePinCodes || [],
+          address: store.address || {
+            street: "",
+            city: "",
+            state: "",
+            country: "India",
+            pincode: "",
+            gps: "",
+          },
+          GoogleAddress: store.GoogleAddress || "",
+          status: store.status ?? 1,
+          adminManagerId: store.adminManagerId?._id || store.adminManagerId || "",
         },
-        GoogleAddress: store.GoogleAddress || "",
-        status: store.status ?? 1,
-        adminManagerId: store.adminManagerId?._id || store.adminManagerId || "",
       });
     }
   }, [storeDetailData, isEditMode]);
@@ -162,7 +164,9 @@ export default function AddStorePage() {
         }
         showBack={true}
         showSearch={false}
+       isunsaved={formik.dirty}
       />
+
 
       {isEditMode && storeDetailLoading ? (
         <StoreSkeleton />

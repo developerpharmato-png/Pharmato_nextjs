@@ -67,6 +67,8 @@ export default function PermissionPage() {
             edit: Boolean(data.permissions[menu].edit),
           };
         }
+        // Ensure view is true when edit is true (edit implies view)
+        if (obj[menu].edit) obj[menu].view = true;
       });
       setValues(obj);
     } catch (err) {
@@ -94,13 +96,26 @@ export default function PermissionPage() {
 
   const toggle = (menu: string, field: "view" | "edit") => {
     if (isSuperAdmin) return;
-    setValues((prev) => ({
-      ...prev,
-      [menu]: {
-        ...(prev[menu] || { view: false, edit: false }),
-        [field]: !((prev[menu] && prev[menu][field]) || false),
-      },
-    }));
+    setValues((prev) => {
+      const current = prev[menu] || { view: false, edit: false };
+      // Toggle target field
+      const newValue = !current[field];
+
+      // If trying to toggle view while edit is enabled, prevent unchecking view
+      if (field === "view" && current.edit && !newValue) {
+        return prev; // ignore - edit implies view
+      }
+
+      const updated = { ...prev };
+      updated[menu] = { ...current, [field]: newValue };
+
+      // If edit is being enabled, ensure view is also enabled
+      if (field === "edit" && newValue) {
+        updated[menu].view = true;
+      }
+
+      return updated;
+    });
   };
 
   const save = async () => {
@@ -239,7 +254,7 @@ export default function PermissionPage() {
                           type="checkbox"
                           checked={!!values[menu]?.view}
                           onChange={() => toggle(menu, "view")}
-                          disabled={isSuperAdmin}
+                          disabled={isSuperAdmin || !!values[menu]?.edit}
                           className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500 disabled:opacity-50"
                         />
                       </label>

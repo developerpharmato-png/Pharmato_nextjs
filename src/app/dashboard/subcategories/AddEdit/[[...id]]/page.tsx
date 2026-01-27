@@ -45,6 +45,8 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
         const res = await fetch(`/api/admin/subcategories/${usedId}`);
         const data = await res.json();
         if (data.success && data.data) {
+          console.log(data, "datadata");
+
           formik.setValues({
             name: data.data.name || "",
             description: data.data.description || "",
@@ -96,9 +98,7 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
       name: Yup.string()
         .min(2, "Subcategory name must be at least 2 characters.")
         .required("Subcategory name is required."),
-      description: Yup.string()
-        .min(5, "Description must be at least 5 characters.")
-        .required("Description is required."),
+     
       categoryId: Yup.string().required("Parent category is required."),
       images: Yup.array().min(1, "Please upload a subcategory image."),
     }),
@@ -159,7 +159,7 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
     validateOnBlur: true,
     enableReinitialize: true,
   });
-  console.log(formik.values.categoryname, "formik.values.categoryname");
+  console.log(formik.values, "formik.values.categoryname");
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -308,6 +308,7 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
         }
         showBack={true}
         showSearch={false}
+        isunsaved={formik.dirty}
       />
 
       <div className="bg-white rounded-lg shadow p-6 sm:p-8">
@@ -331,19 +332,14 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
               )}
               {categories.map((cat) => (
                 <option key={cat._id} value={cat._id}>
-                  {cat.name} {cat.isOTC ? "(OTC)" : "(Prescription)"}
+                  {cat.name} {cat.isOTC ? "(OTC)" : ""}
                 </option>
               ))}
             </select>
             {formik.touched.categoryId && formik.errors.categoryId && (
               <ErrorMessageCom error={formik.errors.categoryId} />
             )}
-            {selectedCategory && (
-              <p className="text-xs text-gray-500 mt-1">
-                Parent category is{" "}
-                {selectedCategory.isOTC ? "OTC" : "Prescription Required"}
-              </p>
-            )}
+         
           </div>
 
           <div>
@@ -366,7 +362,7 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description *
+              Description (Optional)
             </label>
             <textarea
               name="description"
@@ -377,9 +373,7 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
               rows={4}
               placeholder="Brief description of the subcategory"
             />
-            {formik.touched.description && formik.errors.description && (
-              <ErrorMessageCom error={formik.errors.description} />
-            )}
+        
           </div>
 
           <ImageUploadField
