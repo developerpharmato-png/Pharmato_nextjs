@@ -24,6 +24,8 @@ export const StoreDetailStore = createApiStore<any>();
 export const StoreCreateStore = createApiStore<any>();
 export const StoreUpdateStore = createApiStore<any>();
 
+export const BulkUploadPincodeStore = createApiStore<any>();
+
 
 export const ProductDAshboardStore = createApiStore<any>();
 export const OrderDAshboardStore = createApiStore<any>();

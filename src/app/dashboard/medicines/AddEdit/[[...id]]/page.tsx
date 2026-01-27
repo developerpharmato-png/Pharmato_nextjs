@@ -53,6 +53,32 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
           const data = await res.json();
           if (data.success && data.data) {
             const med = data.data;
+            let unitInput = med.unitInput || "";
+            if (!unitInput && med.unit) {
+              let suffix = "";
+              switch (med.category) {
+                case "Tablet":
+                  suffix = " Tablets";
+                  break;
+                case "Capsule":
+                  suffix = " Capsules";
+                  break;
+                case "Syrup":
+                case "Drops":
+                case "Injection":
+                  suffix = " ml";
+                  break;
+                case "Cream":
+                  suffix = " g";
+                  break;
+                case "Other":
+                  suffix = "";
+                  break;
+              }
+              if (med.unit.endsWith(suffix)) {
+                unitInput = med.unit.slice(0, -suffix.length);
+              }
+            }
             setInitialValues({
               ...initialMedicineFormValues,
               ...med,
@@ -66,7 +92,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                   ? med.images[0]
                   : ""),
               highlights: Array.isArray(med.highlights) ? med.highlights : [],
-              unitInput: med.unitInput || "",
+              unitInput: unitInput,
               unit: med.unit || "",
             });
             setComposition(
@@ -583,7 +609,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
 
   return (
     <>
-      {getByidLoading&&isEdit ? (
+      {getByidLoading && isEdit ? (
         <>
           <div className="containerStyle scrollbar-hide">
 
@@ -693,7 +719,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                       maxLength={400}
                       rows={5}
                       showCount={true}
-                   
+
                     />
                     {formik.touched.description && formik.errors.description && (
                       <ErrorMessageCom error={formik.errors.description} />

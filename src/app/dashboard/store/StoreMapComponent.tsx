@@ -173,9 +173,9 @@ const StoreMapComponent: React.FC<StoreMapComponentProps> = ({
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full flex flex-col md:flex-row gap-4">
       {/* Address Search Input */}
-      <div className="mb-4 relative" ref={searchContainerRef}>
+      <div className="flex-1 mb-4 md:mb-0 relative" ref={searchContainerRef}>
         <TextField
           fullWidth
           label="Select Store Location on Map *"
@@ -212,7 +212,7 @@ const StoreMapComponent: React.FC<StoreMapComponentProps> = ({
         <p className="text-sm text-red-600 mb-2">{searchError}</p>
       )}
 
-      <div className="w-full h-[400px] rounded-lg overflow-hidden border border-gray-300">
+      <div className="flex-1 h-[200px] rounded-lg overflow-hidden border border-gray-300">
         <MapContainer
           center={mapCenter}
           zoom={position ? 15 : 5}

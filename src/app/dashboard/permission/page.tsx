@@ -203,7 +203,7 @@ export default function PermissionPage() {
         ) : (
           <div className="space-y-6">
             {/* Role Switcher */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between bg-white p-5 rounded-2xl shadow-sm border border-gray-100 gap-4">
+            <div className="sticky top-0 z-10 flex flex-col md:flex-row md:items-center justify-between bg-white p-5 rounded-2xl shadow-sm border border-gray-100 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
                   Active Role
