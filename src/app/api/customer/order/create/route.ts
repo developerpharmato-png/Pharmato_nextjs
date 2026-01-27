@@ -265,7 +265,7 @@ export async function POST(req: NextRequest) {
             }
         }
     ]);
-``
+
     const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
 
     if (Number(priceTotalSumBeforeDiscount) !== Number(calculationData?.priceTotalSumBeforeDiscount || 0)) {
