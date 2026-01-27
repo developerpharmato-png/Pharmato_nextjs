@@ -181,7 +181,7 @@ export default function DashboardLayout({
     { name: "Send Notifications", path: "/dashboard/notifications", icon: "bell", isActive: true, superAdminOnly: true },
     { name: "Stores", path: "/dashboard/store", icon: "store", isActive: true },
     { name: "Banner Management", path: "/dashboard/banner-images", icon: "image", isActive: true },
-    { name: "Marg", path: "/dashboard/marg", icon: "hospital", isActive: true },
+    { name: "Sync Management", path: "/dashboard/marg", icon: "hospital", isActive: true },
     {
       name: "Data Analytics",
       icon: "dashboard",

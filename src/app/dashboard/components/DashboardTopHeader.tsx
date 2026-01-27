@@ -43,10 +43,11 @@ export default function DashboardTopHeader() {
           <MdNotifications size={24} className="text-xl" />
 
           {unreadCount > 0 && (
-            <span className="absolute top-0 right-0 transform translate-x-1 -translate-y-1 
-                         flex items-center justify-center h-5 w-5 rounded-full 
+            <span className={`absolute top-0 right-0 transform translate-x-1 -translate-y-1 
+                         flex items-center justify-center rounded-full 
                          bg-red-600 text-white text-xs font-medium 
-                         border-2 border-white shadow-md">
+                         border-2 border-white shadow-md
+                         ${unreadCount > 99 ? 'h-5 px-1.5 min-w-[22px]' : 'h-5 w-5'}`}>
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
