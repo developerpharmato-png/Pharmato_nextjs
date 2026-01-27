@@ -97,14 +97,14 @@ export default function HeaderWithAction({
   isunsaved = true,
   onBack,
   ExportButton, showclearAll = true,
-  lastSyncDateTime=""
+  lastSyncDateTime = ""
 }: Props) {
   const router = useRouter();
 
   const handleBack = async () => {
     if (onBack) {
       onBack();
-      return; 
+      return;
     }
 
     if (isunsaved) {
@@ -177,9 +177,9 @@ export default function HeaderWithAction({
                     backgroundImage: `linear-gradient(90deg, #059669, #10B981, #A7F3D0)`, // Dark Green to Light Green Gradient
                   }}
                 />
-              {lastSyncDateTime &&   <p className="text-gray-600 hidden sm:block">Last Synced :- {lastSyncDateTime}</p>
-}</div>
-              
+                {lastSyncDateTime && <p className="text-gray-600 hidden sm:block">Last Synced :- {lastSyncDateTime}</p>}
+              </div>
+
             )}
           </div>
         </div>
