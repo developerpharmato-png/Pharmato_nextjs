@@ -78,12 +78,7 @@ export default function SettingsPage() {
 
   const validationSchema = Yup.object({
     deliveryFee: Yup.number().required("Mandatory field").min(0, "No negative values"),
-    deliveryFeeThreshold: Yup.number()
-      .required("Mandatory field")
-      .min(0, "No negative values")
-      .test("is-greater", ToastMessages.THRESHOLD_VALIDATION, function (value) {
-        return value >= (this.parent.deliveryFee || 0);
-      }),
+
     expectedDeliveryHours: Yup.number()
       .required("Mandatory field")
       .min(1, "Must be at least 1 hour")
@@ -155,7 +150,7 @@ export default function SettingsPage() {
                   <p className="text-sm text-gray-500 ml-1">Configure standard delivery fee and free delivery threshold.</p>
                 </div>
 
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
                   <div className="flex flex-col gap-1">
                     <TextField
                       label="Standard Delivery Fee"

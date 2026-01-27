@@ -53,6 +53,32 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
           const data = await res.json();
           if (data.success && data.data) {
             const med = data.data;
+            let unitInput = med.unitInput || "";
+            if (!unitInput && med.unit) {
+              let suffix = "";
+              switch (med.category) {
+                case "Tablet":
+                  suffix = " Tablets";
+                  break;
+                case "Capsule":
+                  suffix = " Capsules";
+                  break;
+                case "Syrup":
+                case "Drops":
+                case "Injection":
+                  suffix = " ml";
+                  break;
+                case "Cream":
+                  suffix = " g";
+                  break;
+                case "Other":
+                  suffix = "";
+                  break;
+              }
+              if (med.unit.endsWith(suffix)) {
+                unitInput = med.unit.slice(0, -suffix.length);
+              }
+            }
             setInitialValues({
               ...initialMedicineFormValues,
               ...med,
@@ -66,7 +92,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                   ? med.images[0]
                   : ""),
               highlights: Array.isArray(med.highlights) ? med.highlights : [],
-              unitInput: med.unitInput || "",
+              unitInput: unitInput,
               unit: med.unit || "",
             });
             setComposition(
@@ -373,6 +399,14 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
         // only active stores (status === 1)
         const active = data.data.filter((s: any) => Number(s.status) === 1);
         setStores(active);
+        // If there's exactly one active store and no store selected yet, select it by default
+        try {
+          if (Array.isArray(active) && active.length === 1 && !formik.values.storeId) {
+            formik.setFieldValue("storeId", String(active[0]._id));
+          }
+        } catch (e) {
+          // formik might not be ready in some render timing — ignore safely
+        }
       } else {
         setStores([]);
       }
@@ -595,6 +629,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                     : "Enter medicine details to add to inventory"
                 }
                 showBack={true}
+                isunsaved={formik.dirty}
                 showSearch={false}
               />
 
@@ -656,9 +691,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                             } as React.ChangeEvent<HTMLSelectElement>);
                           }}
                         >
-                          <MenuItem value="">
-                            <em>Default / None</em>
-                          </MenuItem>
+                        
                           {stores.map((s) => (
                             <MenuItem key={String(s._id)} value={String(s._id)}>
                               {s.name}

@@ -18,6 +18,9 @@ export const MedicinesExportPath = `/api/admin/medicines/export`;
  
 export const StoreManagersPath = `/api/admins/store-managers`;
 export const StorePath = `/api/admin/store`;
+
+// Bulk Upload Pincode
+export const BulkUploadPincodePath = `/api/admin/store/bulk-upload-pincode`;
  
 // Analytics API paths
 export const ProductAnalyticsPath = `/api/admin/data-analytics/products`;
@@ -49,4 +52,4 @@ export const PolicySettingsPath = `/api/admin/settings/policy`;
 // MARG
 export const MargImportPath = `/api/admin/marg/cron`;
 export const MargListPath = `/api/admin/marg/list`;
- 
+  

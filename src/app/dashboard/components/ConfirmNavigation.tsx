@@ -18,6 +18,15 @@ export async function showUnsavedConfirm(options?: Options) {
     confirmButtonText: options?.confirmText || "OK",
     cancelButtonText: options?.cancelText || "Cancel",
     reverseButtons: true,
+    // Ensure SweetAlert appears above modal dialogs (MUI uses high z-index)
+    didOpen: () => {
+      try {
+        const container = document.querySelector('.swal2-container') as HTMLElement | null;
+        if (container) container.style.zIndex = '14000';
+      } catch (e) {
+        // ignore
+      }
+    },
   });
   return !!res.isConfirmed;
 }

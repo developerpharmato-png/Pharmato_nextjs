@@ -15,6 +15,7 @@ import {
   CustomCloseButton,
   ErrorMessageCom,
 } from "../components/miniComponents";
+import showUnsavedConfirm from "../components/ConfirmNavigation";
 import { MdSave } from "react-icons/md";
 
 type RoleItem = {
@@ -41,7 +42,18 @@ export default function RoleModal({
   editId,
   setEditId,
 }: Props) {
-  const handleClose = () => {
+  const handleClose = async () => {
+    try {
+      if (formik?.dirty) {
+        const confirm = await showUnsavedConfirm({
+          title: "Unsaved Changes",
+          text: "Your data is not saved. Are you sure you want to close?",
+        });
+        if (!confirm) return;
+      }
+    } catch (e) {
+      // ignore
+    }
     onClose();
     setEditId(null);
     try {

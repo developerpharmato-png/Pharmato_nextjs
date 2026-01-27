@@ -171,7 +171,7 @@ export default function MedicineDetailPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-gray-50 p-3 rounded-md text-center">
                     <span className="material-icons text-green-600">
-                      attach_money
+                      ₹
                     </span>
                     <div className="text-xs text-gray-500">Price</div>
                     <div className="text-lg font-bold text-green-700">
@@ -266,7 +266,7 @@ export default function MedicineDetailPage() {
                   <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
                     <h3 className="text-base font-medium text-gray-700 inline-flex items-center gap-2">
                       <span className="material-icons text-lg text-green-600">
-                        attach_money
+                        ₹
                       </span>
                       Selling
                     </h3>
@@ -360,7 +360,7 @@ export default function MedicineDetailPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-gray-50 p-3 rounded-md text-center">
                     <span className="material-icons text-green-600">
-                      attach_money
+                      ₹
                     </span>
                     <div className="text-xs text-gray-500">Price</div>
                     <div className="text-lg font-bold text-green-700">
@@ -455,7 +455,7 @@ export default function MedicineDetailPage() {
                   <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
                     <h3 className="text-base font-medium text-gray-700 inline-flex items-center gap-2">
                       <span className="material-icons text-lg text-green-600">
-                        attach_money
+                        ₹
                       </span>
                       Selling
                     </h3>

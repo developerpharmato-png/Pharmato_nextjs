@@ -4,7 +4,9 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem,
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { ErrorMessageCom, CustomButton, CustomCloseButton } from '../components/miniComponents';
+
 import { MdSave } from 'react-icons/md';
+import showUnsavedConfirm from '../components/ConfirmNavigation';
 
 type Role = { _id: string; name: string };
 
@@ -43,10 +45,38 @@ export default function AdminForm({ open, onClose, onSubmit, initialValues = {},
     },
   });
 
+  React.useEffect(() => {
+    // Reset the form only when the dialog is opened to avoid overwriting user input while open
+    if (open) {
+      formik.resetForm({
+        values: {
+          name: initialValues.name || '',
+          email: initialValues.email || '',
+          roleId: initialValues.roleId || '',
+          mobile: initialValues.mobile || '',
+        },
+      });
+    }
+    // Only depend on `open` so re-renders or parent object identity changes don't reset while typing
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const handleClose = async () => {
+    if (formik.dirty) {
+      const confirm = await showUnsavedConfirm({
+        title: 'Unsaved Changes',
+        text: 'Your data is not saved. Are you sure you want to close?',
+      });
+      if (confirm) onClose();
+    } else {
+      onClose();
+    }
+  };
+
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       fullWidth
       maxWidth="sm"
       // Added subtle shadow and rounded corners to the dialog container
@@ -73,7 +103,7 @@ export default function AdminForm({ open, onClose, onSubmit, initialValues = {},
         }}
       >
         {editing ? 'Edit  Details' : 'Add New '}
-        <CustomCloseButton onClick={onClose} size="medium" ariaLabel="close" />
+        <CustomCloseButton onClick={handleClose} size="medium" ariaLabel="close" />
       </DialogTitle>
 
       <DialogContent dividers sx={{ pt: 3, pb: 2, borderBottom: 'none' }}>

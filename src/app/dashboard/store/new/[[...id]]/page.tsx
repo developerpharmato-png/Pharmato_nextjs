@@ -12,11 +12,13 @@ import {
   StoreUpdateStore,
   StoreDetailStore,
   StoreManagersStore,
+  BulkUploadPincodeStore,
 } from "@/app/dashboard/storeAPICall/useUserStore";
 import {
   PincodeActiveListPath,
   StoreManagersPath,
   StorePath,
+  BulkUploadPincodePath,
 } from "@/app/dashboard/storeAPICall/API/BaseApi";
 import HeaderWithAction from "@/app/dashboard/components/HeaderWithAction";
 import {
@@ -40,6 +42,9 @@ export default function AddStorePage() {
 
   const [pincodes, setPincodes] = useState<any[]>([]);
 
+  const [pincodeFile, setPincodeFile] = useState<File | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
   const {
     fetchData: GetStoreManagers,
     loading: storeManagersLoading,
@@ -57,6 +62,9 @@ export default function AddStorePage() {
 
   const { putData: UpdateStore, loading: updateStoreLoading } =
     StoreUpdateStore();
+
+  const { postData: BulkUploadPincode, loading: bulkUploadLoading } =
+    BulkUploadPincodeStore();
 
   const formik = useFormik({
     initialValues: StoreInitialValues,
@@ -128,20 +136,22 @@ export default function AddStorePage() {
   React.useEffect(() => {
     if (isEditMode && storeDetailData?.data) {
       const store = storeDetailData.data;
-      formik.setValues({
-        name: store.name || "",
-        servicePinCodes: store.servicePinCodes || [],
-        address: store.address || {
-          street: "",
-          city: "",
-          state: "",
-          country: "India",
-          pincode: "",
-          gps: "",
+      formik.resetForm({
+        values: {
+          name: store.name || "",
+          servicePinCodes: store.servicePinCodes || [],
+          address: store.address || {
+            street: "",
+            city: "",
+            state: "",
+            country: "India",
+            pincode: "",
+            gps: "",
+          },
+          GoogleAddress: store.GoogleAddress || "",
+          status: store.status ?? 1,
+          adminManagerId: store.adminManagerId?._id || store.adminManagerId || "",
         },
-        GoogleAddress: store.GoogleAddress || "",
-        status: store.status ?? 1,
-        adminManagerId: store.adminManagerId?._id || store.adminManagerId || "",
       });
     }
   }, [storeDetailData, isEditMode]);
@@ -153,6 +163,89 @@ export default function AddStorePage() {
       : null;
   };
 
+  const handleBulkUpload = async () => {
+    if (!pincodeFile) {
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "warning",
+        title: "Please select a file to upload",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", pincodeFile);
+
+    try {
+      const response = await BulkUploadPincode(BulkUploadPincodePath, formData);
+      if (response?.success && response?.pinCodeArray) {
+        const newPincodes = response.pinCodeArray.map((p: number) => p.toString());
+        const existing = (formik.values.servicePinCodes || []) as string[];
+        
+        // Find duplicates and new pincodes
+        const duplicates = newPincodes.filter((p: string) => existing.includes(p));
+        const newPincodesToAdd = newPincodes.filter((p: string) => !existing.includes(p));
+        
+        // Check if all pincodes already exist
+        if (duplicates.length === newPincodes.length) {
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "info",
+            title: "All pincodes already exist",
+            text: `All ${newPincodes.length} pincodes are already in the service area.`,
+            showConfirmButton: false,
+            timer: 3000,
+          });
+          return;
+        }
+        
+        // Merge all pincodes
+        const merged = [...new Set([...existing, ...newPincodes])];
+        formik.setFieldValue("servicePinCodes", merged);
+        
+        // Show appropriate message based on duplicates
+        let toastTitle = "Pincodes uploaded successfully";
+        let toastText = `Added ${newPincodesToAdd.length} new pincode(s).`;
+        
+        if (duplicates.length > 0) {
+          toastTitle = "Upload completed with duplicates";
+          toastText = `Added ${newPincodesToAdd.length} new pincode(s). ${duplicates.length} pincode(s) already existed.`;
+        }
+        
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: toastTitle,
+          text: toastText,
+          showConfirmButton: false,
+          timer: 3000,
+        }).then(() => {
+          // Clear file input after toast closes
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
+          setPincodeFile(null);
+        });
+      } else {
+        throw new Error(response?.message || "Upload failed");
+      }
+    } catch (err: any) {
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "error",
+        title: err?.message || "Failed to upload pincodes",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+    }
+  };
+
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
@@ -162,7 +255,9 @@ export default function AddStorePage() {
         }
         showBack={true}
         showSearch={false}
+       isunsaved={formik.dirty}
       />
+
 
       {isEditMode && storeDetailLoading ? (
         <StoreSkeleton />
@@ -238,6 +333,29 @@ export default function AddStorePage() {
           {formik.touched.servicePinCodes && formik.errors.servicePinCodes && (
             <ErrorMessageCom error={formik.errors.servicePinCodes as string} />
           )}
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-4 items-start">
+          <div className="flex-1">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={(e) => setPincodeFile(e.target.files?.[0] || null)}
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+          </div>
+          <CustomButton
+            onClick={handleBulkUpload}
+            disabled={bulkUploadLoading || !pincodeFile}
+            className={`px-6 py-2 rounded-lg font-medium transition-all ${
+              bulkUploadLoading || !pincodeFile
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-700"
+            }`}
+          >
+            {bulkUploadLoading ? "Uploading..." : "Bulk Upload Pincodes"}
+          </CustomButton>
         </div>
 
         <AddressFields

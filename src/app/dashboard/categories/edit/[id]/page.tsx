@@ -74,11 +74,7 @@ const validateEditCategory = (
     errors.name = "Category Name must be at least 3 characters";
   }
 
-  if (!values.description) {
-    errors.description = "Description is required";
-  } else if (values.description.length < 10) {
-    errors.description = "Description must be at least 10 characters";
-  }
+ 
 
   if (values.images.length === 0) {
     errors.images = "A category image is required";
@@ -343,8 +339,9 @@ export default function EditCategoryPage() {
         subtitle="Update Category details, images, and status."
         showBack={true}
         showSearch={false}
+        isunsaved={formik.dirty}
       />
-
+ 
 
       <Box
         component="form"
@@ -370,7 +367,7 @@ export default function EditCategoryPage() {
 
         {/* Description Textarea (Character Counter) */}
         <TextField
-          label="Description *"
+          label="Description (Optional)"
           multiline
           rows={4}
           InputLabelProps={{ shrink: true }}
@@ -379,11 +376,7 @@ export default function EditCategoryPage() {
           error={
             formik.touched.description && Boolean(formik.errors.description)
           }
-          helperText={
-            formik.touched.description && formik.errors.description
-              ? formik.errors.description
-              : `${formik.values.description.length} / ${MAX_DESCRIPTION_LENGTH} characters`
-          }
+        
           FormHelperTextProps={{
             sx: { textAlign: "right", mr: 0, mt: 0.5 },
           }}
@@ -414,8 +407,8 @@ export default function EditCategoryPage() {
           id="isOTC"
           checked={formik.values.isOTC}
           onChange={formik.handleChange}
-          title="Over-the-Counter (OTC) Subcategory"
-          description="Medicines in this subcategory can be purchased without a prescription"
+          title="Over-the-Counter (OTC) category"
+          description="Medicines in this category can be purchased without a prescription"
         />
 
         {/* <StandardFormCheckbox
