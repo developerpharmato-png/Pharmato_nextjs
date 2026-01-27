@@ -588,7 +588,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
 
             <div className="containerStyle scrollbar-hide">
               <HeaderWithAction
-                title={isEdit ? "Edit Medicine" : "Add New Medicine"}
+                title={isEdit ? `Edit ${formik.values.name}` : "Add New Medicine"}
                 subtitle={
                   isEdit
                     ? "Update medicine details"
