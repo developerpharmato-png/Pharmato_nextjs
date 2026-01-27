@@ -206,24 +206,6 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // Loop over calculation medicines
-        for (const calcItem of calculationItems) {
-
-            const cartItem = cartItems.find(
-                (item: any) => item.medicineId.toString() === calcItem.medicineId.toString()
-            );
-
-            // Agar cart me medicine hi nahi mili
-            if (!cartItem) {
-                return NextResponse.json({ success: false, message: 'Cart item changed' }, { status: 400 });
-            }
-
-            // Agar quantity mismatch hai
-            if (cartItem.quantity !== calcItem.quantity) {
-                return NextResponse.json({ success: false, message: 'Cart item changed' }, { status: 400 });
-            }
-        }
-
         // Loop over cart items
         for (const cartItem of cartItems) {
 
@@ -250,6 +232,49 @@ export async function POST(req: NextRequest) {
 
     } else {
         return NextResponse.json({ success: false, message: 'Cart empty' }, { status: 400 });
+    }
+
+    // Logged-in user cart calculation
+    const cartData = await Cart.aggregate([
+        { $match: { userId: new mongoose.Types.ObjectId(userId), storeId: new mongoose.Types.ObjectId(storeId) } },
+        { $unwind: '$items' },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'userId',
+                foreignField: '_id',
+                as: 'user'
+            }
+        },
+        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+        {
+            $lookup: {
+                from: 'medicines',
+                localField: 'items.medicineId',
+                foreignField: '_id',
+                as: 'medicine'
+            }
+        },
+        { $unwind: { path: '$medicine', preserveNullAndEmptyArrays: true } },
+        {
+            $project: {
+                _id: 1,
+                userId: '$user._id',
+                medicine: 1,
+                quantity: '$items.quantity',
+            }
+        }
+    ]);
+``
+    const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
+
+    if (Number(priceTotalSumBeforeDiscount) !== Number(calculationData?.priceTotalSumBeforeDiscount || 0)) {
+
+        return NextResponse.json(
+            { success: false, message: 'Item price changed' },
+            { status: 400 }
+        );
+
     }
 
     // Calculate expectedDeliveryDate (only date, no time)

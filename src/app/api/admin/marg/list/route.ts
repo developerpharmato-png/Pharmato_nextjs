@@ -79,7 +79,8 @@ export async function POST(req: NextRequest) {
         data: margList,
         limit,
         offset,
-        totalCount
+        totalCount,
+        lastSyncDateTime : margList[0].createdAt
     });
 }
 

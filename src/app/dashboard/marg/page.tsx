@@ -11,6 +11,7 @@ const MargPage = () => {
   const { data, loading, fetchData, postData } = MargStore();
 
   const margList = (data && data.data) || [];
+  const lastSyncDateTime = (data && data.lastSyncDateTime) || ""
   const totalCount = data && data.totalCount ? data.totalCount : margList.length;
 
   useEffect(() => {
@@ -21,6 +22,7 @@ const MargPage = () => {
     await postData(MargImportPath, {});
     fetchData({ url: MargListPath, data: { limit: rowsPerPage, offset: page + 1 } });
   };
+  console.log(lastSyncDateTime, "margList")
 
   return (
     <div className="containerStyle scrollbar-hide">
@@ -31,6 +33,7 @@ const MargPage = () => {
         handleAdd={handleImport}
         addShow={true}
         showBack={false}
+        lastSyncDateTime={lastSyncDateTime}
       />
       <div className="mt-10">
         <MargTable

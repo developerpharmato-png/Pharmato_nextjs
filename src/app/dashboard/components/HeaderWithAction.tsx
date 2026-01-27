@@ -26,6 +26,7 @@ type Props = {
   prescriptionStatus?: any;
   setPrescriptionStatus?: (value: any) => void;
   orderStatus?: any;
+  lastSyncDateTime?: any;
   setOrderStatus?: (value: any) => void;
   setPage?: (value: any) => void;
 };
@@ -96,6 +97,7 @@ export default function HeaderWithAction({
   isunsaved = true,
   onBack,
   ExportButton, showclearAll = true,
+  lastSyncDateTime=""
 }: Props) {
   const router = useRouter();
 
@@ -175,7 +177,9 @@ export default function HeaderWithAction({
                     backgroundImage: `linear-gradient(90deg, #059669, #10B981, #A7F3D0)`, // Dark Green to Light Green Gradient
                   }}
                 />
+                <p className="text-gray-600 hidden sm:block">Last Synced :- {lastSyncDateTime}</p>
               </div>
+              
             )}
           </div>
         </div>
