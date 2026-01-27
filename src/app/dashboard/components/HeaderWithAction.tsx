@@ -177,8 +177,8 @@ export default function HeaderWithAction({
                     backgroundImage: `linear-gradient(90deg, #059669, #10B981, #A7F3D0)`, // Dark Green to Light Green Gradient
                   }}
                 />
-                <p className="text-gray-600 hidden sm:block">Last Synced :- {lastSyncDateTime}</p>
-              </div>
+              {lastSyncDateTime &&   <p className="text-gray-600 hidden sm:block">Last Synced :- {lastSyncDateTime}</p>
+}</div>
               
             )}
           </div>
