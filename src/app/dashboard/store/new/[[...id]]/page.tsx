@@ -43,6 +43,7 @@ export default function AddStorePage() {
   const [pincodes, setPincodes] = useState<any[]>([]);
 
   const [pincodeFile, setPincodeFile] = useState<File | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const {
     fetchData: GetStoreManagers,
@@ -182,17 +183,53 @@ export default function AddStorePage() {
       const response = await BulkUploadPincode(BulkUploadPincodePath, formData);
       if (response?.success && response?.pinCodeArray) {
         const newPincodes = response.pinCodeArray.map((p: number) => p.toString());
-        const existing = formik.values.servicePinCodes || [];
+        const existing = (formik.values.servicePinCodes || []) as string[];
+        
+        // Find duplicates and new pincodes
+        const duplicates = newPincodes.filter((p: string) => existing.includes(p));
+        const newPincodesToAdd = newPincodes.filter((p: string) => !existing.includes(p));
+        
+        // Check if all pincodes already exist
+        if (duplicates.length === newPincodes.length) {
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "info",
+            title: "All pincodes already exist",
+            text: `All ${newPincodes.length} pincodes are already in the service area.`,
+            showConfirmButton: false,
+            timer: 3000,
+          });
+          return;
+        }
+        
+        // Merge all pincodes
         const merged = [...new Set([...existing, ...newPincodes])];
         formik.setFieldValue("servicePinCodes", merged);
-        setPincodeFile(null);
+        
+        // Show appropriate message based on duplicates
+        let toastTitle = "Pincodes uploaded successfully";
+        let toastText = `Added ${newPincodesToAdd.length} new pincode(s).`;
+        
+        if (duplicates.length > 0) {
+          toastTitle = "Upload completed with duplicates";
+          toastText = `Added ${newPincodesToAdd.length} new pincode(s). ${duplicates.length} pincode(s) already existed.`;
+        }
+        
         Swal.fire({
           toast: true,
           position: "top-end",
           icon: "success",
-          title: "Pincodes uploaded successfully",
+          title: toastTitle,
+          text: toastText,
           showConfirmButton: false,
-          timer: 2000,
+          timer: 3000,
+        }).then(() => {
+          // Clear file input after toast closes
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
+          setPincodeFile(null);
         });
       } else {
         throw new Error(response?.message || "Upload failed");
@@ -298,9 +335,10 @@ export default function AddStorePage() {
           )}
         </div>
 
-        {/* <div className="flex flex-col md:flex-row gap-4 items-start">
+        <div className="flex flex-col md:flex-row gap-4 items-start">
           <div className="flex-1">
             <input
+              ref={fileInputRef}
               type="file"
               accept=".xlsx,.xls"
               onChange={(e) => setPincodeFile(e.target.files?.[0] || null)}
@@ -318,7 +356,7 @@ export default function AddStorePage() {
           >
             {bulkUploadLoading ? "Uploading..." : "Bulk Upload Pincodes"}
           </CustomButton>
-        </div> */}
+        </div>
 
         <AddressFields
           address={formik.values.address}
