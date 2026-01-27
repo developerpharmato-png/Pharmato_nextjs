@@ -46,6 +46,7 @@ import pako from 'pako';
 import Medicine from '@/models/Medicine';
 import mongoose from 'mongoose';
 import Marg from '@/models/Marg';
+import moment from "moment-timezone";
 
 // Decrypt AES-128-CBC (no padding)
 function decryptAES(encryptedBase64: string, key: string): Buffer {
@@ -122,12 +123,20 @@ function calculateDiscount(mrp?: number, price?: number) {
 async function importMedicinesFromMarg() {
   try {
 
+    const latestMarg = await Marg.findOne({ status: "Completed" })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const lastSyncDateTime = latestMarg ? moment(latestMarg.createdAt)
+      .tz("Asia/Kolkata")
+      .format("YYYY-MM-DD HH:mm:ss") : '';
+
     const url = 'https://wservices.margcompusoft.com/api/eOnlineData/MargMST2017';
     const key = '48TPI07W1R2S';
     const payload = {
       CompanyCode: 'PharmatoInd2',
       MargID: 486257,
-      Datetime: '',
+      Datetime: `${lastSyncDateTime}`,
       index: 0
     };
     const response = await axios.post(url, payload, {
