@@ -45,6 +45,8 @@ import crypto from 'crypto';
 import pako from 'pako';
 import Medicine from '@/models/Medicine';
 import mongoose from 'mongoose';
+import Marg from '@/models/Marg';
+import moment from "moment-timezone";
 
 // Decrypt AES-128-CBC (no padding)
 function decryptAES(encryptedBase64: string, key: string): Buffer {
@@ -78,7 +80,7 @@ function gzinflate(base64Str: string): string {
 function safeJSONParse(str: string) {
     // Remove BOM if exists
     str = str.replace(/^\uFEFF/, '');
-    return JSON.parse(str); 
+    return JSON.parse(str);
 }
 
 /**
@@ -106,12 +108,21 @@ function safeJSONParse(str: string) {
 export async function POST(request: NextRequest) {
     try {
 
+        const latestMarg = await Marg.findOne({ status: "Completed" })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        const lastSyncDateTime = latestMarg ? moment(latestMarg.createdAt)
+            .tz("Asia/Kolkata")
+            .format("YYYY-MM-DD HH:mm:ss") : '';
+
+
         const url = 'https://wservices.margcompusoft.com/api/eOnlineData/MargMST2017';
         const key = '48TPI07W1R2S';
         const payload = {
             CompanyCode: 'PharmatoInd2',
             MargID: 486257,
-            Datetime: '',
+            Datetime: `${lastSyncDateTime}`,
             index: 0
         };
         const response = await axios.post(url, payload, {
@@ -126,69 +137,69 @@ export async function POST(request: NextRequest) {
         const bulkInsertArray: any[] = [];
         const bulkOps: any[] = [];
 
-        let medCount = await Medicine.countDocuments();
-        for (const p of products) {
-            const checkMedicine = await Medicine.findOne({ uniqueIdentity: p.rid });
-            const expiry = convertExpiry(p.exp);
-            const { categoryId, subCategoryId } = getRandomCategoryAndSubcategory();
-            if (checkMedicine) {
+        // let medCount = await Medicine.countDocuments();
+        // for (const p of products) {
+        //     const checkMedicine = await Medicine.findOne({ uniqueIdentity: p.rid });
+        //     const expiry = convertExpiry(p.exp);
+        //     const { categoryId, subCategoryId } = getRandomCategoryAndSubcategory();
+        //     if (checkMedicine) {
 
-                const medObj = {
-                    price: computePriceFromMrp(p.MRP),
-                    purchasePrice: Number(p.PRate) || 0,
-                    mrp: Number(p.MRP) || 0,
-                    stock: Number(p.stock) || 0,
-                    isDeleted: p.Is_Deleted === "1",
-                    expiryDate: expiry instanceof Date && !isNaN(expiry.getTime()) ? expiry : null,
-                    margData: p,
-                    previousMargData: checkMedicine
-                };
+        //         const medObj = {
+        //             price: computePriceFromMrp(p.MRP),
+        //             purchasePrice: Number(p.PRate) || 0,
+        //             mrp: Number(p.MRP) || 0,
+        //             stock: Number(p.stock) || 0,
+        //             isDeleted: p.Is_Deleted === "1",
+        //             expiryDate: expiry instanceof Date && !isNaN(expiry.getTime()) ? expiry : null,
+        //             margData: p,
+        //             previousMargData: checkMedicine
+        //         };
 
-                bulkOps.push({
-                    updateOne: {
-                        filter: { uniqueIdentity: p.rid },     // If exists → update
-                        update: {
-                            $set: medObj
-                        }                          // If not exists → insert
-                    }
-                });
+        //         bulkOps.push({
+        //             updateOne: {
+        //                 filter: { uniqueIdentity: p.rid },     // If exists → update
+        //                 update: {
+        //                     $set: medObj
+        //                 }                          // If not exists → insert
+        //             }
+        //         });
 
-            } else {
-                medCount++;
-                const uniqueCode = `MED-${medCount}`;
-                bulkInsertArray.push({
-                    uniqueIdentity: p.rid,
-                    name: p.name,
-                    manufacturer: p.company,
-                    price: computePriceFromMrp(p.MRP),
-                    purchasePrice: Number(p.PRate) || 0,
-                    mrp: Number(p.MRP) || 0,
-                    stock: Number(p.stock) || 0,
-                    batchNumber: p.code,
-                    isDeleted: p.Is_Deleted === "1",
-                    expiryDate: expiry instanceof Date && !isNaN(expiry.getTime()) ? expiry : null,
-                    margData: p,
-                    previousMargData: {},
-                    categoryId: new mongoose.Types.ObjectId(categoryId),
-                    subCategoryId: new mongoose.Types.ObjectId(subCategoryId),
-                    uniqueCode
-                });
-            }
+        //     } else {
+        //         medCount++;
+        //         const uniqueCode = `MED-${medCount}`;
+        //         bulkInsertArray.push({
+        //             uniqueIdentity: p.rid,
+        //             name: p.name,
+        //             manufacturer: p.company,
+        //             price: computePriceFromMrp(p.MRP),
+        //             purchasePrice: Number(p.PRate) || 0,
+        //             mrp: Number(p.MRP) || 0,
+        //             stock: Number(p.stock) || 0,
+        //             batchNumber: p.code,
+        //             isDeleted: p.Is_Deleted === "1",
+        //             expiryDate: expiry instanceof Date && !isNaN(expiry.getTime()) ? expiry : null,
+        //             margData: p,
+        //             previousMargData: {},
+        //             categoryId: new mongoose.Types.ObjectId(categoryId),
+        //             subCategoryId: new mongoose.Types.ObjectId(subCategoryId),
+        //             uniqueCode
+        //         });
+        //     }
 
-        }
+        // }
 
-        // 🚀 BULK WRITE (super fast for both insert + update)
-        if (bulkOps.length > 0) {
-            await Medicine.bulkWrite(bulkOps, { ordered: false });
-        }
+        // // 🚀 BULK WRITE (super fast for both insert + update)
+        // if (bulkOps.length > 0) {
+        //     await Medicine.bulkWrite(bulkOps, { ordered: false });
+        // }
 
-        // 🚀 Bulk Insert — MUCH faster than .create()
-        if (bulkInsertArray.length > 0) {
-            await Medicine.insertMany(bulkInsertArray, { ordered: false });
-        }
+        // // 🚀 Bulk Insert — MUCH faster than .create()
+        // if (bulkInsertArray.length > 0) {
+        //     await Medicine.insertMany(bulkInsertArray, { ordered: false });
+        // }
 
         // return NextResponse.json({ success: true, message: 'Medicines imported successfully.', data : products , count : products.length});
-        return NextResponse.json({ success: true, message: 'Medicines imported successfully.', totalCount: products.length, insertedCount: bulkInsertArray.length, updatedCount: bulkOps.length });
+        return NextResponse.json({ success: true, message: 'Medicines imported successfully.', totalCount: products.length, insertedCount: bulkInsertArray.length, updatedCount: bulkOps.length, latestMarg, lastSyncDateTime });
 
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message || 'MargERP API error' }, { status: 500 });
