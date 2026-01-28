@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { type } = body;
     try {
-        const settingCheck = await Setting.findOne({ type }).select('_id data');
+        const settingCheck = await Setting.findOne({ type }).select('_id data description');
         if (settingCheck) {
             let dataToSend: any = settingCheck.data;
             if (type === 'medicinePriceRange') {
