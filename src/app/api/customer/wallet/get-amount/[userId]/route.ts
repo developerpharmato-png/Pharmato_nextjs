@@ -49,7 +49,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
         return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
 
-    const checkWallet: any = await Wallet.findOne().sort({ createdAt: -1 });
+    const checkWallet: any = await Wallet.findOne({ userId }).sort({ createdAt: -1 });
     const createdTime: any = new Date(checkWallet.createdAt);
     const currentTime: any = new Date();
     const diffMs = currentTime - createdTime; // difference in milliseconds
