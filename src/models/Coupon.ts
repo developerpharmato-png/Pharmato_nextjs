@@ -1,12 +1,10 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-
 export interface IUserOrGuestCouponUsage {
     userId?: mongoose.Types.ObjectId | string;
     guestId?: string;
     uses: number;
 }
-
 
 export interface ICoupon extends Document {
     uniqueCode?: string;
@@ -23,7 +21,7 @@ export interface ICoupon extends Document {
     startAt: Date;
     endAt: Date;
     minOrderValue: number;
-    totalUses: number | null;
+    totalUses: number;
     usedCount: number;
     perUserLimit: number;
     usersOrGuestsUsed: IUserOrGuestCouponUsage[];
@@ -39,7 +37,7 @@ const CouponSchema = new Schema<ICoupon>({
         type: String
     },
     code: { type: String, required: true },
-    title: { type: String, required: true },
+    title: { type: String, default: '' },
     description: { type: String, default: '' },
     type: { type: String, enum: ['percentage', 'fixed'], required: true },
     value: { type: Number, required: true },
@@ -51,7 +49,7 @@ const CouponSchema = new Schema<ICoupon>({
     startAt: { type: Date, required: true },
     endAt: { type: Date, required: true },
     minOrderValue: { type: Number, required: true },
-    totalUses: { type: Number, default: null },
+    totalUses: { type: Number, default: 0 },
     usedCount: { type: Number, default: 0 },
     perUserLimit: { type: Number, required: true },
     usersOrGuestsUsed: [

@@ -21,7 +21,6 @@ interface CouponResult {
 }
 
 
-
 export async function validateAndApplyCoupon(
     couponCode: string,
     cartFromApi: any
