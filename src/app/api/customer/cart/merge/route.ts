@@ -5,6 +5,7 @@ import Medicine from '@/models/Medicine';
 const mongoose = require('mongoose');
 import { updateCartCountInFirebase } from '@/utils/updateCartCountInFirebase';
 import connectDB from '@/lib/mongodb';
+import { updateGuestCartCountInFirebase } from '@/utils/updateGuestCartCountInFirebase';
 await connectDB();
 
 
@@ -132,6 +133,9 @@ export async function POST(request: NextRequest) {
 
         // Only delete the guest cart for this store
         await GuestCart.deleteOne({ guestId, storeId });
+
+        // Update cart count in Firebase
+        updateGuestCartCountInFirebase({ guestId, storeId }); // fire-and-forget, don't await
 
         // Update cart count in Firebase
         updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
