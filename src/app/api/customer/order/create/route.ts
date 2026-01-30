@@ -268,7 +268,7 @@ export async function POST(req: NextRequest) {
 
     const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
 
-    if (Number(priceTotalSumBeforeDiscount) !== Number(calculationData?.priceTotalSumBeforeDiscount || 0)) {
+    if (Number(priceTotalSumBeforeDiscount.toFixed(2)) !== Number(calculationData?.priceTotalSumBeforeDiscount || 0)) {
 
         return NextResponse.json(
             { success: false, message: 'Item price changed' },
