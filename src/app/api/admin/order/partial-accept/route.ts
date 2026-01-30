@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     try {
         const { orderId, medicineIds, cancelReason } = await req.json();
         if (!orderId || !Array.isArray(medicineIds)) {
-            return NextResponse.json({ success: false, message: 'orderId and medicineIds are required' }, { status: 500 });
+            return NextResponse.json({ success: false, message: 'orderId and medicineIds are required' }, { status: 400 });
         }
         const order = await Order.findOne({ _id: orderId });
         if (!order) {
