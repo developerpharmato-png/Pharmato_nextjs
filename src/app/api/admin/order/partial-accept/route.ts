@@ -14,7 +14,8 @@ import Admin from '@/models/Admin';
 import Store from '@/models/Store';
 import moment from 'moment-timezone';
 import { uploadToCloudinary } from '@/lib/cloudinaryUtils';
-import puppeteer from 'puppeteer';
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 
 const razorpayInstance = new Razorpay({
     key_id: process.env.razorPay_Key_Id || '',
@@ -129,7 +130,7 @@ export async function POST(req: NextRequest) {
 
         // Use the same cancelledItems array for refund logic
         const cancelledForRefund = order.medicineQuantity.filter((item: any) => item.status === 'cancelled');
-       
+
         if (cancelledForRefund.length == 0) {
             responseMessage = 'Order accepted successfully.';
         }
@@ -170,7 +171,7 @@ export async function POST(req: NextRequest) {
                 // console.log("$$$$$refundAmount$$$$$$", refundAmount);
 
             }
-        }        
+        }
 
         if (unCancelledItems.length !== 0 && cancelledForRefund.length !== 0) {
             responseMessage = 'Order partially accepted and cancelled successfully.';
@@ -587,16 +588,60 @@ export async function POST(req: NextRequest) {
 
 </html>`
 
-            const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+            // // const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+
+
+            // const isProd = process.env.CHRCK_SERVER === "localhost" ? false : true;
+
+            // const browser = await puppeteer.launch({
+            //     args: isProd ? chromium.args : ['--no-sandbox', '--disable-setuid-sandbox'],
+            //     executablePath: isProd
+            //         ? await chromium.executablePath()
+            //         : "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", // 👈 LOCAL CHROME PATH
+            //     headless: true,
+            // });
+
+            // const page = await browser.newPage();
+
+            // await page.setCacheEnabled(false); // Disable cache
+
+            // // Set the page content with an increased timeout
+            // await page.setContent(invoiceHtml, { timeout: 60000, waitUntil: 'networkidle0' });// Wait for network to be idle
+
+            // const pdfBuffer: any = await page.pdf({
+            //     format: 'A4',
+            //     margin: {
+            //         top: 70,
+            //         right: 50,
+            //         bottom: 50,
+            //         left: 50,
+            //     },
+            //     timeout: 60000 // Increase timeout here as well
+            // });
+
+            const isProd = process.env.CHRCK_SERVER === "localhost" ? false : true;
+
+            const browser = await puppeteer.launch({
+                args: isProd ? chromium.args : ['--no-sandbox', '--disable-setuid-sandbox'],
+                executablePath: isProd
+                    ? await chromium.executablePath()
+                    : "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+                headless: true,
+            });
 
             const page = await browser.newPage();
 
-            await page.setCacheEnabled(false); // Disable cache
+            page.setDefaultTimeout(120000);
+            page.setDefaultNavigationTimeout(120000);
 
-            // Set the page content with an increased timeout
-            await page.setContent(invoiceHtml, { timeout: 60000, waitUntil: 'networkidle0' });// Wait for network to be idle
+            await page.setCacheEnabled(false);
 
-            const pdfBuffer: any = await page.pdf({
+            await page.setContent(invoiceHtml, {
+                timeout: 120000,
+                waitUntil: 'domcontentloaded',
+            });
+
+            const pdfBuffer : any = await page.pdf({
                 format: 'A4',
                 margin: {
                     top: 70,
@@ -604,8 +649,9 @@ export async function POST(req: NextRequest) {
                     bottom: 50,
                     left: 50,
                 },
-                timeout: 60000 // Increase timeout here as well
             });
+
+            await browser.close();
 
             const publicId = `INV_${Date.now()}`;
             // const result = await uploadToCloudinary(buffer, publicId);
