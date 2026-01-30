@@ -902,12 +902,12 @@ export default function PartialCancelPage() {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
-                    // orderId,
-                    // medicineIds: selected,
-                    // cancelReason:
-                    //   previewUnselectedMeds.length > 0
-                    //     ? cancelReason
-                    //     : undefined,
+                    orderId,
+                    medicineIds: selected,
+                    cancelReason:
+                      previewUnselectedMeds.length > 0
+                        ? cancelReason
+                        : undefined,
                   }),
                 });
                 const data = await res.json();
