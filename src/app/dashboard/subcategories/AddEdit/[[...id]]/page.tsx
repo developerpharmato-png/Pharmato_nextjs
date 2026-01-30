@@ -401,8 +401,8 @@ export default function AddEditSubCategoryPage({ id }: { id?: string }) {
             id="isOTC"
             checked={formik.values.isOTC}
             onChange={formik.handleChange}
-            title="Over-the-Counter (OTC) Subcategory"
-            description="Medicines in this subcategory can be purchased without a prescription"
+            title="Over-the-Counter (OTC) category"
+            description="Medicines in this category can be purchased without a prescription"
           />
 
           <div className="ButtonOuter">
