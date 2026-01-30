@@ -305,7 +305,7 @@ export default function OrderDetailPage() {
                         clipRule="evenodd"
                       />
                     </svg>
-                    {order?.payment_status == "captured"
+                    {order?.payment_status == "captured"|| order?.payment_status == "Deducted From Wallet"
                       ? " Payment Received"
                       : "Awaiting Payment"}
                   </div>
