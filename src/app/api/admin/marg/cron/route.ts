@@ -123,13 +123,22 @@ function calculateDiscount(mrp?: number, price?: number) {
 async function importMedicinesFromMarg() {
   try {
 
-    const latestMarg = await Marg.findOne({ status: "Completed" })
+    // const latestMarg = await Marg.findOne({ status: "Completed" })
+    //   .sort({ createdAt: -1 })
+    //   .lean();
+
+    const latestMarg = await Marg.findOne({
+      status: "Completed",
+      margGetDataCount: { $gt: 0 }
+    })
       .sort({ createdAt: -1 })
-      .lean();
+      .lean(); 
 
     const lastSyncDateTime = latestMarg ? moment(latestMarg.createdAt)
       .tz("Asia/Kolkata")
       .format("YYYY-MM-DD HH:mm:ss") : '';
+
+      // console.log("&&&&&&&&&&&&&&lastSyncDateTime&&&&&&&&&&&&&",lastSyncDateTime);
 
     const url = 'https://wservices.margcompusoft.com/api/eOnlineData/MargMST2017';
     const key = '48TPI07W1R2S';

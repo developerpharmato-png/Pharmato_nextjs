@@ -932,6 +932,7 @@ export default function PartialCancelPage() {
                   );
                 }
               } catch (e) {
+                setShowCancelReasonDialog(false)
                 Swal.fire("Error", "Failed to accept", "error");
               } finally {
                 setAcceptLoading(false);
