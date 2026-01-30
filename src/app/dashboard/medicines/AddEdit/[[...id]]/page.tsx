@@ -79,6 +79,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                 unitInput = med.unit.slice(0, -suffix.length);
               }
             }
+             enableReinitialize: false;
             setInitialValues({
               ...initialMedicineFormValues,
               ...med,
@@ -95,6 +96,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
               unitInput: unitInput,
               unit: med.unit || "",
             });
+           
             setComposition(
               Array.isArray(med.composition)
                 ? med.composition
@@ -606,6 +608,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
     (sub) => sub._id === formik.values.subCategoryId
   );
   const todayStr = new Date().toISOString().split("T")[0];
+console.log(formik.dirty,"formik.dirtyformik.dirty");
 
   return (
     <>

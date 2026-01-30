@@ -56,8 +56,7 @@ export async function POST(request: NextRequest) {
         // Validate input
         if (!email || !password) {
             return NextResponse.json(
-                { success: false, error: 'Email and password are required' },
-                { status: 400 }
+                { success: false, message: 'Email and password are required' }
             );
         }
 
@@ -65,8 +64,7 @@ export async function POST(request: NextRequest) {
         const admin = await Admin.findOne({ email: email.toLowerCase() });
         if (!admin) {
             return NextResponse.json(
-                { success: false, error: 'Invalid email or password' },
-                { status: 401 }
+                { success: false, message: 'Invalid email or password' }
             );
         }
 
@@ -74,16 +72,14 @@ export async function POST(request: NextRequest) {
         const isPasswordValid = await bcrypt.compare(password, admin.password);
         if (!isPasswordValid) {
             return NextResponse.json(
-                { success: false, error: 'Invalid email or password' },
-                { status: 401 }
+                { success: false, message: 'Invalid email or password' }
             );
         }
 
         // Check if admin account is active
         if (!admin.isActive) {
             return NextResponse.json(
-                { success: false, error: 'Your account has been deactivated. Please contact your administrator' },
-                { status: 403 }
+                { success: false, message: 'Your account has been deactivated. Please contact your administrator' }
             );
         }
 
@@ -94,8 +90,7 @@ export async function POST(request: NextRequest) {
             const roleObj = Array.isArray(roleDoc) ? roleDoc[0] : roleDoc;
             if (roleObj && !roleObj.isActive) {
                 return NextResponse.json(
-                    { success: false, error: 'Your role has been deactivated. Please contact your administrator' },
-                    { status: 403 }
+                    { success: false, message: 'Your role has been deactivated. Please contact your administrator' }
                 );
             }
         }
