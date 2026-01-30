@@ -136,8 +136,8 @@ async function importMedicinesFromMarg() {
     const payload = {
       CompanyCode: 'PharmatoInd2',
       MargID: 486257,
-      // Datetime: `${lastSyncDateTime}`,
-      Datetime: `2026-01-29 18:00:00`,
+      Datetime: `${lastSyncDateTime}`,
+      // Datetime: `2026-01-27 18:00:00`,
       index: 0
     };
     const response = await axios.post(url, payload, {
