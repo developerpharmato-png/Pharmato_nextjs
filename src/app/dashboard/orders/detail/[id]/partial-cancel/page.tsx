@@ -902,12 +902,12 @@ export default function PartialCancelPage() {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
-                    orderId,
-                    medicineIds: selected,
-                    cancelReason:
-                      previewUnselectedMeds.length > 0
-                        ? cancelReason
-                        : undefined,
+                    // orderId,
+                    // medicineIds: selected,
+                    // cancelReason:
+                    //   previewUnselectedMeds.length > 0
+                    //     ? cancelReason
+                    //     : undefined,
                   }),
                 });
                 const data = await res.json();
@@ -925,6 +925,7 @@ export default function PartialCancelPage() {
                   setShowCancelReasonDialog(false);
                   fetchOrder();
                 } else {
+                    setShowCancelReasonDialog(false)
                   Swal.fire(
                     "Error",
                     data.message || "Failed to accept",
@@ -935,6 +936,7 @@ export default function PartialCancelPage() {
                 setShowCancelReasonDialog(false)
                 Swal.fire("Error", "Failed to accept", "error");
               } finally {
+                  setShowCancelReasonDialog(false)
                 setAcceptLoading(false);
               }
             }}
