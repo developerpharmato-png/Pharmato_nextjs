@@ -115,7 +115,7 @@ export default function BannerImagesDashboard() {
               await axios.post("/api/admin/banner-images", { images: updated });
               Swal.fire({
                 toast: true,
-                position: "top-end",
+                position: "top-end",  
                 icon: "success",
                 title: ToastMessages.BANNER_IMAGE_UPDATED,
                 showConfirmButton: false,
@@ -247,52 +247,37 @@ export default function BannerImagesDashboard() {
                         confirmText: row.isActive ? "Deactivate" : "Activate",
                         cancelText: "Cancel",
                         onConfirm: async () => {
-                          const idx = images.findIndex(
-                            (img) => img.url === row.url
-                          );
-                          if (idx === -1) return;
-                          const updated = images.map((img, i) =>
-                            i === idx ? { ...img, isActive: !img.isActive } : img
-                          );
+                          const imgId = row._id || row.id;
+                          if (!imgId) return;
+                          const newStatus = !row.isActive;
                           setLoading(true);
                           try {
-                            const res = await axios.post("/api/admin/banner-images", {
-                              images: updated,
+                            const resp = await axios.post('/api/admin/banner-images/active', { id: imgId, status: newStatus ? 1 : 0 });
+                            const msg = resp?.data?.message || (newStatus ? 'Banner activated successfully' : 'Banner deactivated successfully');
+                            // update local state
+                            const updated = images.map((img) => (String(img._id) === String(imgId) ? { ...img, isActive: !!newStatus } : img));
+                            setImages(updated);
+                            Swal.fire({
+                              toast: true,
+                              position: "top-end",
+                              icon: "success",
+                              title: msg,
+                              showConfirmButton: false,
+                              timer: 2000,
                             });
-                            if (res.data && res.data.success === false) {
-                              Swal.fire({
-                                toast: true,
-                                position: "top-end",
-                                icon: "error",
-                                title: res.data.message || ToastMessages.BANNER_STATUS_UPDATE_FAILED,
-                                showConfirmButton: false,
-                                timer: 2000,
-                              });
-                            } else {
-                              setImages(updated);
-                              Swal.fire({
-                                toast: true,
-                                position: "top-end",
-                                icon: "success",
-                                title: updated[idx].isActive
-                                  ? ToastMessages.BANNER_IMAGE_CREATED
-                                  : ToastMessages.BANNER_STATUS_UPDATED,
-                                showConfirmButton: false,
-                                timer: 2000,
-                              });
-                            }
                           } catch (err: any) {
+                            const errMsg = err?.response?.data?.message || ToastMessages.BANNER_STATUS_UPDATE_FAILED;
                             Swal.fire({
                               toast: true,
                               position: "top-end",
                               icon: "error",
-                              title: ToastMessages.BANNER_STATUS_UPDATE_FAILED,
-                              text: err?.response?.data?.message || err?.message || "An error occurred",
+                              title: errMsg,
                               showConfirmButton: false,
                               timer: 2000,
                             });
+                          } finally {
+                            setLoading(false);
                           }
-                          setLoading(false);
                         },
                       });
                     }}

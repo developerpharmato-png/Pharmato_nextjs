@@ -10,7 +10,21 @@ export async function POST(req: NextRequest) {
     try {
         await dbConnect();
         const body = await req.json();
-        const { pincode, search } = body || {};
+        const { pincode, search, id: storeId, status } = body || {};
+
+        // If request includes `id` and `status`, update status for that store id
+        if (storeId && typeof status !== 'undefined') {
+            const existingStore: any = await Store.findById(String(storeId)).lean();
+            if (!existingStore) {
+                return NextResponse.json({ success: false, message: 'Store not found' }, { status: 404 });
+            }
+            const updated = await Store.findByIdAndUpdate(String(storeId), { status }, { new: true }).lean();
+            if (!updated) {
+                return NextResponse.json({ success: false, message: 'Store not found' }, { status: 404 });
+            }
+            const msg = status === 1 ? 'Store activated successfully' : 'Store deactivated successfully';
+            return NextResponse.json({ success: true, message: msg, data: { _id: (updated as any)._id, name: (updated as any).name } }, { status: 200 });
+        }
 
         if (pincode) {
             // prefer matching by Pincode doc _id if exists, otherwise try string match
@@ -29,7 +43,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: true, data: { _id: store._id, name: store.name } }, { status: 200 });
         }
 
-        if (search) {
+        if (search) { 
             const s = String(search).trim();
             const regex = { $regex: s, $options: 'i' };
             const store: any = await Store.findOne({ name: regex, status: 1 }).lean();
