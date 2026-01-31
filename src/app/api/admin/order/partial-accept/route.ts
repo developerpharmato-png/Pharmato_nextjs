@@ -1,5 +1,5 @@
-// app/api/generate-pdf/route.ts
 export const runtime = "nodejs";
+
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
@@ -18,6 +18,7 @@ import moment from 'moment-timezone';
 import { uploadToCloudinary } from '@/lib/cloudinaryUtils';
 import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
+
 
 const razorpayInstance = new Razorpay({
     key_id: process.env.razorPay_Key_Id || '',
@@ -643,7 +644,7 @@ export async function POST(req: NextRequest) {
                 waitUntil: 'domcontentloaded',
             });
 
-            const pdfBuffer : any = await page.pdf({
+            const pdfBuffer: any = await page.pdf({
                 format: 'A4',
                 margin: {
                     top: 70,
