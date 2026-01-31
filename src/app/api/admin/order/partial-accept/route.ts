@@ -1,5 +1,5 @@
-// // app/api/generate-pdf/route.ts
-// export const runtime = "nodejs";
+export const runtime = "nodejs";
+
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
@@ -16,9 +16,9 @@ import Admin from '@/models/Admin';
 import Store from '@/models/Store';
 import moment from 'moment-timezone';
 import { uploadToCloudinary } from '@/lib/cloudinaryUtils';
-import puppeteer from "puppeteer";
-// import puppeteer from "puppeteer-core";
-// import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
+
 
 const razorpayInstance = new Razorpay({
     key_id: process.env.razorPay_Key_Id || '',
@@ -622,18 +622,13 @@ export async function POST(req: NextRequest) {
             //     timeout: 60000 // Increase timeout here as well
             // });
 
-            // const isProd = process.env.CHRCK_SERVER === "localhost" ? false : true;
-
-            // const browser = await puppeteer.launch({
-            //     args: isProd ? chromium.args : ['--no-sandbox', '--disable-setuid-sandbox'],
-            //     executablePath: isProd
-            //         ? await chromium.executablePath()
-            //         : "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-            //     headless: true,
-            // });
+            const isProd = process.env.CHRCK_SERVER === "localhost" ? false : true;
 
             const browser = await puppeteer.launch({
-                args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                args: isProd ? chromium.args : ['--no-sandbox', '--disable-setuid-sandbox'],
+                executablePath: isProd
+                    ? await chromium.executablePath()
+                    : "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
                 headless: true,
             });
 
