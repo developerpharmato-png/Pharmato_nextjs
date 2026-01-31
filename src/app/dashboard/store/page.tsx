@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";import Swal from "sweetalert2";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined"; import Swal from "sweetalert2";
 import { ToastMessages } from "@/utils/ToasterMessage";
 import { CustomTable, Column } from "../components/CustomTable";
 import { CustomTooltip } from "../components/miniComponents";
@@ -268,7 +268,7 @@ export default function StoreDashboard() {
         showBack={false}
         showSearch={false}
         addShow={false}
-        addLabel="Add " 
+        addLabel="Add "
         // addShow={canEditStores}
         handleAdd={() => router.push(`/dashboard/store/new/`)}
       />
@@ -291,9 +291,7 @@ export default function StoreDashboard() {
         onPageChange={() => { }}
         loading={storesLoading}
       />
-      {error && (
-        <div className="text-red-600 text-lg font-semibold mt-4">{error}</div>
-      )}
+     
     </div>
   );
 }

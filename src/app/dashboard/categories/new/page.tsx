@@ -244,7 +244,7 @@ export default function NewCategoryPage() {
           InputLabelProps={{ shrink: true }}
           inputProps={{ maxLength: MAX_DESCRIPTION_LENGTH }}
           {...formik.getFieldProps("description")}
-       
+
           FormHelperTextProps={{
             sx: { textAlign: "right", mr: 0, mt: 0.5 },
           }}
@@ -287,28 +287,28 @@ export default function NewCategoryPage() {
               label="Active Subcategory"
             /> */}
 
-        <Box sx={{ display: "flex", gap: 2, pt: 2 }}>
-          <div className="ButtonOuter">
-            <div className="buttoninner">
-              {" "}
-              <CustomButton type="submit" disabled={loading} width="100%">
-                {loading || formik.isSubmitting ? (
-                  <>
-                    <CircularProgress size={24} color="inherit" />
-                    Add Category
-                  </>
-                ) : (
-                  <>
-                    <MdSave size={22} />{" "}
 
-                    Add Category
-                  </>
-                )}
-              </CustomButton>
-            </div>
+        <div className="ButtonOuter">
+          <div className="buttoninner">
+            {" "}
+            <CustomButton type="submit" disabled={loading} width="100%">
+              {loading || formik.isSubmitting ? (
+                <>
+                  <CircularProgress size={24} color="inherit" />
+                  Add Category
+                </>
+              ) : (
+                <>
+                  <MdSave size={22} />{" "}
 
+                  Add Category
+                </>
+              )}
+            </CustomButton>
           </div>
-        </Box>
+
+        </div>
+
       </Box>
 
     </div>

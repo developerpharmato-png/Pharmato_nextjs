@@ -14,9 +14,15 @@
 @import "tailwindcss";
 
 @keyframes skeleton-loading {
-  0% { background-position: -200px 0; }
-  100% { background-position: calc(200px + 100%) 0; }
+  0% {
+    background-position: -200px 0;
+  }
+
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
 }
+
 .skeleton-loading {
   background: linear-gradient(90deg, #f3f3f3 25%, #e0e0e0 50%, #f3f3f3 75%);
   background-size: 200% 100%;
@@ -97,14 +103,36 @@ body {
   width: 100%;
   overflow: auto;
   height: 84vh;
+  /* padding-bottom: 5rem; */
+}
+
+.containerStyleStick {
+  background: #fff;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
+
+  width: 100%;
+  overflow: auto;
+  height: 84vh;
   padding-bottom: 5rem;
+}
+
+.stikcHeader {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+/* padding:12px 12px 0px 12px; */
+
 }
 
 
 .containerStyleTable {
   background: #fff;
   border-radius: 0.75rem;
-   box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
   padding: 1rem;
 }
 
@@ -133,7 +161,7 @@ body {
   font-size: 0.85rem;
   font-weight: 500;
   padding: 2px 8px;
- 
+
 }
 
 .sub-category {

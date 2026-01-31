@@ -67,9 +67,7 @@ export const StoreValidationSchema = Yup.object().shape({
       .trim()
       .matches(/^\d{6}$/, "Pincode must be 6 digits")
       .required("Pincode is required"),
-    gps: Yup.string()
-      .trim()
-      .required("GPS is required"),
+   
   }),
   GoogleAddress: Yup.string()
     .trim(),

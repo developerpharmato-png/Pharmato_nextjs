@@ -78,7 +78,7 @@ const MargTable: React.FC<MargTableProps> = ({ data, page, rowsPerPage, totalCou
       onRowsPerPageChange={onRowsPerPageChange}
       loading={loading}
     />
-  );
+  ); 
 };
 
 export default MargTable;
