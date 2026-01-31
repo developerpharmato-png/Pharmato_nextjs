@@ -207,6 +207,16 @@ export default function SendNotificationForm({ handleClose }: SendNotificationFo
             onSubmit={formik.handleSubmit}
             sx={{ display: "flex", flexDirection: "column", gap: 3 }}
         >
+            {/* Selected Users Count Indicator */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#333' }}>
+                    Selected Users
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'var(--primary)' }}>
+                    {formik.values.userIds.length} / {customers.length}
+                </Typography>
+            </Box>
+
             <Autocomplete
                 multiple
                 disabled={loading}

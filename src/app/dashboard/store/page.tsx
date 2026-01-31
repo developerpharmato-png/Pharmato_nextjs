@@ -193,26 +193,25 @@ export default function StoreDashboard() {
               cancelText: "Cancel",
               onConfirm: async () => {
                 try {
-                  const updatedStore = {
-                    ...row,
-                    status: row.status === 1 ? 0 : 1,
-                  };
-                  await UpdateStoreStatus(`${StorePath}?id=${row._id}`, updatedStore);
+                  const newStatus = row.status === 1 ? 0 : 1;
+                  const resp = await axios.post('/api/admin/store/active', { id: row._id, status: newStatus });
+                  const msg = resp?.data?.message || ToastMessages.STORE_STATUS_UPDATED;
                   Swal.fire({
                     toast: true,
                     position: "top-end",
                     icon: "success",
-                    title: ToastMessages.STORE_STATUS_UPDATED,
+                    title: msg,
                     showConfirmButton: false,
                     timer: 2000,
                   });
                   GetStores({ url: StorePath, data: { isListRequest: true, search: search } });
-                } catch (err) {
+                } catch (err: any) {
+                  const errMsg = err?.response?.data?.message || ToastMessages.STORE_STATUS_UPDATE_FAILED;
                   Swal.fire({
                     toast: true,
                     position: "top-end",
                     icon: "error",
-                    title: ToastMessages.STORE_STATUS_UPDATE_FAILED,
+                    title: errMsg,
                     showConfirmButton: false,
                     timer: 2000,
                   });
@@ -258,7 +257,7 @@ export default function StoreDashboard() {
         </CustomTooltip>
       ),
     });
-  }
+  } 
 
   return (
     <div className="containerStyle scrollbar-hide">

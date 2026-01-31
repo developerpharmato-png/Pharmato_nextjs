@@ -30,11 +30,29 @@ export default function WalletAddAmountDialog({ userId, onSuccess, open, setOpen
                 errors.amount = "Amount is required";
             } else if (isNaN(Number(values.amount)) || Number(values.amount) <= 0) {
                 errors.amount = "Enter a valid positive number";
+            } else if (Number(values.amount) > 5000) {
+                errors.amount = "Maximum amount is 5000";
             }
             return errors;
         },
         onSubmit: async (values, { setSubmitting, resetForm }) => {
             try {
+                if (Number(values.amount) > 5000) {
+                    if (typeof window !== "undefined") {
+                        const module = await import("sweetalert2");
+                        const Swal = module.default || module;
+                        Swal.fire({
+                            toast: true,
+                            position: "top-end",
+                            icon: "error",
+                            title: "Maximum amount allowed is ₹5000",
+                            showConfirmButton: false,
+                            timer: 2000,
+                        });
+                    }
+                    setSubmitting(false);
+                    return;
+                }
                 const res = await addAmountPost(WalletAddAmountPath, { userId, amount: Number(values.amount) });
                 if (res?.success || res?.status) {
                     if (typeof window !== "undefined") {
@@ -114,7 +132,8 @@ export default function WalletAddAmountDialog({ userId, onSuccess, open, setOpen
                         helperText={formik.touched.amount && formik.errors.amount}
                         inputProps={{
                             inputMode: "numeric",
-                            pattern: "[0-9]*"
+                            pattern: "[0-9]*",
+                            maxLength: 7
                         }}
                         InputProps={{
                             startAdornment: (
@@ -123,7 +142,8 @@ export default function WalletAddAmountDialog({ userId, onSuccess, open, setOpen
                         }}
                         onChange={(e) => {
                             const value = e.target.value;
-                            if (/^\d*$/.test(value)) {
+                            // allow only digits and limit to 7 characters
+                            if (/^\d*$/.test(value) && value.length <= 7) {
                                 formik.setFieldValue("amount", value);
                             }
                         }}
