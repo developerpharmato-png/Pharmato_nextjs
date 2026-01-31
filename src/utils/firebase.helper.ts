@@ -8,7 +8,7 @@ const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_JSON
   : null;
 
 function initFirebase() {
-  if (!admin.apps.length) {
+  if (admin.apps.length === 0) {
     if (serviceAccount && typeof serviceAccount === 'object' && serviceAccount.project_id) {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount as any),
@@ -17,8 +17,12 @@ function initFirebase() {
     } else {
       console.warn('Firebase service account not configured - skipping initialization');
     }
+  }else{
+    console.log('Firebase already initialized');
   }
 }
+
+initFirebase();
 
 export async function sendPushNotification({
   token,
@@ -29,7 +33,7 @@ export async function sendPushNotification({
   title: string;
   body: string;
 }) {
-  initFirebase();
+  // initFirebase();
 
   const message = {
     notification: { title, body },
@@ -64,7 +68,7 @@ export async function sendPushNotificationWithData({
   data: Record<string, any>;
 }) {
 
-  initFirebase();
+  // initFirebase();
 
   const message = {
     notification: { title, body },
@@ -89,9 +93,12 @@ export async function sendPushNotificationWithData({
 }
 
 export function getDb() {
-  initFirebase();
-  if (!admin.apps.length) throw new Error('Firebase not configured');
-  return admin.database();
+  try {
+    return admin.database();
+  } catch (error) {
+    console.error('🔥 Firebase DB connection error:', error);
+    throw error; // important: taaki calling code ko bhi pata chale
+  }
 }
 
 export { initFirebase };
