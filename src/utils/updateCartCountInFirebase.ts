@@ -11,6 +11,8 @@ await connectDB();
 
 export async function updateCartCountInFirebase({ userId, storeId }: { userId?: string; storeId?: string }) {
 
+    console.log('updateCartCountInFirebase called with', { userId, storeId });
+
     if (!userId || !storeId) return;
 
     // 🔥 LIGHT & FAST aggregation (NO lookup)
@@ -31,10 +33,27 @@ export async function updateCartCountInFirebase({ userId, storeId }: { userId?: 
 
     const count = cartAgg?.[0]?.count || 0;
 
-    await db
-        .ref(`cart/${userId}/${storeId}`)
-        .update({
-            count
+    console.log('Cart count:', count);
+
+    // await db
+    //     .ref(`cart/${userId}/${storeId}`)
+    //     .update({
+    //         count
+    //     });
+
+    try {
+        await db
+            .ref(`cart/${userId}/${storeId}`)
+            .update({ count });
+
+        console.log('✅ Cart count updated successfully', {
+            userId,
+            storeId,
+            count,
         });
+    } catch (error) {
+        console.error('❌ Failed to update cart count', error);
+    }
+
 
 }
