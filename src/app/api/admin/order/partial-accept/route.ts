@@ -16,8 +16,7 @@ import Admin from '@/models/Admin';
 import Store from '@/models/Store';
 import moment from 'moment-timezone';
 import { uploadToCloudinary } from '@/lib/cloudinaryUtils';
-import puppeteer from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer";
 
 
 const razorpayInstance = new Razorpay({
@@ -197,6 +196,16 @@ export async function POST(req: NextRequest) {
             };
         });
 
+        // Merge cancelledNames with cancelledForRefund to include quantity and price
+        const cancelledNamesWithDetails = cancelledNames.map((m: any) => {
+            const item = cancelledForRefund.find((i: any) => i.medicineId.toString() === m._id.toString());
+            return {
+                ...m._doc,
+                quantity: item ? item.quantity : 0,
+                price: item ? item.price : 0,
+            };
+        });
+
         // Build email HTML
         let html = `${header}<div><p>Dear ${userName},</p>`;
         html += `<p>The admin has updated your order (Order ID: <b>${order.order_id || order._id}</b>).</p>`;
@@ -225,22 +234,32 @@ export async function POST(req: NextRequest) {
                 const imgSrc = m.coverImage && m.coverImage.trim() !== '' ? m.coverImage : defaultImg;
                 html += `<li style="margin-bottom:10px;display:flex;align-items:center;">
                     <img src="${imgSrc}" alt="${m.name}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:10px;border:1px solid #eee;" />
-                    <span>${m.name}</span>
+                               <div>
+                <div style="font-weight:500;">${m.name}</div>
+                <div style="font-size:14px;color:#555;">
+                    Quantity: ${m.quantity}, Price: ₹${Number(m.price).toFixed(2)}
+                </div>
+            </div>
                 </li>`;
             });
             html += '</ul></p>';
         }
-        if (cancelledNames.length > 0) {
+        if (cancelledNamesWithDetails.length > 0) {
             const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
             html += '<p><b>Cancelled Medicines:</b><ul style="list-style:none;padding:0;">';
-            cancelledNames.forEach((m: any) => {
+            cancelledNamesWithDetails.forEach((m: any) => {
                 const imgSrc = m.coverImage && m.coverImage.trim() !== '' ? m.coverImage : defaultImg;
                 html += `<li style="margin-bottom:10px;display:flex;align-items:center;">
                     <img src="${imgSrc}" alt="${m.name}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:10px;border:1px solid #eee;" />
-                    <span>${m.name}</span>
-                </li>`;
+                               <div>
+                <div style="font-weight:500;">${m.name}</div>
+                <div style="font-size:14px;color:#555;">
+                    Quantity: ${m.quantity}, Price: ₹${Number(m.price).toFixed(2)}
+                </div>
+            </div>
+                            </li>`;
             });
-            html += `</ul><b>Refund Amount:</b> ₹${refundAmount}</p>`;
+            html += `</ul><b>Refund Amount:</b> ₹${Number(refundAmount).toFixed(2)}</p>`;
         }
         html += '<p>You can track your order status anytime from the My Orders section on the Pharmato app or website.</p>';
         html += '<p>If you have any questions or need assistance, our support team is always here to help.</p>';
@@ -591,25 +610,12 @@ export async function POST(req: NextRequest) {
 
 </html>`
 
-            // // const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-
-
-            // const isProd = process.env.CHRCK_SERVER === "localhost" ? false : true;
-
-            // const browser = await puppeteer.launch({
-            //     args: isProd ? chromium.args : ['--no-sandbox', '--disable-setuid-sandbox'],
-            //     executablePath: isProd
-            //         ? await chromium.executablePath()
-            //         : "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", // 👈 LOCAL CHROME PATH
-            //     headless: true,
-            // });
-
-            // const page = await browser.newPage();
-
-            // await page.setCacheEnabled(false); // Disable cache
+            const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+            const page = await browser.newPage();
+            await page.setCacheEnabled(false); // Disable cache
 
             // // Set the page content with an increased timeout
-            // await page.setContent(invoiceHtml, { timeout: 60000, waitUntil: 'networkidle0' });// Wait for network to be idle
+            // await page.setContent(invoiceHtml, { timeout: 120000, waitUntil: 'networkidle0' });// Wait for network to be idle
 
             // const pdfBuffer: any = await page.pdf({
             //     format: 'A4',
@@ -619,39 +625,15 @@ export async function POST(req: NextRequest) {
             //         bottom: 50,
             //         left: 50,
             //     },
-            //     timeout: 60000 // Increase timeout here as well
+            //     timeout: 120000 // Increase timeout here as well
             // });
 
-            const isProd = process.env.CHRCK_SERVER === "localhost" ? false : true;
+            // Use domcontentloaded instead of networkidle0 for faster load
+            await page.setContent(invoiceHtml, { timeout: 180000, waitUntil: 'domcontentloaded' });
 
-            const browser = await puppeteer.launch({
-                args: isProd ? chromium.args : ['--no-sandbox', '--disable-setuid-sandbox'],
-                executablePath: isProd
-                    ? await chromium.executablePath()
-                    : "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-                headless: true,
-            });
-
-            const page = await browser.newPage();
-
-            page.setDefaultTimeout(120000);
-            page.setDefaultNavigationTimeout(120000);
-
-            await page.setCacheEnabled(false);
-
-            await page.setContent(invoiceHtml, {
-                timeout: 120000,
-                waitUntil: 'domcontentloaded',
-            });
-
-            const pdfBuffer: any = await page.pdf({
+            const pdfBuffer : any = await page.pdf({
                 format: 'A4',
-                margin: {
-                    top: 70,
-                    right: 50,
-                    bottom: 50,
-                    left: 50,
-                },
+                margin: { top: 70, right: 50, bottom: 50, left: 50 },
             });
 
             await browser.close();
