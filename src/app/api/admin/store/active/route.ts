@@ -6,6 +6,9 @@ import Pincode from '@/models/Pincode';
 // POST /api/admin/store/active
 // Body: { pincode?: string, search?: string }
 // Returns first active store matching the pincode (exact) or name (regex)
+
+
+
 export async function POST(req: NextRequest) {
     try {
         await dbConnect();
@@ -59,3 +62,4 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, message: 'Server error', error: error?.message }, { status: 500 });
     }
 }
+
