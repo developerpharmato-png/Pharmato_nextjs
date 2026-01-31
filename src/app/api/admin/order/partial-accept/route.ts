@@ -1,3 +1,5 @@
+// app/api/generate-pdf/route.ts
+export const runtime = "nodejs";
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
