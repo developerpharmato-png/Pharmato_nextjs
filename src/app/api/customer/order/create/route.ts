@@ -9,6 +9,18 @@ import mongoose from 'mongoose';
 import Wallet from '@/models/Wallet';
 import { getDb } from '@/utils/firebase.helper';
 import Cart from '@/models/Cart';
+import Setting from '@/models/Setting';
+
+function calculateDeliveryFee(
+    orderAmount: number,
+    deliveryFeeThreshold: number,
+    deliveryFee: number
+): number {
+    if (orderAmount >= deliveryFeeThreshold) {
+        return 0;
+    }
+    return deliveryFee;
+}
 
 /**
  * @swagger
@@ -135,6 +147,30 @@ export async function POST(req: NextRequest) {
     if (!userCheck) {
         return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
+
+    // Get settings
+    const settings = await Setting.find().lean();
+    let deliveryFee = 0;
+    let deliveryFeeThreshold = 0;
+
+    for (const setting of settings) {
+        if (setting.type === 'deliveryFee') deliveryFee = Number(setting.data);
+        if (setting.type === 'deliveryFeeThreshold') deliveryFeeThreshold = Number(setting.data);
+    }
+
+    deliveryFee = calculateDeliveryFee(
+        calculationData.priceTotalSumAfterDiscount,
+        deliveryFeeThreshold,
+        deliveryFee
+    );
+
+    // Validate delivery fee
+    if(deliveryFee !== Number(calculationData.deliveryFee)) {
+
+        return NextResponse.json({ success: false, message: 'Delivery fee changed' }, { status: 400 });
+
+    }
+
     // Fetch address and log it
     const addressDoc = await UserAddress.findById(addressId);
     if (!addressDoc) {
