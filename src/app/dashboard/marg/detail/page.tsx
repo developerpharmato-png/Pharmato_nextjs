@@ -116,7 +116,7 @@ const MargDetailPage = () => {
     }, []);
 
     const products = useMemo(() => {
-        if (!detail || detail.margInsertDataCount !== 1) return [] as MargInsertedProduct[];
+        if (!detail || detail.margInsertDataCount === 0) return [] as MargInsertedProduct[];
         return Array.isArray(detail.margInsertData) ? detail.margInsertData : [];
     }, [detail]);
 

@@ -71,6 +71,7 @@ export default function AddStorePage() {
     validationSchema: StoreValidationSchema,
     enableReinitialize: true,
     onSubmit: async (values) => {
+      alert("Dd")
       try {
         let response: any;
         if (isEditMode && id) {
@@ -113,6 +114,7 @@ export default function AddStorePage() {
       }
     },
   });
+  console.log(formik.errors, "formik.errors");
 
   React.useEffect(() => {
     async function fetchPincodes() {
@@ -184,11 +186,11 @@ export default function AddStorePage() {
       if (response?.success && response?.pinCodeArray) {
         const newPincodes = response.pinCodeArray.map((p: number) => p.toString());
         const existing = (formik.values.servicePinCodes || []) as string[];
-        
+
         // Find duplicates and new pincodes
         const duplicates = newPincodes.filter((p: string) => existing.includes(p));
         const newPincodesToAdd = newPincodes.filter((p: string) => !existing.includes(p));
-        
+
         // Check if all pincodes already exist
         if (duplicates.length === newPincodes.length) {
           Swal.fire({
@@ -202,20 +204,20 @@ export default function AddStorePage() {
           });
           return;
         }
-        
+
         // Merge all pincodes
         const merged = [...new Set([...existing, ...newPincodes])];
         formik.setFieldValue("servicePinCodes", merged);
-        
+
         // Show appropriate message based on duplicates
         let toastTitle = "Pincodes uploaded successfully";
         let toastText = `Added ${newPincodesToAdd.length} new pincode(s).`;
-        
+
         if (duplicates.length > 0) {
           toastTitle = "Upload completed with duplicates";
           toastText = `Added ${newPincodesToAdd.length} new pincode(s). ${duplicates.length} pincode(s) already existed.`;
         }
-        
+
         Swal.fire({
           toast: true,
           position: "top-end",
@@ -247,166 +249,171 @@ export default function AddStorePage() {
   };
 
   return (
-    <div className="containerStyle scrollbar-hide">
-      <HeaderWithAction
-        title={isEditMode ? "Edit Store" : "Add Store"}
-        subtitle={
-          isEditMode ? "Update store details" : "Create a new store location"
-        }
-        showBack={true}
-        showSearch={false}
-       isunsaved={formik.dirty}
-      />
+    <div className="containerStyleStick  scrollbar-hide ">
 
 
       {isEditMode && storeDetailLoading ? (
         <StoreSkeleton />
       ) : (
-      <form
-        onSubmit={formik.handleSubmit}
-        className="flex flex-col gap-8 px-8 py-8"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <TextField
-              name="name" 
-              label="Store Name *"
-              value={formik.values.name}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              fullWidth
-              variant="outlined"
-              placeholder="Enter store name"
-              error={Boolean(getFieldError("name"))}
+
+
+        <form
+          onSubmit={formik.handleSubmit}
+          className="flex flex-col gap-8 px-8 py-8"
+        >
+
+
+          <div className="stikcHeader ">
+            <HeaderWithAction
+              title={isEditMode ? "Edit Store" : "Add Store"}
+              subtitle={
+                isEditMode ? "Update store details" : "Create a new store location"
+              }
+              showBack={true}
+              showSearch={false}
+              isunsaved={formik.dirty}
             />
-            {getFieldError("name") && (
-              <ErrorMessageCom error={getFieldError("name") as string} />
-            )}
+            <div className="">
+
+              <CustomButton
+                type="submit"
+                disabled={
+                  formik.isSubmitting ||
+                  createStoreLoading ||
+                  storeDetailLoading ||
+                  updateStoreLoading
+                }
+                width="100%"
+              >
+                {" "}
+                <MdSave size={22} /> {isEditMode ? "Update Store" : "Add Store"}
+              </CustomButton>
+            </div>
+
           </div>
-          <div>
-            <FormControl
-              fullWidth
-              variant="outlined"
-              error={Boolean(
-                formik.touched.adminManagerId && formik.errors.adminManagerId
-              )}
-            >
-              <InputLabel id="admin-manager-label">Store Manager *</InputLabel>
-              <Select
-                labelId="admin-manager-label"
-                name="adminManagerId"
-                value={formik.values.adminManagerId}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <TextField
+                name="name"
+                label="Store Name *"
+                value={formik.values.name}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                label="Store Manager *"
-                disabled={storeManagersLoading}
+                fullWidth
+                variant="outlined"
+                placeholder="Enter store name"
+                error={Boolean(getFieldError("name"))}
+              />
+              {getFieldError("name") && (
+                <ErrorMessageCom error={getFieldError("name") as string} />
+              )}
+            </div>
+            <div>
+              <FormControl
+                fullWidth
+                variant="outlined"
+                error={Boolean(
+                  formik.touched.adminManagerId && formik.errors.adminManagerId
+                )}
               >
-                <MenuItem value="">
-                  <em>
-                    {storeManagersLoading
-                      ? "Loading..."
-                      : "Select Store Manager"}
-                  </em>
-                </MenuItem>
-                {(storeManagersData?.data || []).map((admin: any) => (
-                  <MenuItem key={admin._id} value={admin._id}>
-                    {admin.email} - {admin.firstName} {admin.lastName}
+                <InputLabel id="admin-manager-label">Store Manager *</InputLabel>
+                <Select
+                  labelId="admin-manager-label"
+                  name="adminManagerId"
+                  value={formik.values.adminManagerId}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  label="Store Manager *"
+                  disabled={storeManagersLoading}
+                >
+                  <MenuItem value="">
+                    <em>
+                      {storeManagersLoading
+                        ? "Loading..."
+                        : "Select Store Manager"}
+                    </em>
                   </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            {formik.touched.adminManagerId && formik.errors.adminManagerId && (
-              <ErrorMessageCom error={formik.errors.adminManagerId as string} />
+                  {(storeManagersData?.data || []).map((admin: any) => (
+                    <MenuItem key={admin._id} value={admin._id}>
+                      {admin.email} - {admin.firstName} {admin.lastName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {formik.touched.adminManagerId && formik.errors.adminManagerId && (
+                <ErrorMessageCom error={formik.errors.adminManagerId as string} />
+              )}
+            </div>
+          </div>
+
+          <div>
+            <PincodeSelect
+              pincodes={pincodes}
+              value={formik.values.servicePinCodes}
+
+              onChange={(selected) =>
+                formik.setFieldValue("servicePinCodes", selected)
+              }
+            />
+            {formik.touched.servicePinCodes && formik.errors.servicePinCodes && (
+              <ErrorMessageCom error={formik.errors.servicePinCodes as string} />
             )}
           </div>
-        </div>
 
-        <div>
-          <PincodeSelect
-            pincodes={pincodes}
-            value={formik.values.servicePinCodes}
-           
-            onChange={(selected) =>
-              formik.setFieldValue("servicePinCodes", selected)
-            }
-          />
-          {formik.touched.servicePinCodes && formik.errors.servicePinCodes && (
-            <ErrorMessageCom error={formik.errors.servicePinCodes as string} />
-          )}
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-4 items-start">
-          <div className="flex-1">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={(e) => setPincodeFile(e.target.files?.[0] || null)}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
-          </div>
-          <CustomButton
-            onClick={handleBulkUpload}
-            disabled={bulkUploadLoading || !pincodeFile}
-            className={`px-6 py-2 rounded-lg font-medium transition-all ${
-              bulkUploadLoading || !pincodeFile
+          <div className="flex flex-col md:flex-row gap-4 items-start">
+            <div className="flex-1">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={(e) => setPincodeFile(e.target.files?.[0] || null)}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+            </div>
+            <CustomButton
+              onClick={handleBulkUpload}
+              disabled={bulkUploadLoading || !pincodeFile}
+              className={`px-6 py-2 rounded-lg font-medium transition-all ${bulkUploadLoading || !pincodeFile
                 ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                 : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
-          >
-            {bulkUploadLoading ? "Uploading..." : "Bulk Upload Pincodes"}
-          </CustomButton>
-        </div>
-
-        <AddressFields
-          address={formik.values.address}
-          errors={formik.errors.address as Record<string, string> | undefined}
-          touched={formik.touched.address}
-          onBlur={(field) => formik.setFieldTouched(`address.${field}`, true)}
-          onChange={(field, value) =>
-            formik.setFieldValue("address", {
-              ...formik.values.address,
-              [field]: value,
-            })
-          }
-        />
-
-        {/* OpenStreetMap for GPS Location Selection */}
-        <div className="w-full">
-          <StoreMapComponent
-            gpsValue={formik.values.address.gps}
-            addressValue={formik.values.GoogleAddress}
-            onLocationSelect={(lat, lng) => {
-              formik.setFieldValue("address.gps", `${lat},${lng}`);
-            }}
-            onAddressSelect={(address) => {
-              formik.setFieldValue("GoogleAddress", address);
-            }}
-            disabled={formik.isSubmitting}
-          />
-          {formik.touched.address?.gps && formik.errors.address?.gps && (
-            <ErrorMessageCom error={formik.errors.address.gps as string} />
-          )}
-        </div>
-        <div className=" ButtonOuter">
-          {" "}
-          <div className="buttoninner ">
-            <CustomButton
-              type="submit"
-              disabled={
-                formik.isSubmitting ||
-                createStoreLoading ||
-                storeDetailLoading ||
-                updateStoreLoading
-              }
-              width="100%"
+                }`}
             >
-              {" "}
-              <MdSave size={22} /> {isEditMode ? "Update Store" : "Add Store"}
+              {bulkUploadLoading ? "Uploading..." : "Bulk Upload Pincodes"}
             </CustomButton>
           </div>
-        </div>
-      </form>
+
+          <AddressFields
+            address={formik.values.address}
+            errors={formik.errors.address as Record<string, string> | undefined}
+            touched={formik.touched.address}
+            onBlur={(field) => formik.setFieldTouched(`address.${field}`, true)}
+            onChange={(field, value) =>
+              formik.setFieldValue("address", {
+                ...formik.values.address,
+                [field]: value,
+              })
+            }
+          />
+
+          {/* OpenStreetMap for GPS Location Selection */}
+          <div className="w-full">
+            <StoreMapComponent
+              gpsValue={formik.values.address.gps}
+              addressValue={formik.values.GoogleAddress}
+              onLocationSelect={(lat, lng) => {
+                formik.setFieldValue("address.gps", `${lat},${lng}`);
+              }}
+              onAddressSelect={(address) => {
+                formik.setFieldValue("GoogleAddress", address);
+              }}
+              disabled={formik.isSubmitting}
+            />
+            {formik.touched.address?.gps && formik.errors.address?.gps && (
+              <ErrorMessageCom error={formik.errors.address.gps as string} />
+            )}
+          </div>
+
+        </form>
       )}
     </div>
   );

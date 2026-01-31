@@ -96,6 +96,7 @@ export function CustomTable<T>({
   loading = false,
   onFilterChange,
   NoDataMessage
+
 }: CustomTableProps<T> & { onFilterChange?: (filter: string) => void }) {
 
   const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,7 +147,9 @@ export function CustomTable<T>({
               data.map((row, idx) => (
                 <TableRow hover tabIndex={-1} key={idx}>
                   {columns.map((col) => (
-                    <TableCell key={col.id} align={col.align || "left"}>
+                    <TableCell key={col.id} align={col.align || "left"}
+                    sx={{padding:"8px"}}
+                    >
                       {col.selector(row)}
                     </TableCell>
                   ))}
