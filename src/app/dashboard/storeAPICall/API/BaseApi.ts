@@ -52,4 +52,13 @@ export const PolicySettingsPath = `/api/admin/settings/policy`;
 // MARG
 export const MargImportPath = `/api/admin/marg/cron`;
 export const MargListPath = `/api/admin/marg/list`;
+
+// Coupon
+export const CouponListPath = `/api/admin/coupon/list`;
+export const CouponDetailPath = `/api/admin/coupon/detail`;
+export const CouponCreatePath = `/api/admin/coupon/create`;
+export const CouponUpdatePath = `/api/admin/coupon/update`;
+export const CouponDeletePath = `/api/admin/coupon/delete`;
+export const CouponStatusPath = `/api/admin/coupon/status`;
   
+

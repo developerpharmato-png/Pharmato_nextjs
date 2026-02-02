@@ -50,4 +50,11 @@ export const MargStore = createApiStore<any>();
 
 export const fetchMargList =createApiStore<any>();
 
-export const importMargData =createApiStore<any>(); 
+export const importMargData =createApiStore<any>();
+
+// Coupon
+export const CouponListStore = createApiStore<any>();
+export const CouponCreateStore = createApiStore<any>();
+export const CouponUpdateStore = createApiStore<any>();
+export const CouponDeleteStore = createApiStore<any>();
+export const CouponStatusStore = createApiStore<any>(); 

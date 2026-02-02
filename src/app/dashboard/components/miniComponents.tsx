@@ -368,3 +368,74 @@ export function ModalHeader({ title, onClose }: ModalHeaderProps) {
     </Box>
   );
 }
+
+interface StatusToggleButtonProps {
+  isActive: boolean;
+  onToggle: (newStatus: boolean) => void;
+  loading?: boolean;
+  disabled?: boolean;
+}
+
+export const StatusToggleButton: React.FC<StatusToggleButtonProps> = ({
+  isActive,
+  onToggle,
+  loading = false,
+  disabled = false,
+}) => {
+  return (
+    <button
+      onClick={() => onToggle(!isActive)}
+      disabled={disabled || loading}
+      className="relative cursor-pointer inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      style={{ backgroundColor: isActive ? "#10b981" : "#d1d5db" }}
+      title={isActive ? "Click to deactivate" : "Click to activate"}
+    >
+      <span
+        className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
+          isActive ? "translate-x-6" : "translate-x-1"
+        }`}
+      />
+    </button>
+  );
+};
+
+interface ConfirmStatusAlertComponentProps {
+  isActive: boolean;
+  title?: string;
+  text?: string;
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm: () => void | Promise<void>;
+  onCancel?: () => void;
+  children: React.ReactNode;
+}
+
+export const ConfirmStatusAlertComponent: React.FC<ConfirmStatusAlertComponentProps> = ({
+  isActive,
+  title,
+  text,
+  confirmText,
+  cancelText,
+  onConfirm,
+  onCancel,
+  children,
+}) => {
+  const handleClick = () => {
+    const { showConfirmStatusAlert } = require("./ConfirmStatusAlert");
+    showConfirmStatusAlert({
+      isActive,
+      title: title || (isActive ? "Deactivate?" : "Activate?"),
+      text: text || (isActive ? "Are you sure?" : "Are you sure?"),
+      confirmText: confirmText || (isActive ? "Deactivate" : "Activate"),
+      cancelText: cancelText || "Cancel",
+      onConfirm,
+      onCancel,
+    });
+  };
+
+  return (
+    <div onClick={handleClick}>
+      {children}
+    </div>
+  );
+};

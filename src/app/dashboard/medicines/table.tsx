@@ -108,7 +108,7 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
       })
       .finally(() => setLoading(false));
   };
-
+ 
   const handleToggleStatus = async (row: any) => {
     showConfirmStatusAlert({
       isActive: !!row.isActive,
@@ -438,7 +438,7 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
       id: "isActive",
       label: "Status",
       minWidth: 80,
-      selector: (row) => (
+      selector: (row) => ( 
         <button
           onClick={() => handleToggleStatus(row)}
           className="relative cursor-pointer inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"

@@ -178,12 +178,13 @@ export default function DashboardLayout({
     { name: "Subcategories", path: "/dashboard/subcategories", icon: "folder", isActive: true },
     { name: "Orders", path: "/dashboard/orders", icon: "receipt_long", isActive: true },
     { name: "Customers", path: "/dashboard/admin/customers", icon: "person", isActive: true },
+    { name: "Coupons", path: "/dashboard/coupon", icon: "tag", isActive: true },
     { name: "Send Notifications", path: "/dashboard/notifications", icon: "bell", 
       isActive: true,
       
       // superAdminOnly: true 
     
-    },
+    }, 
     { name: "Stores", path: "/dashboard/store", icon: "store", isActive: true },
     { name: "Banner Management", path: "/dashboard/banner-images", icon: "image", isActive: true },
     { name: "Sync Management", path: "/dashboard/marg", icon: "hospital", isActive: true },
