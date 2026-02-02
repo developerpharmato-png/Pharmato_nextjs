@@ -89,5 +89,5 @@ export async function POST(req: NextRequest) {
     // Update cart count in Firebase
     updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
 
-    return NextResponse.json({ success: true, message: 'Items reordered and added to cart', cart });
+    return NextResponse.json({ success: true, message: 'Your items have been added to the cart.', cart });
 }
