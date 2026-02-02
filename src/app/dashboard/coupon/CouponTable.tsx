@@ -13,16 +13,19 @@ import { Edit3Icon, EditIcon } from "lucide-react";
 interface Coupon {
     _id: string;
     code: string;
+    title?: string;
     description: string;
-    type: "FIXED" | "PERCENT";
+    type: "fixed" | "percentage";
     value: number;
     maxDiscountAmount?: number;
     startAt: string;
     endAt: string;
     maxCoupons: number;
     perUserLimit: number;
+    usedCount?: number;
     isActive: boolean;
     isSecret: boolean;
+    isStackable?: boolean;
     createdAt: string;
     updatedAt: string;
 }
@@ -101,57 +104,85 @@ const CouponTable: React.FC<CouponTableProps> = ({
             ),
         },
         {
-            id: "description",
-            label: "Description",
-            minWidth: 180,
+            id: "title",
+            label: "Title",
+            minWidth: 150,
             selector: (row) => (
-                <CustomTooltip title={row.description}>
-                    <span className="line-clamp-2">{row.description}</span>
+                <CustomTooltip title={row.title || row.description}>
+                    <span className="line-clamp-1">{row.title || row.description}</span>
                 </CustomTooltip>
             ),
         },
         {
+            id: "value",
+            label: "Discount",
+            minWidth: 110,
+            selector: (row) =>
+                row.type === "percentage"
+                    ? `${row.value}%`
+                    : `₹${row.value}`,
+        },
+       
+        {
             id: "type",
-            label: "Discount Type",
-            minWidth: 100,
+            label: "Type",
+            minWidth: 90,
             selector: (row) => (
-                <span className={`px-2 py-1 rounded text-sm font-semibold ${row.type === "PERCENT" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}`}>
-                    {row.type === "PERCENT" ? `${row.value}%` : `₹${row.value}`}
+                <span className={`px-2 py-1 rounded text-xs font-semibold ${row.type === "percentage" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}`}>
+                    {row.type === "percentage" ? "Percentage" : "Fixed"}
                 </span>
             ),
         },
         {
-            id: "value",
-            label: "Value",
-            minWidth: 80,
-            selector: (row) =>
-                row.type === "PERCENT"
-                    ? `${row.value}%`
-                    : `₹${row.value}`,
-        },
-        {
             id: "maxDiscountAmount",
-            label: "Max Discount Cap",
-            minWidth: 120,
+            label: "Max Cap",
+            minWidth: 100,
             selector: (row) =>
                 row.maxDiscountAmount ? `₹${row.maxDiscountAmount}` : "—",
         },
+       
         {
-            id: "maxCoupons",
-            label: "Max Uses",
-            minWidth: 80,
-            selector: (row) => row.maxCoupons,
+            id: "usedCount",
+            label: "Used",
+            minWidth: 70,
+            selector: (row) => row.usedCount || 0,
         },
         {
             id: "perUserLimit",
-            label: "Per User Limit",
-            minWidth: 110,
+            label: "Per User",
+            minWidth: 90,
             selector: (row) => row.perUserLimit,
         },
         {
+            id: "startAt",
+            label: "Start Date",
+            minWidth: 100,
+            selector: (row) => {
+                const date = new Date(row.startAt);
+                return date.toLocaleDateString('en-IN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+            },
+        },
+        {
+            id: "endAt",
+            label: "End Date",
+            minWidth: 100,
+            selector: (row) => {
+                const date = new Date(row.endAt);
+                return date.toLocaleDateString('en-IN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+            },
+        },
+        {
             id: "isSecret",
-            label: "Type",
-            minWidth: 80,
+            label: "Secret",
+            minWidth: 70,
             selector: (row) => (
                 <span
                     className={`px-2 py-1 rounded text-xs font-semibold ${
@@ -160,26 +191,30 @@ const CouponTable: React.FC<CouponTableProps> = ({
                             : "bg-gray-100 text-gray-800"
                     }`}
                 >
-                    {row.isSecret ? "Secret" : "Public"}
+                    {row.isSecret ? "Yes" : "No"}
                 </span>
             ),
         },
         {
-            id: "startAt",
-            label: "Start Date",
-            minWidth: 110,
-            selector: (row) => formatMargDate(row.startAt),
-        },
-        {
-            id: "endAt",
-            label: "End Date",
-            minWidth: 110,
-            selector: (row) => formatMargDate(row.endAt),
+            id: "isStackable",
+            label: "Stackable",
+            minWidth: 80,
+            selector: (row) => (
+                <span
+                    className={`px-2 py-1 rounded text-xs font-semibold ${
+                        row.isStackable
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-gray-100 text-gray-800"
+                    }`}
+                >
+                    {row.isStackable ? "Yes" : "No"}
+                </span>
+            ),
         },
         {
             id: "isActive",
             label: "Status",
-            minWidth: 80,
+            minWidth: 90,
             selector: (row) => (
                 <ConfirmStatusAlertComponent
                     isActive={row.isActive}
@@ -202,20 +237,15 @@ const CouponTable: React.FC<CouponTableProps> = ({
         },
         {
             id: "actions",
-            label: "Actions",
-            minWidth: 150,
+            label: "Edit",
+            minWidth: 60,
             selector: (row) => (
-                <div className="flex gap-2">
-                    {onEdit && (
-                        <span
-          style={{ cursor: "pointer", color: "var(--primary)", display: "flex", justifyContent: "center", alignItems: "center" }}
-          onClick={() => router.push(`/dashboard/coupon/AddEdit/${row._id}`)}
-        >
-          <EditIcon fontSize="small" />
-        </span>
-                    )}
-                  
-                </div>
+                <span
+                    style={{ cursor: "pointer", color: "var(--primary)", display: "flex", justifyContent: "center", alignItems: "center" }}
+                    onClick={() => router.push(`/dashboard/coupon/AddEdit/${row._id}`)}
+                >
+                    <EditIcon size={18} />
+                </span>
             ),
         },
     ];

@@ -178,7 +178,7 @@ export default function DashboardLayout({
     { name: "Subcategories", path: "/dashboard/subcategories", icon: "folder", isActive: true },
     { name: "Orders", path: "/dashboard/orders", icon: "receipt_long", isActive: true },
     { name: "Customers", path: "/dashboard/admin/customers", icon: "person", isActive: true },
-    { name: "Coupons", path: "/dashboard/coupon", icon: "tag", isActive: true },
+    // { name: "Coupons", path: "/dashboard/coupon", icon: "tag", isActive: true },
     { name: "Send Notifications", path: "/dashboard/notifications", icon: "bell", 
       isActive: true,
       

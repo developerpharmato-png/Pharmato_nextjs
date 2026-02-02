@@ -71,7 +71,7 @@ export default function AddStorePage() {
     validationSchema: StoreValidationSchema,
     enableReinitialize: true,
     onSubmit: async (values) => {
-      alert("Dd")
+     
       try {
         let response: any;
         if (isEditMode && id) {

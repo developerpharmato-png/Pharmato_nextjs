@@ -254,9 +254,13 @@ export default function BannerImagesDashboard() {
                           try {
                             const resp = await axios.post('/api/admin/banner-images/active', { id: imgId, status: newStatus ? 1 : 0 });
                             const msg = resp?.data?.message || (newStatus ? 'Banner activated successfully' : 'Banner deactivated successfully');
-                            // update local state
-                            const updated = images.map((img) => (String(img._id) === String(imgId) ? { ...img, isActive: !!newStatus } : img));
-                            setImages(updated);
+                            // update local state with data from API response
+                            if (resp?.data?.data?.images) {
+                              setImages(resp.data.data.images);
+                            } else {
+                              const updated = images.map((img) => (String(img._id) === String(imgId) ? { ...img, isActive: newStatus } : img));
+                              setImages(updated);
+                            }
                             Swal.fire({
                               toast: true,
                               position: "top-end",

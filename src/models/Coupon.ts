@@ -22,11 +22,11 @@ export interface ICoupon extends Document {
     endAt: Date;
     minOrderValue: number;
     totalUses: number;
-    usedCount: number;
+    usedCount: number; 
     perUserLimit: number;
     usersOrGuestsUsed: IUserOrGuestCouponUsage[];
     isActive: boolean;
-    isStackable: boolean;
+    isStackable: boolean; 
     isSecret: boolean;
     createdAt: Date;
     updatedAt: Date;

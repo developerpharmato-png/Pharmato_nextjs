@@ -37,7 +37,7 @@ export default function MedicinesPage() {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (e) {
-      alert("Export failed");
+      // alert("Export failed");
     } finally {
       setExportLoading(false);
     }

@@ -2,11 +2,12 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import HeaderWithAction from "../components/HeaderWithAction";
-import CouponTable from "./CouponTable";
+
 import { CouponListStore, CouponDeleteStore } from "../storeAPICall/useUserStore";
 import { CouponListPath, CouponDeletePath } from "../storeAPICall/API/BaseApi";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
 import Toast from "@/utils/Toast";
+import CouponTable from "./CouponTable";
 
 interface CouponFormData {
   _id: string;
@@ -52,14 +53,14 @@ const CouponPage = () => {
 
     try {
       await deleteCoupon(CouponDeletePath, { _id: deletingCoupon._id });
-      Toast.success("Coupon deleted successfully");
+    //   Toast.success("Coupon deleted successfully");
       setDeletingCoupon(null);
       fetchData({
         url: CouponListPath,
         data: { search, limit: rowsPerPage, offset: page + 1 },
       });
     } catch (error) {
-      Toast.error("Failed to delete coupon");
+    //   Toast.error("Failed to delete coupon");
       console.error("Error deleting coupon:", error);
     }
   };
@@ -80,7 +81,7 @@ const CouponPage = () => {
       />
 
       <div className="mt-10">
-        <CouponTable
+        {/* <CouponTable
           data={couponList}
           page={page}
           rowsPerPage={rowsPerPage}
@@ -96,7 +97,7 @@ const CouponPage = () => {
               data: { search, limit: rowsPerPage, offset: page + 1 },
             });
           }}
-        />
+        /> */}
       </div>
 
       {/* Delete Confirmation Dialog */}
