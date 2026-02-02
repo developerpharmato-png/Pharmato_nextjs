@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
             // Create cart and add item if quantity > 0
             if (quantity > 0) {
                 cart = await Cart.create({ userId, storeId, items: [{ medicineId, quantity }] });
-                message = 'Added to Cart';
+                message = 'Cart Updated';
             } else {
                 // Negative quantity on empty cart is a no-op
                 cart = await Cart.create({ userId, storeId, items: [] });
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
                 }
             } else if (quantity > 0) {
                 cart.items.push({ medicineId, quantity });
-                message = 'Added to Cart';
+                message = 'Cart Updated';
             } else {
                 // Negative quantity for non-existing item, treat as no-op remove
                 message = 'Removed from Cart';

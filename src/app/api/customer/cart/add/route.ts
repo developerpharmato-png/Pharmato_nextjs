@@ -104,11 +104,11 @@ export async function POST(request: NextRequest) {
     // Update cart count in Firebase
     updateCartCountInFirebase({ userId, storeId }); // fire-and-forget, don't await
 
-    let message = 'Added to Cart';
+    let message = 'Cart Updated';
     if (typeof quantity === 'number' && quantity < 0) {
         message = 'Removed from Cart';
     } else if (typeof quantity === 'number' && quantity > 0) {
-        message = cart ? 'Cart Updated' : 'Added to Cart';
+        message = cart ? 'Cart Updated' : 'Cart Updated';
     }
     if (cart) {
         const updatedItem = cart.items.find((item: any) => item.medicineId.toString() === medicineId);

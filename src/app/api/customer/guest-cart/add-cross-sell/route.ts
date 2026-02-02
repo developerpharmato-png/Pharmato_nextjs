@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
         if (!cart) {
             if (quantity > 0) {
                 cart = await GuestCart.create({ guestId, storeId, items: [{ medicineId, quantity }] });
-                message = 'Added to Cart';
+                message = 'Cart Updated';
             } else {
                 // Negative quantity on empty cart -> create empty cart so downstream flows work
                 cart = await GuestCart.create({ guestId, storeId, items: [] });
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
                 }
             } else if (quantity > 0) {
                 cart.items.push({ medicineId, quantity });
-                message = 'Added to Cart';
+                message = 'Cart Updated';
             } else {
                 message = 'Removed from Cart';
             }

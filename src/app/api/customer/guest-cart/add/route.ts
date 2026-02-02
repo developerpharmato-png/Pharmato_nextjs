@@ -113,11 +113,18 @@ export async function POST(request: NextRequest) {
         }
     }
 
+    let message = 'Cart Updated';
+    if (typeof quantity === 'number' && quantity < 0) {
+        message = 'Removed from Cart';
+    } else if (typeof quantity === 'number' && quantity > 0) {
+        message = cart ? 'Cart Updated' : 'Cart Updated';
+    }
+
     return NextResponse.json({
         success: true,
         cart,
         medicineInCart,
-        message: 'Added to Cart'
+        message: message
     });
-    
+
 }
