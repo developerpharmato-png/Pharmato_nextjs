@@ -4,9 +4,9 @@ import Coupon from '@/models/Coupon';
 
 /**
  * @swagger
- * /api/admin/coupon/create:
+ * /api/admin/coupon/edit:
  *   post:
- *     summary: Create a new coupon
+ *     summary: Edit an existing coupon
  *     tags:
  *       - Admin-Coupon
  *     requestBody:
@@ -16,67 +16,64 @@ import Coupon from '@/models/Coupon';
  *           schema:
  *             type: object
  *             properties:
+ *               id:
+ *                 type: string
+ *                 description: Coupon ObjectId
  *               code:
  *                 type: string
- *                 example: DAILYNEEDS
  *               title:
  *                 type: string
- *                 example: 20% Off All Daily OTC
  *               description:
  *                 type: string
- *                 example: Enjoy a fantastic 20% discount on all items from DailyNeeds.
  *               type:
  *                 type: string
  *                 enum: [percentage, fixed]
- *                 example: percentage
  *               value:
  *                 type: number
- *                 example: 20
  *               maxDiscountAmount:
  *                 type: number
- *                 example: 200
  *               scope:
  *                 type: string
  *                 enum: [global, category, product]
- *                 example: global
  *               startAt:
  *                 type: string
  *                 format: date-time
- *                 example: 2025-12-01T00:00:00.000Z
  *               endAt:
  *                 type: string
  *                 format: date-time
- *                 example: 2026-02-24T00:00:00.000Z
  *               minOrderValue:
  *                 type: number
- *                 example: 0
  *               totalUses:
  *                 type: integer
- *                 example: 0
  *               usedCount:
  *                 type: integer
- *                 example: 0
  *               perUserLimit:
  *                 type: integer
- *                 example: 2
  *               isStackable:
  *                 type: boolean
- *                 example: false
  *               isSecret:
  *                 type: boolean
- *                 example: false
  *     responses:
  *       200:
- *         description: Coupon created
+ *         description: Coupon updated
  *       400:
  *         description: Invalid input
+ *       404:
+ *         description: Coupon not found
  */
 
 export async function POST(request: NextRequest) {
     await dbConnect();
     try {
         const body = await request.json();
-        const coupon = await Coupon.create(body);
+        const { id, ...updateFields } = body;
+        if (!id) {
+            return NextResponse.json({ success: false, message: 'Coupon id is required' }, { status: 400 });
+        }
+        const coupon = await Coupon.findByIdAndUpdate(id, updateFields, { new: true });
+        if (!coupon) {
+            return NextResponse.json({ success: false, message: 'Coupon not found' }, { status: 404 });
+        }
         return NextResponse.json({ success: true, data: coupon });
     } catch (error: any) {
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });
