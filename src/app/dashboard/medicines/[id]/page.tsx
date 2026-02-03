@@ -104,7 +104,15 @@ export default function MedicineDetailPage() {
   if (!medicine)
     return <div className="p-6 text-red-600">Medicine not found.</div>;
 
-  const images: string[] = medicine.images || [];
+  const images: string[] = (() => {
+    const imgs = Array.isArray(medicine.images) ? [...medicine.images] : [];
+    const cover = medicine.coverImage;
+    if (cover) {
+      const filtered = imgs.filter((u) => u !== cover);
+      return [cover, ...filtered];
+    }
+    return imgs;
+  })();
 
   const mediumDetails = (id: string) => {
     router.push(`/dashboard/medicines/${id}`);
