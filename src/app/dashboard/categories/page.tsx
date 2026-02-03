@@ -125,9 +125,7 @@ export default function CategoriesPage() {
           toast: true,
           position: "top-end",
           icon: "success",
-          title: isActive
-            ? ToastMessages.CATEGORY_DEACTIVATED
-            : ToastMessages.CATEGORY_ACTIVATED,
+          title: data.message || "Category status updated",
           showConfirmButton: false,
           timer: 2000,
         });
