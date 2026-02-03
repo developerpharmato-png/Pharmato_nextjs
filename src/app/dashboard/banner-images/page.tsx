@@ -115,7 +115,7 @@ export default function BannerImagesDashboard() {
               await axios.post("/api/admin/banner-images", { images: updated });
               Swal.fire({
                 toast: true,
-                position: "top-end",  
+                position: "top-end",
                 icon: "success",
                 title: ToastMessages.BANNER_IMAGE_UPDATED,
                 showConfirmButton: false,
@@ -227,7 +227,7 @@ export default function BannerImagesDashboard() {
               },
 
             ];
- 
+
             if (canEditBanner) {
               baseColumns.push({
                 id: "isActive",
@@ -247,41 +247,52 @@ export default function BannerImagesDashboard() {
                         confirmText: row.isActive ? "Deactivate" : "Activate",
                         cancelText: "Cancel",
                         onConfirm: async () => {
-                          const imgId = row._id || row.id;
-                          if (!imgId) return;
-                          const newStatus = !row.isActive;
+                          const idx = images.findIndex(
+                            (img) => img.url === row.url
+                          );
+                          if (idx === -1) return;
+                          const updated = images.map((img, i) =>
+                            i === idx ? { ...img, isActive: !img.isActive } : img
+                          );
                           setLoading(true);
                           try {
-                            const resp = await axios.post('/api/admin/banner-images/active', { id: imgId, status: newStatus ? 1 : 0 });
-                            const msg = resp?.data?.message || (newStatus ? 'Banner activated successfully' : 'Banner deactivated successfully');
-                            // update local state with data from API response
-                            if (resp?.data?.data?.images) {
-                              setImages(resp.data.data.images);
-                            } else {
-                              const updated = images.map((img) => (String(img._id) === String(imgId) ? { ...img, isActive: newStatus } : img));
-                              setImages(updated);
-                            }
-                            Swal.fire({
-                              toast: true,
-                              position: "top-end",
-                              icon: "success",
-                              title: msg,
-                              showConfirmButton: false,
-                              timer: 2000,
+                            const res = await axios.post("/api/admin/banner-images", {
+                              images: updated,
                             });
+                            if (res.data && res.data.success === false) {
+                              Swal.fire({
+                                toast: true,
+                                position: "top-end",
+                                icon: "error",
+                                title: res.data.message || ToastMessages.BANNER_STATUS_UPDATE_FAILED,
+                                showConfirmButton: false,
+                                timer: 2000,
+                              });
+                            } else {
+                              setImages(updated);
+                              Swal.fire({
+                                toast: true,
+                                position: "top-end",
+                                icon: "success",
+                                title: updated[idx].isActive
+                                  ? "Banner activated successfully"
+                                  : "Banner deactivated successfully",
+                                showConfirmButton: false,
+                                timer: 2000,
+                              });
+                            }
                           } catch (err: any) {
-                            const errMsg = err?.response?.data?.message || ToastMessages.BANNER_STATUS_UPDATE_FAILED;
                             Swal.fire({
                               toast: true,
                               position: "top-end",
                               icon: "error",
-                              title: errMsg,
+
+                              text: err?.response?.data?.message || err?.message || "An error occurred",
                               showConfirmButton: false,
                               timer: 2000,
                             });
-                          } finally {
-                            setLoading(false);
                           }
+                          setLoading(false);
                         },
                       });
                     }}
@@ -326,6 +337,7 @@ export default function BannerImagesDashboard() {
                 ),
               });
             }
+
 
             return baseColumns;
           })()}
