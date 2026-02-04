@@ -58,6 +58,132 @@ async function generateInvoice(invoiceHtml: string, _id: string) {
     }
 }
 
+async function sendEmailAndNotification(order: any, user: any, store: any, header: string, footer: string, userName: string, storeName: string) {
+
+    // Create in-app notification for customer and send push notification if device token exists
+    try {
+        const title = `Order Update`;
+        const message = `Your order ${order.order_id || ''} status is now ${order.order_status}`;
+        // Create in-app notification
+        await Notification.create({
+            userId: order.userId?.toString?.() || (user?._id?.toString?.() || ''),
+            role: 'customer',
+            title,
+            message,
+            type: 'order_status',
+            targetScreen: 'orders/detail',
+            targetId: order._id?.toString?.(),
+            isRead: false,
+            meta: { orderId: order.order_id, status: order.order_status }
+        });
+
+        // Send push if device token available
+        const deviceToken = user?.deviceToken || (user && (user as any).deviceToken);
+        if (deviceToken) {
+            try {
+                await sendPushNotificationWithData({
+                    token: deviceToken,
+                    title: `Order ${order.order_id} updated`,
+                    body: message,
+                    data: {
+                        targetId: order._id?.toString?.(),
+                        orderId: order._id?.toString?.(),
+                        orderStatus: order.order_status,
+                        screen: 'order'
+                    }
+                });
+            } catch (err) {
+                console.error('Failed to send push notification (partial-accept):', err);
+            }
+        }
+    } catch (notifErr) {
+        console.error('Notification create/send error (partial-accept):', notifErr);
+    }
+
+    // Notify all superadmins
+    try {
+        const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
+        if (superAdminRole && superAdminRole._id) {
+            const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+            // Find store manager name
+            let storeManagerName = '';
+            if (store && store.adminManagerId) {
+                const storeManager: any = await Admin.findById(store.adminManagerId).lean();
+                storeManagerName = storeManager?.name || '';
+            }
+            for (const superAdmin of superAdmins) {
+                await Notification.create({
+                    userId: (superAdmin as any)._id.toString(),
+                    role: 'admin',
+                    title: 'Order Update',
+                    message: `Order #${order.order_id} placed by ${userName} at store ${storeName} is now ${order.order_status}.`,
+                    type: 'order',
+                    targetScreen: 'orders/detail',
+                    targetId: order._id.toString()
+                });
+
+                // Send custom confirmation email to super admin if order is confirmed
+                const superAdminEmail = (superAdmin as any).email;
+                if (superAdminEmail && order.order_status === 'Confirmed') {
+                    const superAdminHtml = `
+                        ${header}
+                            <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width:600px; margin:0 auto;">
+                                <p>Hello Admin,</p>
+                                <p>Order <b>#${order.order_id}</b> has been successfully confirmed.</p>
+                                <h4>Order Details</h4>
+                                <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+                                    <tr>
+                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+                                        <td style="padding:8px;border:1px solid #eee;">${order.order_id}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+                                        <td style="padding:8px;border:1px solid #eee;">Confirmed</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Confirmed By</td>
+                                        <td style="padding:8px;border:1px solid #eee;">${storeManagerName || 'Store Manager'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Store</td>
+                                        <td style="padding:8px;border:1px solid #eee;">${storeName}</td>
+                                    </tr>
+                                </table>
+                                <p>The order is now being prepared for dispatch.</p>
+                                <p>Regards,<br/><b>Team Pharmato</b></p>
+                            </div>
+                            ${footer}
+                        `;
+                    await sendEmail({ to: superAdminEmail, subject: `Order Confirmed Successfully – Order #${order.order_id}`, html: superAdminHtml });
+                }
+
+                // Optionally, still send push notification
+                try {
+                    const superToken = (superAdmin as any).deviceToken;
+                    if (superToken) {
+                        await sendPushNotificationWithData({
+                            token: superToken,
+                            title: 'Pharmato',
+                            body: `Order #${order.order_id} placed by ${userName} at store ${storeName} is now ${order.order_status}.`,
+                            data: {
+                                targetId: order._id.toString(),
+                                orderId: order.order_id,
+                                type: 'order_placed',
+                                targetScreen: 'orders/detail',
+                            }
+                        });
+                    }
+                } catch (err) {
+                    console.error('Failed to send push notification to superadmin:', err);
+                }
+            }
+        }
+    } catch (err) {
+        console.error('Superadmin notification error:', err);
+    }
+
+}
+
 /**
  * @swagger
  * /api/admin/order/partial-accept:
@@ -316,127 +442,132 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // Create in-app notification for customer and send push notification if device token exists
-        try {
-            const title = `Order Update`;
-            const message = `Your order ${order.order_id || ''} status is now ${order.order_status}`;
-            // Create in-app notification
-            await Notification.create({
-                userId: order.userId?.toString?.() || (user?._id?.toString?.() || ''),
-                role: 'customer',
-                title,
-                message,
-                type: 'order_status',
-                targetScreen: 'orders/detail',
-                targetId: order._id?.toString?.(),
-                isRead: false,
-                meta: { orderId: order.order_id, status: order.order_status }
-            });
+        // // Create in-app notification for customer and send push notification if device token exists
+        // try {
+        //     const title = `Order Update`;
+        //     const message = `Your order ${order.order_id || ''} status is now ${order.order_status}`;
+        //     // Create in-app notification
+        //     await Notification.create({
+        //         userId: order.userId?.toString?.() || (user?._id?.toString?.() || ''),
+        //         role: 'customer',
+        //         title,
+        //         message,
+        //         type: 'order_status',
+        //         targetScreen: 'orders/detail',
+        //         targetId: order._id?.toString?.(),
+        //         isRead: false,
+        //         meta: { orderId: order.order_id, status: order.order_status }
+        //     });
 
-            // Send push if device token available
-            const deviceToken = user?.deviceToken || (user && (user as any).deviceToken);
-            if (deviceToken) {
-                try {
-                    await sendPushNotificationWithData({
-                        token: deviceToken,
-                        title: `Order ${order.order_id} updated`,
-                        body: message,
-                        data: {
-                            targetId: order._id?.toString?.(),
-                            orderId: order._id?.toString?.(),
-                            orderStatus: order.order_status,
-                            screen: 'order'
-                        }
-                    });
-                } catch (err) {
-                    console.error('Failed to send push notification (partial-accept):', err);
-                }
-            }
-        } catch (notifErr) {
-            console.error('Notification create/send error (partial-accept):', notifErr);
-        }
+        //     // Send push if device token available
+        //     const deviceToken = user?.deviceToken || (user && (user as any).deviceToken);
+        //     if (deviceToken) {
+        //         try {
+        //             await sendPushNotificationWithData({
+        //                 token: deviceToken,
+        //                 title: `Order ${order.order_id} updated`,
+        //                 body: message,
+        //                 data: {
+        //                     targetId: order._id?.toString?.(),
+        //                     orderId: order._id?.toString?.(),
+        //                     orderStatus: order.order_status,
+        //                     screen: 'order'
+        //                 }
+        //             });
+        //         } catch (err) {
+        //             console.error('Failed to send push notification (partial-accept):', err);
+        //         }
+        //     }
+        // } catch (notifErr) {
+        //     console.error('Notification create/send error (partial-accept):', notifErr);
+        // }
 
-        // Notify all superadmins
-        try {
-            const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
-            if (superAdminRole && superAdminRole._id) {
-                const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
-                // Find store manager name
-                let storeManagerName = '';
-                if (store && store.adminManagerId) {
-                    const storeManager: any = await Admin.findById(store.adminManagerId).lean();
-                    storeManagerName = storeManager?.name || '';
-                }
-                for (const superAdmin of superAdmins) {
-                    await Notification.create({
-                        userId: (superAdmin as any)._id.toString(),
-                        role: 'admin',
-                        title: 'Order Update',
-                        message: `Order #${order.order_id} placed by ${userName} at store ${storeName} is now ${order.order_status}.`,
-                        type: 'order',
-                        targetScreen: 'orders/detail',
-                        targetId: order._id.toString()
-                    });
+        // // Notify all superadmins
+        // try {
+        //     const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
+        //     if (superAdminRole && superAdminRole._id) {
+        //         const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+        //         // Find store manager name
+        //         let storeManagerName = '';
+        //         if (store && store.adminManagerId) {
+        //             const storeManager: any = await Admin.findById(store.adminManagerId).lean();
+        //             storeManagerName = storeManager?.name || '';
+        //         }
+        //         for (const superAdmin of superAdmins) {
+        //             await Notification.create({
+        //                 userId: (superAdmin as any)._id.toString(),
+        //                 role: 'admin',
+        //                 title: 'Order Update',
+        //                 message: `Order #${order.order_id} placed by ${userName} at store ${storeName} is now ${order.order_status}.`,
+        //                 type: 'order',
+        //                 targetScreen: 'orders/detail',
+        //                 targetId: order._id.toString()
+        //             });
 
-                    // Send custom confirmation email to super admin if order is confirmed
-                    const superAdminEmail = (superAdmin as any).email;
-                    if (superAdminEmail && order.order_status === 'Confirmed') {
-                        const superAdminHtml = `
-                        ${header}
-                            <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width:600px; margin:0 auto;">
-                                <p>Hello Admin,</p>
-                                <p>Order <b>#${order.order_id}</b> has been successfully confirmed.</p>
-                                <h4>Order Details</h4>
-                                <table style="width:100%;border-collapse:collapse;margin:16px 0;">
-                                    <tr>
-                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
-                                        <td style="padding:8px;border:1px solid #eee;">${order.order_id}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
-                                        <td style="padding:8px;border:1px solid #eee;">Confirmed</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Confirmed By</td>
-                                        <td style="padding:8px;border:1px solid #eee;">${storeManagerName || 'Store Manager'}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Store</td>
-                                        <td style="padding:8px;border:1px solid #eee;">${storeName}</td>
-                                    </tr>
-                                </table>
-                                <p>The order is now being prepared for dispatch.</p>
-                                <p>Regards,<br/><b>Team Pharmato</b></p>
-                            </div>
-                            ${footer}
-                        `;
-                        await sendEmail({ to: superAdminEmail, subject: `Order Confirmed Successfully – Order #${order.order_id}`, html: superAdminHtml });
-                    }
+        //             // Send custom confirmation email to super admin if order is confirmed
+        //             const superAdminEmail = (superAdmin as any).email;
+        //             if (superAdminEmail && order.order_status === 'Confirmed') {
+        //                 const superAdminHtml = `
+        //                 ${header}
+        //                     <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width:600px; margin:0 auto;">
+        //                         <p>Hello Admin,</p>
+        //                         <p>Order <b>#${order.order_id}</b> has been successfully confirmed.</p>
+        //                         <h4>Order Details</h4>
+        //                         <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+        //                             <tr>
+        //                                 <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+        //                                 <td style="padding:8px;border:1px solid #eee;">${order.order_id}</td>
+        //                             </tr>
+        //                             <tr>
+        //                                 <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+        //                                 <td style="padding:8px;border:1px solid #eee;">Confirmed</td>
+        //                             </tr>
+        //                             <tr>
+        //                                 <td style="padding:8px;border:1px solid #eee;font-weight:600;">Confirmed By</td>
+        //                                 <td style="padding:8px;border:1px solid #eee;">${storeManagerName || 'Store Manager'}</td>
+        //                             </tr>
+        //                             <tr>
+        //                                 <td style="padding:8px;border:1px solid #eee;font-weight:600;">Store</td>
+        //                                 <td style="padding:8px;border:1px solid #eee;">${storeName}</td>
+        //                             </tr>
+        //                         </table>
+        //                         <p>The order is now being prepared for dispatch.</p>
+        //                         <p>Regards,<br/><b>Team Pharmato</b></p>
+        //                     </div>
+        //                     ${footer}
+        //                 `;
+        //                 await sendEmail({ to: superAdminEmail, subject: `Order Confirmed Successfully – Order #${order.order_id}`, html: superAdminHtml });
+        //             }
 
-                    // Optionally, still send push notification
-                    try {
-                        const superToken = (superAdmin as any).deviceToken;
-                        if (superToken) {
-                            await sendPushNotificationWithData({
-                                token: superToken,
-                                title: 'Pharmato',
-                                body: `Order #${order.order_id} placed by ${userName} at store ${storeName} is now ${order.order_status}.`,
-                                data: {
-                                    targetId: order._id.toString(),
-                                    orderId: order.order_id,
-                                    type: 'order_placed',
-                                    targetScreen: 'orders/detail',
-                                }
-                            });
-                        }
-                    } catch (err) {
-                        console.error('Failed to send push notification to superadmin:', err);
-                    }
-                }
-            }
-        } catch (err) {
-            console.error('Superadmin notification error:', err);
-        }
+        //             // Optionally, still send push notification
+        //             try {
+        //                 const superToken = (superAdmin as any).deviceToken;
+        //                 if (superToken) {
+        //                     await sendPushNotificationWithData({
+        //                         token: superToken,
+        //                         title: 'Pharmato',
+        //                         body: `Order #${order.order_id} placed by ${userName} at store ${storeName} is now ${order.order_status}.`,
+        //                         data: {
+        //                             targetId: order._id.toString(),
+        //                             orderId: order.order_id,
+        //                             type: 'order_placed',
+        //                             targetScreen: 'orders/detail',
+        //                         }
+        //                     });
+        //                 }
+        //             } catch (err) {
+        //                 console.error('Failed to send push notification to superadmin:', err);
+        //             }
+        //         }
+        //     }
+        // } catch (err) {
+        //     console.error('Superadmin notification error:', err);
+        // }
+
+        // background me chala do
+        setImmediate(() => {
+            sendEmailAndNotification(order, user, store, header, footer, userName, storeName);
+        });
 
         if (acceptedNames.length > 0) {
 
