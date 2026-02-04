@@ -2,6 +2,7 @@ export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
+import mongoose from 'mongoose';
 import Order from '@/models/Order';
 import { getDb, sendPushNotificationWithData } from '@/utils/firebase.helper';
 import Notification from '@/models/Notification';
@@ -23,6 +24,39 @@ const razorpayInstance = new Razorpay({
     key_id: process.env.razorPay_Key_Id || '',
     key_secret: process.env.razorPay_Secret_Key || ''
 });
+
+async function generateInvoice(invoiceHtml: string, _id: string) {
+
+    const browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+
+    const page = await browser.newPage();
+    await page.setCacheEnabled(false);
+
+    await page.setContent(invoiceHtml, {
+        timeout: 60000,
+        waitUntil: 'networkidle0'
+    });
+
+    const pdfBuffer: any = await page.pdf({
+        format: 'A4',
+        margin: { top: 70, right: 50, bottom: 50, left: 50 },
+        timeout: 60000
+    });
+
+    await browser.close();
+
+    const publicId = `INV_${Date.now()}`;
+    const result: any = await uploadToCloudinary(pdfBuffer, publicId, 'raw');
+
+    if (result?.secure_url) {
+        await Order.updateOne(
+            { _id: new mongoose.Types.ObjectId(_id) },
+            { $set: { invoice_url: result.secure_url } }
+        );
+    }
+}
 
 /**
  * @swagger
@@ -460,7 +494,6 @@ export async function POST(req: NextRequest) {
                 });
             }
 
-
             let invoiceHtml = `<!DOCTYPE html>
 <html lang="en">
 
@@ -610,43 +643,45 @@ export async function POST(req: NextRequest) {
 
 </html>`
 
-            const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-            const page = await browser.newPage();
-            await page.setCacheEnabled(false); // Disable cache
+            generateInvoice(invoiceHtml, order._id.toString());
 
-            // Set the page content with an increased timeout
-            await page.setContent(invoiceHtml, { timeout: 60000, waitUntil: 'networkidle0' });// Wait for network to be idle
+            // const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+            // const page = await browser.newPage();
+            // await page.setCacheEnabled(false); // Disable cache
 
-            const pdfBuffer: any = await page.pdf({
-                format: 'A4',
-                margin: {
-                    top: 70,
-                    right: 50,
-                    bottom: 50,
-                    left: 50,
-                },
-                timeout: 60000 // Increase timeout here as well
-            });
+            // // Set the page content with an increased timeout
+            // await page.setContent(invoiceHtml, { timeout: 60000, waitUntil: 'networkidle0' });// Wait for network to be idle
 
-            const publicId = `INV_${Date.now()}`;
-            // const result = await uploadToCloudinary(buffer, publicId);
-            const result = await uploadToCloudinary(
-                pdfBuffer,
-                publicId,
-                'raw'
-            );
+            // const pdfBuffer: any = await page.pdf({
+            //     format: 'A4',
+            //     margin: {
+            //         top: 70,
+            //         right: 50,
+            //         bottom: 50,
+            //         left: 50,
+            //     },
+            //     timeout: 60000 // Increase timeout here as well
+            // });
 
-            let invoiceUrl = '';
-            if (result && (result as any).secure_url) {
-                invoiceUrl = (result as any).secure_url;
-            }
+            // const publicId = `INV_${Date.now()}`;
+            // // const result = await uploadToCloudinary(buffer, publicId);
+            // const result = await uploadToCloudinary(
+            //     pdfBuffer,
+            //     publicId,
+            //     'raw'
+            // );
 
-            await Order.updateOne(
-                { _id: order._id },
-                {
-                    $set: { invoice_url: invoiceUrl }
-                }
-            );
+            // let invoiceUrl = '';
+            // if (result && (result as any).secure_url) {
+            //     invoiceUrl = (result as any).secure_url;
+            // }
+
+            // await Order.updateOne(
+            //     { _id: order._id },
+            //     {
+            //         $set: { invoice_url: invoiceUrl }
+            //     }
+            // );
 
         }
 
