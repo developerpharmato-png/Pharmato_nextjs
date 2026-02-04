@@ -643,7 +643,9 @@ export async function POST(req: NextRequest) {
 
 </html>`
 
-            generateInvoice(invoiceHtml, order._id.toString());
+            // Generate invoice in background (do not await, so response is immediate)
+            generateInvoice(invoiceHtml, order._id.toString())
+                .catch((err) => console.error('Background invoice generation failed:', err));
 
             // const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
             // const page = await browser.newPage();
