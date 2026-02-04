@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
-import Coupon from '@/models/Coupon';
+import Coupon from '@/models/Coupon'; 
 
 /**
  * @swagger
