@@ -64,7 +64,7 @@ import Coupon from '@/models/Coupon';
 
 export async function POST(request: NextRequest) {
     await dbConnect();
-    try {
+    try {    
         const body = await request.json();
         const { id, ...updateFields } = body;
         if (!id) {
