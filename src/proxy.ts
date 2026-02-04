@@ -77,6 +77,8 @@ export async function proxy(request: NextRequest) {
     // Forward original headers (including cookies)
     const forwardedHeaders = new Headers();
     for (const [key, value] of request.headers.entries()) {
+      // Remove hop-by-hop headers that are not allowed to be forwarded
+      if (key.toLowerCase() === 'connection') continue;
       if (value !== null) forwardedHeaders.set(key, value);
     }
 
