@@ -643,10 +643,10 @@ export async function POST(req: NextRequest) {
 
 </html>`
 
-            // background me chala do
-            setImmediate(() => {
-                generateInvoice(invoiceHtml, order._id.toString())
-            });
+            // // background me chala do
+            // setImmediate(() => {
+            //     generateInvoice(invoiceHtml, order._id.toString())
+            // });
 
             // const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
             // const page = await browser.newPage();
