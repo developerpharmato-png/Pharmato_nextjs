@@ -610,53 +610,43 @@ export async function POST(req: NextRequest) {
 
 </html>`
 
-            // const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-            // const page = await browser.newPage();
-            // await page.setCacheEnabled(false); // Disable cache
+            const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+            const page = await browser.newPage();
+            await page.setCacheEnabled(false); // Disable cache
 
-            // // // Set the page content with an increased timeout
-            // // await page.setContent(invoiceHtml, { timeout: 120000, waitUntil: 'networkidle0' });// Wait for network to be idle
+            // Set the page content with an increased timeout
+            await page.setContent(invoiceHtml, { timeout: 60000, waitUntil: 'networkidle0' });// Wait for network to be idle
 
-            // // const pdfBuffer: any = await page.pdf({
-            // //     format: 'A4',
-            // //     margin: {
-            // //         top: 70,
-            // //         right: 50,
-            // //         bottom: 50,
-            // //         left: 50,
-            // //     },
-            // //     timeout: 120000 // Increase timeout here as well
-            // // });
+            const pdfBuffer: any = await page.pdf({
+                format: 'A4',
+                margin: {
+                    top: 70,
+                    right: 50,
+                    bottom: 50,
+                    left: 50,
+                },
+                timeout: 60000 // Increase timeout here as well
+            });
 
-            // // Use domcontentloaded instead of networkidle0 for faster load
-            // await page.setContent(invoiceHtml, { timeout: 180000, waitUntil: 'domcontentloaded' });
+            const publicId = `INV_${Date.now()}`;
+            // const result = await uploadToCloudinary(buffer, publicId);
+            const result = await uploadToCloudinary(
+                pdfBuffer,
+                publicId,
+                'raw'
+            );
 
-            // const pdfBuffer : any = await page.pdf({
-            //     format: 'A4',
-            //     margin: { top: 70, right: 50, bottom: 50, left: 50 },
-            // });
+            let invoiceUrl = '';
+            if (result && (result as any).secure_url) {
+                invoiceUrl = (result as any).secure_url;
+            }
 
-            // await browser.close();
-
-            // const publicId = `INV_${Date.now()}`;
-            // // const result = await uploadToCloudinary(buffer, publicId);
-            // const result = await uploadToCloudinary(
-            //     pdfBuffer,
-            //     publicId,
-            //     'raw'
-            // );
-
-            // let invoiceUrl = '';
-            // if (result && (result as any).secure_url) {
-            //     invoiceUrl = (result as any).secure_url;
-            // }
-
-            // await Order.updateOne(
-            //     { _id: order._id },
-            //     {
-            //         $set: { invoice_url: invoiceUrl }
-            //     }
-            // );
+            await Order.updateOne(
+                { _id: order._id },
+                {
+                    $set: { invoice_url: invoiceUrl }
+                }
+            );
 
         }
 
