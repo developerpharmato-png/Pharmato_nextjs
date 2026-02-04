@@ -325,12 +325,16 @@ export async function POST(req: NextRequest) {
 
             } else {
 
-                try {
-                    const refundResponse = await razorpayInstance.payments.refund(order.payment_id, {
-                        amount: refundAmount * 100
-                    });
-                } catch (error) { }
-                // console.log("$$$$$refundAmount$$$$$$", refundAmount);
+                setImmediate(async () => {
+
+                    try {
+                        const refundResponse = await razorpayInstance.payments.refund(order.payment_id, {
+                            amount: refundAmount * 100
+                        });
+                    } catch (error) { }
+                    // console.log("$$$$$refundAmount$$$$$$", refundAmount);
+
+                });
 
             }
         }
@@ -431,16 +435,37 @@ export async function POST(req: NextRequest) {
             await sendEmail({ to: userEmail, subject: emailSubject, html });
         }
 
-        // Update orderStatus in Firebase Realtime Database
-        if (order?.order_id) {
-            const db = getDb();
-            const firebaseRef = db.ref(`orders/${order.order_id}`);
-            const snapshot = await firebaseRef.once('value');
-            const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1;
-            await firebaseRef.update({
-                isOrderStatusChanged: isOrderStatusChanged
-            });
-        }
+        // setImmediate(async () => {
+        //     // Update orderStatus in Firebase Realtime Database
+        //     if (order?.order_id) {
+        //         const db = getDb();
+        //         const firebaseRef = db.ref(`orders/${order.order_id}`);
+        //         const snapshot = await firebaseRef.once('value');
+        //         const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1;
+        //         await firebaseRef.update({
+        //             isOrderStatusChanged: isOrderStatusChanged
+        //         });
+        //     }
+        // });
+
+        setImmediate(() => {
+            try {
+                if (!order?.order_id) return;
+
+                const db = getDb();
+                const ref = db.ref(`orders/${order.order_id}/isOrderStatusChanged`);
+
+                ref.transaction((current) => {
+                    return (Number(current) || 0) + 1;
+                });
+
+            } catch (err) {
+                console.error('Firebase order status update failed:', err);
+            }
+        });
+
+
+
 
         // // Create in-app notification for customer and send push notification if device token exists
         // try {

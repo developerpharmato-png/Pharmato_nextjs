@@ -68,6 +68,21 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        if (deviceToken) {
+
+            const checkDeviceToken = await Admin.find({ deviceToken: deviceToken });
+
+            if (checkDeviceToken && checkDeviceToken.length > 0) {
+                for (const element of checkDeviceToken) {
+
+                    element.deviceToken = "";
+                    await element.save();
+
+                }
+            }
+
+        }
+
         // Verify password
         const isPasswordValid = await bcrypt.compare(password, admin.password);
         if (!isPasswordValid) {
