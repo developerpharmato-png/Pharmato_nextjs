@@ -76,6 +76,7 @@ export async function GET(request: NextRequest) {
             data: categories,
         });
     } catch (error: any) {
+        console.error('GET /api/admin/categories error:', error);
         return NextResponse.json(
             { success: false, error: error.message },
             { status: 400 }
@@ -159,6 +160,7 @@ export async function POST(request: NextRequest) {
         const category = await Category.create({ ...body, name });
         return NextResponse.json({ success: true, data: category }, { status: 201 });
     } catch (error: any) {
+        console.error('POST /api/admin/categories error:', error);
         return NextResponse.json(
             { success: false, error: error.message },
             { status: 400 }
