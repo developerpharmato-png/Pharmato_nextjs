@@ -639,7 +639,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
         // Get user info
-        const user = await User.findById(order.userId);
+        const user = await User.findOne({ _id: order.userId });
 
         order.medicineQuantity = order.medicineQuantity.map((item: any) => {
             // Only update pending medicines
