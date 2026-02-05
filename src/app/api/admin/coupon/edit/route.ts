@@ -45,8 +45,6 @@ import Coupon from '@/models/Coupon';
  *                 type: number
  *               totalUses:
  *                 type: integer
- *               usedCount:
- *                 type: integer
  *               perUserLimit:
  *                 type: integer
  *               isStackable:
