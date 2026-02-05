@@ -24,16 +24,30 @@ export async function sendEmail({
   // });
 
 
-  //  SMTP configuration for sending emails (using Zoho SMTP server)
+  // //  SMTP configuration for sending emails (using Zoho SMTP server)
+  // const transporter = nodemailer.createTransport({
+  //   host: "smtp.zoho.in",
+  //   port: 465,
+  //   secure: true,
+  //   auth: {
+  //     user: "developer@pharmatoindia.com",
+  //     pass: "6jYBwhqZM2j1",
+  //   },
+  // });
+
   const transporter = nodemailer.createTransport({
     host: "smtp.zoho.in",
-    port: 465,
-    secure: true,
+    port: 587,
+    secure: false, // ❗ important
     auth: {
       user: "developer@pharmatoindia.com",
       pass: "6jYBwhqZM2j1",
     },
+    tls: {
+      rejectUnauthorized: false,
+    },
   });
+
 
   const mailOptions = {
     from: '"Pharmato" <developer@pharmatoindia.com>',
