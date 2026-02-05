@@ -50,7 +50,7 @@ export async function sendEmail({
 
   const transporter = nodemailer.createTransport({
     host: "smtp.zeptomail.in",
-    port: 587,
+    port: 465,
     secure: false, // ❗ important
     auth: {
       user: "emailapikey",
