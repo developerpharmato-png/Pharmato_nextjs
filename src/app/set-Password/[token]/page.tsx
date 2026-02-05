@@ -1,11 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-
-// Corrected: Removed unsupported 'next/navigation' imports
 import { ToastContainer, toast } from "react-toastify";
-// Note: Ensure that the react-toastify styling is included globally in your application 
-// since direct CSS imports are not supported in this environment.
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 
@@ -33,8 +29,6 @@ const useParams = (): { token?: string } => {
 };
 // -----------------------------------------------------------
 
-
-// Mocked Eye/EyeOff icons using SVG for environment compatibility
 const Eye = ({ size = 20, ...props }: React.SVGProps<SVGSVGElement> & { size?: number }) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M2.06 13C2.8 9.5 6.75 4 12 4s9.2 5.5 9.94 9"></path>
