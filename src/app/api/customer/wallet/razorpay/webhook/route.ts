@@ -19,30 +19,7 @@ const razorpayInstance = new Razorpay({
     key_secret: process.env.razorPay_Secret_Key || ''
 });
 
-/**
- * @swagger
- * /api/customer/wallet/razorpay/webhook:
- *   post:
- *     summary: Razorpay webhook endpoint
- *     tags:
- *       - Wallet
- *     description: Receives payment and order events from Razorpay
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *     responses:
- *       200:
- *         description: Webhook received
- *       400:
- *         description: Invalid signature
- */
-
-export async function POST(req: NextRequest) {
-    await dbConnect();
-    const body = await req.json();
+async function runBackground(body: any) {
 
     if (body?.payload?.payment?.entity) {
         let paymentHistory: any = {};
@@ -152,5 +129,43 @@ export async function POST(req: NextRequest) {
         }
     }
 
-    return NextResponse.json({ status: true, message: 'Webhook processed (direct)' });
+}
+
+
+/**
+ * @swagger
+ * /api/customer/wallet/razorpay/webhook:
+ *   post:
+ *     summary: Razorpay webhook endpoint
+ *     tags:
+ *       - Wallet
+ *     description: Receives payment and order events from Razorpay
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Webhook received
+ *       400:
+ *         description: Invalid signature
+ */
+
+export async function POST(req: NextRequest) {
+    await dbConnect();
+    const body = await req.json();
+
+    // 👇 Razorpay ko turant bharosa do
+    const response = NextResponse.json({
+        status: true,
+        message: 'Webhook received'
+    });
+
+    setImmediate(() => {
+        runBackground(body);
+    });
+
+    return response;
 }

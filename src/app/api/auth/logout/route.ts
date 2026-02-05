@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     // Clear session fields for admin or user if token valid
     if (decoded && (decoded.adminId || decoded._id) && decoded.role === 'admin') {
       const adminId = decoded.adminId || decoded._id;
-      await Admin.findByIdAndUpdate(adminId, { refreshToken: null, sessionId: null, sessionToken: null });
+      await Admin.findByIdAndUpdate(adminId, { refreshToken: null, sessionId: null, sessionToken: null , deviceToken: null});
     } else if (decoded && (decoded.userId || decoded._id) && decoded.role === 'customer') {
       const userId = decoded.userId || decoded._id;
       await User.findByIdAndUpdate(userId, { refreshToken: null, sessionId: null, sessionToken: null });
