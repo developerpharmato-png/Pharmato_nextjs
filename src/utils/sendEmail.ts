@@ -50,7 +50,7 @@ export async function sendEmail({
 
   const transporter = nodemailer.createTransport({
     host: "smtp.zeptomail.in",
-    port: 465,
+    port: 587,
     secure: false, // ❗ important
     auth: {
       user: "emailapikey",
@@ -59,6 +59,9 @@ export async function sendEmail({
     tls: {
       rejectUnauthorized: false,
     },
+    connectionTimeout: 60 * 1000, // 60 seconds
+    greetingTimeout: 30 * 1000,
+    socketTimeout: 60 * 1000
   });
 
 
@@ -77,4 +80,31 @@ export async function sendEmail({
     console.error("Email send error:", error);
     return { success: false, message: error?.message || String(error) };
   }
+
+  // const axios = require('axios');
+
+  // axios.post(
+  //   'https://api.zeptomail.in/v1.1/email',
+  //   {
+  //     from: {
+  //       address: 'noreply@pharmatoindia.com',
+  //       name: 'Example Team'
+  //     },
+  //     to: [
+  //       { email_address: { address: 'developer@pharmatoindia.com' } }
+  //     ],
+  //     subject: 'Test Email',
+  //     htmlbody: 'Test email sent successfully.'
+  //   },
+  //   {
+  //     headers: {
+  //       'Authorization': 'Zoho-enczapikey PHtE6r0IEbjo2jQro0cHsfOwRZKkPIl89O00LQFDs48RCfcKSk0G+Nl9k2C2qkouUvlGR6SYnN9pubua4rmALD3pZz4fXmqyqK3sx/VYSPOZsbq6x00bs1oTckzYV4/petVs0STevNncNA==',
+  //       'Content-Type': 'application/json'
+  //     }
+  //   }
+  // ).then(() => {
+  //   console.log('Email sent');
+  // }).catch(console.Error);
+
+
 }
