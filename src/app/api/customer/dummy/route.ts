@@ -30,23 +30,25 @@ import Admin from '@/models/Admin';
 export async function POST(request: NextRequest) {
     await connectDB();
 
-    await User.updateMany(
-        {},                 // 🔥 saare documents
-        {
-            $set: {
-                deviceToken: ""
-            }
-        }
-    )
+    // await User.updateMany(
+    //     {},                 // 🔥 saare documents
+    //     {
+    //         $set: {
+    //             deviceToken: ""
+    //         }
+    //     }
+    // )
 
-    await Admin.updateMany(
-        {},                 // 🔥 saare documents
-        {
-            $set: {
-                deviceToken: ""
-            }
-        }
-    )
+    // await Admin.updateMany(
+    //     {},                 // 🔥 saare documents
+    //     {
+    //         $set: {
+    //             deviceToken: ""
+    //         }
+    //     }
+    // )
+
+    
 
 
     return NextResponse.json({ success: true, message: 'Dummy endpoint executed successfully.' }, { status: 200 });
