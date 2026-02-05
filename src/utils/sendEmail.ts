@@ -9,22 +9,34 @@ export async function sendEmail({
   subject: string;
   html: string;
 }) {
-  // console.log("zzzz");
 
+  // ## SMTP configuration for sending emails (using Bravo SMTP server)
+  // const transporter = nodemailer.createTransport({
+  //   host: process.env.SMTP_HOST || "smtp-relay.brevo.com",
+  //   port: 587,
+  //   auth: {
+  //     user: process.env.SMTP_USER || "9d968a001@smtp-brevo.com",
+  //     pass: process.env.SMTP_PASS || "bCvZcqWrGhxLDwAM",
+  //   },
+  //   tls: {
+  //     rejectUnauthorized: false, // Allow self-signed certificates (development only)
+  //   },
+  // });
+
+
+  //  SMTP configuration for sending emails (using Zoho SMTP server)
   const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || "smtp-relay.brevo.com",
-    port: 587,
+    host: "smtp.zoho.in",
+    port: 465,
+    secure: true,
     auth: {
-      user: process.env.SMTP_USER || "9d968a001@smtp-brevo.com",
-      pass: process.env.SMTP_PASS || "bCvZcqWrGhxLDwAM",
-    },
-    tls: {
-      rejectUnauthorized: false, // Allow self-signed certificates (development only)
+      user: "developer@pharmatoindia.com",
+      pass: "6jYBwhqZM2j1",
     },
   });
 
   const mailOptions = {
-    from: process.env.SMTP_FROM || "developer.pharmato@gmail.com",
+    from: '"Pharmato" <developer@pharmatoindia.com>',
     to,
     subject,
     html,

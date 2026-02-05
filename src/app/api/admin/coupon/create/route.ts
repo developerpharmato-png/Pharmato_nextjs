@@ -53,9 +53,6 @@ import Coupon from '@/models/Coupon';
  *               totalUses:
  *                 type: integer
  *                 example: 0
- *               usedCount:
- *                 type: integer
- *                 example: 0
  *               perUserLimit:
  *                 type: integer
  *                 example: 2
