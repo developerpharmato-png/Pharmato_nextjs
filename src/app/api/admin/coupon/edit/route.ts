@@ -29,7 +29,7 @@ import Coupon from '@/models/Coupon';
  *                 type: string
  *                 enum: [percentage, fixed]
  *               value:
- *                 type: number
+ *                 type: number 
  *               maxDiscountAmount:
  *                 type: number
  *               scope:

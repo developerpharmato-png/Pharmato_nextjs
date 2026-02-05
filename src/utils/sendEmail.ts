@@ -9,8 +9,8 @@ export async function sendEmail({
   subject: string;
   html: string;
 }) {
-  
-// ## SMTP configuration for sending emails (using Bravo SMTP server)
+
+  // ## SMTP configuration for sending emails (using Bravo SMTP server)
   // const transporter = nodemailer.createTransport({
   //   host: process.env.SMTP_HOST || "smtp-relay.brevo.com",
   //   port: 587,
@@ -23,20 +23,20 @@ export async function sendEmail({
   //   },
   // });
 
-  
-//  SMTP configuration for sending emails (using Zoho SMTP server)
+
+  //  SMTP configuration for sending emails (using Zoho SMTP server)
   const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: process.env.SMTP_SECURE === "true",
+    host: "smtp.zoho.in",
+    port: 465,
+    secure: true,
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+      user: "developer@pharmatoindia.com",
+      pass: "tv5ql$tL",
     },
   });
 
   const mailOptions = {
-    from: `"Pharmato" <${process.env.SMTP_FROM}>`,
+    from: '"Pharmato" <developer@pharmatoindia.com>',
     to,
     subject,
     html,
