@@ -71,7 +71,7 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
         if (order.payment_mode === 'Wallet') {
 
             await User.updateOne(
-                { _id: user._id },
+                { _id: new mongoose.Types.ObjectId(user._id) },
                 { $inc: { walletAmount: Number(refundAmount || 0) } }
             );
 
@@ -639,7 +639,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
         // Get user info
-        const user = await User.findOne({ _id: order.userId });
+        const user = await User.findOne({ _id: new mongoose.Types.ObjectId(order.userId) });
 
         order.medicineQuantity = order.medicineQuantity.map((item: any) => {
             // Only update pending medicines
