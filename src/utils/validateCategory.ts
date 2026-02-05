@@ -111,3 +111,95 @@ export const medicineFormValidationSchema = Yup.object().shape({
   coverImage: Yup.string().nullable(),
   highlights: Yup.array().of(Yup.string()),
 });
+
+
+export const CouponsvalidationSchema = Yup.object().shape({
+    code: Yup.string()
+        .required("Code is mandatory")
+        .min(2, "Code must be at least 2 characters")
+        .max(50, "Code must not exceed 50 characters"),
+    title: Yup.string()
+        .required("Title is mandatory")
+        .min(3, "Title must be at least 3 characters")
+        .max(100, "Title must not exceed 100 characters"),
+    description: Yup.string()
+        .required("Description is mandatory")
+        .min(10, "Description must be at least 10 characters"),
+    type: Yup.string()
+        .required("Discount Type is mandatory")
+        .oneOf(["fixed", "percentage"]),
+    value: Yup.number()
+        .required("Value is mandatory")
+        .test("value-validation", function (value) {
+            const { type } = this.parent;
+            if (type === "fixed") {
+                return value > 0 ? true : this.createError({ message: "Amount must be greater than 0" });
+            } else if (type === "percentage") {
+                return value > 0 && value <= 100
+                    ? true
+                    : this.createError({ message: "Percentage must be between 1 and 100" });
+            }
+            return true;
+        }),
+    maxDiscountAmount: Yup.number()
+        .typeError("Max Discount must be a number")
+        .test("discount-validation", function (value) {
+            const { type } = this.parent;
+            if (type === "fixed") {
+                return true; // Not applicable for fixed
+            }
+            if (value !== undefined && value !== null) {
+                return value > 0
+                    ? true
+                    : this.createError({ message: "Max Rs Discount must be greater than 0 if provided" });
+            }
+            return true;
+        }),
+    minOrderValue: Yup.number()
+        .required("Min Order Value is mandatory")
+        .min(0, "Min Order Value cannot be negative"),
+    scope: Yup.string()
+        .required("Scope is mandatory")
+        .oneOf(["global", "category", "product"], "Scope must be global, category, or product"),
+    startAt: Yup.string()
+        .required("Start Date is mandatory")
+        .test("start-date-validation", "Start Date must be today or in the future", function (value) {
+            if (!value) return false;
+            const startDate = new Date(value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return startDate >= today;
+        }),
+    endAt: Yup.string()
+        .required("End Date is mandatory")
+        .test("end-date-validation", "End Date must be on or after Start Date", function (value) {
+            const { startAt } = this.parent;
+            if (!value || !startAt) return false;
+            const endDate = new Date(value);
+            const start = new Date(startAt);
+            return endDate >= start;
+        }),
+    totalUses: Yup.number()
+        .required("Max Coupons is mandatory")
+      .min(1, "Max Coupons must be at least 1")
+      .test("total-gte-perUser", function (value) {
+        const { perUserLimit } = this.parent as any;
+        if (typeof value === 'number' && typeof perUserLimit === 'number') {
+                return value >= perUserLimit || this.createError({ message: "Total uses must be >= per-user limit" });
+        }
+        return true;
+      }),
+    perUserLimit: Yup.number()
+      .required("Max Coupons Per User is mandatory")
+      .min(1, "Max Per User must be at least 1")
+      .test("perUser-le-total", function (value) {
+        const { totalUses } = this.parent as any;
+        if (typeof value === 'number' && typeof totalUses === 'number') {
+                return value <= totalUses || this.createError({ message: "Per-user limit cannot exceed total uses" });
+        }
+        return true;
+      }),
+    isStackable: Yup.boolean(),
+    isSecret: Yup.boolean(),
+    isActive: Yup.boolean(),
+});

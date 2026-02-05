@@ -29,7 +29,7 @@ const CouponPage = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [search, setSearch] = useState("");
-  const [deletingCoupon, setDeletingCoupon] = useState<CouponFormData | null>(null);
+  const [deletingCoupon, setDeletingCoupon] = useState<any | null>(null);
 
   const { data, loading, fetchData } = CouponListStore();
   const { postData: deleteCoupon, loading: deleteLoading } = CouponDeleteStore();
@@ -44,7 +44,7 @@ const CouponPage = () => {
     });
   }, [fetchData, page, rowsPerPage, search]);
 
-  const handleEdit = (coupon: CouponFormData) => {
+  const handleEdit = (coupon: any) => {
     router.push(`/dashboard/coupon/AddEdit/${coupon._id}`);
   };
 
@@ -81,7 +81,7 @@ const CouponPage = () => {
       />
 
       <div className="mt-10">
-        {/* <CouponTable
+        <CouponTable
           data={couponList}
           page={page}
           rowsPerPage={rowsPerPage}
@@ -97,7 +97,7 @@ const CouponPage = () => {
               data: { search, limit: rowsPerPage, offset: page + 1 },
             });
           }}
-        /> */}
+        />
       </div>
 
       {/* Delete Confirmation Dialog */}

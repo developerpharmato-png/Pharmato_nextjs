@@ -18,11 +18,13 @@ import {
     CustomButton,
     ErrorMessageCom,
 } from "@/app/dashboard/components/miniComponents";
-import { CouponCreateStore, CouponUpdateStore } from "@/app/dashboard/storeAPICall/useUserStore";
+import { CouponCreateStore, CouponUpdateStore, CouponSGEtBYIDsStore } from "@/app/dashboard/storeAPICall/useUserStore";
 import { CouponCreatePath, CouponUpdatePath } from "@/app/dashboard/storeAPICall/API/BaseApi";
 import Toast from "@/utils/Toast";
 import { MdSave } from "react-icons/md";
 import { TextareaField } from "@/app/dashboard/components/skeleton/FieldCom";
+import { CouponsvalidationSchema } from "@/utils/validateCategory";
+import CoponSkeleton from "@/app/dashboard/components/skeleton/CoponSkeleton";
 
 interface CouponFormValues {
     code: string;
@@ -35,104 +37,38 @@ interface CouponFormValues {
     scope: string;
     startAt: string;
     endAt: string;
-    maxCoupons: number;
+    totalUses: number;
     perUserLimit: number;
     isStackable: boolean;
     isSecret: boolean;
     isActive: boolean;
 }
 
-const validationSchema = Yup.object().shape({
-    code: Yup.string()
-        .required("Code is mandatory")
-        .min(2, "Code must be at least 2 characters")
-        .max(50, "Code must not exceed 50 characters"),
-    title: Yup.string()
-        .required("Title is mandatory")
-        .min(3, "Title must be at least 3 characters")
-        .max(100, "Title must not exceed 100 characters"),
-    description: Yup.string()
-        .required("Description is mandatory")
-        .min(10, "Description must be at least 10 characters"),
-    type: Yup.string()
-        .required("Discount Type is mandatory")
-        .oneOf(["fixed", "percentage"]),
-    value: Yup.number()
-        .required("Value is mandatory")
-        .test("value-validation", function (value) {
-            const { type } = this.parent;
-            if (type === "fixed") {
-                return value > 0 ? true : this.createError({ message: "Amount must be greater than 0" });
-            } else if (type === "percentage") {
-                return value > 0 && value <= 100
-                    ? true
-                    : this.createError({ message: "Percentage must be between 1 and 100" });
-            }
-            return true;
-        }),
-    maxDiscountAmount: Yup.number()
-        .typeError("Max Discount must be a number")
-        .test("discount-validation", function (value) {
-            const { type } = this.parent;
-            if (type === "fixed") {
-                return true; // Not applicable for fixed
-            }
-            if (value !== undefined && value !== null) {
-                return value > 0
-                    ? true
-                    : this.createError({ message: "Max Rs Discount must be greater than 0 if provided" });
-            }
-            return true;
-        }),
-    minOrderValue: Yup.number()
-        .required("Min Order Value is mandatory")
-        .min(0, "Min Order Value cannot be negative"),
-    scope: Yup.string()
-        .required("Scope is mandatory")
-        .oneOf(["global", "category", "product"], "Scope must be global, category, or product"),
-    startAt: Yup.string()
-        .required("Start Date is mandatory")
-        .test("start-date-validation", "Start Date must be today or in the future", function (value) {
-            if (!value) return false;
-            const today = new Date().toISOString().split("T")[0];
-            return value >= today;
-        }),
-    endAt: Yup.string()
-        .required("End Date is mandatory")
-        .test("end-date-validation", "End Date must be on or after Start Date", function (value) {
-            const { startAt } = this.parent;
-            if (!value || !startAt) return false;
-            return value >= startAt;
-        }),
-    maxCoupons: Yup.number()
-        .required("Max Coupons is mandatory")
-        .min(1, "Max Coupons must be at least 1"),
-    perUserLimit: Yup.number()
-        .required("Max Coupons Per User is mandatory")
-        .min(1, "Max Per User must be at least 1"),
-    isStackable: Yup.boolean(),
-    isSecret: Yup.boolean(),
-    isActive: Yup.boolean(),
-});
+
+
+const getISODateWithTimezone = (): string => {
+    const now = new Date();
+    const isoString = now.toISOString();
+    return isoString.replace('Z', '+00:00');
+};
 
 const initialValues: CouponFormValues = {
     code: "",
     title: "",
     description: "",
     type: "fixed",
-    value: 0,
+    value: undefined as any,
     maxDiscountAmount: undefined,
-    minOrderValue: 0,
+    minOrderValue: undefined as any,
     scope: "global",
-    startAt: new Date().toISOString().split("T")[0],
-    endAt: new Date().toISOString().split("T")[0],
-    maxCoupons: 1,
-    perUserLimit: 1,
+    startAt: "",
+    endAt: "",
+    totalUses: undefined as any,
+    perUserLimit: undefined as any,
     isStackable: false,
     isSecret: false,
     isActive: true,
 };
-
 export default function CouponAddEditPage() {
     const router = useRouter();
     const params = useParams();
@@ -143,8 +79,14 @@ export default function CouponAddEditPage() {
     const [fetchLoading, setFetchLoading] = useState(false);
     const [fetchedInitialValues, setFetchedInitialValues] = useState<CouponFormValues>(initialValues);
 
-    const { postData: createCoupon } = CouponCreateStore();
-    const { postData: updateCoupon } = CouponUpdateStore();
+    const { postData: createCoupon, data: data } = CouponCreateStore();
+    const { postData: updateCoupon, data: Updatedata, clearData: ClearUpdateDAta } = CouponUpdateStore();
+    const {
+        fetchData: GetBYIDGet,
+        loading: GetBYIDLoading,
+        data: GetBYData,
+        clearData: ClearBYData,
+    } = CouponSGEtBYIDsStore(); console.log(Updatedata, "UpdatedataUpdatedata");
 
     // Fetch coupon if editing
     useEffect(() => {
@@ -157,6 +99,17 @@ export default function CouponAddEditPage() {
                     const data = await res.json();
                     if (data.success && data.data) {
                         const coupon = data.data;
+                        const toDateTimeLocal = (dateStr?: string) => {
+                            const makeLocal = (d: Date) => {
+                                const tzOffsetMs = d.getTimezoneOffset() * 60000;
+                                return new Date(d.getTime() - tzOffsetMs).toISOString().slice(0, 16);
+                            };
+                            if (!dateStr) {
+                                return makeLocal(new Date());
+                            }
+                            const date = new Date(dateStr);
+                            return makeLocal(date);
+                        };
                         setFetchedInitialValues({
                             code: coupon.code || "",
                             title: coupon.title || "",
@@ -166,13 +119,9 @@ export default function CouponAddEditPage() {
                             maxDiscountAmount: coupon.maxDiscountAmount || undefined,
                             minOrderValue: coupon.minOrderValue || 0,
                             scope: coupon.scope || "global",
-                            startAt: coupon.startAt
-                                ? new Date(coupon.startAt).toISOString().split("T")[0]
-                                : new Date().toISOString().split("T")[0],
-                            endAt: coupon.endAt
-                                ? new Date(coupon.endAt).toISOString().split("T")[0]
-                                : new Date().toISOString().split("T")[0],
-                            maxCoupons: coupon.maxCoupons || 1,
+                            startAt: toDateTimeLocal(coupon.startAt),
+                            endAt: toDateTimeLocal(coupon.endAt),
+                            totalUses: coupon.totalUses || 1,
                             perUserLimit: coupon.perUserLimit || 1,
                             isStackable: coupon.isStackable || false,
                             isSecret: coupon.isSecret || false,
@@ -197,7 +146,7 @@ export default function CouponAddEditPage() {
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: fetchedInitialValues,
-        validationSchema,
+        validationSchema: CouponsvalidationSchema,
         onSubmit: async (values) => {
             setLoading(true);
             try {
@@ -207,12 +156,11 @@ export default function CouponAddEditPage() {
                     description: values.description,
                     type: values.type,
                     value: values.value,
-                    ...(values.type === "percentage" && values.maxDiscountAmount && { maxDiscountAmount: values.maxDiscountAmount }),
                     minOrderValue: values.minOrderValue,
                     scope: values.scope,
-                       startAt: new Date(values.startAt).toISOString(),
-                    endAt: new Date(values.endAt).toISOString(),
-                    maxCoupons: values.maxCoupons,
+                    startAt: values.startAt,
+                    endAt: values.endAt,
+                    totalUses: values.totalUses,
                     perUserLimit: values.perUserLimit,
                     isStackable: values.isStackable,
                     isSecret: values.isSecret,
@@ -240,10 +188,37 @@ export default function CouponAddEditPage() {
         },
     });
 
+    // 1. Move this useEffect ABOVE the early return
+    useEffect(() => {
+        if (Updatedata?.success === true) {
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                text: Updatedata?.message || "Updated successfully",
+                showConfirmButton: false,
+                timer: 2000,
+            });
+            ClearUpdateDAta()
+        } else if (Updatedata?.success === false) {
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "error",
+                text: Updatedata?.message || "Something went wrong",
+                showConfirmButton: false,
+                timer: 2000,
+            });
+            ClearUpdateDAta()
+
+        }
+    }, [Updatedata]);
+
+    // 2. PLACE THE EARLY RETURN HERE (After all hooks)
     if (fetchLoading) {
         return (
-            <div className="flex items-center justify-center h-screen">
-                <CircularProgress />
+            <div >
+                <CoponSkeleton />
             </div>
         );
     }
@@ -256,327 +231,332 @@ export default function CouponAddEditPage() {
                 showBack={true}
             />
 
-            <div className="mt-10 max-w-4xl">
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <form onSubmit={formik.handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Code */}
 
-                            <div>
-                                <TextField
-                                    fullWidth
-                                    label="Coupon Code *"
-                                    name="code"
-                                    value={formik.values.code}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    placeholder="e.g., DAILYNEEDS"
-                                    inputProps={{ style: { textTransform: "uppercase" } }}
-                                    disabled={isEdit}
-                                />
-                                {formik.touched.code && formik.errors.code && (
-                                    <ErrorMessageCom error={formik.errors.code} />
-                                )}
-                            </div>
+            <form onSubmit={formik.handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Code */}
 
-                            {/* Title */}
-                            <div>
-                                <TextField
-                                    fullWidth
-                                    label="Coupon Title *"
-                                    name="title"
-                                    value={formik.values.title}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    placeholder="e.g., 20% Off All Daily OTC"
-                                />
-                                {formik.touched.title && formik.errors.title && (
-                                    <ErrorMessageCom error={formik.errors.title} />
-                                )}
-                            </div>
-                        </div>
-                        {/* Description */}
-                        <div>
-                        
-                            <TextareaField
-                                id="targetScreen"
-                                name="description"
-                                label="Description *"
-                                value={formik.values.description}
-                                onChange={(e) => {
-                                    formik.setFieldValue("description", e.target.value);
-                                }}
-                                placeholder="Enter message here"
-                                maxLength={500}
-                                rows={5}
-                                showCount={true}
+                    <div>
+                        <TextField
+                            fullWidth
+                            label="Coupon Code *"
+                            name="code"
+                            value={formik.values.code}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            placeholder="e.g., DAILYNEEDS"
+                            inputProps={{ style: { textTransform: "uppercase" } }}
 
-                                className=""
-                            />
-                            {formik.touched.description && formik.errors.description && (
-                                <ErrorMessageCom error={formik.errors.description} />
-                            )}
-
-                        </div>
-
-                        {/* Discount Type and Value Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Type */}
-                            <div>
-                                <TextField
-                                    fullWidth
-                                    label="Discount Type *"
-                                    name="type"
-                                    select
-                                    value={formik.values.type}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                >
-                                    <MenuItem value="fixed">Fixed Amount (₹)</MenuItem>
-                                    <MenuItem value="percentage">Percentage (%)</MenuItem>
-                                </TextField>
-                                {formik.touched.type && formik.errors.type && (
-                                    <ErrorMessageCom error={formik.errors.type} />
-                                )}
-                            </div>
-
-                            {/* Value */}
-                            <div>
-                                <TextField
-                                    fullWidth
-                                    label={formik.values.type === "fixed" ? "Discount Amount (₹) *" : "Discount Percentage (1-100) *"}
-                                    name="value"
-                                    type="number"
-                                    value={formik.values.value}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    inputProps={{
-                                        step: formik.values.type === "fixed" ? "0.01" : "1",
-                                        min: "0",
-                                        max: formik.values.type === "percentage" ? "100" : undefined,
-                                    }}
-                                />
-                                {formik.touched.value && formik.errors.value && (
-                                    <ErrorMessageCom error={formik.errors.value} />
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Max Discount - Only for percentage */}
-                        {formik.values.type === "percentage" && (
-                            <div>
-                                <TextField
-                                    fullWidth
-                                    label="Max Rs Discount (Optional)"
-                                    name="maxDiscountAmount"
-                                    type="number"
-                                    value={formik.values.maxDiscountAmount || ""}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    placeholder="e.g., 500"
-                                    helperText="Maximum discount cap (e.g., if 20% but capped at ₹500)"
-                                    inputProps={{ step: "0.01", min: "0" }}
-                                />
-                                {formik.touched.maxDiscountAmount && formik.errors.maxDiscountAmount && (
-                                    <ErrorMessageCom error={formik.errors.maxDiscountAmount} />
-                                )}
-                            </div>
+                        />
+                        {formik.touched.code && formik.errors.code && (
+                            <ErrorMessageCom error={formik.errors.code} />
                         )}
+                    </div>
 
-                          {/* Per User Limit */}
-                            <div>
-                                <TextField
-                                    fullWidth
-                                    label="Max Coupons Per User *"
-                                    name="perUserLimit"
-                                    type="number"
-                                    value={formik.values.perUserLimit}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    helperText="How many times one user can use this coupon"
-                                    inputProps={{ step: "1", min: "1" }}
-                                />
-                                {formik.touched.perUserLimit && formik.errors.perUserLimit && (
-                                    <ErrorMessageCom error={formik.errors.perUserLimit} />
-                                )}
-                            </div>
+                    {/* Title */}
+                    <div>
+                        <TextField
+                            fullWidth
+                            label="Coupon Title *"
+                            name="title"
+                            value={formik.values.title}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            placeholder="e.g., 20% Off All Daily OTC"
+                        />
+                        {formik.touched.title && formik.errors.title && (
+                            <ErrorMessageCom error={formik.errors.title} />
+                        )}
+                    </div>
+                </div>
+                {/* Description */}
+                <div>
 
-                        {/* Min Order Value and Scope */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Min Order Value */}
-                            <div>
-                                <TextField
-                                    fullWidth
-                                    label="Min Order Value (₹) *"
-                                    name="minOrderValue"
-                                    type="number"
-                                    value={formik.values.minOrderValue}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    helperText="Minimum order value to apply this coupon"
-                                    inputProps={{ step: "0.01", min: "0" }}
-                                />
-                                {formik.touched.minOrderValue && formik.errors.minOrderValue && (
-                                    <ErrorMessageCom error={formik.errors.minOrderValue} />
-                                )}
-                            </div>
+                    <TextareaField
+                        id="targetScreen"
+                        name="description"
+                        label="Description *"
+                        value={formik.values.description}
+                        onChange={(e) => {
+                            formik.setFieldValue("description", e.target.value);
+                        }}
+                        placeholder="Enter message here"
+                        maxLength={500}
+                        rows={5}
+                        showCount={true}
 
-                            {/* Scope */}
-                            <div>
-                                <TextField
-                                    fullWidth
-                                    label="Scope *"
-                                    name="scope"
-                                    select
-                                    value={formik.values.scope}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                >
-                                    <MenuItem value="global">Global</MenuItem>
-                                    <MenuItem value="category">Category</MenuItem>
-                                    <MenuItem value="product">Product</MenuItem>
-                                </TextField>
-                                {formik.touched.scope && formik.errors.scope && (
-                                    <ErrorMessageCom error={formik.errors.scope} />
-                                )}
-                            </div>
-                        </div>
+                        className=""
+                    />
+                    {formik.touched.description && formik.errors.description && (
+                        <ErrorMessageCom error={formik.errors.description} />
+                    )}
 
-                        {/* Dates */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Start Date */}
-                            <div>
-                                <TextField
-                                    fullWidth
-                                    label="Start Date *"
-                                    name="startAt"
-                                    type="date"
-                                    value={formik.values.startAt}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    InputLabelProps={{ shrink: true }}
-                                    inputProps={{ min: new Date().toISOString().split("T")[0] }}
-                                />
-                                {formik.touched.startAt && formik.errors.startAt && (
-                                    <ErrorMessageCom error={formik.errors.startAt} />
-                                )}
-                            </div>
+                </div>
 
-                            {/* End Date */}
-                            <div>
-                                <TextField
-                                    fullWidth
-                                    label="End Date *"
-                                    name="endAt"
-                                    type="date"
-                                    value={formik.values.endAt}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    InputLabelProps={{ shrink: true }}
-                                    inputProps={{ min: formik.values.startAt }}
-                                />
-                                {formik.touched.endAt && formik.errors.endAt && (
-                                    <ErrorMessageCom error={formik.errors.endAt} />
-                                )}
-                            </div>
-                        </div>
+                {/* Discount Type and Value Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Type */}
+                    <div>
+                        <TextField
+                            fullWidth
+                            label="Discount Type *"
+                            name="type"
+                            select
+                            value={formik.values.type}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                        >
+                            <MenuItem value="fixed">Fixed Amount (₹)</MenuItem>
+                            <MenuItem value="percentage">Percentage (%)</MenuItem>
+                        </TextField>
+                        {formik.touched.type && formik.errors.type && (
+                            <ErrorMessageCom error={formik.errors.type} />
+                        )}
+                    </div>
 
-                        {/* Max Coupons */}
+                    {/* Value */}
+                    <div>
+                        <TextField
+                            fullWidth
+                            label={formik.values.type === "fixed" ? "Discount Amount (₹) *" : "Discount Percentage (1-100) *"}
+                            name="value"
+                            type="number"
+                            value={formik.values.value}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            inputProps={{
+                                step: formik.values.type === "fixed" ? "0.01" : "1",
+                                min: "0",
+                                max: formik.values.type === "percentage" ? "100" : undefined,
+                            }}
+                        />
+                        {formik.touched.value && formik.errors.value && (
+                            <ErrorMessageCom error={formik.errors.value} />
+                        )}
+                    </div>
+                </div>
+
+
+
+
+                {/* Min Order Value and Scope */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Min Order Value */}
+                    <div>
+                        <TextField
+                            fullWidth
+                            label="Min Order Value (₹) *"
+                            name="minOrderValue"
+                            type="number"
+                            value={formik.values.minOrderValue}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+
+                        />
+                        {formik.touched.minOrderValue && formik.errors.minOrderValue && (
+                            <ErrorMessageCom error={formik.errors.minOrderValue} />
+                        )}
+                    </div>
+                    {/* Max Discount - Only for percentage */}
+                    {formik.values.type === "percentage" && (
                         <div>
                             <TextField
                                 fullWidth
-                                label="Max No. of Coupons (Global) *"
-                                name="maxCoupons"
+                                label="Max Rs Discount (Optional)"
+                                name="maxDiscountAmount"
                                 type="number"
-                                value={formik.values.maxCoupons}
+                                value={formik.values.maxDiscountAmount || ""}
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
-                                helperText="Total number of times this coupon can be used"
-                                inputProps={{ step: "1", min: "1" }}
+                                placeholder="e.g., 500"
+                                inputProps={{ step: "0.01", min: "0" }}
                             />
-                            {formik.touched.maxCoupons && formik.errors.maxCoupons && (
-                                <ErrorMessageCom error={formik.errors.maxCoupons} />
+                            {formik.touched.maxDiscountAmount && formik.errors.maxDiscountAmount && (
+                                <ErrorMessageCom error={formik.errors.maxDiscountAmount} />
                             )}
                         </div>
-
-                    
-
-                        {/* Toggles */}
-                        <Box className="border-t pt-6">
-                            <div className="space-y-4">
-                                <FormControlLabel
-                                    control={
-                                        <Switch
-                                            name="isActive"
-                                            checked={formik.values.isActive}
-                                            onChange={formik.handleChange}
-                                        />
-                                    }
-                                    label={
-                                        <div>
-                                            <p className="font-medium">Active</p>
-                                            <p className="text-xs text-gray-600">Enable or disable this coupon</p>
-                                        </div>
-                                    }
-                                />
-                                <FormControlLabel
-                                    control={
-                                        <Switch
-                                            name="isStackable"
-                                            checked={formik.values.isStackable}
-                                            onChange={formik.handleChange}
-                                        />
-                                    }
-                                    label={
-                                        <div>
-                                            <p className="font-medium">Stackable</p>
-                                            <p className="text-xs text-gray-600">Can be combined with other coupons</p>
-                                        </div>
-                                    }
-                                />
-                                <FormControlLabel
-                                    control={
-                                        <Switch
-                                            name="isSecret"
-                                            checked={formik.values.isSecret}
-                                            onChange={formik.handleChange}
-                                        />
-                                    }
-                                    label={
-                                        <div>
-                                            <p className="font-medium">Secret Coupon</p>
-                                            <p className="text-xs text-gray-600">
-                                                Won't appear in customer-facing lists. Customers must apply manually.
-                                            </p>
-                                        </div>
-                                    }
-                                />
-                            </div>
-                        </Box>
+                    )}
 
 
-
-                        <div className="  ButtonOuter">
-                            {" "}
-                            <div className="buttoninner  ">
-                                <CustomButton type="submit"
-                                    disabled={loading}
-                                    width="100%">
-                                    {loading ? (
-                                        <CircularProgress size={24} color="inherit" />
-                                    ) : (
-
-                                        <MdSave size={22} />
-                                    )}
-                                    {isEdit
-                                        ? "Update Coupon"
-                                        : "Add Coupon"}
-                                </CustomButton>
-                            </div>
-                        </div>
-                    </form>
+                    {/* Scope */}
+                    {/* <div>
+                        <TextField
+                            fullWidth
+                            label="Scope *"
+                            name="scope"
+                            select
+                            value={formik.values.scope}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                        >
+                            <MenuItem value="global">Global</MenuItem>
+                            <MenuItem value="category">Category</MenuItem>
+                            <MenuItem value="product">Product</MenuItem>
+                        </TextField>
+                        {formik.touched.scope && formik.errors.scope && (
+                            <ErrorMessageCom error={formik.errors.scope} />
+                        )}
+                    </div> */}
                 </div>
-            </div>
+
+                {/* Start Date */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div >
+                        <TextField
+                            fullWidth
+                            label="Start Date *"
+                            name="startAt"
+                            type="datetime-local"
+                            // 1. Keep the value exactly as stored in Formik (local format)
+                            value={formik.values.startAt || ""}
+                            onChange={(e) => {
+                                const localVal = e.target.value; // Format: "YYYY-MM-DDTHH:mm"
+                                formik.setFieldValue('startAt', localVal);
+
+                                // Auto-clear end date if it becomes invalid
+                                if (formik.values.endAt && localVal > formik.values.endAt) {
+                                    formik.setFieldValue('endAt', "");
+                                }
+                            }}
+                            onBlur={formik.handleBlur}
+                            InputLabelProps={{ shrink: true }}
+                            inputProps={{
+                                // 2. Set min using a local date string to block past times correctly
+                                min: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
+                                    .toISOString()
+                                    .substring(0, 16)
+                            }}
+                        />
+                        {formik.touched.startAt && formik.errors.startAt && (
+                            <ErrorMessageCom error={formik.errors.startAt} />
+                        )}
+                    </div>
+
+                    {/* End Date */}
+                    <div>
+                        <TextField
+                            fullWidth
+                            label="End Date *"
+                            name="endAt"
+                            type="datetime-local"
+                            value={formik.values.endAt || ""}
+                            onChange={(e) => {
+                                formik.setFieldValue('endAt', e.target.value);
+                            }}
+                            onBlur={formik.handleBlur}
+                            InputLabelProps={{ shrink: true }}
+                            inputProps={{
+                                // 3. Min is either the Start Date or current Local Time
+                                min: formik.values.startAt || new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
+                                    .toISOString()
+                                    .substring(0, 16)
+                            }}
+                        />
+                        {formik.touched.endAt && formik.errors.endAt && (
+                            <ErrorMessageCom error={formik.errors.endAt} />
+                        )}
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Per User Limit */}
+                    <div>
+                        <TextField
+                            fullWidth
+                            label="Max Coupons Per User *"
+                            name="perUserLimit"
+                            type="number"
+                            value={formik.values.perUserLimit}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            helperText="How many times one user can use this coupon"
+
+                        />
+                        {formik.touched.perUserLimit && formik.errors.perUserLimit && (
+                            <ErrorMessageCom error={formik.errors.perUserLimit} />
+                        )}
+                    </div>
+
+                    {/* Max Coupons */}
+                    <div>
+                        <TextField 
+                            fullWidth
+                            label="Max No. of Coupons (Global) *"
+                            name="totalUses"
+                            type="number"
+                            value={formik.values.totalUses}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            helperText="Total number of times this coupon can be used"
+
+                        />
+                        {formik.touched.totalUses && formik.errors.totalUses && (
+                            <ErrorMessageCom error={formik.errors.totalUses} />
+                        )}
+                    </div>
+                </div>
+                
+                {/* Toggles */}
+                <Box className="border-t pt-6">
+                    <div className="space-y-4">
+
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    name="isStackable"
+                                    checked={formik.values.isStackable}
+                                    onChange={formik.handleChange}
+                                />
+                            }
+                            label={
+                                <div>
+                                    <p className="font-medium">Stackable</p>
+                                    <p className="text-xs text-gray-600">Can be combined with other coupons</p>
+                                </div>
+                            }
+                        />
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    name="isSecret"
+                                    checked={formik.values.isSecret}
+                                    onChange={formik.handleChange}
+                                />
+                            }
+                            label={
+                                <div>
+                                    <p className="font-medium">Secret Coupon</p>
+                                    <p className="text-xs text-gray-600">
+                                        Won't appear in customer-facing lists. Customers must apply manually.
+                                    </p>
+                                </div>
+                            }
+                        />
+                    </div>
+                </Box>
+
+
+
+                <div className="  ButtonOuter">
+                    {" "}
+                    <div className="buttoninner  ">
+                        <CustomButton type="submit"
+                            disabled={loading}
+                            width="100%">
+                            {loading ? (
+                                <CircularProgress size={24} color="inherit" />
+                            ) : (
+
+                                <MdSave size={22} />
+                            )}
+                            {isEdit
+                                ? "Update Coupon"
+                                : "Add Coupon"}
+                        </CustomButton>
+                    </div>
+                </div>
+            </form>
+
+
         </div>
     );
 }

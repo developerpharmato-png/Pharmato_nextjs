@@ -26,8 +26,11 @@ import {
   Hospital,
   ChevronDown,
   Bell,
+  TagIcon,
+  Ticket,
 } from "lucide-react";
 import { requestPermissionAndGetToken } from "../firebase/firebaseConfig";
+
 
 const iconMap = {
   dashboard: LayoutDashboard,
@@ -51,6 +54,7 @@ const iconMap = {
   management: User,
   hospital: Hospital,
   bell: Bell,
+  tag:Ticket,
 };
 
 const renderIcon = (
@@ -178,7 +182,7 @@ export default function DashboardLayout({
     { name: "Subcategories", path: "/dashboard/subcategories", icon: "folder", isActive: true },
     { name: "Orders", path: "/dashboard/orders", icon: "receipt_long", isActive: true },
     { name: "Customers", path: "/dashboard/admin/customers", icon: "person", isActive: true },
-    // { name: "Coupons", path: "/dashboard/coupon", icon: "tag", isActive: true },
+    { name: "Coupons", path: "/dashboard/coupon", icon: "tag", isActive: true },
     { name: "Send Notifications", path: "/dashboard/notifications", icon: "bell", 
       isActive: true,
       

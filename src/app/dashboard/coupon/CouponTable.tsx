@@ -2,13 +2,18 @@
 
 import { CustomTable, Column } from "../components/CustomTable";
 import { useRouter } from "next/navigation";
-import { CustomTooltip, StatusToggleButton, ConfirmStatusAlertComponent } from "../components/miniComponents";
+import {
+    CustomTooltip,
+    StatusToggleButton,
+    ConfirmStatusAlertComponent,
+} from "../components/miniComponents";
 import { formatMargDate } from "@/utils/function";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CouponStatusPath } from "../storeAPICall/API/BaseApi";
 import Swal from "sweetalert2";
 import axios from "axios";
 import { Edit3Icon, EditIcon } from "lucide-react";
+import { CouponUpdateStore } from "../storeAPICall/useUserStore";
 
 interface Coupon {
     _id: string;
@@ -28,6 +33,9 @@ interface Coupon {
     isStackable?: boolean;
     createdAt: string;
     updatedAt: string;
+    uniqueCode: string;
+    totalUses?: number;
+    
 }
 
 interface CouponTableProps {
@@ -57,160 +65,178 @@ const CouponTable: React.FC<CouponTableProps> = ({
 }) => {
     const router = useRouter();
     const [togglingId, setTogglingId] = useState<string | null>(null);
+    const {
+        postData: ActiveInactive,
+        data: ActiveInactivedata,
+        clearData: ActiveInactiveDAta,
+    } = CouponUpdateStore();
 
     const handleToggleStatus = async (coupon: Coupon) => {
         try {
             setTogglingId(coupon._id);
-            await axios.patch(CouponStatusPath, {
+            const payload = {
                 id: coupon._id,
-                isActive: !coupon.isActive ? 1 : 0,
-            });
-            Swal.fire({
-                toast: true,
-                position: "top-end",
-                icon: "success",
-                title: coupon.isActive ? "Coupon deactivated" : "Coupon activated",
-                showConfirmButton: false,
-                timer: 2000,
-            });
-            if (onStatusChange) {
-                onStatusChange();
-            }
+                isActive: !coupon.isActive,
+            };
+
+            ActiveInactive(CouponStatusPath, payload);
         } catch (err) {
-            Swal.fire({
-                toast: true,
-                position: "top-end",
-                icon: "error",
-                title: "Failed to update coupon status",
-                showConfirmButton: false,
-                timer: 2000,
-            });
         } finally {
             setTogglingId(null);
         }
     };
+    useEffect(() => {
+        if (ActiveInactivedata?.success) {
+            // 1. Show Success Message
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: ActiveInactivedata?.message || "Status updated",
+                showConfirmButton: false,
+                timer: 2000,
+            });
+            // 2. Refresh the list (This changes the value in the UI)
+            if (onStatusChange) {
+                onStatusChange();
+            }
+            // 3. Cleanup
+            setTogglingId(null);
+            ActiveInactiveDAta();
+        } else if (ActiveInactivedata?.success === false) {
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "error",
+                title: ActiveInactivedata?.message || "Failed to update",
+                showConfirmButton: false,
+                timer: 2000,
+            });
+            setTogglingId(null);
+            ActiveInactiveDAta();
+        }
+    }, [ActiveInactivedata]);
+
+    const formatToIndianDate = (dateString: string) => {
+        if (!dateString) return "N/A";
+        const date = new Date(dateString);
+        return date.toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+        });
+    };
+
+    const formatToIndianTime = (dateString: string) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return date.toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+    };
+
 
     const columns: Column<Coupon>[] = [
         {
+            id: "ID",
+            label: "ID",
+            minWidth: 80,
+            selector: (row) => (
+                <CustomTooltip title={row.uniqueCode}>
+                    <span className="ID-List">{row.uniqueCode}</span>
+                </CustomTooltip>
+            ),
+        },
+        {
             id: "code",
             label: "Code",
-            minWidth: 100,
+            minWidth: 120,
             selector: (row) => (
-                <CustomTooltip title={row.code}>
-                    <span className="cursor-pointer text-blue-600 font-semibold">
-                        {row.code}
-                    </span>
-                </CustomTooltip>
+                <span >{row.code}</span>
             ),
         },
         {
             id: "title",
             label: "Title",
-            minWidth: 150,
+            minWidth: 180,
             selector: (row) => (
                 <CustomTooltip title={row.title || row.description}>
-                    <span className="line-clamp-1">{row.title || row.description}</span>
+                    <span className="line-clamp-1 text-sm">{row.title || row.description}</span>
                 </CustomTooltip>
             ),
         },
         {
             id: "value",
             label: "Discount",
-            minWidth: 110,
-            selector: (row) =>
-                row.type === "percentage"
-                    ? `${row.value}%`
-                    : `₹${row.value}`,
-        },
-       
-        {
-            id: "type",
-            label: "Type",
-            minWidth: 90,
+            minWidth: 100,
             selector: (row) => (
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${row.type === "percentage" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}`}>
-                    {row.type === "percentage" ? "Percentage" : "Fixed"}
+                <span className="font-medium text-gray-900">
+                    {row.type === "percentage" ? `${row.value}%` : `₹${row.value}`}
                 </span>
             ),
         },
         {
-            id: "maxDiscountAmount",
-            label: "Max Cap",
-            minWidth: 100,
-            selector: (row) =>
-                row.maxDiscountAmount ? `₹${row.maxDiscountAmount}` : "—",
-        },
-       
-        {
-            id: "usedCount",
-            label: "Used",
-            minWidth: 70,
-            selector: (row) => row.usedCount || 0,
+            id: "usage",
+            label: "Usage (Used/Total)",
+            minWidth: 140,
+            selector: (row) => {
+                const used = row.usedCount || 0;
+                const totalUses = typeof row.totalUses === 'number' ? row.totalUses : undefined;
+                const total = totalUses ?? "∞";
+                const isFull = typeof totalUses === 'number' && totalUses > 0 && used >= totalUses;
+
+                return (
+                    <div className="flex flex-col">
+                        <span className={`font-semibold ${isFull ? 'text-red-600' : 'text-green-700'}`}>
+                            {used} / {total}
+                        </span>
+                        <span className="text-[10px] text-gray-500 uppercase tracking-wider">
+                            {isFull ? "Limit Reached" : "Total Uses"}
+                        </span>
+                    </div>
+                );
+            },
         },
         {
             id: "perUserLimit",
             label: "Per User",
             minWidth: 90,
-            selector: (row) => row.perUserLimit,
+            selector: (row) => (
+                <div className="flex flex-col">
+                    <span className="font-medium">{row.perUserLimit || "∞"}</span>
+                    <span className="text-[10px] text-gray-400 uppercase">Limit</span>
+                </div>
+            ),
         },
         {
             id: "startAt",
-            label: "Start Date",
-            minWidth: 100,
-            selector: (row) => {
-                const date = new Date(row.startAt);
-                return date.toLocaleDateString('en-IN', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit'
-                });
-            },
+            label: "Starts",
+            minWidth: 120,
+            selector: (row) => (
+                <div className="flex flex-col">
+                    <span className="text-sm">{formatToIndianDate(row.startAt)}</span>
+                    <span className="text-[10px] text-gray-500 font-mono uppercase">
+                        {formatToIndianTime(row.startAt)}
+                    </span>
+                </div>
+            ),
         },
         {
             id: "endAt",
-            label: "End Date",
-            minWidth: 100,
-            selector: (row) => {
-                const date = new Date(row.endAt);
-                return date.toLocaleDateString('en-IN', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit'
-                });
-            },
-        },
-        {
-            id: "isSecret",
-            label: "Secret",
-            minWidth: 70,
+            label: "Expires",
+            minWidth: 120,
             selector: (row) => (
-                <span
-                    className={`px-2 py-1 rounded text-xs font-semibold ${
-                        row.isSecret
-                            ? "bg-purple-100 text-purple-800"
-                            : "bg-gray-100 text-gray-800"
-                    }`}
-                >
-                    {row.isSecret ? "Yes" : "No"}
-                </span>
+                <div className="flex flex-col">
+                    <span className="text-sm">{formatToIndianDate(row.endAt)}</span>
+                    <span className="text-[10px] text-gray-500 font-mono uppercase">
+                        {formatToIndianTime(row.endAt)}
+                    </span>
+                </div>
             ),
         },
-        {
-            id: "isStackable",
-            label: "Stackable",
-            minWidth: 80,
-            selector: (row) => (
-                <span
-                    className={`px-2 py-1 rounded text-xs font-semibold ${
-                        row.isStackable
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-gray-100 text-gray-800"
-                    }`}
-                >
-                    {row.isStackable ? "Yes" : "No"}
-                </span>
-            ),
-        },
+
         {
             id: "isActive",
             label: "Status",
@@ -218,17 +244,15 @@ const CouponTable: React.FC<CouponTableProps> = ({
             selector: (row) => (
                 <ConfirmStatusAlertComponent
                     isActive={row.isActive}
-                    title={row.isActive ? "Deactivate Coupon?" : "Activate Coupon?"}
-                    text={row.isActive
-                        ? "Are you sure you want to deactivate this coupon?"
-                        : "Are you sure you want to activate this coupon?"}
+                    title={row.isActive ? "Deactivate?" : "Activate?"}
+                    text={`Toggle status for ${row.code}?`}
                     confirmText={row.isActive ? "Deactivate" : "Activate"}
                     cancelText="Cancel"
                     onConfirm={() => handleToggleStatus(row)}
                 >
                     <StatusToggleButton
                         isActive={row.isActive}
-                        onToggle={() => {}}
+                        onToggle={() => { }}
                         loading={togglingId === row._id}
                         disabled={togglingId !== null && togglingId !== row._id}
                     />
@@ -240,15 +264,18 @@ const CouponTable: React.FC<CouponTableProps> = ({
             label: "Edit",
             minWidth: 60,
             selector: (row) => (
-                <span
-                    style={{ cursor: "pointer", color: "var(--primary)", display: "flex", justifyContent: "center", alignItems: "center" }}
-                    onClick={() => router.push(`/dashboard/coupon/AddEdit/${row._id}`)}
-                >
-                    <EditIcon size={18} />
-                </span>
+                <div className="flex justify-center">
+                    <span
+                        className="EditListStyle"
+                        onClick={() => router.push(`/dashboard/coupon/AddEdit/${row._id}`)}
+                    >
+                        <EditIcon size={18} />
+                    </span>
+                </div>
             ),
         },
     ];
+
 
     return (
         <CustomTable
