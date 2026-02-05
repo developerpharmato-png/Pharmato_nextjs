@@ -31,7 +31,7 @@ export async function sendEmail({
     secure: true,
     auth: {
       user: "developer@pharmatoindia.com",
-      pass: "tv5ql$tL",
+      pass: "6jYBwhqZM2j1",
     },
   });
 
