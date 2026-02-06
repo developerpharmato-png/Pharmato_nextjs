@@ -248,7 +248,7 @@ export const CustomImage: React.FC<CustomImageProps> = ({
                 </Swiper>
 
                 <div className="absolute bottom-8 text-gray-500 text-xs hidden md:block text-center">
-                  Use Mouse Wheel or Double Click to Zoom • Swipe to navigate
+                   Double Click to Zoom 
                 </div>
               </div>
             </div>

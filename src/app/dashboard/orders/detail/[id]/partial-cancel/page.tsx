@@ -512,7 +512,7 @@ export default function PartialCancelPage() {
 
     {/* Document Grid */}
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {order?.prescription_url?.map((url, idx) => {
+      {order?.prescription_url?.map((url: string, idx: number) => {
         if (!url) return null;
 
         const lowerUrl = url.toLowerCase();
