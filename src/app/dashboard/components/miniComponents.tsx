@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { styled } from "@mui/material/styles";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Pagination } from "swiper/modules";
+import { Pagination, Navigation, Zoom } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import Tooltip, { tooltipClasses, TooltipProps } from "@mui/material/Tooltip";
@@ -144,121 +144,126 @@ interface CustomImageProps {
   style?: React.CSSProperties;
 }
 
+
+// Import Swiper styles
+import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/zoom";
+import "swiper/css/navigation";
+
+interface CustomImageProps {
+  coverImage: string;
+  images?: string[];
+  alt?: string;
+  style?: React.CSSProperties;
+}
+
 export const CustomImage: React.FC<CustomImageProps> = ({
   coverImage,
   images = [],
   alt = "",
   style,
 }) => {
-  const [open, setOpen] = React.useState(false);
-  const [current, setCurrent] = React.useState(0);
-  const [zoom, setZoom] = React.useState(1);
+  const [open, setOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  const handleOpen = (e: React.MouseEvent) => {
+  const handleOpen = (e: React.MouseEvent, index: number) => {
     e.stopPropagation();
-    if (images.length > 0) setOpen(true);
-    setCurrent(0);
-    setZoom(1);
-  };
-  const handleClose = () => {
-    setOpen(false);
-    setZoom(1);
+    if (images.length > 0) {
+      // Find the index of the clicked image if it exists in the array
+      const targetIndex = images.indexOf(coverImage);
+      setCurrentIndex(targetIndex !== -1 ? targetIndex : 0);
+      setOpen(true);
+    }
   };
 
-  const handleStep = (step: number) => setCurrent(step);
+  const downloadImage = () => {
+    const url = images[currentIndex];
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `image_${currentIndex + 1}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
 
   return (
-    <>
+    <> 
+      {/* Trigger Image */}
       <img
         src={coverImage}
         alt={alt}
-        style={style}
-        onClick={handleOpen}
-        className={images.length > 0 ? "cursor-pointer" : ""}
+        style={{ ...style, cursor: images.length > 0 ? "zoom-in" : "default" }}
+        onClick={(e) => handleOpen(e, 0)}
+        className="transition-all duration-300 hover:brightness-90 rounded-lg"
       />
+
       {open && (
-        <div className="fixed inset-0 bg-opacity-75 flex items-center justify-center z-1000 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl relative p-4">
-            <div className="absolute top-0 right-0 m-4 flex items-center gap-2 z-10">
-              <button
-                onClick={() => {
-                  // download current image
-                  const url = images[current];
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = url.split("/").pop() || `image_${current + 1}`;
-                  document.body.appendChild(a);
-                  a.click();
-                  a.remove();
-                }}
-                className="bg-white/80 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold hover:opacity-90"
-                title="Download"
-              >
-                ⬇
-              </button>
-              <button
-                onClick={() => setZoom((z) => Math.min(3, +(z + 0.25).toFixed(2)))}
-                className="bg-white/80 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold hover:opacity-90"
-                title="Zoom In"
-              >
-                +
-              </button>
-              <button
-                onClick={() => setZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))}
-                className="bg-white/80 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold hover:opacity-90"
-                title="Zoom Out"
-              >
-                −
-              </button>
-              <button
-                onClick={() => setZoom(1)}
-                className="bg-white/80 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold hover:opacity-90"
-                title="Reset Zoom"
-              >
-                1x
-              </button>
-              <button
-                onClick={handleClose}
-                className="bg-white/80 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold hover:opacity-90"
-                title="Close"
-              >
-                ×
-              </button>
-            </div>
-            <Swiper
-              initialSlide={current}
-              spaceBetween={10}
-              slidesPerView={1}
-              pagination={{ clickable: true }}
-              modules={[Pagination]}
-              className="w-full h-[70vh] max-h-[700px] rounded-xl overflow-hidden"
-            >
-              {images.map((url, index) => (
-                <SwiperSlide
-                  key={index}
-                  className="flex items-center justify-center bg-gray-100 rounded-xl"
+        <>
+          <div className="fixed inset-0 z-[1000] w-[90vw] h-[90vh]  flex items-center justify-center m-auto bg-white backdrop-blur-sm p-4">
+            <div className="flex flex-col">
+              <div className="absolute top-0 left-0 w-full p-5 flex justify-between items-center to-transparent">
+                <span className="text-gray-400 font-medium">
+                  {currentIndex + 1} / {images.length}
+                </span>
+                <div className="flex gap-4">
+                  <button onClick={() => setOpen(false)} className="text-gray-400  hover:text-red-400 transition-colors" title="Close">
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+              </div>
+
+            
+              <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                <Swiper
+                  modules={[Pagination, Zoom, Navigation]}
+                  initialSlide={currentIndex}
+                  zoom={{ maxRatio: 3, minRatio: 1, toggle: true }}
+                  navigation={true}
+                  pagination={{ clickable: true, type: 'bullets' }}
+                  grabCursor={true}
+                  simulateTouch={true}
+                  onSlideChange={(swiper) => setCurrentIndex(swiper.activeIndex)}
+                  className="w-full h-full max-w-5xl"
+                  style={{
+                    // Customizing Swiper Arrow Colors via CSS Variables
+                    // @ts-ignore
+                    "--swiper-navigation-color": "#fff",
+                    "--swiper-pagination-color": "#fff",
+                  }}
                 >
-                  <div className="w-full h-full flex items-center justify-center p-4">
-                    <img
-                      src={url}
-                      alt={`Slide ${index}`}
-                      className="max-w-full w-full h-full object-contain"
-                      style={{ transform: `scale(${zoom})`, transition: "transform 0.15s" }}
-                    />
-                  </div>
-                </SwiperSlide>
-              ))}
-            </Swiper>
-            <div className="flex items-center justify-between text-gray-700 font-semibold border-t border-gray-200 mt-2 px-3 py-2">
-              <div>Viewing Image {current + 1} of {images.length}</div>
-              <div className="text-sm text-gray-600">Zoom: {zoom.toFixed(2)}x</div>
+                  {images.map((url, index) => (
+                    <SwiperSlide key={index} className="flex items-center justify-center">
+                        <div className="swiper-zoom-container cursor-grab">
+                          <img
+                            src={url}
+                            alt={`Slide ${index}`}
+                            draggable={false}
+                            style={{ userSelect: "none" }}
+                            className="max-h-[85vh] w-auto object-contain pointer-events-auto"
+                          />
+                        </div>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+
+                <div className="absolute bottom-8 text-gray-500 text-xs hidden md:block text-center">
+                   Double Click to Zoom 
+                </div>
+              </div>
             </div>
+
           </div>
-        </div>
+        </>
       )}
     </>
   );
 };
+
+
+
+
+
 
 export const BackArrowIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -391,9 +396,8 @@ export const StatusToggleButton: React.FC<StatusToggleButtonProps> = ({
       title={isActive ? "Click to deactivate" : "Click to activate"}
     >
       <span
-        className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
-          isActive ? "translate-x-6" : "translate-x-1"
-        }`}
+        className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${isActive ? "translate-x-6" : "translate-x-1"
+          }`}
       />
     </button>
   );
@@ -439,3 +443,10 @@ export const ConfirmStatusAlertComponent: React.FC<ConfirmStatusAlertComponentPr
     </div>
   );
 };
+
+
+
+
+
+
+

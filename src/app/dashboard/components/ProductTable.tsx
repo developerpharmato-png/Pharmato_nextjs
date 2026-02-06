@@ -19,23 +19,20 @@ const ProductTable: React.FC<Props> = ({
     <div className="bg-white rounded-lg border border-gray-100 overflow-hidden mt-8">
       {/* Header Section */}
       <div
-        className={`p-4 border-b border-gray-50 flex items-center gap-2 ${
-          isRejected ? "bg-red-50/30" : ""
-        }`}
+        className={`p-4 border-b border-gray-50 flex items-center gap-2 ${isRejected ? "bg-red-50/30" : ""
+          }`}
       >
         <h2
-          className={`text-lg font-bold tracking-tight ${
-            isRejected ? "text-red-600" : "text-gray-800"
-          }`}
+          className={`text-lg font-bold tracking-tight ${isRejected ? "text-red-600" : "text-gray-800"
+            }`}
         >
           {title}
         </h2>
         <span
-          className={`px-3 py-0.5 rounded-full text-[11px] font-bold uppercase border ${
-            isRejected
-              ? "bg-red-50 text-red-600 border-red-100"
-              : "bg-gray-100 text-gray-500 border-gray-200"
-          }`}
+          className={`px-3 py-0.5 rounded-full text-[11px] font-bold uppercase border ${isRejected
+            ? "bg-red-50 text-red-600 border-red-100"
+            : "bg-gray-100 text-gray-500 border-gray-200"
+            }`}
         >
           {medicines?.length || 0} Items
         </span>
@@ -60,6 +57,8 @@ const ProductTable: React.FC<Props> = ({
               <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">
                 Status
               </th>
+              <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Is Prescription Required</th>
+
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -98,9 +97,8 @@ const ProductTable: React.FC<Props> = ({
                   <td className="px-6 py-4 text-right">
                     <div className="flex flex-col items-end">
                       <span
-                        className={`text-[13px] font-bold ${
-                          isRejected ? "text-gray-400" : "text-green-600"
-                        }`}
+                        className={`text-[13px] font-bold ${isRejected ? "text-gray-400" : "text-green-600"
+                          }`}
                       >
                         ₹{price.toFixed(2)}
                       </span>
@@ -108,9 +106,8 @@ const ProductTable: React.FC<Props> = ({
                   </td>
                   <td className="px-6 py-4 text-right">
                     <span
-                      className={`text-[14px] font-bold ${
-                        isRejected ? "text-gray-300" : "text-gray-900"
-                      }`}
+                      className={`text-[14px] font-bold ${isRejected ? "text-gray-300" : "text-gray-900"
+                        }`}
                     >
                       ₹{itemTotal.toFixed(2)}
                     </span>
@@ -118,13 +115,12 @@ const ProductTable: React.FC<Props> = ({
                   <td className="px-6 py-4 text-center">
                     <span
                       className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border tracking-tighter
-                      ${
-                        isRejected
+                      ${isRejected
                           ? "bg-red-50 text-red-500 border-red-100"
                           : status === "delivered" || status === "accepted"
-                          ? "bg-orange-50 text-orange-400 border-orange-100"
-                          : "bg-blue-50 text-blue-500 border-blue-100"
-                      }`}
+                            ? "bg-orange-50 text-orange-400 border-orange-100"
+                            : "bg-blue-50 text-blue-500 border-blue-100"
+                        }`}
                     >
                       {/* {isRejected
                         ? "REJECTED"
@@ -133,6 +129,11 @@ const ProductTable: React.FC<Props> = ({
                         : status.toUpperCase()} */}
 
                       {status.toUpperCase()}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border tracking-tighter bg-blue-50 text-blue-500 border-blue-100`}>
+                      {medicine?.isPrescription === true ? 'PRESCRIPTION REQUIRED' : 'NO PRESCRIPTION'}
                     </span>
                   </td>
                 </tr>

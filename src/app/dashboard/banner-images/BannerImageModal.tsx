@@ -368,7 +368,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
 
   return (
     <Modal open={open} onClose={handleClose} aria-labelledby="modal-title">
-      <Box sx={{ ...modalStyle, width: "50vw" }}
+      <Box sx={{ ...modalStyle }}
         className="scrollbar-hide"
       >
         <ModalHeader
@@ -403,8 +403,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
               <ErrorMessageCom error={formik.errors.targetId} />
             )}
 
-          <Box className="flex mt-3 flex-col md:flex-row md:justify-between md:items-start gap-4"
-            sx={{ width: '100%' }}>
+     
             {/* App Image Upload */}
             <div className="">
               <ImageUploadField
@@ -441,7 +440,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
                 <ErrorMessageCom error={formik.errors.webImage} />
               )}
             </div>
-          </Box>
+       
 
           <div className="mt-5"></div>
 
