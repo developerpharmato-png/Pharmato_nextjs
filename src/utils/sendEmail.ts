@@ -24,45 +24,9 @@ export async function sendEmail({
   // });
 
 
-  // //  SMTP configuration for sending emails (using Zoho SMTP server)
-  // const transporter = nodemailer.createTransport({
-  //   host: "smtp.zoho.in",
-  //   port: 465,
-  //   secure: true,
-  //   auth: {
-  //     user: "developer@pharmatoindia.com",
-  //     pass: "6jYBwhqZM2j1",
-  //   },
-  // });
-
-  // const transporter = nodemailer.createTransport({
-  //   host: "smtp.zoho.in",
-  //   port: 587,
-  //   secure: false, // ❗ important
-  //   auth: {
-  //     user: "developer@pharmatoindia.com",
-  //     pass: "6jYBwhqZM2j1",
-  //   },
-  //   tls: {
-  //     rejectUnauthorized: false,
-  //   },
-  // });
-
-  // const transporter = nodemailer.createTransport({
-  //   host: "smtp.zeptomail.in",
-  //   port: 587,
-  //   // secure: false, // ❗ important
-  //   auth: {
-  //     user: "emailapikey",
-  //     pass: "PHtE6r0IEbjo2jQro0cHsfOwRZKkPIl89O00LQFDs48RCfcKSk0G+Nl9k2C2qkouUvlGR6SYnN9pubua4rmALD3pZz4fXmqyqK3sx/VYSPOZsbq6x00bs1oTckzYV4/petVs0STevNncNA==",
-  //   }
-  // });
-
-
   const transporter = nodemailer.createTransport({
     host: "smtp.zeptomail.in",
-    port: 465,
-    secure: true, // ✅ REQUIRED for 465
+    port: 587,
     auth: {
       user: "emailapikey",
       pass: "PHtE6r0IEbjo2jQro0cHsfOwRZKkPIl89O00LQFDs48RCfcKSk0G+Nl9k2C2qkouUvlGR6SYnN9pubua4rmALD3pZz4fXmqyqK3sx/VYSPOZsbq6x00bs1oTckzYV4/petVs0STevNncNA==",
@@ -70,12 +34,13 @@ export async function sendEmail({
   });
 
   const mailOptions = {
-    from: "Pharmato <noreply@pharmatoindia.com>", // ✅ must be verified
+    from: "noreply@pharmatoindia.com", // ✅ must be verified
     to,
     subject,
     html,
   };
 
+  console.log("📧 Sending email to:", mailOptions);
 
   try {
     const info = await transporter.sendMail(mailOptions);
@@ -85,31 +50,5 @@ export async function sendEmail({
     console.error("Email send error:", error);
     return { success: false, message: error?.message || String(error) };
   }
-
-  // const axios = require('axios');
-
-  // axios.post(
-  //   'https://api.zeptomail.in/v1.1/email',
-  //   {
-  //     from: {
-  //       address: 'noreply@pharmatoindia.com',
-  //       name: 'Example Team'
-  //     },
-  //     to: [
-  //       { email_address: { address: 'developer@pharmatoindia.com' } }
-  //     ],
-  //     subject: 'Test Email',
-  //     htmlbody: 'Test email sent successfully.'
-  //   },
-  //   {
-  //     headers: {
-  //       'Authorization': 'Zoho-enczapikey PHtE6r0IEbjo2jQro0cHsfOwRZKkPIl89O00LQFDs48RCfcKSk0G+Nl9k2C2qkouUvlGR6SYnN9pubua4rmALD3pZz4fXmqyqK3sx/VYSPOZsbq6x00bs1oTckzYV4/petVs0STevNncNA==',
-  //       'Content-Type': 'application/json'
-  //     }
-  //   }
-  // ).then(() => {
-  //   console.log('Email sent');
-  // }).catch(console.Error);
-
 
 }
