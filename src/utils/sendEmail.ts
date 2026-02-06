@@ -61,24 +61,13 @@ export async function sendEmail({
 
   const transporter = nodemailer.createTransport({
     host: "smtp.zeptomail.in",
-    port: 587,
-    secure: false, // ✅ REQUIRED for 587
+    port: 465,
+    secure: true, // ✅ REQUIRED for 465
     auth: {
       user: "emailapikey",
       pass: "PHtE6r0IEbjo2jQro0cHsfOwRZKkPIl89O00LQFDs48RCfcKSk0G+Nl9k2C2qkouUvlGR6SYnN9pubua4rmALD3pZz4fXmqyqK3sx/VYSPOZsbq6x00bs1oTckzYV4/petVs0STevNncNA==",
-    },
-    tls: {
-      rejectUnauthorized: false, // ✅ important on DO/Ubuntu
-    },
+    }
   });
-
-
-  // const mailOptions = {
-  //   from: "noreply@pharmatoindia.com",
-  //   to,
-  //   subject,
-  //   html,
-  // };
 
   const mailOptions = {
     from: "Pharmato <noreply@pharmatoindia.com>", // ✅ must be verified
