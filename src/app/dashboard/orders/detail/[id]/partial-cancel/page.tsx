@@ -182,7 +182,7 @@ export default function PartialCancelPage() {
           toast: true,
           position: "top-end",
           icon: "success",
-          title:   data.message,
+          title: data.message,
           showConfirmButton: false,
           timer: 2000,
         });
@@ -325,6 +325,12 @@ export default function PartialCancelPage() {
   const hasPrescriptionImages =
     ((order?.prescription_url || []).filter(Boolean) || []).length > 0;
 
+
+  const allImageUrls = order?.prescription_url?.filter((url: string) => {
+    const lower = url.toLowerCase();
+    return !lower.endsWith(".pdf") && !lower.includes("/raw/");
+  }) || [];
+
   return (
     <div className="containerStyle scrollbar-hide">
 
@@ -461,168 +467,95 @@ export default function PartialCancelPage() {
         </DialogActions>
       </Dialog>
 
-      {hasPrescriptionImages && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
-          {/* Header: Title and Status Badge */}
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-                <svg
-                  className="w-6 h-6"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14H7v-2h3v2zm3-4H7v-2h6v2zm3-4H7V7h9v2z" />
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-800 tracking-tight">
-                  Prescription Management
-                </h2>
-                <p className="text-sm text-gray-400 font-medium">
-                  Attached files for verification
-                </p>
-              </div>
-            </div>
-
-            <span className="px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-100">
-              {order?.prescription_status || "Verification Pending"}
+    {hasPrescriptionImages && (
+  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
+    {/* Header: Title and Management Controls */}
+    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 pb-6 border-b border-gray-50">
+      <div className="flex items-start gap-3">
+        <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14H7v-2h3v2zm3-4H7v-2h6v2zm3-4H7V7h9v2z" />
+          </svg>
+        </div>
+        <div>
+          <h2 className="text-lg font-bold text-gray-800 tracking-tight leading-tight">
+            Prescription Management
+          </h2>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">
+              {order?.prescription_status || "Pending"}
             </span>
           </div>
+        </div>
+      </div>
 
-          {/* Document Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-            {[0, 1, 2, 3].map((idx) => {
-              const url = order?.prescription_url?.[idx];
-
-              if (!url) {
-                return null; // Changed from <></> to null for cleaner mapping
-              }
-
-              // Treat Cloudinary raw assets (no extension, /raw/ in path) as PDF so we render the iframe preview
-              const lowerUrl = url.toLowerCase();
-              const isPdf = lowerUrl.endsWith(".pdf") || lowerUrl.includes("/raw/");
-              // For raw Cloudinary links, disable attachment disposition so the browser can inline it; fall back to gview if still blocked
-              const inlineUrl = isPdf && lowerUrl.includes("/raw/")
-                ? `${url}${url.includes("?") ? "&" : "?"}fl_attachment=false`
-                : url;
-              const pdfViewerUrl = isPdf && !lowerUrl.endsWith(".pdf")
-                ? `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(inlineUrl)}`
-                : inlineUrl;
-
-              return (
-                <div
-                  key={idx}
-                  className="flex flex-col rounded-xl border border-gray-200 overflow-hidden bg-white shadow-sm h-full"
-                >
-                  {/* Image/PDF Container */}
-                  <div className="relative flex-1 bg-gray-50 min-h-40">
-                    {/* Download Button - Fixed to Top Right, Always Visible */}
-                    <button
-                      onClick={() => downloadImageByUrl(url)}
-                      className="absolute top-2 right-2 z-20 bg-white/90 p-1.5 rounded-lg shadow-md border border-gray-100 hover:bg-white transition-all text-gray-700"
-                      title="Download File"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2.5"
-                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                        />
-                      </svg>
-                    </button>
-
-                    {isPdf ? (
-                      <div className="w-full h-full bg-gradient-to-br from-red-50 to-red-100 flex flex-col items-center justify-center gap-3">
-                        {/* PDF Icon */}
-                        <div className="w-16 h-16 bg-red-500 rounded-lg flex items-center justify-center shadow-lg">
-                          <svg
-                            className="w-10 h-10 text-white"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-8-6z" />
-                          </svg>
-                        </div>
-                        {/* PDF Label */}
-                        <span className="text-red-600 font-bold text-sm tracking-widest uppercase">
-                          PDF Document
-                        </span>
-                      </div>
-                    ) : (
-                      <CustomImage
-                        coverImage={url}
-                        images={[url]}
-                        alt={`Prescription ${idx + 1}`}
-                        style={{
-                          height: "100%",
-                          width: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                    )}
-                  </div>
-
-                  {/* View Button at Bottom */}
-                  <button
-                    onClick={() => {
-                      const lowerUrl = url.toLowerCase();
-                      const isPdf = lowerUrl.endsWith(".pdf") || lowerUrl.includes("/raw/");
-
-                      if (isPdf) {
-                        // Open PDF in new tab
-                        window.open(url, '_blank');
-                      } else {
-                        // Open image in Swiper gallery
-                        setPrescriptionViewerIndex(idx);
-                        setPrescriptionZoom(1);
-                        setShowPrescriptionViewer(true);
-                      }
-                    }}
-                    className="w-full py-3 text-center font-bold text-sm uppercase tracking-wide text-teal-600 hover:bg-teal-50 transition-all border-t border-gray-200"
-                  >
-                    View
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Large Footer Action Buttons */}
-          {order?.isPrescriptionRequired &&
-            order?.prescription_status?.toLowerCase() === "pending" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-10">
-                <button
-                  onClick={handleApprovePrescription}
-                  disabled={approveLoading}
-                  className="flex items-center justify-center gap-3 py-4 border-2 border-green-500 rounded-xl text-green-600 font-bold text-sm uppercase tracking-wide hover:bg-green-50 transition-all disabled:opacity-50"
-                >
-                  <div className="w-5 h-5 rounded-full border-2 border-green-500 flex items-center justify-center text-[10px]">
-                    {approveLoading ? "..." : "✓"}
-                  </div>
-                  {approveLoading ? "Approving..." : "Approve Prescription"}
-                </button>
-
-                <button
-                  onClick={() => setShowRejectModalPresc(true)}
-                  disabled={rejectLoading}
-                  className="flex items-center justify-center gap-3 py-4 border-2 border-red-500 rounded-xl text-red-500 font-bold text-sm uppercase tracking-wide hover:bg-red-50 transition-all disabled:opacity-50"
-                >
-                  <div className="w-5 h-5 rounded-full border-2 border-red-500 flex items-center justify-center text-[10px]">
-                    {rejectLoading ? "..." : "✕"}
-                  </div>
-                  {rejectLoading ? "Rejecting..." : "Reject Prescription"}
-                </button>
-              </div>
-            )}
+      {/* COMPACT TOP ACTIONS */}
+      {order?.isPrescriptionRequired && order?.prescription_status?.toLowerCase() === "pending" && (
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <button
+            onClick={handleApprovePrescription}
+            disabled={approveLoading}
+            className="flex-1 sm:flex-none flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold uppercase transition-all disabled:opacity-50 shadow-sm"
+          >
+            {approveLoading ? "..." : "✓"} Approve
+          </button>
+          <button
+            onClick={() => setShowRejectModalPresc(true)}
+            disabled={rejectLoading}
+            className="flex-1 sm:flex-none flex items-center gap-2 px-4 py-2 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs font-bold uppercase transition-all disabled:opacity-50"
+          >
+            {rejectLoading ? "..." : "✕"} Reject
+          </button>
         </div>
       )}
+    </div>
+
+    {/* Document Grid */}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {order?.prescription_url?.map((url, idx) => {
+        if (!url) return null;
+
+        const lowerUrl = url.toLowerCase();
+        const isPdf = lowerUrl.endsWith(".pdf") || lowerUrl.includes("/raw/");
+
+        return (
+          <div key={idx} className="group relative aspect-[6/5] rounded-xl border border-gray-200 overflow-hidden bg-gray-50 hover:shadow-md transition-all">
+            {/* Overlay Download Button */}
+            <button
+              onClick={() => downloadImageByUrl(url)}
+              className="absolute top-2 right-2 z-20 bg-white/90 p-1.5 rounded-lg shadow-sm border border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity text-gray-700 hover:bg-white"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </button>
+
+            {isPdf ? (
+              <div 
+                onClick={() => window.open(url, '_blank')}
+                className="w-full h-full cursor-pointer bg-gradient-to-br from-red-50 to-red-100 flex flex-col items-center justify-center gap-2"
+              >
+                <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center shadow-md text-white">
+                  <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-8-6z" />
+                  </svg>
+                </div>
+                <span className="text-red-600 font-bold text-[10px] uppercase">View PDF</span>
+              </div>
+            ) : (
+              <CustomImage
+                coverImage={url}
+                images={allImageUrls}
+                alt={`Prescription ${idx + 1}`}
+                style={{ height: "100%", width: "100%", objectFit: "cover" }}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </div>
+)}
 
       {/* Reject prescription dialog */}
       <Dialog
@@ -925,7 +858,7 @@ export default function PartialCancelPage() {
                   setShowCancelReasonDialog(false);
                   fetchOrder();
                 } else {
-                    setShowCancelReasonDialog(false)
+                  setShowCancelReasonDialog(false)
                   Swal.fire(
                     "Error",
                     data.message || "Failed to accept",
@@ -936,7 +869,7 @@ export default function PartialCancelPage() {
                 setShowCancelReasonDialog(false)
                 Swal.fire("Error", "Failed to accept", "error");
               } finally {
-                  setShowCancelReasonDialog(false)
+                setShowCancelReasonDialog(false)
                 setAcceptLoading(false);
               }
             }}
