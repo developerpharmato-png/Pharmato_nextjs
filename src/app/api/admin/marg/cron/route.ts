@@ -129,16 +129,16 @@ async function importMedicinesFromMarg() {
 
     const latestMarg = await Marg.findOne({
       status: "Completed",
-      margGetDataCount: { $gt: 0 }
+      // margGetDataCount: { $gt: 0 }
     })
       .sort({ createdAt: -1 })
-      .lean(); 
+      .lean();
 
     const lastSyncDateTime = latestMarg ? moment(latestMarg.createdAt)
       .tz("Asia/Kolkata")
       .format("YYYY-MM-DD HH:mm:ss") : '';
 
-      // console.log("&&&&&&&&&&&&&&lastSyncDateTime&&&&&&&&&&&&&",lastSyncDateTime);
+    // console.log("&&&&&&&&&&&&&&lastSyncDateTime&&&&&&&&&&&&&",lastSyncDateTime);
 
     const url = 'https://wservices.margcompusoft.com/api/eOnlineData/MargMST2017';
     const key = '48TPI07W1R2S';
@@ -146,7 +146,7 @@ async function importMedicinesFromMarg() {
       CompanyCode: 'PharmatoInd2',
       MargID: 486257,
       Datetime: `${lastSyncDateTime}`,
-      // Datetime: `2026-01-27 18:00:00`,
+      // Datetime: `2026-02-06 19:30:17`, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
       index: 0
     };
     const response = await axios.post(url, payload, {
@@ -157,17 +157,27 @@ async function importMedicinesFromMarg() {
     const decrypted = decryptAES(encryptedResponse, key);
     const inflated = gzinflate(decrypted.toString());
     const jsonData = safeJSONParse(inflated);
-    const products = jsonData?.Details?.pro_N || [];
+    const products_pro_N = jsonData?.Details?.pro_N || [];
+    const products_pro_U = jsonData?.Details?.pro_U || [];
+    const products_pro_S = jsonData?.Details?.pro_S || [];
+    const products_pro_R = jsonData?.Details?.pro_R || [];
+    const products_Stype = jsonData?.Details?.Stype || [];
+    const products_Party = jsonData?.Details?.Party || [];
+    const products_Users = jsonData?.Details?.Users || [];
+    const products = [...products_pro_N, ...products_pro_U];
     const bulkInsertArray: any[] = [];
     const bulkOps: any[] = [];
     let data: any[] = [];
 
+    console.log("$$$$$$$$$jsonData$$$$$$$$$$$$", jsonData);
+
     const createMarg = await Marg.create({
-      margGetDataCount: products.length,
+      margGetDataCount: products.length + products_pro_S.length + products_pro_R.length,
       margInsertDataCount: 0,
       margUpdateDataCount: 0,
       status: 'Sync Started',
       type: 'Sync Marg Data',
+      dateTime: moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss"),
       margInsertData: []
     });
 
@@ -232,6 +242,59 @@ async function importMedicinesFromMarg() {
 
     }
 
+    for (const p of products_pro_S) {
+
+      const checkMedicine = await Medicine.findOne({ batchNumber: p.code });
+
+      if (checkMedicine) {
+
+        const medObj = {
+          stock: Number(p.stock) || 0
+        };
+
+        bulkOps.push({
+          updateOne: {
+            filter: { batchNumber: p.code },     // If exists → update
+            update: {
+              $set: medObj
+            }                          // If not exists → insert
+          }
+        });
+
+      }
+
+    }
+
+    for (const p of products_pro_R) {
+
+      const checkMedicine = await Medicine.findOne({ batchNumber: p.code });
+
+      if (checkMedicine) {
+
+        const price = computePriceFromMrp(p.MRP);
+        const mrp = Number(p.MRP) || 0;
+
+        const medObj = {
+          price,
+          mrp,
+          discount: calculateDiscount(mrp, price), // ✅ REQUIRED
+          purchasePrice: Number(p.PRate) || 0,
+          stock: Number(p.stock) || 0
+        };
+
+        bulkOps.push({
+          updateOne: {
+            filter: { batchNumber: p.code },     // If exists → update
+            update: {
+              $set: medObj
+            }                          // If not exists → insert
+          }
+        });
+
+      }
+
+    }
+
     // 🚀 BULK WRITE (super fast for both insert + update)
     if (bulkOps.length > 0) {
       await Medicine.bulkWrite(bulkOps, { ordered: false });
@@ -252,7 +315,8 @@ async function importMedicinesFromMarg() {
       margUpdateDataCount: updateCount,
       status: 'Completed',
       type: 'Sync Marg Data',
-      margInsertData: data
+      margInsertData: data,
+      jsonData: jsonData
     });
 
   } catch (err) {

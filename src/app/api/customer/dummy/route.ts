@@ -5,42 +5,7 @@ import Admin from '@/models/Admin';
 import axios from "axios";
 import CryptoJS from "crypto-js";
 
-
-const MARG_KEY = "5Z6HWPTG3O4K";
-
-// function decryptMargData(cipherText: string) {
-//     const key = CryptoJS.enc.Utf8.parse(MARG_KEY);
-
-//     try {
-//         const bytes = CryptoJS.AES.decrypt(cipherText, key, {
-//             mode: CryptoJS.mode.ECB,
-//             padding: CryptoJS.pad.Pkcs7
-//         });
-
-//         const decrypted = bytes.toString(CryptoJS.enc.Utf8);
-
-//         if (!decrypted || decrypted.trim() === "") {
-//             throw new Error("Empty decrypted text");
-//         }
-
-//         console.log("🔓 DECRYPTED TEXT:", decrypted);
-
-//         return {
-//             ok: true,
-//             text: decrypted
-//         };
-//     } catch (err) {
-//         // ❌ Marg rejection → encrypted token only
-//         console.log("❌ Marg rejected (non-json encrypted token)");
-
-//         return {
-//             ok: false,
-//             reason: "MARG_REJECTED_REQUEST",
-//             raw: cipherText
-//         };
-//     }
-// }
-
+const MARG_KEY = "48TPI07W1R2S";
 function decryptMargData(cipherText: string) {
     const key = CryptoJS.enc.Utf8.parse(MARG_KEY);
 
@@ -66,8 +31,6 @@ function decryptMargData(cipherText: string) {
         text: decrypted
     };
 }
-
-
 
 /**
  * @swagger
@@ -96,15 +59,15 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const payload = {
-        OrderID: "",
-        OrderNo: "",   // unique
-        Partycode: "AEEV",
-        CustomerID: "6732867",
-        MargID: "230965",
+        OrderID: `SB-${Date.now()}`,
+        OrderNo: "0",
+        Partycode: "1061660",
+        CustomerID: "187711744",
+        MargID: "486257",
         Type: "S",
         Sid: "161613",
 
-        ProductCode: "1061583",   // ✅ EXACT as Marg sample
+        ProductCode: "1061660",   // ✅ EXACT as Marg sample
         Quantity: "1",
         Free: "0",
 
@@ -139,8 +102,8 @@ export async function POST(request: NextRequest) {
         DoctorName: "DR.BHATT",
         DoctorMobile: "9015030736",
 
-        CompanyCode: "RakeshApi2",
-        OrderFrom: "RakeshApi2"
+        CompanyCode: "PharmatoInd2",
+        OrderFrom: "PharmatoInd2"
     };
 
     const response = await axios.post(
@@ -176,6 +139,5 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, data: json });
-
 
 }

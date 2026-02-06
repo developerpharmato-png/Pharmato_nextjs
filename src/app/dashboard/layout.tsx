@@ -54,7 +54,7 @@ const iconMap = {
   management: User,
   hospital: Hospital,
   bell: Bell,
-  tag:Ticket,
+  tag: Ticket,
 };
 
 const renderIcon = (
@@ -177,18 +177,20 @@ export default function DashboardLayout({
 
   const menuItems = [
     { name: "Dashboard", path: "/dashboard/DashboardApp", icon: "dashboard", isActive: true },
+    { name: "New Dashboard", path: "/dashboard/NewDashboard", icon: "dashboard", isActive: true },
     { name: "Medicines", path: "/dashboard/medicines", icon: "medication", isActive: true },
     { name: "Categories", path: "/dashboard/categories", icon: "category", isActive: true },
     { name: "Subcategories", path: "/dashboard/subcategories", icon: "folder", isActive: true },
     { name: "Orders", path: "/dashboard/orders", icon: "receipt_long", isActive: true },
     { name: "Customers", path: "/dashboard/admin/customers", icon: "person", isActive: true },
     { name: "Coupons", path: "/dashboard/coupon", icon: "tag", isActive: true },
-    { name: "Send Notifications", path: "/dashboard/notifications", icon: "bell", 
+    {
+      name: "Send Notifications", path: "/dashboard/notifications", icon: "bell",
       isActive: true,
-      
+
       // superAdminOnly: true 
-    
-    }, 
+
+    },
     { name: "Stores", path: "/dashboard/store", icon: "store", isActive: true },
     { name: "Banner Management", path: "/dashboard/banner-images", icon: "image", isActive: true },
     { name: "Sync Management", path: "/dashboard/marg", icon: "hospital", isActive: true },
