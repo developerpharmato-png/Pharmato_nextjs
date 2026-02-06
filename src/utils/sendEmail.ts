@@ -51,17 +51,11 @@ export async function sendEmail({
   const transporter = nodemailer.createTransport({
     host: "smtp.zeptomail.in",
     port: 587,
-    secure: false, // ❗ important
+    // secure: false, // ❗ important
     auth: {
       user: "emailapikey",
       pass: "PHtE6r0IEbjo2jQro0cHsfOwRZKkPIl89O00LQFDs48RCfcKSk0G+Nl9k2C2qkouUvlGR6SYnN9pubua4rmALD3pZz4fXmqyqK3sx/VYSPOZsbq6x00bs1oTckzYV4/petVs0STevNncNA==",
-    },
-    tls: {
-      rejectUnauthorized: false,
-    },
-    connectionTimeout: 60 * 1000, // 60 seconds
-    greetingTimeout: 30 * 1000,
-    socketTimeout: 60 * 1000
+    }
   });
 
 
