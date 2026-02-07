@@ -3,34 +3,60 @@ import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import Admin from '@/models/Admin';
 import axios from "axios";
+import crypto from 'crypto';
+import pako from 'pako';
+import moment from "moment-timezone";
 import CryptoJS from "crypto-js";
-
 const MARG_KEY = "48TPI07W1R2S";
+
 function decryptMargData(cipherText: string) {
+  try {
     const key = CryptoJS.enc.Utf8.parse(MARG_KEY);
 
-    const bytes = CryptoJS.AES.decrypt(cipherText, key, {
-        mode: CryptoJS.mode.ECB,
-        padding: CryptoJS.pad.Pkcs7
+    const decrypted = CryptoJS.AES.decrypt(cipherText, key, {
+      mode: CryptoJS.mode.ECB,
+      padding: CryptoJS.pad.Pkcs7
     });
 
-    const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+    // WordArray → Buffer
+    const buffer = Buffer.from(
+      decrypted.words.flatMap(word => [
+        (word >> 24) & 0xff,
+        (word >> 16) & 0xff,
+        (word >> 8) & 0xff,
+        word & 0xff
+      ]).slice(0, decrypted.sigBytes)
+    );
 
-    console.log("🔓 DECRYPTED TEXT:", decrypted);
+    // Marg response is UTF-16LE
+    const text = buffer.toString("utf16le").trim();
 
-    if (!decrypted || !decrypted.trim().startsWith("{")) {
-        return {
-            ok: false,
-            reason: "MARG_REJECTED_REQUEST",
-            raw: cipherText
-        };
+    console.log("🔓 DECRYPTED TEXT:", text);
+
+    if (!text) {
+      return { ok: false, reason: "EMPTY_RESPONSE" };
     }
 
+    if (text.startsWith("{")) {
+      return { ok: true, data: JSON.parse(text) };
+    }
+
+    // Marg business error
     return {
-        ok: true,
-        text: decrypted
+      ok: false,
+      reason: "MARG_ERROR",
+      message: text
     };
+
+  } catch (err: any) {
+    return {
+      ok: false,
+      reason: "DECRYPT_FAILED",
+      error: err.message
+    };
+  }
 }
+
 
 /**
  * @swagger
@@ -61,13 +87,14 @@ export async function POST(request: NextRequest) {
     const payload = {
         OrderID: `SB-${Date.now()}`,
         OrderNo: "0",
-        Partycode: "1061660",
-        CustomerID: "187711744",
+        // Partycode: "11906405", //General 
+        Partycode: "12324265", //Online order
+        CustomerID: "306832",
         MargID: "486257",
-        Type: "S",
-        Sid: "161613",
+        Type: "C",
+        Sid: "306832",
 
-        ProductCode: "1061660",   // ✅ EXACT as Marg sample
+        ProductCode: "1061746",   // ✅ EXACT as Marg sample
         Quantity: "1",
         Free: "0",
 
@@ -78,7 +105,7 @@ export async function POST(request: NextRequest) {
         UserType: "1",
         Points: "0.00",
 
-        Discounts: "0",
+        Discounts: "1",
         Transport: "",
         Delivery: "",
 
@@ -99,8 +126,8 @@ export async function POST(request: NextRequest) {
         CustName: "Sonu",
         CustMobile: "7470376772",
 
-        DoctorName: "DR.BHATT",
-        DoctorMobile: "9015030736",
+        DoctorName: "",
+        DoctorMobile: "",
 
         CompanyCode: "PharmatoInd2",
         OrderFrom: "PharmatoInd2"
@@ -114,30 +141,19 @@ export async function POST(request: NextRequest) {
 
     console.log("📥 RAW:", response.data);
 
-    const result : any = decryptMargData(response.data);
+
+    const encryptedResponse = response.data;
+
+    const result = decryptMargData(encryptedResponse);
 
     if (!result.ok) {
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Marg rejected order (master / mapping issue)",
-                debug: result
-            },
-            { status: 400 }
-        );
+        console.log("❌ Marg Error:", result);
+        return NextResponse.json(result, { status: 400 });
     }
 
-    let json;
-    try {
-        json = JSON.parse(result.text);
-    } catch {
-        return NextResponse.json({
-            success: false,
-            message: "Marg success but non-JSON response",
-            raw: result.text
-        });
-    }
-
-    return NextResponse.json({ success: true, data: json });
+    return NextResponse.json({
+        success: true,
+        data: result.data
+    });
 
 }

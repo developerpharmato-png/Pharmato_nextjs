@@ -50,14 +50,32 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const limit = typeof body.limit === 'number' && body.limit > 0 ? body.limit : 10;
-    const offsetData = typeof body.offset === 'number' && body.offset >= 0 ? body.offset : 0;    
+    const offsetData = typeof body.offset === 'number' && body.offset >= 0 ? body.offset : 0;
     const offset = (Number(offsetData) - 1) * limit;
 
-    const margList : any[] = await Marg.find({})
+    // const margList: any[] = await Marg.find({})
+    //     .sort({ createdAt: -1 })
+    //     .skip(offset)
+    //     .limit(limit)
+    //     .lean();
+
+    const margList = await Marg.find({})
+        .select({
+            _id: 0,
+            margGetDataCount: 1,
+            margInsertDataCount: 1,
+            margUpdateDataCount: 1,
+            status: 1,
+            type: 1,
+            margInsertData: 1,
+            createdAt: 1,
+            updatedAt: 1
+        })
         .sort({ createdAt: -1 })
         .skip(offset)
         .limit(limit)
         .lean();
+
 
     for (const marg of margList) {
         if (marg.createdAt) {
@@ -80,7 +98,7 @@ export async function POST(req: NextRequest) {
         limit,
         offset,
         totalCount,
-        lastSyncDateTime : margList[0].createdAt
+        lastSyncDateTime: margList[0].createdAt
     });
 }
 

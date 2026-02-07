@@ -140,7 +140,8 @@ async function importMedicinesFromMarg() {
 
     // console.log("&&&&&&&&&&&&&&lastSyncDateTime&&&&&&&&&&&&&",lastSyncDateTime);
 
-    const url = 'https://wservices.margcompusoft.com/api/eOnlineData/MargMST2017';
+    // const url = 'https://wservices.margcompusoft.com/api/eOnlineData/MargMST2017';
+    const url = 'https://corporate.margerp.com/api/eOnlineData/MargMST2017';
     const key = '48TPI07W1R2S';
     const payload = {
       CompanyCode: 'PharmatoInd2',
@@ -154,6 +155,7 @@ async function importMedicinesFromMarg() {
     });
 
     const encryptedResponse = response.data;
+    // console.log("encryptedResponse", encryptedResponse);
     const decrypted = decryptAES(encryptedResponse, key);
     const inflated = gzinflate(decrypted.toString());
     const jsonData = safeJSONParse(inflated);
@@ -169,7 +171,7 @@ async function importMedicinesFromMarg() {
     const bulkOps: any[] = [];
     let data: any[] = [];
 
-    console.log("$$$$$$$$$jsonData$$$$$$$$$$$$", jsonData);
+    // console.log("$$$$$$$$$jsonData$$$$$$$$$$$$", jsonData);
 
     const createMarg = await Marg.create({
       margGetDataCount: products.length + products_pro_S.length + products_pro_R.length,
@@ -178,7 +180,8 @@ async function importMedicinesFromMarg() {
       status: 'Sync Started',
       type: 'Sync Marg Data',
       dateTime: moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss"),
-      margInsertData: []
+      margInsertData: [],
+      jsonData: jsonData
     });
 
     let medCount = await Medicine.countDocuments();
