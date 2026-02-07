@@ -194,15 +194,15 @@ export default function DashboardLayout({
     { name: "Stores", path: "/dashboard/store", icon: "store", isActive: true },
     { name: "Banner Management", path: "/dashboard/banner-images", icon: "image", isActive: true },
     { name: "Sync Management", path: "/dashboard/marg", icon: "hospital", isActive: true },
-    {
-      name: "Data Analytics",
-      icon: "dashboard",
-      isActive: true,
-      children: [
-        { name: "Product Analytics", path: "/dashboard/data-analytics/products", icon: "medication", isActive: true },
-        { name: "Order Analytics", path: "/dashboard/data-analytics/orders", icon: "receipt_long", isActive: true },
-      ],
-    },
+    // {
+    //   name: "Data Analytics",
+    //   icon: "dashboard",
+    //   isActive: true,
+    //   children: [
+    //     { name: "Product Analytics", path: "/dashboard/data-analytics/products", icon: "medication", isActive: true },
+    //     { name: "Order Analytics", path: "/dashboard/data-analytics/orders", icon: "receipt_long", isActive: true },
+    //   ],
+    // },
     {
       name: "Settings & Policies",
       icon: "folder",
