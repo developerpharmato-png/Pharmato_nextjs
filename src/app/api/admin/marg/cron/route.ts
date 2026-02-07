@@ -318,8 +318,7 @@ async function importMedicinesFromMarg() {
       margUpdateDataCount: updateCount,
       status: 'Completed',
       type: 'Sync Marg Data',
-      margInsertData: data,
-      jsonData: jsonData
+      margInsertData: data
     });
 
   } catch (err) {
