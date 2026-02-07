@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
 
     let message = 'Cart Updated';
     if (typeof quantity === 'number' && quantity < 0) {
-        message = 'Removed from Cart';
+        message = 'Cart Updated';
     } else if (typeof quantity === 'number' && quantity > 0) {
         message = cart ? 'Cart Updated' : 'Cart Updated';
     }

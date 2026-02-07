@@ -7,51 +7,67 @@ import crypto from 'crypto';
 import pako from 'pako';
 import moment from "moment-timezone";
 import CryptoJS from "crypto-js";
+import zlib from "zlib";
+
 const MARG_KEY = "48TPI07W1R2S";
 
-function decryptMargData(cipherText: string) {
-  try {
-    const key = CryptoJS.enc.Utf8.parse(MARG_KEY);
+export function decryptMargData(cipherText: string) {
 
-    const decrypted = CryptoJS.AES.decrypt(cipherText, key, {
-      mode: CryptoJS.mode.ECB,
-      padding: CryptoJS.pad.Pkcs7
-    });
-
-    // WordArray → Buffer
-    const buffer = Buffer.from(
-      decrypted.words.flatMap(word => [
-        (word >> 24) & 0xff,
-        (word >> 16) & 0xff,
-        (word >> 8) & 0xff,
-        word & 0xff
-      ]).slice(0, decrypted.sigBytes)
-    );
-
-    // Marg response is UTF-16LE
-    const text = buffer.toString("utf16le").trim();
-
-    console.log("🔓 DECRYPTED TEXT:", text);
-
-    if (!text) {
-      return { ok: false, reason: "EMPTY_RESPONSE" };
-    }
-
-    if (text.startsWith("{")) {
-      return { ok: true, data: JSON.parse(text) };
-    }
-
-    // Marg business error
+  // 🔴 C# reference se PROVEN:
+  // Short response = NOT encrypted (ACK)
+  if (!cipherText || cipherText.length < 150) {
     return {
-      ok: false,
-      reason: "MARG_ERROR",
-      message: text
+      ok: true,
+      data: {
+        status: "ACK",
+        message: "Order accepted by Marg"
+      }
+    };
+  }
+
+  try {
+    // Step 1️⃣ Base64 decode (Convert.FromBase64String)
+    const encryptedData = Buffer.from(cipherText, "base64");
+
+    // Step 2️⃣ KeyBytes (exact C# logic)
+    const keyBytes = Buffer.alloc(16);
+    Buffer.from(MARG_KEY, "utf8").copy(keyBytes);
+
+    const ivBytes = keyBytes; // C# me IV = Key
+
+    // Step 3️⃣ AES-128-CBC decrypt
+    const decipher = crypto.createDecipheriv(
+      "aes-128-cbc",
+      keyBytes,
+      ivBytes
+    );
+    decipher.setAutoPadding(true);
+
+    const decryptedBytes = Buffer.concat([
+      decipher.update(encryptedData),
+      decipher.final()
+    ]);
+
+    // Step 4️⃣ UTF8 string (Encoding.UTF8.GetString)
+    const decryptedText = decryptedBytes.toString("utf8");
+
+    // Step 5️⃣ Base64 decode (Convert.FromBase64String)
+    const compressedBytes = Buffer.from(decryptedText, "base64");
+
+    // Step 6️⃣ DeflateStream decompress
+    const output = zlib.inflateRawSync(compressedBytes);
+
+    const finalText = output.toString("utf8").trim();
+
+    return {
+      ok: true,
+      data: JSON.parse(finalText)
     };
 
   } catch (err: any) {
     return {
       ok: false,
-      reason: "DECRYPT_FAILED",
+      reason: "MARG_DECRYPT_FAIL",
       error: err.message
     };
   }
@@ -85,13 +101,14 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const payload = {
-        OrderID: `SB-${Date.now()}`,
-        OrderNo: "0",
-        // Partycode: "11906405", //General 
-        Partycode: "12324265", //Online order
-        CustomerID: "306832",
+        OrderID: "",
+        OrderNo: `SB-${Date.now()}`,
+        // Partycode: "STACjn", //Online order
+        // CustomerID: "11906405",
+        Partycode: "APP   ", //Online order
+        CustomerID: "12324265",
         MargID: "486257",
-        Type: "C",
+        Type: "S",
         Sid: "306832",
 
         ProductCode: "1061746",   // ✅ EXACT as Marg sample
@@ -141,10 +158,9 @@ export async function POST(request: NextRequest) {
 
     console.log("📥 RAW:", response.data);
 
+    const result = decryptMargData(response.data);
 
-    const encryptedResponse = response.data;
-
-    const result = decryptMargData(encryptedResponse);
+    console.log("$$$$$$$$$$$result$$$$$$$$$$$$$$", result);
 
     if (!result.ok) {
         console.log("❌ Marg Error:", result);

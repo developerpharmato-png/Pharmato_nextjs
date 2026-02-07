@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
             } else {
                 // Negative quantity on empty cart -> create empty cart so downstream flows work
                 cart = await GuestCart.create({ guestId, storeId, items: [] });
-                message = 'Removed from Cart';
+                message = 'Cart Updated';
             }
         } else {
             const idx = cart.items.findIndex((item: any) => item.medicineId.toString() === medicineId);
@@ -95,15 +95,15 @@ export async function POST(request: NextRequest) {
                 cart.items[idx].quantity += quantity;
                 if (cart.items[idx].quantity <= 0) {
                     cart.items.splice(idx, 1);
-                    message = 'Removed from Cart';
+                    message = 'Cart Updated';
                 } else {
-                    message = quantity > 0 ? 'Cart Updated' : 'Removed from Cart';
+                    message = quantity > 0 ? 'Cart Updated' : 'Cart Updated';
                 }
             } else if (quantity > 0) {
                 cart.items.push({ medicineId, quantity });
                 message = 'Cart Updated';
             } else {
-                message = 'Removed from Cart';
+                message = 'Cart Updated';
             }
             await cart.save();
         }

@@ -74,10 +74,16 @@ export async function GET() {
             };
         }));
     }
+    const filteredImages = images.filter(
+        item => item.medicineCount > 0
+    );
+
+    // console.log("$$$$$$$filteredImages$$$$$$$$", filteredImages);
+
     return NextResponse.json({
         success: true,
         message: 'Banner images fetched successfully',
-        images: images.map(img => ({
+        images: filteredImages.map(img => ({
             ...img,
             categoryName: img.categoryName || ''
         }))

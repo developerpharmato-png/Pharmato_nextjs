@@ -93,7 +93,6 @@ function calculateDiscount(mrp?: number, price?: number) {
   return 0;
 }
 
-
 /**
  * @swagger
  * /api/admin/marg/cron:
@@ -116,7 +115,6 @@ function calculateDiscount(mrp?: number, price?: number) {
  *       500:
  *         description: Internal server error
  */
-
 
 
 // 👇👇 YAHI BANAO (API ke upar ya niche, dono chalega)
@@ -148,17 +146,23 @@ async function importMedicinesFromMarg() {
       MargID: 486257,
       Datetime: `${lastSyncDateTime}`,
       // Datetime: `2026-02-06 19:30:17`, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
+      // Datetime: ``, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
       index: 0
     };
     const response = await axios.post(url, payload, {
       headers: { 'Content-Type': 'application/json' }
     });
 
+    // console.log("response", response);
+
     const encryptedResponse = response.data;
     // console.log("encryptedResponse", encryptedResponse);
     const decrypted = decryptAES(encryptedResponse, key);
+    // console.log("decrypted", decrypted);
     const inflated = gzinflate(decrypted.toString());
+    // console.log("inflated", inflated);
     const jsonData = safeJSONParse(inflated);
+    // console.log("jsonData", jsonData);
     const products_pro_N = jsonData?.Details?.pro_N || [];
     const products_pro_U = jsonData?.Details?.pro_U || [];
     const products_pro_S = jsonData?.Details?.pro_S || [];
@@ -322,15 +326,14 @@ async function importMedicinesFromMarg() {
     });
 
   } catch (err) {
-    console.error(err);
+    console.log("Error in Marg import cron:", err);
   }
 }
 
 // 👇👇 API HANDLER
 export async function POST(request: NextRequest) {
 
-  // response pehle
-  const response = NextResponse.json({
+  const response = await NextResponse.json({
     success: true,
     message: 'Marg data Import started'
   });
@@ -341,4 +344,5 @@ export async function POST(request: NextRequest) {
   });
 
   return response;
+
 }
