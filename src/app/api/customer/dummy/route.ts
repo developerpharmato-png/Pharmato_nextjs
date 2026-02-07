@@ -2,7 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import Admin from '@/models/Admin';
+import axios from "axios";
+import CryptoJS from "crypto-js";
 
+const MARG_KEY = "48TPI07W1R2S";
+function decryptMargData(cipherText: string) {
+    const key = CryptoJS.enc.Utf8.parse(MARG_KEY);
+
+    const bytes = CryptoJS.AES.decrypt(cipherText, key, {
+        mode: CryptoJS.mode.ECB,
+        padding: CryptoJS.pad.Pkcs7
+    });
+
+    const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+
+    console.log("🔓 DECRYPTED TEXT:", decrypted);
+
+    if (!decrypted || !decrypted.trim().startsWith("{")) {
+        return {
+            ok: false,
+            reason: "MARG_REJECTED_REQUEST",
+            raw: cipherText
+        };
+    }
+
+    return {
+        ok: true,
+        text: decrypted
+    };
+}
 
 /**
  * @swagger
@@ -30,26 +58,86 @@ import Admin from '@/models/Admin';
 export async function POST(request: NextRequest) {
     await connectDB();
 
-    // await User.updateMany(
-    //     {},                 // 🔥 saare documents
-    //     {
-    //         $set: {
-    //             deviceToken: ""
-    //         }
-    //     }
-    // )
+    const payload = {
+        OrderID: `SB-${Date.now()}`,
+        OrderNo: "0",
+        Partycode: "1061660",
+        CustomerID: "187711744",
+        MargID: "486257",
+        Type: "S",
+        Sid: "161613",
 
-    // await Admin.updateMany(
-    //     {},                 // 🔥 saare documents
-    //     {
-    //         $set: {
-    //             deviceToken: ""
-    //         }
-    //     }
-    // )
+        ProductCode: "1061660",   // ✅ EXACT as Marg sample
+        Quantity: "1",
+        Free: "0",
 
-    
+        Lat: "",
+        Lng: "",
+        Address: "",
+        GpsID: "0",
+        UserType: "1",
+        Points: "0.00",
 
+        Discounts: "0",
+        Transport: "",
+        Delivery: "",
 
-    return NextResponse.json({ success: true, message: 'Dummy endpoint executed successfully.' }, { status: 200 });
+        Bankname: "",
+        BankAdd1: "",
+        BankAdd2: "",
+
+        shipname: "",
+        shipAdd1: "",
+        shipAdd2: "",
+        shipAdd3: "",
+
+        paymentmode: "1",
+        paymentmodeAmount: "0",
+        payment_remarks: "",
+        order_remarks: "order place",
+
+        CustName: "Sonu",
+        CustMobile: "7470376772",
+
+        DoctorName: "DR.BHATT",
+        DoctorMobile: "9015030736",
+
+        CompanyCode: "PharmatoInd2",
+        OrderFrom: "PharmatoInd2"
+    };
+
+    const response = await axios.post(
+        "https://corporate.margerp.com/api/eOnlineData/InsertOrderDetailB2C",
+        payload,
+        { headers: { "Content-Type": "application/json" } }
+    );
+
+    console.log("📥 RAW:", response.data);
+
+    const result : any = decryptMargData(response.data);
+
+    if (!result.ok) {
+        return NextResponse.json(
+            {
+                success: false,
+                message: "Marg rejected order (master / mapping issue)",
+                debug: result
+            },
+            { status: 400 }
+        );
+    }
+
+    let json;
+    try {
+        json = JSON.parse(result.text);
+    } catch {
+        return NextResponse.json({
+            success: false,
+            message: "Marg success but non-JSON response",
+            raw: result.text
+        });
+    }
+
+    return NextResponse.json({ success: true, data: json });
+
 }
