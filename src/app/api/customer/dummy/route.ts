@@ -73,7 +73,6 @@ export function decryptMargData(cipherText: string) {
   }
 }
 
-
 /**
  * @swagger
  * /api/customer/dummy:
@@ -103,8 +102,6 @@ export async function POST(request: NextRequest) {
     const payload = {
         OrderID: "",
         OrderNo: `SB-${Date.now()}`,
-        // Partycode: "STACjn", //Online order
-        // CustomerID: "11906405",
         Partycode: "APP", //Online order
         CustomerID: "12324265",//12324265
         MargID: "486257",
