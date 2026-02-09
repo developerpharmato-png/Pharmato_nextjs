@@ -98,7 +98,7 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
         <CustomTooltip title={row.order_id || "-"}>
           <span
             className="ID-List customTooltip"
-            onClick={() => router.push(`/dashboard/orders/detail/${row._id}?isCustomer=1`)}
+            onClick={() => router.push(`/dashboard/orders/detail/${row._id}/partial-cancel`)}
           >
             {row.order_id || "-"}
           </span>

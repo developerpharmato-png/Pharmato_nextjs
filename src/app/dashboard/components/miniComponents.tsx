@@ -5,6 +5,31 @@ import { Pagination, Navigation, Zoom } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import Tooltip, { tooltipClasses, TooltipProps } from "@mui/material/Tooltip";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+
+import CloseIcon from "@mui/icons-material/Close";
+import MobileStepper from "@mui/material/MobileStepper";
+import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
+import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
+import {
+  Box,
+  Typography,
+  useTheme,
+  useMediaQuery,
+  Fade,
+  Dialog,
+  DialogContent,
+  IconButton,
+  Backdrop,
+} from "@mui/material";
+import {
+  Download as DownloadIcon,
+  ZoomIn as ZoomInIcon,
+  ZoomOut as ZoomOutIcon,
+  ChevronLeft,
+  ChevronRight,
+} from "@mui/icons-material";
+
 interface ErrorMessageComProps {
   error: string;
 }
@@ -62,9 +87,10 @@ export const CustomButton = ({
       disabled={disabled}
       style={buttonStyle}
       className={`relative cursor-pointer overflow-hidden px-8 py-2 rounded-xl font-semibold text-white shadow-lg 
-        ${disabled
-          ? "bg-gray-400 cursor-not-allowed"
-          : "bg-(--primary) hover:bg-(--primary)"
+        ${
+          disabled
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-(--primary) hover:bg-(--primary)"
         } 
         transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-(--primary) focus:ring-offset-2 group
         ${className}`}
@@ -91,8 +117,8 @@ export const CustomTooltip = styled(
     <Tooltip {...props} arrow classes={{ popper: className }}>
       {children}
     </Tooltip>
-  )
-)(({ }) => ({
+  ),
+)(({}) => ({
   [`& .${tooltipClasses.tooltip}`]: {
     backgroundColor: "var(--primary)",
     color: "var(--color-white)",
@@ -128,22 +154,12 @@ export const CustomCloseButton: React.FC<{
   );
 };
 
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
-import IconButton from "@mui/material/IconButton";
-import CloseIcon from "@mui/icons-material/Close";
-import MobileStepper from "@mui/material/MobileStepper";
-import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
-import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
-import { Box, Typography } from "@mui/material";
-
 interface CustomImageProps {
   coverImage: string;
   images?: string[];
   alt?: string;
   style?: React.CSSProperties;
 }
-
 
 // Import Swiper styles
 import "swiper/css";
@@ -166,15 +182,29 @@ export const CustomImage: React.FC<CustomImageProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
 
-  const handleOpen = (e: React.MouseEvent, index: number) => {
+  const handleOpen = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (images.length > 0) {
-      // Find the index of the clicked image if it exists in the array
       const targetIndex = images.indexOf(coverImage);
       setCurrentIndex(targetIndex !== -1 ? targetIndex : 0);
       setOpen(true);
     }
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handlePrevious = () => {
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
   const downloadImage = () => {
@@ -187,83 +217,335 @@ export const CustomImage: React.FC<CustomImageProps> = ({
     link.remove();
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowLeft") handlePrevious();
+    if (e.key === "ArrowRight") handleNext();
+    if (e.key === "Escape") handleClose();
+  };
+
   return (
-    <> 
+    <>
       {/* Trigger Image */}
-      <img
-        src={coverImage}
-        alt={alt}
-        style={{ ...style, cursor: images.length > 0 ? "zoom-in" : "default" }}
-        onClick={(e) => handleOpen(e, 0)}
-        className="transition-all duration-300 hover:brightness-90 rounded-lg"
-      />
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+          height: "100%",
+          overflow: "hidden",
+        }}
+      >
+        <Box
+          component="img"
+          src={coverImage}
+          alt={alt}
+          sx={{
+            ...style,
+            cursor: images.length > 0 ? "zoom-in" : "default",
+            borderRadius: 2,
+            transition: "all 0.3s ease",
+            objectFit: "contain",
+            maxWidth: "100%",
+            maxHeight: "100%",
+            width: "auto",
+            height: "auto",
+            imageRendering: "crisp-edges",
+            WebkitFontSmoothing: "antialiased",
+            backfaceVisibility: "hidden",
+            "&:hover": {
+              filter: images.length > 0 ? "brightness(0.9)" : "none",
+              transform: images.length > 0 ? "scale(1.02)" : "none",
+            },
+          }}
+          onClick={handleOpen}
+        />
+      </Box>
 
-      {open && (
-        <>
-          <div className="fixed inset-0 z-[1000] w-[90vw] h-[90vh]  flex items-center justify-center m-auto bg-white backdrop-blur-sm p-4">
-            <div className="flex flex-col">
-              <div className="absolute top-0 left-0 w-full p-5 flex justify-between items-center to-transparent">
-                <span className="text-gray-400 font-medium">
-                  {currentIndex + 1} / {images.length}
-                </span>
-                <div className="flex gap-4">
-                  <button onClick={() => setOpen(false)} className="text-gray-400  hover:text-red-400 transition-colors" title="Close">
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                  </button>
-                </div>
-              </div>
+      {/* Gallery Dialog */}
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        maxWidth={false}
+        fullScreen
+        TransitionComponent={Fade}
+        onKeyDown={handleKeyPress}
+        PaperProps={{
+          sx: {
+            backgroundColor: "rgba(0, 0, 0, 0.95)",
+            backgroundImage: "none",
+          },
+        }}
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          sx: {
+            backgroundColor: "rgba(0, 0, 0, 0.9)",
+          },
+        }}
+      >
+        <DialogContent
+          sx={{
+            p: 0,
+            display: "flex",
+            flexDirection: "column",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Header */}
+          <Box
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 1300,
+              background:
+                "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              p: { xs: 1, sm: 2 },
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{
+                color: "rgba(255, 255, 255, 0.9)",
+                fontWeight: 500,
+                ml: 1,
+                fontSize: { xs: "0.875rem", sm: "1rem" },
+              }}
+            >
+              {currentIndex + 1} / {images.length}
+            </Typography>
 
-            
-              <div className="w-full h-full flex flex-col items-center justify-center p-4">
-                <Swiper
-                  modules={[Pagination, Zoom, Navigation]}
-                  initialSlide={currentIndex}
-                  zoom={{ maxRatio: 3, minRatio: 1, toggle: true }}
-                  navigation={true}
-                  pagination={{ clickable: true, type: 'bullets' }}
-                  grabCursor={true}
-                  simulateTouch={true}
-                  onSlideChange={(swiper) => setCurrentIndex(swiper.activeIndex)}
-                  className="w-full h-full max-w-5xl"
-                  style={{
-                    // Customizing Swiper Arrow Colors via CSS Variables
-                    // @ts-ignore
-                    "--swiper-navigation-color": "#fff",
-                    "--swiper-pagination-color": "#fff",
+            <Box sx={{ display: "flex", gap: { xs: 0.5, sm: 1 } }}>
+              <IconButton
+                onClick={handleClose}
+                sx={{
+                  color: "white",
+                  "&:hover": { color: "#ef4444" },
+                }}
+                size={isMobile ? "small" : "medium"}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </Box>
+
+          {/* Main Image Area with Zoom */}
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "relative",
+              width: "100%",
+              height: "100%",
+            }}
+          >
+            <TransformWrapper
+              initialScale={1}
+              minScale={0.5}
+              maxScale={4}
+              centerOnInit
+              wheel={{ step: 0.1 }}
+              doubleClick={{ mode: "toggle", step: 0.7 }}
+              panning={{ velocityDisabled: true }}
+            >
+              {({ zoomIn, zoomOut, resetTransform }) => (
+                <>
+                  <TransformComponent
+                    wrapperStyle={{
+                      width: "100%",
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                    contentStyle={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "100%",
+                      height: "100%",
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={images[currentIndex]}
+                      alt={`Image ${currentIndex + 1}`}
+                      draggable={false}
+                      sx={{
+                        maxWidth: "100%",
+                        maxHeight: "100vh",
+                        objectFit: "contain",
+                        userSelect: "none",
+                        pointerEvents: "auto",
+                        margin: "auto",
+                        display: "block",
+                        imageRendering: "crisp-edges",
+                        WebkitFontSmoothing: "antialiased",
+                        backfaceVisibility: "hidden",
+                      }}
+                    />
+                  </TransformComponent>
+
+                  {/* Zoom Controls */}
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      bottom: { xs: 80, sm: 100 },
+                      right: { xs: 16, sm: 24 },
+                      zIndex: 1300,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1,
+                      backgroundColor: "rgba(0, 0, 0, 0.6)",
+                      borderRadius: 2,
+                      p: 0.5,
+                      backdropFilter: "blur(10px)",
+                    }}
+                  >
+                    <IconButton
+                      onClick={() => zoomIn()}
+                      sx={{ color: "white" }}
+                      size={isMobile ? "small" : "medium"}
+                    >
+                      <ZoomInIcon />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => resetTransform()}
+                      sx={{ color: "white", fontSize: "0.875rem" }}
+                      size={isMobile ? "small" : "medium"}
+                    >
+                      1:1
+                    </IconButton>
+                    <IconButton
+                      onClick={() => zoomOut()}
+                      sx={{ color: "white" }}
+                      size={isMobile ? "small" : "medium"}
+                    >
+                      <ZoomOutIcon />
+                    </IconButton>
+                  </Box>
+                </>
+              )}
+            </TransformWrapper>
+
+            {/* Navigation Arrows */}
+            {images.length > 1 && (
+              <>
+                <IconButton
+                  onClick={handlePrevious}
+                  sx={{
+                    position: "absolute",
+                    left: { xs: 8, sm: 24 },
+                    zIndex: 1300,
+                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                    color: "white",
+                    "&:hover": {
+                      backgroundColor: "rgba(0, 0, 0, 0.7)",
+                      transform: "scale(1.1)",
+                    },
+                    transition: "all 0.2s",
                   }}
+                  size={isMobile ? "medium" : "large"}
                 >
-                  {images.map((url, index) => (
-                    <SwiperSlide key={index} className="flex items-center justify-center">
-                        <div className="swiper-zoom-container cursor-grab">
-                          <img
-                            src={url}
-                            alt={`Slide ${index}`}
-                            draggable={false}
-                            style={{ userSelect: "none" }}
-                            className="max-h-[85vh] w-auto object-contain pointer-events-auto"
-                          />
-                        </div>
-                    </SwiperSlide>
-                  ))}
-                </Swiper>
+                  <ChevronLeft fontSize="large" />
+                </IconButton>
 
-                <div className="absolute bottom-8 text-gray-500 text-xs hidden md:block text-center">
-                   Double Click to Zoom 
-                </div>
-              </div>
-            </div>
+                <IconButton
+                  onClick={handleNext}
+                  sx={{
+                    position: "absolute",
+                    right: { xs: 8, sm: 24 },
+                    zIndex: 1300,
+                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                    color: "white",
+                    "&:hover": {
+                      backgroundColor: "rgba(0, 0, 0, 0.7)",
+                      transform: "scale(1.1)",
+                    },
+                    transition: "all 0.2s",
+                  }}
+                  size={isMobile ? "medium" : "large"}
+                >
+                  <ChevronRight fontSize="large" />
+                </IconButton>
+              </>
+            )}
+          </Box>
 
-          </div>
-        </>
-      )}
+          {/* Thumbnail Strip */}
+          {images.length > 1 && !isMobile && (
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                zIndex: 1300,
+                background:
+                  "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)",
+                p: 2,
+                display: "flex",
+                justifyContent: "center",
+                gap: 1,
+                overflowX: "auto",
+                "&::-webkit-scrollbar": {
+                  height: 6,
+                },
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "rgba(255, 255, 255, 0.3)",
+                  borderRadius: 3,
+                },
+              }}
+            >
+              {images.map((url, index) => (
+                <Box
+                  key={index}
+                  component="img"
+                  src={url}
+                  alt={`Thumbnail ${index + 1}`}
+                  onClick={() => setCurrentIndex(index)}
+                  sx={{
+                    width: { sm: 60, md: 80 },
+                    height: { sm: 60, md: 80 },
+                    objectFit: "cover",
+                    cursor: "pointer",
+                    borderRadius: 1,
+                    border:
+                      currentIndex === index
+                        ? "2px solid"
+                        : "2px solid transparent",
+                    borderColor:
+                      currentIndex === index
+                        ? theme.palette.primary.main
+                        : "transparent",
+                    opacity: currentIndex === index ? 1 : 0.6,
+                    transition: "all 0.3s ease",
+                    imageRendering: "crisp-edges",
+                    WebkitFontSmoothing: "antialiased",
+                    "&:hover": {
+                      opacity: 1,
+                      transform: "scale(1.05)",
+                    },
+                  }}
+                />
+              ))}
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
-
-
-
-
-
 
 export const BackArrowIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -338,7 +620,6 @@ export function ModalHeader({ title, onClose }: ModalHeaderProps) {
         padding: "16px",
       }}
     >
-
       <Box
         sx={{
           display: "flex",
@@ -346,8 +627,6 @@ export function ModalHeader({ title, onClose }: ModalHeaderProps) {
           alignItems: "center",
 
           // New: Subtle background color and bottom margin for separation
-
-
         }}
       >
         <Typography
@@ -369,7 +648,6 @@ export function ModalHeader({ title, onClose }: ModalHeaderProps) {
           <CloseIcon />
         </IconButton>
       </Box>
-
     </Box>
   );
 }
@@ -396,8 +674,9 @@ export const StatusToggleButton: React.FC<StatusToggleButtonProps> = ({
       title={isActive ? "Click to deactivate" : "Click to activate"}
     >
       <span
-        className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${isActive ? "translate-x-6" : "translate-x-1"
-          }`}
+        className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
+          isActive ? "translate-x-6" : "translate-x-1"
+        }`}
       />
     </button>
   );
@@ -414,7 +693,9 @@ interface ConfirmStatusAlertComponentProps {
   children: React.ReactNode;
 }
 
-export const ConfirmStatusAlertComponent: React.FC<ConfirmStatusAlertComponentProps> = ({
+export const ConfirmStatusAlertComponent: React.FC<
+  ConfirmStatusAlertComponentProps
+> = ({
   isActive,
   title,
   text,
@@ -437,16 +718,5 @@ export const ConfirmStatusAlertComponent: React.FC<ConfirmStatusAlertComponentPr
     });
   };
 
-  return (
-    <div onClick={handleClick}>
-      {children}
-    </div>
-  );
+  return <div onClick={handleClick}>{children}</div>;
 };
-
-
-
-
-
-
-

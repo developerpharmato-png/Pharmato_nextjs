@@ -8,7 +8,10 @@ import { TextField, InputAdornment } from "@mui/material";
 import { Truck, Save } from "lucide-react";
 
 import HeaderWithAction from "@/app/dashboard/components/HeaderWithAction";
-import { CustomButton, ErrorMessageCom } from "@/app/dashboard/components/miniComponents";
+import {
+  CustomButton,
+  ErrorMessageCom,
+} from "@/app/dashboard/components/miniComponents";
 import { PaymentSettingsPath } from "@/app/dashboard/storeAPICall/API/BaseApi";
 import { PaymentSettingsStore } from "../storeAPICall/useUserStore";
 import SettingSkeleton from "../components/skeleton/SettingSkeleton";
@@ -56,9 +59,13 @@ export default function SettingsPage() {
       try {
         const list = await SettingsService.getSettings();
         if (!mounted) return;
-        const fee = (list || []).find((s: any) => s.type === 'deliveryFee');
-        const thresh = (list || []).find((s: any) => s.type === 'deliveryFeeThreshold');
-        const hours = (list || []).find((s: any) => s.type === 'expectedDeliveryHours');
+        const fee = (list || []).find((s: any) => s.type === "deliveryFee");
+        const thresh = (list || []).find(
+          (s: any) => s.type === "deliveryFeeThreshold",
+        );
+        const hours = (list || []).find(
+          (s: any) => s.type === "expectedDeliveryHours",
+        );
         setInitialValues({
           deliveryFee: fee ? String(fee.data) : "",
           deliveryFeeThreshold: thresh ? String(thresh.data) : "",
@@ -73,12 +80,16 @@ export default function SettingsPage() {
         if (mounted) setLoadingSettings(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const validationSchema = Yup.object({
-    deliveryFee: Yup.number().required("Mandatory field").min(0, "No negative values"),
-
+    deliveryFee: Yup.number()
+      .required("Mandatory field")
+      .min(0, "No negative values"),
+    deliveryFeeThreshold: Yup.number().min(0, "No negative values"),
     expectedDeliveryHours: Yup.number()
       .required("Mandatory field")
       .min(1, "Must be at least 1 hour")
@@ -107,15 +118,44 @@ export default function SettingsPage() {
               // prepare updates array with ids
               const updates: any[] = [];
               if (values.deliveryFeeId || values.deliveryFee !== undefined) {
-                updates.push({ _id: values.deliveryFeeId || undefined, type: 'deliveryFee', data: String(values.deliveryFee), data_value_in: 'number', description: 'delivery fee', is_active: 1 });
+                updates.push({
+                  _id: values.deliveryFeeId || undefined,
+                  type: "deliveryFee",
+                  data: String(values.deliveryFee),
+                  data_value_in: "number",
+                  description: "delivery fee",
+                  is_active: 1,
+                });
               }
-              if (values.deliveryFeeThresholdId || values.deliveryFeeThreshold !== undefined) {
-                updates.push({ _id: values.deliveryFeeThresholdId || undefined, type: 'deliveryFeeThreshold', data: String(values.deliveryFeeThreshold), data_value_in: 'number', description: 'free delivery threshold', is_active: 1 });
+              if (
+                values.deliveryFeeThresholdId ||
+                values.deliveryFeeThreshold !== undefined
+              ) {
+                updates.push({
+                  _id: values.deliveryFeeThresholdId || undefined,
+                  type: "deliveryFeeThreshold",
+                  data: String(values.deliveryFeeThreshold),
+                  data_value_in: "number",
+                  description: "free delivery threshold",
+                  is_active: 1,
+                });
               }
-              if (values.expectedDeliveryHoursId || values.expectedDeliveryHours !== undefined) {
-                updates.push({ _id: values.expectedDeliveryHoursId || undefined, type: 'expectedDeliveryHours', data: String(values.expectedDeliveryHours), data_value_in: 'number', description: 'expected delivery hours', is_active: 1 });
+              if (
+                values.expectedDeliveryHoursId ||
+                values.expectedDeliveryHours !== undefined
+              ) {
+                updates.push({
+                  _id: values.expectedDeliveryHoursId || undefined,
+                  type: "expectedDeliveryHours",
+                  data: String(values.expectedDeliveryHours),
+                  data_value_in: "number",
+                  description: "expected delivery hours",
+                  is_active: 1,
+                });
               }
-              const res = await SettingsService.saveSettings(postData, { updates });
+              const res = await SettingsService.saveSettings(postData, {
+                updates,
+              });
               Swal.fire({
                 toast: true,
                 position: "top-end",
@@ -124,7 +164,9 @@ export default function SettingsPage() {
                 showConfirmButton: false,
                 timer: 2000,
               });
-              try { clearData && clearData(); } catch (e) { }
+              try {
+                clearData && clearData();
+              } catch (e) {}
             } catch (e: any) {
               Swal.fire({
                 toast: true,
@@ -147,7 +189,9 @@ export default function SettingsPage() {
                     <Truck size={22} />
                     <h3 className="font-bold text-xl">Logistics</h3>
                   </div>
-                  <p className="text-sm text-gray-500 ml-1">Configure standard delivery fee and free delivery threshold.</p>
+                  <p className="text-sm text-gray-500 ml-1">
+                    Configure standard delivery fee and free delivery threshold.
+                  </p>
                 </div>
 
                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -158,13 +202,25 @@ export default function SettingsPage() {
                       type="number"
                       variant="outlined"
                       value={values.deliveryFee}
-                      onChange={handleChange}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Allow empty string and only non-negative values
+                        if (value === "" || parseFloat(value) >= 0) {
+                          handleChange(e);
+                        }
+                      }}
                       onBlur={handleBlur}
                       error={touched.deliveryFee && !!errors.deliveryFee}
-                      InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">₹</InputAdornment>
+                        ),
+                      }}
                       fullWidth
                     />
-                    {touched.deliveryFee && errors.deliveryFee && <ErrorMessageCom error={errors.deliveryFee} />}
+                    {touched.deliveryFee && errors.deliveryFee && (
+                      <ErrorMessageCom error={errors.deliveryFee} />
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-1">
@@ -174,13 +230,30 @@ export default function SettingsPage() {
                       type="number"
                       variant="outlined"
                       value={values.deliveryFeeThreshold}
-                      onChange={handleChange}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Allow empty string and only non-negative values
+                        if (value === "" || parseFloat(value) >= 0) {
+                          handleChange(e);
+                        }
+                      }}
                       onBlur={handleBlur}
-                      error={touched.deliveryFeeThreshold && !!errors.deliveryFeeThreshold}
-                      InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
+                      error={
+                        touched.deliveryFeeThreshold &&
+                        !!errors.deliveryFeeThreshold
+                      }
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">₹</InputAdornment>
+                        ),
+                      }}
+                      inputProps={{ min: "0", step: "0.01" }}
                       fullWidth
                     />
-                    {touched.deliveryFeeThreshold && errors.deliveryFeeThreshold && <ErrorMessageCom error={errors.deliveryFeeThreshold} />}
+                    {touched.deliveryFeeThreshold &&
+                      errors.deliveryFeeThreshold && (
+                        <ErrorMessageCom error={errors.deliveryFeeThreshold} />
+                      )}
                   </div>
 
                   <div className="flex flex-col gap-1">
@@ -190,14 +263,30 @@ export default function SettingsPage() {
                       type="number"
                       variant="outlined"
                       value={values.expectedDeliveryHours}
-                      onChange={handleChange}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Allow empty string and only non-negative values
+                        if (value === "" || parseFloat(value) >= 0) {
+                          handleChange(e);
+                        }
+                      }}
                       onBlur={handleBlur}
-                      error={touched.expectedDeliveryHours && !!errors.expectedDeliveryHours}
+                      error={
+                        touched.expectedDeliveryHours &&
+                        !!errors.expectedDeliveryHours
+                      }
                       inputProps={{ step: "1", min: "1", max: "24" }}
-                      InputProps={{ startAdornment: <InputAdornment position="start">hrs</InputAdornment> }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">hrs</InputAdornment>
+                        ),
+                      }}
                       fullWidth
                     />
-                    {touched.expectedDeliveryHours && errors.expectedDeliveryHours && <ErrorMessageCom error={errors.expectedDeliveryHours} />}
+                    {touched.expectedDeliveryHours &&
+                      errors.expectedDeliveryHours && (
+                        <ErrorMessageCom error={errors.expectedDeliveryHours} />
+                      )}
                   </div>
                 </div>
               </div>
@@ -212,7 +301,13 @@ export default function SettingsPage() {
                       disabled={loading}
                       className="flex items-center gap-2 px-10 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg transition-all"
                     >
-                      {loading ? "Processing..." : <><Save size={20} /> Update Settings</>}
+                      {loading ? (
+                        "Processing..."
+                      ) : (
+                        <>
+                          <Save size={20} /> Update Settings
+                        </>
+                      )}
                     </CustomButton>
                   </div>
                 </div>
