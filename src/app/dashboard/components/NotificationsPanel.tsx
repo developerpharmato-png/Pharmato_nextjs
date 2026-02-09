@@ -88,7 +88,7 @@ export default function NotificationsPanel({
     if (!item.isRead) await markAsRead(item._id);
     onClose();
     if (item.targetScreen) {
-      router.push(`/dashboard/orders/detail/${item.targetId}`);
+      router.push(`/dashboard/orders/detail/${item.targetId}/partial-cancel`);
     }
   };
 

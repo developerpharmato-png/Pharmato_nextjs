@@ -53,9 +53,9 @@ import { verifyJwt } from '@/utils/jwt';
 import authorize from '@/middleware/authorize';
 
 export async function GET(request: NextRequest) {
-    // authorize customer (checks Authorization header or access_token cookie)
-    const authRes = await authorize(request);
-    if (authRes) return authRes;
+  // authorize customer (checks Authorization header or access_token cookie)
+  const authRes = await authorize(request);
+  if (authRes) return authRes;
 
   try {
     await connectDB();
@@ -66,6 +66,8 @@ export async function GET(request: NextRequest) {
     const search = (rawSearch ? decodeURIComponent(rawSearch).replace(/\+/g, " ") : "").trim();
     const limit = parseInt(url.searchParams.get("limit") || "10", 10);
     const offset = parseInt(url.searchParams.get("offset") || "0", 10);
+    const medicineFilter = url.searchParams.get("medicineFilter") || "all";
+
     // Read and normalize query params: decode and convert '+' to spaces
     const rawCategoryId = url.searchParams.get("categoryId");
     const rawSubCategoryId = url.searchParams.get("subCategoryId");
@@ -83,6 +85,22 @@ export async function GET(request: NextRequest) {
       const isActiveParam = url.searchParams.get('isActive');
       if (isActiveParam === 'true') baseFilter.isActive = true;
       else if (isActiveParam === 'false') baseFilter.isActive = false;
+    }
+
+    // Apply medicine filter
+    if (medicineFilter === 'active') {
+      baseFilter.isActive = true;
+    } else if (medicineFilter === 'inactive') {
+      baseFilter.isActive = false;
+    } else if (medicineFilter === 'expired') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      baseFilter.expiryDate = { $lt: today };
+    } else if (medicineFilter === 'outofstock') {
+      baseFilter.$or = [
+        { stock: { $lte: 0 } },
+        { stock: { $exists: false } }
+      ];
     }
 
     if (categoryId && mongoose.Types.ObjectId.isValid(categoryId)) {
@@ -157,8 +175,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-    
-  
+
+
   try {
     await connectDB();
     const body = await request.json();

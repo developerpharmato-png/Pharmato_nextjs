@@ -1,8 +1,3 @@
-
-
-
-
-
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -12,15 +7,15 @@ import {
   SubcategoriesStore,
 } from "../storeAPICall/useUserStore";
 import { CategoriesPath, SubcategoriesPath } from "../storeAPICall/API/BaseApi";
-import { 
-  Box, 
-  FormControl, 
-  InputLabel, 
-  MenuItem, 
-  Select, 
-  TextField, 
-  InputAdornment, 
-  Button 
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  InputAdornment,
+  Button,
 } from "@mui/material";
 
 interface Category {
@@ -60,6 +55,9 @@ interface FilterSearchProps {
   setPrescriptionStatus?: (val: string) => void;
   orderStatus?: string;
   setOrderStatus?: (val: string) => void;
+  medicineFilterStatus?: string;
+  setMedicineFilterStatus?: (val: string) => void;
+  showMedicineFilter?: boolean;
   setPage?: (val: number) => void;
   dayFilter?: boolean;
   setDayFilter?: (val: string) => void;
@@ -86,6 +84,9 @@ export default function FilterSearch({
   setPrescriptionStatus,
   orderStatus = "all",
   setOrderStatus,
+  medicineFilterStatus = "all",
+  setMedicineFilterStatus,
+  showMedicineFilter = false,
   setPage,
   dayFilter = false,
   setExportEndDate,
@@ -98,12 +99,16 @@ export default function FilterSearch({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [subcategoryFilter, setSubcategoryFilter] = useState("all");
+  const [medicineFilter, setMedicineFilter] = useState<string>(
+    medicineFilterStatus || "all",
+  );
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
 
-  const { fetchData: fetchCategories, data: categoriesData } = CategoriesStore();
+  const { fetchData: fetchCategories, data: categoriesData } =
+    CategoriesStore();
   const { fetchData: fetchSubs, data: subsData } = SubcategoriesStore();
-console.log(categoryFilter,"categoryFilter");
+  console.log(categoryFilter, "categoryFilter");
 
   // --- LOGIC REMAINS UNCHANGED ---
   useEffect(() => {
@@ -115,14 +120,28 @@ console.log(categoryFilter,"categoryFilter");
         status: statusFilter !== "all" ? statusFilter : undefined,
         day: dayFilterValue !== "all" ? dayFilterValue : undefined,
         categoryId: categoryFilter !== "all" ? categoryFilter : undefined,
-        subCategoryId: subcategoryFilter !== "all" ? subcategoryFilter : undefined,
+        subCategoryId:
+          subcategoryFilter !== "all" ? subcategoryFilter : undefined,
       });
     }, debounceMs);
     return () => clearTimeout(handle);
-  }, [search, filterOTC, statusFilter, categoryFilter, subcategoryFilter, dayFilterValue, debounceMs, onChange, showApply]);
+  }, [
+    search,
+    filterOTC,
+    statusFilter,
+    categoryFilter,
+    subcategoryFilter,
+    dayFilterValue,
+    debounceMs,
+    onChange,
+    showApply,
+  ]);
 
   useEffect(() => {
-    const url = filterOTC !== "all" ? `${CategoriesPath}?isOTC=${filterOTC}` : CategoriesPath;
+    const url =
+      filterOTC !== "all"
+        ? `${CategoriesPath}?isOTC=${filterOTC}`
+        : CategoriesPath;
     fetchCategories({ url });
   }, [fetchCategories, filterOTC]);
 
@@ -137,7 +156,10 @@ console.log(categoryFilter,"categoryFilter");
   }, [categoriesData]);
 
   useEffect(() => {
-    const url = categoryFilter !== "all" ? `${SubcategoriesPath}?categoryId=${encodeURIComponent(categoryFilter)}` : SubcategoriesPath;
+    const url =
+      categoryFilter !== "all"
+        ? `${SubcategoriesPath}?categoryId=${encodeURIComponent(categoryFilter)}`
+        : SubcategoriesPath;
     fetchSubs({ url });
   }, [fetchSubs, categoryFilter]);
 
@@ -158,8 +180,10 @@ console.log(categoryFilter,"categoryFilter");
     setCategoryFilter("all");
     setSubcategoryFilter("all");
     setDayFilterValue("all");
+    setMedicineFilter("all");
     setPrescriptionStatus?.("all");
     setOrderStatus?.("all");
+    setMedicineFilterStatus?.("all");
     setPage?.(0);
     setDayFilter?.("all");
     if (!showApply) onChange?.({});
@@ -183,8 +207,16 @@ console.log(categoryFilter,"categoryFilter");
   const searchWidth = showOrderFilters ? 200 : 300;
 
   return (
-    <Box className={className} sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, mb: 2 }}>
-      
+    <Box
+      className={className}
+      sx={{
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        gap: 2,
+        mb: 2,
+      }}
+    >
       {/* Search Input */}
       {isSearchShow && (
         <TextField
@@ -192,7 +224,12 @@ console.log(categoryFilter,"categoryFilter");
           placeholder={placeholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          sx={{ ...controlStyle, flex: `0 0 ${searchWidth}px`, maxWidth: searchWidth, minWidth: searchWidth }}
+          sx={{
+            ...controlStyle,
+            flex: `0 0 ${searchWidth}px`,
+            maxWidth: searchWidth,
+            minWidth: searchWidth,
+          }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -233,7 +270,9 @@ console.log(categoryFilter,"categoryFilter");
           >
             <MenuItem value="all">All Categories</MenuItem>
             {categories.map((cat: any) => (
-              <MenuItem key={cat._id ?? cat.id} value={cat._id ?? cat.id}>{cat.name}</MenuItem>
+              <MenuItem key={cat._id ?? cat.id} value={cat._id ?? cat.id}>
+                {cat.name}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -250,7 +289,9 @@ console.log(categoryFilter,"categoryFilter");
           >
             <MenuItem value="all">All Subcategories</MenuItem>
             {subcategories.map((sub: any) => (
-              <MenuItem key={sub._id ?? sub.id} value={sub._id ?? sub.id}>{sub.name}</MenuItem>
+              <MenuItem key={sub._id ?? sub.id} value={sub._id ?? sub.id}>
+                {sub.name}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -296,6 +337,28 @@ console.log(categoryFilter,"categoryFilter");
             </Select>
           </FormControl>
         </>
+      )}
+
+      {/* Medicine Filter */}
+      {showMedicineFilter && (
+        <FormControl size="small" sx={controlStyle}>
+          <InputLabel>Medicine Filter</InputLabel>
+          <Select
+            value={medicineFilter}
+            label="Medicine Filter"
+            onChange={(e) => {
+              setMedicineFilter(e.target.value);
+              setMedicineFilterStatus?.(e.target.value);
+              setPage?.(0);
+            }}
+          >
+            <MenuItem value="all">All Medicines</MenuItem>
+            <MenuItem value="active">Active Medicines</MenuItem>
+            <MenuItem value="inactive">Inactive Medicines</MenuItem>
+            <MenuItem value="expired">Expired Medicines</MenuItem>
+            <MenuItem value="outofstock">Out of Stock Medicines</MenuItem>
+          </Select>
+        </FormControl>
       )}
 
       {/* Day Filter */}
@@ -347,7 +410,11 @@ console.log(categoryFilter,"categoryFilter");
             color: "gray",
             borderColor: "#d1d5db",
             textTransform: "none",
-            "&:hover": { borderColor: "green", color: "green", bgcolor: "#f0fff4" }
+            "&:hover": {
+              borderColor: "green",
+              color: "green",
+              bgcolor: "#f0fff4",
+            },
           }}
         >
           Clear

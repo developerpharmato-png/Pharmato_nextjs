@@ -12,6 +12,8 @@ export default function MedicinesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [subCategoryId, setSubCategoryId] = useState<string | null>(null);
+  const [medicineFilterStatus, setMedicineFilterStatus] =
+    useState<string>("all");
   const router = useRouter();
 
   const [exportLoading, setExportLoading] = useState(false);
@@ -67,7 +69,6 @@ export default function MedicinesPage() {
  "
         backLabel="Back"
         addLabel="Add "
-      
         showBack={false}
         showSearch={false}
         handleAdd={handleAdd}
@@ -99,6 +100,9 @@ export default function MedicinesPage() {
           isSearchShow={true}
           isShowCategory={true}
           isShowSub={true}
+          showMedicineFilter={true}
+          medicineFilterStatus={medicineFilterStatus}
+          setMedicineFilterStatus={setMedicineFilterStatus}
         />
       </div>
 
@@ -108,6 +112,7 @@ export default function MedicinesPage() {
           onSearchChange={setSearchTerm}
           categoryId={categoryId}
           subCategoryId={subCategoryId}
+          medicineFilterStatus={medicineFilterStatus}
           initialData={[]} // Added default empty array for initial data
           initialTotalCount={0} // Added default total count as 0
         />
