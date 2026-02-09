@@ -105,10 +105,10 @@ export async function POST(request: NextRequest) {
         OrderNo: `SB-${Date.now()}`,
         // Partycode: "STACjn", //Online order
         // CustomerID: "11906405",
-        Partycode: "APP   ", //Online order
-        CustomerID: "12324265",
+        Partycode: "APP", //Online order
+        CustomerID: "12324265",//12324265
         MargID: "486257",
-        Type: "S",
+        Type: "C",
         Sid: "306832",
 
         ProductCode: "1061746",   // ✅ EXACT as Marg sample
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
         payment_remarks: "",
         order_remarks: "order place",
 
-        CustName: "Sonu",
+        CustName: "Sunil",
         CustMobile: "7470376772",
 
         DoctorName: "",
