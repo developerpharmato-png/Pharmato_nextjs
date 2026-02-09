@@ -21,6 +21,9 @@
  *               deviceToken:
  *                 type: string
  *                 example: "device_token_123"
+ *               isNewUser:
+ *                 type: boolean
+ *                 example: false
  *     responses:
  *       200:
  *         description: Login successful
@@ -46,10 +49,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { signJwt } from '@/lib/jwt';
+import fs from 'fs';
+import path from 'path';
+import { sendPushNotificationWithData } from '@/utils/firebase.helper';
 
 export async function POST(request: NextRequest) {
     await connectDB();
-    const { userId, otp, deviceToken } = await request.json();
+    const { userId, otp, deviceToken, isNewUser } = await request.json();
     // Log deviceToken if sent in headers (case-insensitive key)
     try {
         const headerDeviceToken = request.headers.get('devicetoken') || request.headers.get('deviceToken') || request.headers.get('device-token');
@@ -85,16 +91,16 @@ export async function POST(request: NextRequest) {
     user.userBlockedTime = undefined;
     if (deviceToken) {
 
-         const checkDeviceToken = await User.find({ deviceToken: deviceToken });
+        const checkDeviceToken = await User.find({ deviceToken: deviceToken });
 
-         if (checkDeviceToken && checkDeviceToken.length > 0) {
+        if (checkDeviceToken && checkDeviceToken.length > 0) {
             for (const element of checkDeviceToken) {
 
                 element.deviceToken = "";
                 await element.save();
-                
+
             }
-         }
+        }
 
         user.deviceToken = deviceToken;
     } else {
@@ -105,5 +111,87 @@ export async function POST(request: NextRequest) {
     const refreshToken = signJwt({ userId: user._id, mobile: user.mobile, role: 'customer' }, undefined); // default: no expiry
     user.refreshToken = refreshToken;
     await user.save();
+
+
+    // Choose template based on create or update
+    const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+    const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+    const header = fs.readFileSync(headerPath, 'utf8');
+    const footer = fs.readFileSync(footerPath, 'utf8');
+
+    // =====================================
+    // 5️⃣ New User → Create Welcome Notification
+    // =====================================
+    if (isNewUser) {
+        try {
+            const Notification = (await import('@/models/Notification')).default;
+            await Notification.create({
+                userId: user._id.toString(),
+                role: 'customer',
+                title: 'Welcome to Pharmato!',
+                message: 'Thank you for registering. Enjoy your experience!',
+                type: 'welcome',
+                isRead: false,
+                createdAt: new Date(),
+            });
+        } catch (err) {
+            console.error('Failed to create welcome notification:', err);
+        }
+
+        // Send push notification to customer if deviceToken exists
+        if (user && (user as any).deviceToken) {
+            try {
+                await sendPushNotificationWithData({
+                    token: (user as any).deviceToken,
+                    title: 'Pharmato',
+                    body: "“Welcome to Pharmato: Your health essentials are just a tap away!”",
+                    data: {
+                        targetId: user._id.toString(),
+                        type: 'welcome',
+                        targetScreen: 'account',
+                    }
+                });
+            } catch (err) {
+                console.error('Failed to send push notification:', err);
+            }
+        }
+
+        // Send welcome email if user has email
+        if (user.email) {
+            try {
+                const { sendEmail } = await import('@/utils/sendEmail');
+                const { WELCOME_EMAIL_SUBJECT } = await import('@/utils/emailSubjects');
+                const name = user.name || '';
+                const displayName = name ? name : (user.mobile || 'Customer');
+                const html = `
+                ${header}
+                    <div style="font-family: Arial, sans-serif; color: #333; line-height:1.5;">
+                      <p>Hello ${displayName},</p>
+                      <p>Welcome to "Pharmato"! 👋<br/>We’re glad to have you with us.</p>
+                      <p>Pharmato makes ordering medicines and healthcare essentials simple, safe, and convenient. Upload your doctor’s prescription, place your order, and let us take care of the rest—right from verified pharmacies to your doorstep.</p>
+                      <p>With Pharmato, you can:</p>
+                      <ul>
+                        <li>Order medicines easily</li>
+                        <li>Upload and manage prescriptions securely</li>
+                        <li>Get medicines delivered to your home</li>
+                        <li>Track your orders in real time</li>
+                      </ul>
+                      <p>Start exploring now and experience hassle-free healthcare delivery.</p>
+                      <p>Stay healthy,<br/>Team Pharmato<br/>Your trusted pharmacy partner</p>
+                    </div>
+                    ${footer}
+                `;
+
+                await sendEmail({
+                    to: user.email,
+                    subject: WELCOME_EMAIL_SUBJECT,
+                    html
+                });
+            } catch (err) {
+                console.error('Failed to send welcome email:', err);
+            }
+        }
+    }
+
     return NextResponse.json({ success: true, message: 'Login successful', user, accessToken, refreshToken });
 }

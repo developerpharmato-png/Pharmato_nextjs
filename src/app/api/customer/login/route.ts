@@ -153,6 +153,7 @@ export async function POST(request: NextRequest) {
     // 5️⃣ New User → Create Welcome Notification
     // =====================================
     if (isNewUser) {
+
         try {
             const Notification = (await import('@/models/Notification')).default;
             await Notification.create({
@@ -193,7 +194,6 @@ export async function POST(request: NextRequest) {
                     </div>
                     ${footer}
                 `;
-
                 await sendEmail({
                     to: user.email,
                     subject: WELCOME_EMAIL_SUBJECT,
@@ -203,6 +203,7 @@ export async function POST(request: NextRequest) {
                 console.error('Failed to send welcome email:', err);
             }
         }
+        
     }
 
     // ===========================
@@ -215,7 +216,8 @@ export async function POST(request: NextRequest) {
             otp, // remove in production
             userId: user._id,
             isActive: user.isActive,
-            userDeActiveBy: user.userDeActiveBy || ""
+            userDeActiveBy: user.userDeActiveBy || "",
+            isNewUser : isNewUser
         },
         { status: 200 }
     );

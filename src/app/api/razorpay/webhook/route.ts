@@ -100,10 +100,6 @@ async function runBackground(body: any) {
 
             if (body.event === 'payment.captured') {
 
-                if (checkOrder.payment_status === 'Captured') {
-
-                }
-
                 await Order.updateOne(
                     { _id: checkOrder._id },
                     {
