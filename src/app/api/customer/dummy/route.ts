@@ -13,64 +13,64 @@ const MARG_KEY = "48TPI07W1R2S";
 
 export function decryptMargData(cipherText: string) {
 
-  // 🔴 C# reference se PROVEN:
-  // Short response = NOT encrypted (ACK)
-  if (!cipherText || cipherText.length < 150) {
-    return {
-      ok: true,
-      data: {
-        status: "ACK",
-        message: "Order accepted by Marg"
-      }
-    };
-  }
+    // 🔴 C# reference se PROVEN:
+    // Short response = NOT encrypted (ACK)
+    if (!cipherText || cipherText.length < 150) {
+        return {
+            ok: true,
+            data: {
+                status: "ACK",
+                message: "Order accepted by Marg"
+            }
+        };
+    }
 
-  try {
-    // Step 1️⃣ Base64 decode (Convert.FromBase64String)
-    const encryptedData = Buffer.from(cipherText, "base64");
+    try {
+        // Step 1️⃣ Base64 decode (Convert.FromBase64String)
+        const encryptedData = Buffer.from(cipherText, "base64");
 
-    // Step 2️⃣ KeyBytes (exact C# logic)
-    const keyBytes = Buffer.alloc(16);
-    Buffer.from(MARG_KEY, "utf8").copy(keyBytes);
+        // Step 2️⃣ KeyBytes (exact C# logic)
+        const keyBytes = Buffer.alloc(16);
+        Buffer.from(MARG_KEY, "utf8").copy(keyBytes);
 
-    const ivBytes = keyBytes; // C# me IV = Key
+        const ivBytes = keyBytes; // C# me IV = Key
 
-    // Step 3️⃣ AES-128-CBC decrypt
-    const decipher = crypto.createDecipheriv(
-      "aes-128-cbc",
-      keyBytes,
-      ivBytes
-    );
-    decipher.setAutoPadding(true);
+        // Step 3️⃣ AES-128-CBC decrypt
+        const decipher = crypto.createDecipheriv(
+            "aes-128-cbc",
+            keyBytes,
+            ivBytes
+        );
+        decipher.setAutoPadding(true);
 
-    const decryptedBytes = Buffer.concat([
-      decipher.update(encryptedData),
-      decipher.final()
-    ]);
+        const decryptedBytes = Buffer.concat([
+            decipher.update(encryptedData),
+            decipher.final()
+        ]);
 
-    // Step 4️⃣ UTF8 string (Encoding.UTF8.GetString)
-    const decryptedText = decryptedBytes.toString("utf8");
+        // Step 4️⃣ UTF8 string (Encoding.UTF8.GetString)
+        const decryptedText = decryptedBytes.toString("utf8");
 
-    // Step 5️⃣ Base64 decode (Convert.FromBase64String)
-    const compressedBytes = Buffer.from(decryptedText, "base64");
+        // Step 5️⃣ Base64 decode (Convert.FromBase64String)
+        const compressedBytes = Buffer.from(decryptedText, "base64");
 
-    // Step 6️⃣ DeflateStream decompress
-    const output = zlib.inflateRawSync(compressedBytes);
+        // Step 6️⃣ DeflateStream decompress
+        const output = zlib.inflateRawSync(compressedBytes);
 
-    const finalText = output.toString("utf8").trim();
+        const finalText = output.toString("utf8").trim();
 
-    return {
-      ok: true,
-      data: JSON.parse(finalText)
-    };
+        return {
+            ok: true,
+            data: JSON.parse(finalText)
+        };
 
-  } catch (err: any) {
-    return {
-      ok: false,
-      reason: "MARG_DECRYPT_FAIL",
-      error: err.message
-    };
-  }
+    } catch (err: any) {
+        return {
+            ok: false,
+            reason: "MARG_DECRYPT_FAIL",
+            error: err.message
+        };
+    }
 }
 
 /**
@@ -101,16 +101,19 @@ export async function POST(request: NextRequest) {
 
     const payload = {
         OrderID: "",
-        OrderNo: `SB-${Date.now()}`,
-        Partycode: "APP", //Online order
-        CustomerID: "12324265",//12324265
+        OrderNo: `1007`,
+        Partycode: "STACjn", //Online order
+        CustomerID: "11906405",//12324265
+        // Partycode: "APP   ", //Online order
+        // CustomerID: "12324265",//12324265
         MargID: "486257",
         Type: "C",
         Sid: "306832",
 
-        ProductCode: "1061746",   // ✅ EXACT as Marg sample
-        Quantity: "1",
-        Free: "0",
+        // ProductCode: "1061746",   // ✅ EXACT as Marg sample
+        ProductCode: "1063348,1061746",   // ✅ EXACT as Marg sample
+        Quantity: "1,1",
+        Free: "0,0",
 
         Lat: "",
         Lng: "",
