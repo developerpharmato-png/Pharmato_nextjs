@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Category from '@/models/Category';
 import BannerImage from '@/models/BannerImage';
+import Medicine from '@/models/Medicine';
 
 // PATCH - Toggle category active/inactive status
 export async function PATCH(
@@ -12,13 +13,29 @@ export async function PATCH(
         await connectDB();
 
         const { id } = await params;
-        const category = await Category.findById(id);
 
+        const category = await Category.findById(id);
         if (!category) {
             return NextResponse.json(
                 { success: false, error: 'Category not found' },
                 { status: 404 }
             );
+        }
+
+        if (category.isActive) {
+
+            // Check if any medicine exists for this category
+            const medicineExists = await Medicine.exists({ categoryId: category._id , isActive : true });
+            if (medicineExists) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        message: 'This category contains active medicines and cannot be deactivated.'
+                    },
+                    { status: 400 }
+                );
+            }
+
         }
 
         // Toggle the isActive status
