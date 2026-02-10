@@ -189,7 +189,74 @@ async function importMedicinesFromMarg() {
     });
 
     let medCount = await Medicine.countDocuments();
-    for (const p of products) {
+    for (const p of products_pro_N) {
+
+      const checkMedicine = await Medicine.findOne({ uniqueIdentity: p.rid });
+      const expiry = convertExpiry(p.exp);
+      const { categoryId, subCategoryId } = getRandomCategoryAndSubcategory();
+
+      const price = computePriceFromMrp(p.MRP);
+      const mrp = Number(p.MRP) || 0;
+
+      if (checkMedicine) {
+
+        const medObj = {
+          price,
+          mrp,
+          discount: calculateDiscount(mrp, price), // ✅ MANUAL
+          purchasePrice: Number(p.PRate) || 0,
+          stock: Number(p.stock) || 0,
+          isDeleted: p.Is_Deleted === "1",
+          expiryDate: expiry instanceof Date && !isNaN(expiry.getTime()) ? expiry : null,
+          margData: p,
+          previousMargData: checkMedicine
+        };
+
+        bulkOps.push({
+          updateOne: {
+            filter: { uniqueIdentity: p.rid },     // If exists → update
+            update: {
+              $set: medObj
+            }                          // If not exists → insert
+          }
+        });
+
+      } else {
+        medCount++;
+        const uniqueCode = `MED-${medCount}`;
+
+        bulkInsertArray.push({
+          uniqueIdentity: p.rid,
+          name: p.name,
+          manufacturer: p.company,
+
+          price,
+          mrp,
+          discount: calculateDiscount(mrp, price), // ✅ REQUIRED
+
+          purchasePrice: Number(p.PRate) || 0,
+          stock: Number(p.stock) || 0,
+          batchNumber: p.code,
+          isDeleted: p.Is_Deleted === "1",
+          expiryDate: expiry instanceof Date && !isNaN(expiry.getTime()) ? expiry : null,
+          margData: p,
+          previousMargData: {},
+          categoryId: new mongoose.Types.ObjectId(categoryId),
+          subCategoryId: new mongoose.Types.ObjectId(subCategoryId),
+          uniqueCode
+        });
+      }
+
+    }
+
+    // 🚀 Bulk Insert — MUCH faster than .create()
+    if (bulkInsertArray.length > 0) {
+
+      data = await Medicine.insertMany(bulkInsertArray, { ordered: false });
+
+    }
+
+    for (const p of products_pro_U) {
 
       const checkMedicine = await Medicine.findOne({ uniqueIdentity: p.rid });
       const expiry = convertExpiry(p.exp);
@@ -305,13 +372,6 @@ async function importMedicinesFromMarg() {
     // 🚀 BULK WRITE (super fast for both insert + update)
     if (bulkOps.length > 0) {
       await Medicine.bulkWrite(bulkOps, { ordered: false });
-    }
-
-    // 🚀 Bulk Insert — MUCH faster than .create()
-    if (bulkInsertArray.length > 0) {
-
-      data = await Medicine.insertMany(bulkInsertArray, { ordered: false });
-
     }
 
     // Update Marg document with counts
