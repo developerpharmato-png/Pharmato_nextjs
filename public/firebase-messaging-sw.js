@@ -25,8 +25,41 @@ messaging.onBackgroundMessage((payload) => {
     payload
   );
 
+  // Determine a URL to open when the notification is clicked.
+  // Prefer explicit data.url, then fallback to an orderId -> partial-cancel route, else root.
+  const dataUrl = (payload && payload.data && payload.data.url) ||
+    (payload && payload.data && payload.data.orderId
+      ? `/dashboard/orders/detail/${payload.data.orderId}/partial-cancel`
+      : "/");
+
   self.registration.showNotification(payload.notification.title, {
     body: payload.notification.body,
     icon: "/firebase-logo.png",
+    data: {
+      url: dataUrl,
+      // keep original payload for debugging if needed
+      payload: payload,
+    },
   });
+});
+
+// Handle notification click: focus existing tab or open a new one to the provided URL
+self.addEventListener('notificationclick', function (event) {
+  event.notification.close();
+  const clickUrl = event.notification && event.notification.data && event.notification.data.url ? event.notification.data.url : '/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
+      for (let i = 0; i < clientList.length; i++) {
+        const client = clientList[i];
+        // If a window is already open to the target URL, focus it
+        if (client.url === clickUrl && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Otherwise open a new window/tab to the URL
+      if (clients.openWindow) {
+        return clients.openWindow(clickUrl);
+      }
+    })
+  );
 });

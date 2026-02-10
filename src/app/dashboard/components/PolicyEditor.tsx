@@ -10,7 +10,10 @@ import {
   CustomButton,
   ErrorMessageCom,
 } from "@/app/dashboard/components/miniComponents";
-import { SettingsGetByTypePath } from "@/app/dashboard/storeAPICall/API/BaseApi";
+import {
+  SettingsGetByTypePath,
+  PolicySettingsPath,
+} from "@/app/dashboard/storeAPICall/API/BaseApi";
 import PrivacySkeleton from "./skeleton/PrivacySkeleton";
 import { MdSave } from "react-icons/md";
 
@@ -37,9 +40,14 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
 
   const lowerType = (type || "").toLowerCase();
   const canEditPolicy = lowerType.includes("privacy")
-    ? adminPermissions?.["Privacy Policies"]?.edit ?? adminPermissions?.PrivacyPolicies?.edit ?? true
+    ? (adminPermissions?.["Privacy Policies"]?.edit ??
+      adminPermissions?.PrivacyPolicies?.edit ??
+      true)
     : lowerType.includes("term") || lowerType.includes("condition")
-      ? adminPermissions?.["Term & Condition"]?.edit ?? adminPermissions?.TermCondition?.edit ?? adminPermissions?.Term?.edit ?? true
+      ? (adminPermissions?.["Term & Condition"]?.edit ??
+        adminPermissions?.TermCondition?.edit ??
+        adminPermissions?.Term?.edit ??
+        true)
       : true;
 
   useEffect(() => {
@@ -47,25 +55,51 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
     (async () => {
       setLoadingContent(true);
       try {
+        // Primary: admin settings get-by-type (POST)
         const res = await fetch(SettingsGetByTypePath, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ type }),
         });
         const json = await res.json();
         if (!mounted) return;
-        setInitialContent(json?.data?.data || json?.data || "");
+
+        let content = json?.data?.data || json?.data || "";
+
+        // Fallback: try public policy endpoint (GET) if primary returned empty
+        if (!content) {
+          try {
+            const fallbackRes = await fetch(
+              `${PolicySettingsPath}?type=${encodeURIComponent(type)}`,
+            );
+            const fallbackJson = await fallbackRes.json();
+            // policy endpoint returns { success: true, data: ... }
+            if (
+              fallbackJson &&
+              (fallbackJson.data || fallbackJson?.data === "")
+            ) {
+              content = fallbackJson.data || "";
+            }
+          } catch (e) {
+            // ignore fallback errors
+          }
+        }
+
+        setInitialContent(content);
       } catch (e) {
         if (!mounted) return;
         setInitialContent("");
       } finally {
         if (mounted) setLoadingContent(false);
       }
+
       try {
         await import("quill/dist/quill.snow.css");
-      } catch (e) { }
+      } catch (e) {}
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [type]);
 
   const validationSchema = Yup.object({
@@ -82,8 +116,8 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
           try {
             setLoading(true);
             const res = await fetch(SettingsGetByTypePath, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ type, data: values.content }),
             });
             const json = await res.json();
@@ -145,13 +179,15 @@ export default function PolicyEditor({ type, title, subtitle }: Props) {
               <div className="ButtonOuter">
                 {" "}
                 <div className="buttoninner">
-                  <CustomButton type="submit" disabled={isSubmitting || loading}>
-                    {loading ? <CircularProgress size={24} color="inherit" />: (
-
+                  <CustomButton
+                    type="submit"
+                    disabled={isSubmitting || loading}
+                  >
+                    {loading ? (
+                      <CircularProgress size={24} color="inherit" />
+                    ) : (
                       <MdSave size={22} />
-                    )
-                    }
-
+                    )}
 
                     {`Update ${title}`}
                   </CustomButton>

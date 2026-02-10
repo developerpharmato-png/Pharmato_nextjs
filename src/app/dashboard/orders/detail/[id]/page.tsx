@@ -115,12 +115,9 @@ export default function OrderDetailPage() {
         subtitle={`Order ID: ${order?.order_id}`}
         showBack={true}
         onBack={() => {
-          if (isCustomer) {
+         
             router.back();
-          } else {
-            router.push("/dashboard/orders");
-          }
-        }}
+         }}
         showSearch={false}
         addShow={false}
         isunsaved={false}
@@ -272,7 +269,7 @@ export default function OrderDetailPage() {
                         : "FREE"}
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  {/* <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Platform Fee</span>
                     <span className="font-bold text-gray-700">
                       {" "}
@@ -281,7 +278,7 @@ export default function OrderDetailPage() {
                         order?.calculationData?.razorPayCommissionGstAmount +
                         order?.calculationData?.razorPayCommissionAmount}
                     </span>
-                  </div>
+                  </div> */}
                   <div className="pt-4 border-t border-gray-200 flex justify-between items-center">
                     <span className="text-sm font-bold text-gray-800">
                       Final Payable

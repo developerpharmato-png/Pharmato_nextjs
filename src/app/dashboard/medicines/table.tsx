@@ -10,13 +10,17 @@ import Avatar from "@mui/material/Avatar";
 import { useRouter } from "next/navigation";
 import { EditIcon, Image } from "lucide-react";
 import { GetServerSideProps } from "next";
-import { MedicinesListPath, MedicinesStatusPath } from "../storeAPICall/API/BaseApi";
+import {
+  MedicinesListPath,
+  MedicinesStatusPath,
+} from "../storeAPICall/API/BaseApi";
 
 type Props = {
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   categoryId?: string | null;
   subCategoryId?: string | null;
+  medicineFilterStatus?: string;
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -26,9 +30,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   params.set("offset", "0"); // Default page
   if (query.searchValue) params.set("search", String(query.searchValue));
   if (query.categoryId) params.set("categoryId", String(query.categoryId));
-  if (query.subCategoryId) params.set("subCategoryId", String(query.subCategoryId));
+  if (query.subCategoryId)
+    params.set("subCategoryId", String(query.subCategoryId));
 
-  const response = await fetch(`${process.env.API_BASE_URL}${MedicinesListPath}?${params.toString()}`);
+  const response = await fetch(
+    `${process.env.API_BASE_URL}${MedicinesListPath}?${params.toString()}`,
+  );
   const data = await response.json();
 
   return {
@@ -39,11 +46,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   };
 };
 
-const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: number }> = ({
+const MedicinesTable: React.FC<
+  Props & { initialData: any[]; initialTotalCount: number }
+> = ({
   searchValue,
   onSearchChange,
   categoryId,
   subCategoryId,
+  medicineFilterStatus = "all",
   initialData,
   initialTotalCount,
 }) => {
@@ -67,7 +77,6 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
   }, []);
 
   useEffect(() => {
-
     setLoading(true);
     const params = new URLSearchParams();
     params.set("limit", String(rowsPerPage));
@@ -77,6 +86,9 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
     }
     if (categoryId) params.set("categoryId", String(categoryId));
     if (subCategoryId) params.set("subCategoryId", String(subCategoryId));
+    if (medicineFilterStatus && medicineFilterStatus !== "all") {
+      params.set("medicineFilter", String(medicineFilterStatus));
+    }
 
     console.log("Fetching with params:", params.toString());
 
@@ -90,16 +102,26 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
         console.error("Error fetching medicines:", error);
       })
       .finally(() => setLoading(false));
-  }, [page, rowsPerPage, searchValue, categoryId, subCategoryId]);
+  }, [
+    page,
+    rowsPerPage,
+    searchValue,
+    categoryId,
+    subCategoryId,
+    medicineFilterStatus,
+  ]);
 
   const fetchMedicines = () => {
     setLoading(true);
     const params = new URLSearchParams();
-    params.set('limit', String(rowsPerPage));
-    params.set('offset', String(page * rowsPerPage));
-    if (searchValue) params.set('search', String(searchValue));
-    if (categoryId) params.set('categoryId', String(categoryId));
-    if (subCategoryId) params.set('subCategoryId', String(subCategoryId));
+    params.set("limit", String(rowsPerPage));
+    params.set("offset", String(page * rowsPerPage));
+    if (searchValue) params.set("search", String(searchValue));
+    if (categoryId) params.set("categoryId", String(categoryId));
+    if (subCategoryId) params.set("subCategoryId", String(subCategoryId));
+    if (medicineFilterStatus && medicineFilterStatus !== "all") {
+      params.set("medicineFilter", String(medicineFilterStatus));
+    }
     fetch(`${MedicinesListPath}?${params.toString()}`)
       .then((res) => res.json())
       .then((res) => {
@@ -108,7 +130,7 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
       })
       .finally(() => setLoading(false));
   };
- 
+
   const handleToggleStatus = async (row: any) => {
     showConfirmStatusAlert({
       isActive: !!row.isActive,
@@ -166,6 +188,9 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
     }
     if (categoryId) params.set("categoryId", String(categoryId));
     if (subCategoryId) params.set("subCategoryId", String(subCategoryId));
+    if (medicineFilterStatus && medicineFilterStatus !== "all") {
+      params.set("medicineFilter", String(medicineFilterStatus));
+    }
 
     fetch(`${MedicinesListPath}?${params.toString()}`)
       .then((res) => res.json())
@@ -218,7 +243,6 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
           </div>
         ) : (
           <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-md">
-
             <Image size={48} className="text-gray-400" />
           </div>
         ),
@@ -251,7 +275,9 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
         const text = row.categoryId?.name || row.category || "-";
         return (
           <CustomTooltip title={text}>
-            <span className={text !== "-" ? "Category" : undefined}>{text}</span>
+            <span className={text !== "-" ? "Category" : undefined}>
+              {text}
+            </span>
           </CustomTooltip>
         );
       },
@@ -264,7 +290,9 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
         const text = row.subCategoryId?.name || "-";
         return (
           <CustomTooltip title={text}>
-            <span className={text !== "-" ? "Category" : undefined}>{text}</span>
+            <span className={text !== "-" ? "Category" : undefined}>
+              {text}
+            </span>
           </CustomTooltip>
         );
       },
@@ -394,7 +422,11 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
       label: "Expiry Date",
       minWidth: 120,
       selector: (row) => (
-        <CustomTooltip title={row.expiryDate ? new Date(row.expiryDate).toLocaleDateString() : "-"}>
+        <CustomTooltip
+          title={
+            row.expiryDate ? new Date(row.expiryDate).toLocaleDateString() : "-"
+          }
+        >
           <span
             style={{
               display: "inline-block",
@@ -404,7 +436,9 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
               whiteSpace: "nowrap",
             }}
           >
-            {row.expiryDate ? new Date(row.expiryDate).toLocaleDateString() : "-"}
+            {row.expiryDate
+              ? new Date(row.expiryDate).toLocaleDateString()
+              : "-"}
           </span>
         </CustomTooltip>
       ),
@@ -438,7 +472,7 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
       id: "isActive",
       label: "Status",
       minWidth: 80,
-      selector: (row) => ( 
+      selector: (row) => (
         <button
           onClick={() => handleToggleStatus(row)}
           className="relative cursor-pointer inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
@@ -446,8 +480,9 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
           title={row.isActive ? "Click to deactivate" : "Click to activate"}
         >
           <span
-            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${row.isActive ? "translate-x-6" : "translate-x-1"
-              }`}
+            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
+              row.isActive ? "translate-x-6" : "translate-x-1"
+            }`}
           />
         </button>
       ),
@@ -459,7 +494,13 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
       minWidth: 60,
       selector: (row) => (
         <span
-          style={{ cursor: "pointer", color: "var(--primary)", display: "flex", justifyContent: "center", alignItems: "center" }}
+          style={{
+            cursor: "pointer",
+            color: "var(--primary)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
           onClick={() => router.push(`/dashboard/medicines/AddEdit/${row._id}`)}
         >
           <EditIcon fontSize="small" />
@@ -470,7 +511,6 @@ const MedicinesTable: React.FC<Props & { initialData: any[]; initialTotalCount: 
 
   return (
     <>
-
       <CustomTable
         columns={columns}
         data={data}
