@@ -4,6 +4,8 @@ import dbConnect from '@/lib/mongodb';
 import mongoose from 'mongoose';
 import Cart from '@/models/Cart';
 import GuestCart from '@/models/GuestCart';
+import Category from '@/models/Category';
+import SubCategory from '@/models/SubCategory';
 
 /**
  * @swagger
@@ -137,7 +139,7 @@ export async function POST(req: NextRequest) {
     if (subCategoryId) {
         matchStage.subCategoryId = new mongoose.Types.ObjectId(subCategoryId);
     }
-    if (typeof (global as any).ObjectId === 'function') {}
+    if (typeof (global as any).ObjectId === 'function') { }
     if (typeof storeId === 'string' && storeId.trim() !== '') {
         try {
             matchStage.storeId = new mongoose.Types.ObjectId(storeId.trim());
@@ -201,15 +203,29 @@ export async function POST(req: NextRequest) {
         cartItems = guestCart && typeof guestCart === 'object' && 'items' in guestCart && Array.isArray((guestCart as any).items) ? (guestCart as any).items : [];
     }
 
-    // Add isInCart and cartQuantity to each medicine
+    // Add isInCart, cartQuantity, categoryName, subCategoryName to each medicine
+    const categoryIds = [...new Set(medicines.map((m: any) => m.categoryId?.toString()).filter(Boolean))];
+    const subCategoryIds = [...new Set(medicines.map((m: any) => m.subCategoryId?.toString()).filter(Boolean))];
+
+    // Fetch all needed categories and subcategories in one go
+    const categories = categoryIds.length ? await Category.find({ _id: { $in: categoryIds } }, { _id: 1, name: 1 }).lean() : [];
+    const subCategories = subCategoryIds.length ? await SubCategory.find({ _id: { $in: subCategoryIds } }, { _id: 1, name: 1 }).lean() : [];
+
+    const categoryMap = Object.fromEntries(categories.map((c: any) => [c._id.toString(), c.name]));
+    const subCategoryMap = Object.fromEntries(subCategories.map((sc: any) => [sc._id.toString(), sc.name]));
+
     const medicinesWithCart = medicines.map((med: any) => {
         const cartItem = cartItems.find((item: any) => item.medicineId?.toString() === med._id?.toString());
         const isInCart = !!cartItem;
         const cartQuantity = cartItem ? cartItem.quantity : 0;
+        const categoryName = med.categoryId ? categoryMap[med.categoryId.toString()] || null : null;
+        const subCategoryName = med.subCategoryId ? subCategoryMap[med.subCategoryId.toString()] || null : null;
         return {
             ...med,
             isInCart,
             cartQuantity,
+            categoryName,
+            subCategoryName,
         };
     });
     // Compute manufacturer list
