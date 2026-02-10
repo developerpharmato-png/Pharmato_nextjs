@@ -479,9 +479,9 @@ export default function PartialCancelPage() {
       {hasPrescriptionImages && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
           {/* Header: Title and Management Controls */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 pb-6 border-b border-gray-50">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-2 pb-2 border-b border-gray-50">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+              <div className=" bg-blue-50 rounded-lg text-blue-600">
                 <svg
                   className="w-5 h-5"
                   fill="currentColor"
@@ -525,7 +525,7 @@ export default function PartialCancelPage() {
           </div>
 
           {/* Document Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {order?.prescription_url?.map((url: string, idx: number) => {
               if (!url) return null;
 
@@ -536,7 +536,7 @@ export default function PartialCancelPage() {
               return (
                 <div
                   key={idx}
-                  className="group relative aspect-[6/5] rounded-xl border border-gray-200 overflow-hidden bg-gray-50 hover:shadow-md transition-all"
+                  className="group relative aspect-[6/5] rounded-xl border border-gray-200 overflow-hidden bg-gray-50 hover:shadow-md transition-all h-[200px] w-[200px]"
                 >
                   {/* Overlay Download Button */}
                   <button
