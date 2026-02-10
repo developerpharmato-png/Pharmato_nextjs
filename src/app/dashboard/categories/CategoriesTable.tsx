@@ -63,7 +63,7 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
     {
       id: "uniqueCode",
       label: "ID",
-      minWidth: 80,
+      minWidth: 50,
 
       selector: (row: Category) => (
         <CustomTooltip title={row.uniqueCode || "-"}>
@@ -79,20 +79,16 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
     {
       id: "image",
       label: "Image",
-      minWidth: 80,
+      minWidth: 50,
       selector: (row: Category) =>
         row.images && row.images.length > 0 && row.images[0] ? (
-          <CustomImage
-            coverImage={row.images[0]}
-            images={row.images}
-            alt={row.name}
-            style={{
-              height: 32,
-              width: 32,
-              objectFit: "cover",
-              borderRadius: 4,
-            }}
-          />
+          <div className=" h-[50px] w-[50px]">
+            <CustomImage
+              coverImage={row.images[0]}
+              images={row.images}
+              alt={row.name}
+            />
+          </div>
         ) : (
           <Avatar sx={{ width: 32, height: 32, fontSize: 14 }}>
             {row.name ? row.name[0] : "?"}

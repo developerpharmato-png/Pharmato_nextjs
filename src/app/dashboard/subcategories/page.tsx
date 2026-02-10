@@ -178,12 +178,14 @@ function SubCategoriesTable({ canEdit }: { canEdit?: boolean }) {
       selector: (row) => (
         <CustomTooltip title={row.name || "Image"}>
           {Array.isArray(row.images) && row.images[0] ? (
+            <div className=" h-[50px] w-[50px]">
             <CustomImage
               coverImage={row.images[0]}
               images={row.images}
               alt="Subcategory"
               style={{ width: 32, height: 32, borderRadius: 6 }}
             />
+            </div>
           ) : (
             <span className="text-gray-400">—</span>
           )}

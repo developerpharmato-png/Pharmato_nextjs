@@ -181,51 +181,33 @@ export default function BannerImagesDashboard() {
                 label: "App Image",
                 minWidth: 100,
                 selector: (row: any) => (
-
-                  <span>
+                  <div className=" h-[100px] w-[100px]">
                     <CustomImage
                       coverImage={row.url}
                       images={[row.url]}
                       alt={row.alt || "Banner"}
-                      style={{
-                        height: 48,
-                        width: 120,
-                        objectFit: "cover",
-                        borderRadius: 6,
-                        cursor: "pointer",
-                      }}
                     />
-                  </span>
-
+                  </div>
                 ),
               },
-
-
 
               {
                 id: "webImage",
                 label: "Web Image",
-                minWidth: 120,
+                minWidth: 100,
                 selector: (row: any) =>
                   row.webImage ? (
-
-                    <CustomImage
-                      coverImage={row.webImage}
-                      images={[row.webImage]}
-                      alt={row.alt || "Banner"}
-                      style={{
-                        height: 48,
-                        width: 120,
-                        objectFit: "cover",
-                        borderRadius: 6,
-                        cursor: "pointer",
-                      }}
-                    />
+                    <div className=" h-[100px] w-[100px]">
+                      <CustomImage
+                        coverImage={row.webImage}
+                        images={[row.webImage]}
+                        alt={row.alt || "Banner"}
+                      />
+                    </div>
                   ) : (
-                    <span style={{ color: '#aaa' }}>No Image</span>
+                    <span style={{ color: "#aaa" }}>No Image</span>
                   ),
               },
-
             ];
 
             if (canEditBanner) {
