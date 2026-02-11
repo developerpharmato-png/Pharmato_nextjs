@@ -39,6 +39,7 @@ function computePriceFromMrp(mrp: number | string): number {
     if (!isFinite(mrpNum) || isNaN(mrpNum)) return 0;
     return Math.round(mrpNum * 0.85 * 100) / 100;
 }
+
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import crypto from 'crypto';
