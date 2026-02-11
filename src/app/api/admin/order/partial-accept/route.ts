@@ -674,7 +674,7 @@ export async function POST(req: NextRequest) {
             runBackground(order, user, unCancelledItems);
         });
 
-        return NextResponse.json({ success: true, message: 'Selected medicines accepted, rest cancelled', data: order });
+        return NextResponse.json({ success: true, message: 'Order status updated', data: order });
     } catch (error) {
         console.error('Partial accept error:', error);
         return NextResponse.json({ success: false, message: 'Failed to accept/cancel medicines', error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
