@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
             const endParsed = parseDateFlexible(endDate) || new Date();
             // Ensure end includes the full day when a date-only string is passed
             if ((typeof endDate === 'string' && endDate.trim().length === 10) || endParsed.getHours() === 0 && endParsed.getMinutes() === 0 && endParsed.getSeconds() === 0) {
-                endParsed.setHours(23,59,59,999);
+                endParsed.setHours(23, 59, 59, 999);
             }
             query.createdAt = { $gte: startParsed, $lte: endParsed };
         }
@@ -67,9 +67,9 @@ export async function POST(req: NextRequest) {
         // basic search similar to list route
         if (search && String(search).trim()) {
             const regex = { $regex: search, $options: 'i' };
-            const orConditions: any[] = [ { order_id: regex }, { payment_id: regex } ];
+            const orConditions: any[] = [{ order_id: regex }, { payment_id: regex }];
             try {
-                const matchingUsers = await User.find({ $or: [ { name: regex }, { email: regex }, { mobile: regex } ] }).select('_id').lean();
+                const matchingUsers = await User.find({ $or: [{ name: regex }, { email: regex }, { mobile: regex }] }).select('_id').lean();
                 const userIds = Array.isArray(matchingUsers) ? matchingUsers.map(u => u._id) : [];
                 if (userIds.length) orConditions.push({ userId: { $in: userIds } });
             } catch (e: any) {
@@ -90,22 +90,28 @@ export async function POST(req: NextRequest) {
         const rows = (Array.isArray(orders) ? orders : []).map((o: any) => {
             const medicines = Array.isArray(o.medicineId) ? o.medicineId.map((m: any) => m?.name || '').join(', ') : '';
             const quantities = Array.isArray(o.medicineQuantity) ? o.medicineQuantity.map((q: any) => q.quantity || '').join(', ') : '';
+            const deliveredAddr = o.deliveredAddress || {};
+            const calculationData = o.calculationData || {};
+            const deliveryAddressCity = (deliveredAddr?.address?.city || '') + (deliveredAddr?.address?.state ? ', ' + deliveredAddr.address.state : '') + (deliveredAddr?.address?.pinCode ? ' - ' + deliveredAddr.address.pinCode : '');
             return {
-                order_id: o.order_id || '',
-                payment_id: o.payment_id || '',
-                customer_name: o.userId?.name || '',
-                customer_email: o.userId?.email || '',
-                customer_mobile: o.userId?.mobile || '',
-                storeId: o.storeId || '',
-                medicines,
-                quantities,
-                total_order_amount: o.total_order_amount || 0,
-                actual_amount: o.actual_amount || 0,
-                discount: o.discount || 0,
-                delivery_charges: o.delivery_charges || 0,
-                payment_status: o.payment_status || '',
-                order_status: o.order_status || '',
-                createdAt: o.createdAt ? format(new Date(o.createdAt), 'dd-MM-yyyy') : ''
+                "Order ID": o.order_id || '',
+                "Payment ID": o.payment_id || '',
+                // "Customer Name": o.userId?.name || '',
+                // "Customer Email": o.userId?.email || '',
+                // "Customer Mobile": o.userId?.mobile || '',
+                "Customer To Name": deliveredAddr?.name || '',
+                "Customer Email": deliveredAddr?.email || '',
+                "Customer Phone": deliveredAddr?.phone || '',
+                // "Delivery Address": deliveryAddressCity || '',
+                "Medicines": medicines,
+                "Quantities": quantities,
+                "Total Order Amount": o.total_order_amount || 0,
+                "Actual Amount": o.actual_amount || 0,
+                "Discount": o.discount || 0,
+                "Delivery Charges": calculationData.deliveryFee || 0,
+                "Payment Status": o.payment_status || '',
+                "Order Status": o.order_status || '',
+                "Order Date": o.createdAt ? format(new Date(o.createdAt), 'dd-MM-yyyy') : ''
             };
         });
 
