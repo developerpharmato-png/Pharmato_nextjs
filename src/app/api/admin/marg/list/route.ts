@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
 
     const margList : any[] = await Marg.find({})
         .select({
-            _id: 0,
+            _id: 1,
             margGetDataCount: 1,
             margInsertDataCount: 1,
             margUpdateDataCount: 1,
