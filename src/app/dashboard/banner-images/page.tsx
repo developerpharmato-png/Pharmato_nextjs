@@ -176,38 +176,43 @@ export default function BannerImagesDashboard() {
                   </CustomTooltip>
                 ),
               },
-              {
-                id: "image",
-                label: "App Image",
-                minWidth: 100,
-                selector: (row: any) => (
-                  <div className=" h-[100px] w-[100px]">
-                    <CustomImage
-                      coverImage={row.url}
-                      images={[row.url]}
-                      alt={row.alt || "Banner"}
-                    />
-                  </div>
-                ),
-              },
+            // Updated App Image Column
+{
+  id: "image",
+  label: "App Image",
+  selector: (row: any) => (
+    <div className="h-[80px] w-[140px] bg-gray-100 border border-gray-200 rounded-md overflow-hidden flex items-center justify-center">
+      <CustomImage
+        coverImage={row.url}
+        images={[row.url]}
+        alt={row.alt || "Banner"}
+        // Ensure CustomImage accepts style props, or apply these classes inside it
+        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+      />
+    </div>
+  ),
+},
 
-              {
-                id: "webImage",
-                label: "Web Image",
-                minWidth: 100,
-                selector: (row: any) =>
-                  row.webImage ? (
-                    <div className=" h-[100px] w-[100px]">
-                      <CustomImage
-                        coverImage={row.webImage}
-                        images={[row.webImage]}
-                        alt={row.alt || "Banner"}
-                      />
-                    </div>
-                  ) : (
-                    <span style={{ color: "#aaa" }}>No Image</span>
-                  ),
-              },
+// Updated Web Image Column
+{
+  id: "webImage",
+  label: "Web Image",
+  selector: (row: any) =>
+    row.webImage ? (
+      <div className="h-[80px] w-[140px] bg-gray-100 border border-gray-200 rounded-md overflow-hidden flex items-center justify-center">
+        <CustomImage
+          coverImage={row.webImage}
+          images={[row.webImage]}
+          alt={row.alt || "Banner"}
+          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+        />
+      </div>
+    ) : (
+      <div className="h-[80px] w-[140px] bg-gray-50 border border-dashed border-gray-300 rounded-md flex items-center justify-center">
+        <span className="text-gray-400 text-xs italic">No Image</span>
+      </div>
+    ),
+},
             ];
 
             if (canEditBanner) {

@@ -386,7 +386,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             fullWidth
-            size="small"
+           
             SelectProps={{ native: true }}
             sx={{ mb: 2 }}
             error={formik.touched.targetId && !!formik.errors.targetId}
@@ -405,7 +405,7 @@ const BannerImageModal: React.FC<BannerImageModalProps> = ({
 
      
             {/* App Image Upload */}
-            <div className="">
+            <div className="mt-2">
               <ImageUploadField
                 formik={formik}
                 handleFileChange={handleFileChange}

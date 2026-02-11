@@ -114,7 +114,7 @@ const ProductManageTable: React.FC<Props> = ({
                 <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Unit Price</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Total</th>
                 <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Status</th>
-                <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Is Prescription Required</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Prescription Required</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
