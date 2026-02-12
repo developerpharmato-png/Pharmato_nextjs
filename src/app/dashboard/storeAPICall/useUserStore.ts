@@ -26,14 +26,18 @@ export const StoreUpdateStore = createApiStore<any>();
 
 export const BulkUploadPincodeStore = createApiStore<any>();
 
+// Dashboard stores
+export const DashboardOrdersStore = createApiStore<any>();
+export const DashboardInventoryStore = createApiStore<any>();
+export const DashboardRevenueStore = createApiStore<any>();
 
 export const ProductDAshboardStore = createApiStore<any>();
 export const OrderDAshboardStore = createApiStore<any>();
-   
+
 
 export const unreadNotificationStore = createApiStore<any>();
-export const NotificationsListStore = createApiStore<any>(); 
-export const markreadNotificationsStore = createApiStore<any>();  
+export const NotificationsListStore = createApiStore<any>();
+export const markreadNotificationsStore = createApiStore<any>();
 
 // Customer Notifications
 export const CustomerDropdownStore = createApiStore<any>();
@@ -42,20 +46,20 @@ export const CustomerNotificationsListStore = createApiStore<any>();
 
 // Settings & Policies
 export const PaymentSettingsStore = createApiStore<any>();
-export const PolicySettingsStore = createApiStore<any>();  
+export const PolicySettingsStore = createApiStore<any>();
 
 
 // Marg
 export const MargStore = createApiStore<any>();
 
-export const fetchMargList =createApiStore<any>();
+export const fetchMargList = createApiStore<any>();
 
-export const importMargData =createApiStore<any>();
+export const importMargData = createApiStore<any>();
 
 // Coupon
 export const CouponListStore = createApiStore<any>();
 export const CouponCreateStore = createApiStore<any>();
 export const CouponUpdateStore = createApiStore<any>();
 export const CouponDeleteStore = createApiStore<any>();
-export const CouponStatusStore = createApiStore<any>(); 
-export const CouponSGEtBYIDsStore = createApiStore<any>(); 
+export const CouponStatusStore = createApiStore<any>();
+export const CouponSGEtBYIDsStore = createApiStore<any>();  

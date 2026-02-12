@@ -4,6 +4,11 @@ export const WalletAddAmountPath = "/api/admin/customers/wallet/add-amount";
 // Analytics API paths
 export const OrderAnalyticsPath = `/api/admin/data-analytics/orders`;
 
+// Dashboard API paths
+export const DashboardOrdersPath = `/api/admin/dashboard/orders`;
+export const DashboardInventoryPath = `/api/admin/dashboard/inventory`;
+export const DashboardRevenuePath = `/api/admin/dashboard/revenue`;
+
 export const OrderLIstPath = `/api/admin/order/list`;
 export const OrderExportPath = `/api/admin/order/export`;
 export const OrderDetailPath = `/api/admin/order/detail`;
@@ -15,13 +20,13 @@ export const dropdownCategoriesPath = `/api/admin/categories/dropdown`;
 export const SubcategoriesPath = `/api/admin/subcategories`;
 
 export const MedicinesExportPath = `/api/admin/medicines/export`;
- 
+
 export const StoreManagersPath = `/api/admins/store-managers`;
 export const StorePath = `/api/admin/store`;
 
 // Bulk Upload Pincode
 export const BulkUploadPincodePath = `/api/admin/store/bulk-upload-pincode`;
- 
+
 // Analytics API paths
 export const ProductAnalyticsPath = `/api/admin/data-analytics/products`;
 
@@ -60,5 +65,5 @@ export const CouponCreatePath = `/api/admin/coupon/create`;
 export const CouponUpdatePath = `/api/admin/coupon/edit`;
 export const CouponDeletePath = `/api/admin/coupon/delete`;
 export const CouponStatusPath = `/api/admin/coupon/status`;
-  
+
 

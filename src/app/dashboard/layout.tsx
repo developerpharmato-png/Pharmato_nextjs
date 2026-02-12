@@ -177,7 +177,7 @@ export default function DashboardLayout({
 
   const menuItems = [
     { name: "Dashboard", path: "/dashboard/DashboardApp", icon: "dashboard", isActive: true },
-    { name: "New Dashboard", path: "/dashboard/NewDashboard", icon: "dashboard", isActive: true },
+    // { name: "Dashboard", path: "/dashboard/NewDashboard", icon: "dashboard", isActive: true },
     { name: "Medicines", path: "/dashboard/medicines", icon: "medication", isActive: true },
     { name: "Categories", path: "/dashboard/categories", icon: "category", isActive: true },
     { name: "Subcategories", path: "/dashboard/subcategories", icon: "folder", isActive: true },

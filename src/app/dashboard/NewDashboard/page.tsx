@@ -31,46 +31,26 @@ import {
   Legend,
 } from "recharts";
 import HeaderWithAction from "../components/HeaderWithAction";
-// Dummy chart data
-const dailyRevenue = [
-  { day: "Mon", revenue: 1200 },
-  { day: "Tue", revenue: 1500 },
-  { day: "Wed", revenue: 1100 },
-  { day: "Thu", revenue: 1800 },
-  { day: "Fri", revenue: 2100 },
-  { day: "Sat", revenue: 1700 },
-  { day: "Sun", revenue: 900 },
-];
-
-const monthlyRevenue = [
-  { month: "Jan", revenue: 42000 },
-  { month: "Feb", revenue: 38000 },
-  { month: "Mar", revenue: 47000 },
-  { month: "Apr", revenue: 52000 },
-  { month: "May", revenue: 58000 },
-  { month: "Jun", revenue: 61000 },
-  { month: "Jul", revenue: 57000 },
-  { month: "Aug", revenue: 63000 },
-  { month: "Sep", revenue: 59000 },
-  { month: "Oct", revenue: 65000 },
-  { month: "Nov", revenue: 62000 },
-  { month: "Dec", revenue: 70000 },
-];
-
-const orderStatus = [
-  { name: "Completed", value: 28 },
-  { name: "Pending", value: 3 },
-  { name: "Cancelled", value: 1 },
-  { name: "Failed", value: 0 },
-];
-
-const pieColors = ["#22c55e", "#facc15", "#ef4444", "#fb923c"];
+import {
+  OrderExportStore,
+  MedicinesExportStore,
+  DashboardOrdersStore,
+  DashboardInventoryStore,
+  DashboardRevenueStore,
+} from "../storeAPICall/useUserStore";
+import {
+  OrderExportPath,
+  MedicinesExportPath,
+  DashboardOrdersPath,
+  DashboardInventoryPath,
+  DashboardRevenuePath,
+} from "../storeAPICall/API/BaseApi";
 
 export default function NewDashboardPage() {
   // state + controls
   const [period, setPeriod] = React.useState<
     "today" | "week" | "month" | "year" | "all" | "custom"
-  >("month");
+  >("all");
   const [startDate, setStartDate] = React.useState<string>("");
   const [endDate, setEndDate] = React.useState<string>("");
   const [loading, setLoading] = React.useState(true);
@@ -80,65 +60,98 @@ export default function NewDashboardPage() {
   const [trendToggle, setTrendToggle] = React.useState<"orders" | "revenue">(
     "orders",
   );
+  const [exportOrdersLoading, setExportOrdersLoading] = React.useState(false);
+  const [exportInventoryLoading, setExportInventoryLoading] =
+    React.useState(false);
+
+  // Store hooks for exports
+  const { postData: orderExport } = OrderExportStore();
+  const { postData: inventoryExport } = MedicinesExportStore();
+
+  // Store hooks for dashboard APIs
+  const {
+    postData: fetchDashboardOrders,
+    data: ordersStoreData,
+    loading: ordersLoading,
+  } = DashboardOrdersStore();
+  const {
+    postData: fetchDashboardInventory,
+    data: inventoryStoreData,
+    loading: inventoryLoading,
+  } = DashboardInventoryStore();
+  const {
+    postData: fetchDashboardRevenue,
+    data: revenueStoreData,
+    loading: revenueLoading,
+  } = DashboardRevenueStore();
 
   async function fetchAll() {
-    setLoading(true);
-    try {
-      const body: any =
-        period === "custom" && startDate && endDate
-          ? { startDate, endDate }
-          : { period };
-      const [oRes, iRes, rRes] = await Promise.all([
-        fetch("/api/admin/dashboard/orders", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        }).then((r) => r.json()),
-        fetch("/api/admin/dashboard/inventory", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
-        }).then((r) => r.json()),
-        fetch("/api/admin/dashboard/revenue", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        }).then((r) => r.json()),
-      ]);
-      if (oRes?.success) setOrdersData(oRes.data);
-      if (iRes?.success) setInventoryData(iRes.data);
-      if (rRes?.success) setRevenueData(rRes.data);
-      console.log("Dashboard API responses:", {
-        orders: oRes.data,
-        inventory: iRes.data,
-        revenue: rRes.data,
-      });
-    } catch (e) {
-      console.error("fetchAll error", e);
-    } finally {
-      setLoading(false);
-    }
+    const body: any =
+      period === "custom" && startDate && endDate
+        ? { startDate, endDate }
+        : { period };
+
+    fetchDashboardOrders(DashboardOrdersPath, body);
+    fetchDashboardInventory(DashboardInventoryPath, {});
+    fetchDashboardRevenue(DashboardRevenuePath, body);
   }
+
+  React.useEffect(() => {
+    if (ordersStoreData?.success) setOrdersData(ordersStoreData.data);
+    if (inventoryStoreData?.success) setInventoryData(inventoryStoreData.data);
+    if (revenueStoreData?.success) setRevenueData(revenueStoreData.data);
+  }, [ordersStoreData, inventoryStoreData, revenueStoreData]);
+
+  React.useEffect(() => {
+    setLoading(ordersLoading || inventoryLoading || revenueLoading);
+  }, [ordersLoading, inventoryLoading, revenueLoading]);
 
   React.useEffect(() => {
     fetchAll();
   }, [period, startDate, endDate]);
 
-  function exportCSV(name: string, rows: any[]) {
-    if (!rows || rows.length === 0) return;
-    const keys = Object.keys(rows[0]);
-    const csv = [keys.join(",")]
-      .concat(
-        rows.map((r) => keys.map((k) => JSON.stringify(r[k] ?? "")).join(",")),
-      )
-      .join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${name}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  async function exportOrders() {
+    setExportOrdersLoading(true);
+    try {
+      const body: any =
+        period === "custom" && startDate && endDate
+          ? { startDate, endDate }
+          : { period };
+      const response = await orderExport(OrderExportPath, body);
+      if (response instanceof Blob) {
+        const url = URL.createObjectURL(response);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `orders_export_${Date.now()}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (e) {
+      console.error("Export orders error", e);
+      alert("Failed to export orders");
+    } finally {
+      setExportOrdersLoading(false);
+    }
+  }
+
+  async function exportInventory() {
+    setExportInventoryLoading(true);
+    try {
+      const response = await inventoryExport(MedicinesExportPath, {});
+      if (response instanceof Blob) {
+        const url = URL.createObjectURL(response);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `inventory_export_${Date.now()}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (e) {
+      console.error("Export inventory error", e);
+      alert("Failed to export inventory");
+    } finally {
+      setExportInventoryLoading(false);
+    }
   }
 
   // Skeleton loader component
@@ -158,18 +171,42 @@ export default function NewDashboardPage() {
 
   return (
     <div className="containerStyle scrollbar-hide">
-      <HeaderWithAction
-        title="Pharmacy  Dashboard
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <HeaderWithAction
+          title="Pharmacy  Dashboard
 "
-        subtitle="Monitor your pharmacy's vital signs: performance, inventory health, and revenue trends.
+          subtitle="Monitor your pharmacy's vital signs: performance, inventory health, and revenue trends.
 
 
  "
-        backLabel="Back"
-        addLabel="Add "
-        showBack={false}
-        showSearch={false}
-      />
+          backLabel="Back"
+          addLabel="Add "
+          showBack={false}
+          showSearch={false}
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => exportOrders()}
+            disabled={exportOrdersLoading}
+            className="px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 hover:bg-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
+          >
+            {exportOrdersLoading && (
+              <div className="w-4 h-4 border-2 border-emerald-700 border-t-transparent rounded-full animate-spin"></div>
+            )}
+            {exportOrdersLoading ? "Exporting..." : "Export Orders"}
+          </button>
+          <button
+            onClick={() => exportInventory()}
+            disabled={exportInventoryLoading}
+            className="px-4 py-2 bg-amber-50 text-amber-700 border border-amber-100 hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
+          >
+            {exportInventoryLoading && (
+              <div className="w-4 h-4 border-2 border-amber-700 border-t-transparent rounded-full animate-spin"></div>
+            )}
+            {exportInventoryLoading ? "Exporting..." : "Export Inventory"}
+          </button>
+        </div>
+      </div>
 
       {/* Control Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
@@ -188,7 +225,7 @@ export default function NewDashboardPage() {
               <option value="month">This Month</option>
               <option value="year">This Year</option>
               <option value="all">All Time</option>
-              <option value="custom">Custom Range</option>
+              {/* <option value="custom">Custom Range</option> */}
             </select>
           </div>
 
@@ -217,21 +254,6 @@ export default function NewDashboardPage() {
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-all shadow-md active:scale-95"
           >
             Refresh Data
-          </button>
-          <div className="h-8 w-[1px] bg-slate-200 mx-2 hidden sm:block"></div>
-          <button
-            onClick={() => exportCSV("orders_trend", ordersData?.trend || [])}
-            className="px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 hover:bg-emerald-100 text-sm font-semibold rounded-lg transition-colors"
-          >
-            Export Orders
-          </button>
-          <button
-            onClick={() =>
-              exportCSV("low_stock_list", inventoryData?.lowStockList || [])
-            }
-            className="px-4 py-2 bg-amber-50 text-amber-700 border border-amber-100 hover:bg-amber-100 text-sm font-semibold rounded-lg transition-colors"
-          >
-            Export Inventory
           </button>
         </div>
       </div>
@@ -455,19 +477,28 @@ export default function NewDashboardPage() {
       {/* Inventory Health Full Width Chart */}
 
       <section className="mb-10">
-        <div className="mt-6 bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">
-            Inventory Health Status
-          </h3>
+        <div className="mt-6 bg-white/70 backdrop-blur-md rounded-3xl shadow-sm p-8 border border-slate-200/60 transition-all hover:shadow-md">
+          {/* Header Section with better typography */}
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">
+                Inventory Health Status
+              </h3>
+              <p className="text-sm text-slate-400 mt-1">
+                Real-time stock analytics
+              </p>
+            </div>
+          </div>
+
           {loading ? (
             <SkeletonLoader />
           ) : (
-            <div className="h-[300px] w-full">
+            <div className="h-[350px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={[
                     {
-                      name: "Current Status",
+                      name: "Inventory",
                       "In Stock": Math.max(
                         0,
                         (inventoryData?.kpis?.totalMedicines || 0) -
@@ -479,40 +510,64 @@ export default function NewDashboardPage() {
                       Expired: inventoryData?.kpis?.expiredMedicines || 0,
                     },
                   ]}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  barGap={12}
                 >
                   <CartesianGrid
-                    strokeDasharray="3 3"
+                    strokeDasharray="4 4"
                     vertical={false}
-                    stroke="#f1f5f9"
+                    stroke="#e2e8f0"
                   />
                   <XAxis dataKey="name" hide />
-                  <YAxis axisLine={false} tickLine={false} />
-                  <Tooltip cursor={{ fill: "#f8fafc" }} />
-                  <Legend iconType="rect" />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#94a3b8", fontSize: 12 }}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "#f1f5f9", opacity: 0.4 }}
+                    contentStyle={{
+                      borderRadius: "12px",
+                      border: "none",
+                      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                      padding: "12px",
+                    }}
+                  />
+                  <Legend
+                    verticalAlign="top"
+                    align="right"
+                    iconType="circle"
+                    wrapperStyle={{
+                      paddingBottom: "20px",
+                      fontSize: "12px",
+                      fontWeight: "500",
+                    }}
+                  />
+
+                  {/* Smoother Bar styling using softer colors and higher radius */}
                   <Bar
                     dataKey="In Stock"
                     fill="#10b981"
-                    radius={[4, 4, 0, 0]}
-                    barSize={60}
+                    radius={[6, 6, 0, 0]}
+                    barSize={50}
                   />
                   <Bar
                     dataKey="Low Stock"
                     fill="#f59e0b"
-                    radius={[4, 4, 0, 0]}
-                    barSize={60}
+                    radius={[6, 6, 0, 0]}
+                    barSize={50}
                   />
                   <Bar
                     dataKey="Out of Stock"
                     fill="#ef4444"
-                    radius={[4, 4, 0, 0]}
-                    barSize={60}
+                    radius={[6, 6, 0, 0]}
+                    barSize={50}
                   />
                   <Bar
                     dataKey="Expired"
-                    fill="#f97316"
-                    radius={[4, 4, 0, 0]}
-                    barSize={60}
+                    fill="#64748b" // Switched to a sophisticated slate for Expired
+                    radius={[6, 6, 0, 0]}
+                    barSize={50}
                   />
                 </BarChart>
               </ResponsiveContainer>
