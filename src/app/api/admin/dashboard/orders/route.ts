@@ -71,6 +71,8 @@ export async function POST(req: NextRequest) {
             ])
         ]);
 
+        console.log('Orders trend aggregation:', { dateRange: { start, end }, trendLength: trend.length, trend, totalOrders });
+
         // Also compute all-time status counts (no date filter) so dashboard can show/compare overall totals
         const [totalOrdersAll, statusCountsAll] = await Promise.all([
             Order.countDocuments({}),

@@ -30,6 +30,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
+import HeaderWithAction from "../components/HeaderWithAction";
 // Dummy chart data
 const dailyRevenue = [
   { day: "Mon", revenue: 1200 },
@@ -107,6 +108,11 @@ export default function NewDashboardPage() {
       if (oRes?.success) setOrdersData(oRes.data);
       if (iRes?.success) setInventoryData(iRes.data);
       if (rRes?.success) setRevenueData(rRes.data);
+      console.log("Dashboard API responses:", {
+        orders: oRes.data,
+        inventory: iRes.data,
+        revenue: rRes.data,
+      });
     } catch (e) {
       console.error("fetchAll error", e);
     } finally {
@@ -151,19 +157,19 @@ export default function NewDashboardPage() {
   }
 
   return (
-    <div className="p-6 sm:p-10 bg-[#f8fafc] min-h-screen font-sans text-slate-900">
-      {/* Header Section */}
-      <header className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-2">
-            Pharmacy Admin <span className="text-blue-600">Dashboard</span>
-          </h1>
-          <p className="text-slate-500 text-lg max-w-2xl">
-            Monitor your pharmacy's vital signs: performance, inventory health,
-            and revenue trends.
-          </p>
-        </div>
-      </header>
+    <div className="containerStyle scrollbar-hide">
+      <HeaderWithAction
+        title="Pharmacy  Dashboard
+"
+        subtitle="Monitor your pharmacy's vital signs: performance, inventory health, and revenue trends.
+
+
+ "
+        backLabel="Back"
+        addLabel="Add "
+        showBack={false}
+        showSearch={false}
+      />
 
       {/* Control Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
@@ -380,72 +386,6 @@ export default function NewDashboardPage() {
             </div>
           </div>
         </div>
-
-        {/* Inventory Health Full Width Chart */}
-        <div className="mt-6 bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">
-            Inventory Health Status
-          </h3>
-          {loading ? (
-            <SkeletonLoader />
-          ) : (
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={[
-                    {
-                      name: "Current Status",
-                      "In Stock": Math.max(
-                        0,
-                        (inventoryData?.kpis?.totalMedicines || 0) -
-                          (inventoryData?.kpis?.outOfStockMedicines || 0),
-                      ),
-                      "Low Stock": inventoryData?.kpis?.lowStockMedicines || 0,
-                      "Out of Stock":
-                        inventoryData?.kpis?.outOfStockMedicines || 0,
-                      Expired: inventoryData?.kpis?.expiredMedicines || 0,
-                    },
-                  ]}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="#f1f5f9"
-                  />
-                  <XAxis dataKey="name" hide />
-                  <YAxis axisLine={false} tickLine={false} />
-                  <Tooltip cursor={{ fill: "#f8fafc" }} />
-                  <Legend iconType="rect" />
-                  <Bar
-                    dataKey="In Stock"
-                    fill="#10b981"
-                    radius={[4, 4, 0, 0]}
-                    barSize={60}
-                  />
-                  <Bar
-                    dataKey="Low Stock"
-                    fill="#f59e0b"
-                    radius={[4, 4, 0, 0]}
-                    barSize={60}
-                  />
-                  <Bar
-                    dataKey="Out of Stock"
-                    fill="#ef4444"
-                    radius={[4, 4, 0, 0]}
-                    barSize={60}
-                  />
-                  <Bar
-                    dataKey="Expired"
-                    fill="#f97316"
-                    radius={[4, 4, 0, 0]}
-                    barSize={60}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </div>
       </section>
 
       {/* Orders KPI Cards */}
@@ -509,6 +449,75 @@ export default function NewDashboardPage() {
               </div>
             </button>
           ))}
+        </div>
+      </section>
+
+      {/* Inventory Health Full Width Chart */}
+
+      <section className="mb-10">
+        <div className="mt-6 bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">
+            Inventory Health Status
+          </h3>
+          {loading ? (
+            <SkeletonLoader />
+          ) : (
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={[
+                    {
+                      name: "Current Status",
+                      "In Stock": Math.max(
+                        0,
+                        (inventoryData?.kpis?.totalMedicines || 0) -
+                          (inventoryData?.kpis?.outOfStockMedicines || 0),
+                      ),
+                      "Low Stock": inventoryData?.kpis?.lowStockMedicines || 0,
+                      "Out of Stock":
+                        inventoryData?.kpis?.outOfStockMedicines || 0,
+                      Expired: inventoryData?.kpis?.expiredMedicines || 0,
+                    },
+                  ]}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#f1f5f9"
+                  />
+                  <XAxis dataKey="name" hide />
+                  <YAxis axisLine={false} tickLine={false} />
+                  <Tooltip cursor={{ fill: "#f8fafc" }} />
+                  <Legend iconType="rect" />
+                  <Bar
+                    dataKey="In Stock"
+                    fill="#10b981"
+                    radius={[4, 4, 0, 0]}
+                    barSize={60}
+                  />
+                  <Bar
+                    dataKey="Low Stock"
+                    fill="#f59e0b"
+                    radius={[4, 4, 0, 0]}
+                    barSize={60}
+                  />
+                  <Bar
+                    dataKey="Out of Stock"
+                    fill="#ef4444"
+                    radius={[4, 4, 0, 0]}
+                    barSize={60}
+                  />
+                  <Bar
+                    dataKey="Expired"
+                    fill="#f97316"
+                    radius={[4, 4, 0, 0]}
+                    barSize={60}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
       </section>
 

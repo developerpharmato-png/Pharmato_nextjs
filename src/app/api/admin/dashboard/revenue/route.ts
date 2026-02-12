@@ -22,9 +22,10 @@ function parseDateRange(body: any) {
 }
 
 function buildGroup(period: string) {
-    if (period === 'today') return { $dateToString: { format: '%Y-%m-%d %H:00', date: '$deliveredDate' } };
-    if (period === 'month' || period === 'year') return { $dateToString: { format: '%Y-%m', date: '$deliveredDate' } };
-    return { $dateToString: { format: '%Y-%m-%d', date: '$deliveredDate' } };
+    const dateField = { $ifNull: ['$deliveredDate', '$createdAt'] };
+    if (period === 'today') return { $dateToString: { format: '%Y-%m-%d %H:00', date: dateField } };
+    if (period === 'month' || period === 'year') return { $dateToString: { format: '%Y-%m', date: dateField } };
+    return { $dateToString: { format: '%Y-%m-%d', date: dateField } };
 }
 
 export async function POST(req: NextRequest) {
@@ -60,6 +61,7 @@ export async function POST(req: NextRequest) {
             { $group: { _id: buildGroup(period), revenue: { $sum: '$actual_amount' }, orders: { $sum: 1 } } },
             { $sort: { _id: 1 } }
         ]);
+        console.log('Revenue trend aggregation:', { dateRange: { start, end }, trendLength: trend.length, trend });
 
         // Previous period comparison
         const timeDiff = end.getTime() - start.getTime();
