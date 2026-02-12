@@ -68,7 +68,7 @@ const pieColors = ["#22c55e", "#facc15", "#ef4444", "#fb923c"];
 export default function NewDashboardPage() {
   // state + controls
   const [period, setPeriod] = React.useState<
-    "today" | "week" | "month" | "year" | "custom"
+    "today" | "week" | "month" | "year" | "all" | "custom"
   >("month");
   const [startDate, setStartDate] = React.useState<string>("");
   const [endDate, setEndDate] = React.useState<string>("");
@@ -181,6 +181,7 @@ export default function NewDashboardPage() {
               <option value="week">This Week</option>
               <option value="month">This Month</option>
               <option value="year">This Year</option>
+              <option value="all">All Time</option>
               <option value="custom">Custom Range</option>
             </select>
           </div>
@@ -462,10 +463,10 @@ export default function NewDashboardPage() {
               color: "blue",
             },
             {
-              label: "Completed",
+              label: "Confirmed",
               value:
-                ordersData?.kpis?.ordersCompleted ||
-                ordersData?.kpis?.completed,
+                ordersData?.kpis?.ordersConfirmed ||
+                ordersData?.kpis?.confirmed,
               icon: <CheckCircle size={24} />,
               color: "emerald",
             },
@@ -587,7 +588,12 @@ export default function NewDashboardPage() {
                   {inventoryData.lowStockList.slice(0, 6).map((m: any) => (
                     <div
                       key={m._id}
-                      className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors"
+                      onClick={() =>
+                        (window.location.href = `/dashboard/medicines?filter=${encodeURIComponent(
+                          "Low Stock",
+                        )}&search=${encodeURIComponent(m.name)}`)
+                      }
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
                     >
                       <span className="text-sm font-medium text-slate-700">
                         {m.name}
@@ -618,18 +624,76 @@ export default function NewDashboardPage() {
                 <p className="p-4 text-slate-400 text-center animate-pulse">
                   Checking dates...
                 </p>
-              ) : inventoryData?.expiredList?.length ? (
+              ) : inventoryData?.expiringSoonList?.length ? (
                 <div className="space-y-1">
-                  {inventoryData.expiredList.slice(0, 6).map((m: any) => (
+                  {inventoryData.expiringSoonList.slice(0, 6).map((m: any) => (
                     <div
                       key={m._id}
-                      className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors"
+                      onClick={() =>
+                        (window.location.href = `/dashboard/medicines?search=${encodeURIComponent(
+                          m.name,
+                        )}`)
+                      }
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
                     >
                       <span className="text-sm font-medium text-slate-700">
                         {m.name}
                       </span>
                       <span className="text-xs font-mono text-slate-500">
-                        {new Date(m.expiryDate).toLocaleDateString()}
+                        {m.expiryDate
+                          ? new Date(m.expiryDate).toLocaleDateString("en-GB", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "2-digit",
+                            })
+                          : "-"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-10 text-center text-slate-400">
+                  No expiring items found
+                </div>
+              )}
+            </div>
+          </div>
+          {/* Expired Items - added below Expiring Soon */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+              <h3 className="font-bold text-slate-800">Expired Items</h3>
+              <span className="text-xs font-bold bg-rose-50 text-rose-700 px-2 py-1 rounded">
+                Already Expired
+              </span>
+            </div>
+            <div className="p-4">
+              {loading ? (
+                <p className="p-4 text-slate-400 text-center animate-pulse">
+                  Loading items...
+                </p>
+              ) : inventoryData?.expiredList?.length ? (
+                <div className="space-y-1">
+                  {inventoryData.expiredList.slice(0, 6).map((m: any) => (
+                    <div
+                      key={m._id}
+                      onClick={() =>
+                        (window.location.href = `/dashboard/medicines?search=${encodeURIComponent(
+                          m.name,
+                        )}`)
+                      }
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+                    >
+                      <span className="text-sm font-medium text-slate-700">
+                        {m.name}
+                      </span>
+                      <span className="text-xs font-mono text-slate-500">
+                        {m.expiryDate
+                          ? new Date(m.expiryDate).toLocaleDateString("en-GB", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "2-digit",
+                            })
+                          : "-"}
                       </span>
                     </div>
                   ))}

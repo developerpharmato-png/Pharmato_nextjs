@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import HeaderWithAction from "../components/HeaderWithAction";
 import OrdersTable from "./OrdersTable";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import FilterSearch from "../components/FilterSearch";
 import { OrderListStore, OrderExportStore } from "../storeAPICall/useUserStore";
 import { OrderLIstPath, OrderExportPath } from "../storeAPICall/API/BaseApi";
@@ -16,6 +16,7 @@ import { CustomButton } from "../components/miniComponents";
 
 export default function OrdersPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [orders, setOrders] = useState<any[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -30,18 +31,54 @@ export default function OrdersPage() {
   const [exportStartDate, setExportStartDate] = useState<Date | null>(null);
   const [exportEndDate, setExportEndDate] = useState<Date | null>(null);
 
-  const { postData: ListPost, loading: ListLoading, data: OrderListData } = OrderListStore();
+  const {
+    postData: ListPost,
+    loading: ListLoading,
+    data: OrderListData,
+  } = OrderListStore();
   const { postBlob: ExportPost } = OrderExportStore();
+
+  // Apply filter from URL query params on component load
+  useEffect(() => {
+    const filter = searchParams.get("filter");
+    if (filter) {
+      // Map dashboard filter labels to order status values
+      const filterMap: { [key: string]: string } = {
+        "Total Orders": "all",
+        Confirmed: "Confirmed",
+        Pending: "Pending",
+        Cancelled: "Cancelled",
+      };
+      const mappedFilter = filterMap[filter] || "all";
+      setOrderStatus(mappedFilter);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     fetchOrders();
-  }, [page, rowsPerPage, searchTerm, customerId, prescriptionStatus, orderStatus, dayFilter, exportStartDate, exportEndDate]);
+  }, [
+    page,
+    rowsPerPage,
+    searchTerm,
+    customerId,
+    prescriptionStatus,
+    orderStatus,
+    dayFilter,
+    exportStartDate,
+    exportEndDate,
+  ]);
 
   const fetchOrders = async () => {
-    const body: any = { limit: rowsPerPage, offset: page * rowsPerPage, page, day: dayFilter };
+    const body: any = {
+      limit: rowsPerPage,
+      offset: page * rowsPerPage,
+      page,
+      day: dayFilter,
+    };
     if (searchTerm) body.search = searchTerm;
     if (customerId) body.customerId = customerId;
-    if (prescriptionStatus && prescriptionStatus !== "all") body.prescription_status = prescriptionStatus;
+    if (prescriptionStatus && prescriptionStatus !== "all")
+      body.prescription_status = prescriptionStatus;
     if (orderStatus && orderStatus !== "all") body.order_status = orderStatus;
     if (exportStartDate) body.startDate = format(exportStartDate, "dd-MM-yyyy");
     if (exportEndDate) body.endDate = format(exportEndDate, "dd-MM-yyyy");
@@ -68,7 +105,7 @@ export default function OrdersPage() {
     }
   };
 
-  useEffect(() => { 
+  useEffect(() => {
     if (!OrderListData) return;
     try {
       const success = (OrderListData as any).success;
@@ -87,14 +124,16 @@ export default function OrdersPage() {
 
   return (
     <div className="containerStyle scrollbar-hide">
-
       <HeaderWithAction
         title="Orders"
         subtitle="Track, process, and manage all orders"
         showBack={false}
         ExportButton={
           <div className="flex items-center gap-2 p-1 bg-gray-50 rounded-lg border border-gray-200">
-            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enGB}>
+            <LocalizationProvider
+              dateAdapter={AdapterDateFns}
+              adapterLocale={enGB}
+            >
               <DatePicker
                 label="Start date"
                 format="dd/MM/yyyy"
@@ -102,27 +141,42 @@ export default function OrdersPage() {
                 maxDate={new Date()}
                 onChange={(d) => {
                   setExportStartDate(d);
-                  if (d && exportEndDate && !(exportEndDate > d)) setExportEndDate(null);
+                  if (d && exportEndDate && !(exportEndDate > d))
+                    setExportEndDate(null);
                 }}
                 slotProps={{
                   textField: {
                     size: "small",
-                    sx: { width: 160, '& .MuiOutlinedInput-root': { borderRadius: '6px', backgroundColor: 'white' } }
-                  }
+                    sx: {
+                      width: 160,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "6px",
+                        backgroundColor: "white",
+                      },
+                    },
+                  },
                 }}
               />
               <DatePicker
                 label="End date"
                 format="dd/MM/yyyy"
                 value={exportEndDate}
-                minDate={exportStartDate ? addDays(exportStartDate, 1) : undefined}
+                minDate={
+                  exportStartDate ? addDays(exportStartDate, 1) : undefined
+                }
                 maxDate={new Date()}
                 onChange={(d) => setExportEndDate(d)}
                 slotProps={{
                   textField: {
                     size: "small",
-                    sx: { width: 160, '& .MuiOutlinedInput-root': { borderRadius: '6px', backgroundColor: 'white' } }
-                  }
+                    sx: {
+                      width: 160,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "6px",
+                        backgroundColor: "white",
+                      },
+                    },
+                  },
                 }}
               />
             </LocalizationProvider>
@@ -132,8 +186,12 @@ export default function OrdersPage() {
                 setExportLoading(true);
                 try {
                   const body: any = {
-                    startDate: exportStartDate ? format(exportStartDate, "dd-MM-yyyy") : undefined,
-                    endDate: exportEndDate ? format(exportEndDate, "dd-MM-yyyy") : undefined,
+                    startDate: exportStartDate
+                      ? format(exportStartDate, "dd-MM-yyyy")
+                      : undefined,
+                    endDate: exportEndDate
+                      ? format(exportEndDate, "dd-MM-yyyy")
+                      : undefined,
                   };
                   if (searchTerm) body.search = searchTerm;
                   const blob = await ExportPost?.(OrderExportPath, body);
@@ -170,6 +228,7 @@ export default function OrdersPage() {
           setPrescriptionStatus={setPrescriptionStatus}
           orderStatus={orderStatus}
           setOrderStatus={setOrderStatus}
+          initialOrderStatus={orderStatus}
           setPage={setPage}
           setExportStartDate={setExportStartDate}
           setExportEndDate={setExportEndDate}

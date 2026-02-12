@@ -88,7 +88,7 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
         return "status-default";
     }
   };
-
+ 
   const columns: Column<Order>[] = [
     {
       id: "order_id",

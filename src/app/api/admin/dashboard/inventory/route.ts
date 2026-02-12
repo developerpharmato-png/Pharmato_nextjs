@@ -19,25 +19,44 @@ export async function POST(req: NextRequest) {
         await dbConnect();
         const body = await req.json().catch(() => ({}));
         const threshold = body.threshold ?? await getLowStockThreshold();
-        const filters: any = { isDeleted: false };
+        const filters: any = {};
         if (body.storeId) filters.storeId = body.storeId;
         if (body.categoryId) filters.categoryId = body.categoryId;
 
+        // Use date with hours reset to 0 to match medicines list API
         const now = new Date();
+        now.setHours(0, 0, 0, 0);
 
-        const [total, lowStock, outOfStock, expired] = await Promise.all([
+        // compute 15-day window for "expiring soon"
+        const soon = new Date(now);
+        soon.setDate(soon.getDate() + 15);
+        soon.setHours(23, 59, 59, 999);
+
+        const [total, lowStock, outOfStock, expired, expiringSoonCount] = await Promise.all([
             Medicine.countDocuments(filters),
-            Medicine.countDocuments({ ...filters, stock: { $gt: 0, $lte: threshold } }),
-            Medicine.countDocuments({ ...filters, stock: 0 }),
-            Medicine.countDocuments({ ...filters, expiryDate: { $lt: now } })
+            Medicine.countDocuments({ ...filters, stock: { $gt: 0, $lt: threshold } }),
+            Medicine.countDocuments({
+                ...filters,
+                $or: [
+                    { stock: { $lte: 0 } },
+                    { stock: { $exists: false } }
+                ]
+            }),
+            Medicine.countDocuments({ ...filters, expiryDate: { $lt: now } }),
+            Medicine.countDocuments({ ...filters, expiryDate: { $gte: now, $lte: soon } })
         ]);
 
-        const lowStockList = await Medicine.find({ ...filters, stock: { $gt: 0, $lte: threshold } })
+        const lowStockList = await Medicine.find({ ...filters, stock: { $gt: 0, $lt: threshold } })
             .select('name stock expiryDate uniqueCode')
             .limit(50)
             .lean();
 
         const expiredList = await Medicine.find({ ...filters, expiryDate: { $lt: now } })
+            .select('name stock expiryDate uniqueCode')
+            .limit(50)
+            .lean();
+
+        const expiringSoonList = await Medicine.find({ ...filters, expiryDate: { $gte: now, $lte: soon } })
             .select('name stock expiryDate uniqueCode')
             .limit(50)
             .lean();
@@ -50,10 +69,12 @@ export async function POST(req: NextRequest) {
                     lowStockMedicines: lowStock,
                     outOfStockMedicines: outOfStock,
                     expiredMedicines: expired,
+                    expiringSoonMedicines: expiringSoonCount,
                     threshold
                 },
                 lowStockList,
-                expiredList
+                expiredList,
+                expiringSoonList
             }
         });
     } catch (error: any) {

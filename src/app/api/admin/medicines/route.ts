@@ -101,6 +101,8 @@ export async function GET(request: NextRequest) {
         { stock: { $lte: 0 } },
         { stock: { $exists: false } }
       ];
+    } else if (medicineFilter === 'lowstock') {
+      baseFilter.stock = { $gt: 0, $lt: 10 };
     }
 
     if (categoryId && mongoose.Types.ObjectId.isValid(categoryId)) {

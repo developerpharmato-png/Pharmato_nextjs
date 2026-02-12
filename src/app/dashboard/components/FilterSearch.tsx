@@ -55,6 +55,7 @@ interface FilterSearchProps {
   setPrescriptionStatus?: (val: string) => void;
   orderStatus?: string;
   setOrderStatus?: (val: string) => void;
+  initialOrderStatus?: string;
   medicineFilterStatus?: string;
   setMedicineFilterStatus?: (val: string) => void;
   showMedicineFilter?: boolean;
@@ -92,6 +93,7 @@ export default function FilterSearch({
   setExportEndDate,
   setExportStartDate,
   setDayFilter,
+  initialOrderStatus = "all",
 }: FilterSearchProps) {
   const [dayFilterValue, setDayFilterValue] = useState<string>("all");
   const [search, setSearch] = useState<string>(initial.search || "");
@@ -102,6 +104,8 @@ export default function FilterSearch({
   const [medicineFilter, setMedicineFilter] = useState<string>(
     medicineFilterStatus || "all",
   );
+  const [orderFilterValue, setOrderFilterValue] =
+    useState<string>(initialOrderStatus);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
 
@@ -109,6 +113,20 @@ export default function FilterSearch({
     CategoriesStore();
   const { fetchData: fetchSubs, data: subsData } = SubcategoriesStore();
   console.log(categoryFilter, "categoryFilter");
+
+  // Sync medicineFilter with medicineFilterStatus prop when it changes
+  useEffect(() => {
+    if (medicineFilterStatus && medicineFilterStatus !== "all") {
+      setMedicineFilter(medicineFilterStatus);
+    }
+  }, [medicineFilterStatus]);
+
+  // Sync orderStatus with initialOrderStatus prop when it changes
+  useEffect(() => {
+    if (initialOrderStatus && initialOrderStatus !== "all") {
+      setOrderFilterValue(initialOrderStatus);
+    }
+  }, [initialOrderStatus]);
 
   // --- LOGIC REMAINS UNCHANGED ---
   useEffect(() => {
@@ -321,10 +339,12 @@ export default function FilterSearch({
           <FormControl size="small" sx={controlStyle}>
             <InputLabel>Order Status</InputLabel>
             <Select
-              value={orderStatus}
+              value={orderFilterValue}
               label="Order Status"
               onChange={(e) => {
-                setOrderStatus?.(e.target.value);
+                const value = e.target.value;
+                setOrderFilterValue(value);
+                setOrderStatus?.(value);
                 setPage?.(0);
               }}
             >
@@ -357,6 +377,7 @@ export default function FilterSearch({
             <MenuItem value="inactive">Inactive Medicines</MenuItem>
             <MenuItem value="expired">Expired Medicines</MenuItem>
             <MenuItem value="outofstock">Out of Stock Medicines</MenuItem>
+            <MenuItem value="lowstock">Low Stock Medicines</MenuItem>
           </Select>
         </FormControl>
       )}

@@ -3,7 +3,7 @@ import React, { Suspense, useEffect, useState } from "react";
 import MedicinesTable from "./table";
 import HeaderWithAction from "../components/HeaderWithAction";
 import FilterSearch from "../components/FilterSearch";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { MedicinesExportPath } from "../storeAPICall/API/BaseApi";
 import { CustomButton } from "../components/miniComponents";
@@ -15,6 +15,7 @@ export default function MedicinesPage() {
   const [medicineFilterStatus, setMedicineFilterStatus] =
     useState<string>("all");
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [exportLoading, setExportLoading] = useState(false);
   // No date fields needed for export
@@ -61,6 +62,25 @@ export default function MedicinesPage() {
   }, []);
 
   const canEditMedicines = adminPermissions?.Medicines?.edit ?? true;
+
+  // Apply filter from URL query params on component load
+  useEffect(() => {
+    const filter = searchParams.get("filter");
+    const search = searchParams.get("search");
+    if (search) setSearchTerm(search);
+    if (filter) {
+      // Map dashboard filter labels to medicine filter values
+      const filterMap: { [key: string]: string } = {
+        "Total Medicines": "all",
+        "Low Stock": "lowstock",
+        "Out of Stock": "outofstock",
+        Expired: "expired",
+      };
+      const mappedFilter = filterMap[filter] || "all";
+      setMedicineFilterStatus(mappedFilter);
+    }
+  }, [searchParams]);
+
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
@@ -91,6 +111,7 @@ export default function MedicinesPage() {
 
       <div className="mt-4">
         <FilterSearch
+          initial={{ search: searchParams.get("search") || "" }}
           onChange={(f) => {
             setSearchTerm(f.search || "");
             setCategoryId(f.categoryId || null);

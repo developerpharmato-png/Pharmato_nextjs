@@ -421,27 +421,36 @@ const MedicinesTable: React.FC<
       id: "expiryDate",
       label: "Expiry Date",
       minWidth: 120,
-      selector: (row) => (
-        <CustomTooltip
-          title={
-            row.expiryDate ? new Date(row.expiryDate).toLocaleDateString() : "-"
+      selector: (row) => {
+        const fmt = (d: any) => {
+          if (!d) return "-";
+          try {
+            return new Date(d).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "2-digit",
+            });
+          } catch (e) {
+            return "-";
           }
-        >
-          <span
-            style={{
-              display: "inline-block",
-              width: 120,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {row.expiryDate
-              ? new Date(row.expiryDate).toLocaleDateString()
-              : "-"}
-          </span>
-        </CustomTooltip>
-      ),
+        };
+
+        return (
+          <CustomTooltip title={fmt(row.expiryDate)}>
+            <span
+              style={{
+                display: "inline-block",
+                width: 120,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {fmt(row.expiryDate)}
+            </span>
+          </CustomTooltip>
+        );
+      },
     },
     {
       id: "batchNumber",
