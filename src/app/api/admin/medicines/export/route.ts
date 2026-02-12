@@ -46,15 +46,15 @@ export async function POST(request: NextRequest) {
         "Created Date": m.createdAt ? new Date(m.createdAt).toLocaleString() : "",
         "Last Updated ": m.updatedAt ? new Date(m.updatedAt).toLocaleString() : "",
         // "Unique Identity": m.uniqueIdentity,
-        "Store ID": m.storeId,
+        // "Store ID": m.storeId,
         // Deleted: m.isDeleted,
         // Rating: m.rating ? JSON.stringify(m.rating) : "",
         // "Marg Data": m.margData ? JSON.stringify(m.margData) : "",
         // Images: m.images && m.images.length ? m.images.join(", ") : "",
         // "Cover Image": m.coverImage || "",
         Highlights: m.highlights && m.highlights.length ? m.highlights.join(", ") : "",
-        "Related Products": m.relatedProducts && m.relatedProducts.length ? JSON.stringify(m.relatedProducts) : "",
-        "Cross Sell Products": m.crossSellProducts && m.crossSellProducts.length ? JSON.stringify(m.crossSellProducts) : "",
+        // "Related Products": m.relatedProducts && m.relatedProducts.length ? JSON.stringify(m.relatedProducts) : "",
+        // "Cross Sell Products": m.crossSellProducts && m.crossSellProducts.length ? JSON.stringify(m.crossSellProducts) : "",
         Composition: m.composition && m.composition.length ? JSON.stringify(m.composition) : "",
       };
     });

@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
                 // "Customer Name": o.userId?.name || '',
                 // "Customer Email": o.userId?.email || '',
                 // "Customer Mobile": o.userId?.mobile || '',
-                "Customer To Name": deliveredAddr?.name || '',
+                "Customer Name": deliveredAddr?.name || '',
                 "Customer Email": deliveredAddr?.email || '',
                 "Customer Phone": deliveredAddr?.phone || '',
                 // "Delivery Address": deliveryAddressCity || '',
