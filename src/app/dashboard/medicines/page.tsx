@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { MedicinesExportPath } from "../storeAPICall/API/BaseApi";
 import { CustomButton } from "../components/miniComponents";
 
-export default function MedicinesPage() {
+function MedicinesPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [subCategoryId, setSubCategoryId] = useState<string | null>(null);
@@ -139,5 +139,14 @@ export default function MedicinesPage() {
         />
       </div>
     </div>
+  );
+
+}
+
+export default function MedicinesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MedicinesPageContent />
+    </Suspense>
   );
 }

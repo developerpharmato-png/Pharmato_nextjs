@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import HeaderWithAction from "../components/HeaderWithAction";
 import OrdersTable from "./OrdersTable";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -14,7 +14,7 @@ import { enGB } from "date-fns/locale";
 import { format, addDays } from "date-fns";
 import { CustomButton } from "../components/miniComponents";
 
-export default function OrdersPage() {
+function OrdersPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -124,98 +124,17 @@ export default function OrdersPage() {
 
   return (
     <div className="containerStyle scrollbar-hide">
+      {/* ...existing code... */}
       <HeaderWithAction
         title="Orders"
         subtitle="Track, process, and manage all orders"
         showBack={false}
         ExportButton={
           <div className="flex items-center gap-2 p-1 bg-gray-50 rounded-lg border border-gray-200">
-            <LocalizationProvider
-              dateAdapter={AdapterDateFns}
-              adapterLocale={enGB}
-            >
-              <DatePicker
-                label="Start date"
-                format="dd/MM/yyyy"
-                value={exportStartDate}
-                maxDate={new Date()}
-                onChange={(d) => {
-                  setExportStartDate(d);
-                  if (d && exportEndDate && !(exportEndDate > d))
-                    setExportEndDate(null);
-                }}
-                slotProps={{
-                  textField: {
-                    size: "small",
-                    sx: {
-                      width: 160,
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: "6px",
-                        backgroundColor: "white",
-                      },
-                    },
-                  },
-                }}
-              />
-              <DatePicker
-                label="End date"
-                format="dd/MM/yyyy"
-                value={exportEndDate}
-                minDate={
-                  exportStartDate ? addDays(exportStartDate, 1) : undefined
-                }
-                maxDate={new Date()}
-                onChange={(d) => setExportEndDate(d)}
-                slotProps={{
-                  textField: {
-                    size: "small",
-                    sx: {
-                      width: 160,
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: "6px",
-                        backgroundColor: "white",
-                      },
-                    },
-                  },
-                }}
-              />
-            </LocalizationProvider>
-            <CustomButton
-              width="140px"
-              onClick={async () => {
-                setExportLoading(true);
-                try {
-                  const body: any = {
-                    startDate: exportStartDate
-                      ? format(exportStartDate, "dd-MM-yyyy")
-                      : undefined,
-                    endDate: exportEndDate
-                      ? format(exportEndDate, "dd-MM-yyyy")
-                      : undefined,
-                  };
-                  if (searchTerm) body.search = searchTerm;
-                  const blob = await ExportPost?.(OrderExportPath, body);
-                  if (!blob) throw new Error("Export failed");
-                  const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `orders_${Date.now()}.xlsx`;
-                  a.click();
-                  window.URL.revokeObjectURL(url);
-                } catch (e) {
-                  // alert("Export failed");
-                } finally {
-                  setExportLoading(false);
-                }
-              }}
-              disabled={exportLoading}
-            >
-              {exportLoading ? "Wait..." : "Export"}
-            </CustomButton>
+            {/* ...existing code... */}
           </div>
         }
       />
-
       <Box mt={4}>
         <FilterSearch
           onChange={(f) => setSearchTerm(f.search || "")}
@@ -234,7 +153,6 @@ export default function OrdersPage() {
           setExportEndDate={setExportEndDate}
         />
       </Box>
-
       <OrdersTable
         data={orders}
         page={page}
@@ -245,5 +163,13 @@ export default function OrdersPage() {
         loading={ListLoading}
       />
     </div>
+  );
+}
+
+export default function OrdersPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <OrdersPageContent />
+    </Suspense>
   );
 }
