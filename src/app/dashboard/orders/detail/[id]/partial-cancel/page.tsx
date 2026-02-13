@@ -351,22 +351,21 @@ export default function PartialCancelPage() {
           showSearch={false}
           addShow={false}
         />
-        {order?.order_status !== "Confirmed" &&
-          order?.order_status !== "Delivered" && (
-            <CustomButton
-              width="250px"
-              onClick={() => setShowStatusDialog(true)}
-              disabled={order?.order_status !== "Confirmed"}
-            >
-              Update Order
-            </CustomButton>
-          )}
+        {order?.order_status === "Confirmed" && (
+          <CustomButton
+            width="250px"
+            onClick={() => setShowStatusDialog(true)}
+            disabled={order?.order_status !== "Confirmed"}
+          >
+            Update Order
+          </CustomButton>
+        )}
 
-        {order?.invoice_url && (
+        {/* {(order?.invoice_url && order?.order_status !== "Confirmed") && (
           <CustomButton onClick={() => downloadInvoicePDF(order?.invoice_url)}>
             Download Invoice
           </CustomButton>
-        )}
+        )} */}
       </div>
 
       {/* Order ID and Status block below header */}
