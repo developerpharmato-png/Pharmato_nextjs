@@ -93,6 +93,20 @@ function calculateDiscount(mrp?: number, price?: number) {
   return 0;
 }
 
+function extractPackSize(name: string): number {
+  if (!name) return 1;
+
+  // Match patterns like 1X15, 1*15, 2x10, 5*6 etc
+  const match = name.match(/(\d+)\s*[xX*]\s*(\d+)/);
+
+  if (match && match[2]) {
+    return parseInt(match[2], 10);
+  }
+
+  return 1; // default if not found
+}
+
+
 /**
  * @swagger
  * /api/admin/marg/cron:
