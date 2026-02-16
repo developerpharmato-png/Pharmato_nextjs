@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
 
     const payload = {
         OrderID: "",
-        OrderNo: `1007`,
+        OrderNo: `1008`,
         Partycode: "STACjn", //Online order
         CustomerID: "11906405",//12324265
         // Partycode: "APP   ", //Online order
@@ -111,9 +111,9 @@ export async function POST(request: NextRequest) {
         Sid: "306832",
 
         // ProductCode: "1061746",   // ✅ EXACT as Marg sample
-        ProductCode: "1063348,1061746,1080900",   // ✅ EXACT as Marg sample
-        Quantity: "1,1,2",
-        Free: "0,0,0",
+        ProductCode: "1034726",   // ✅ EXACT as Marg sample
+        Quantity: "1",
+        Free: "0",
 
         Lat: "",
         Lng: "",

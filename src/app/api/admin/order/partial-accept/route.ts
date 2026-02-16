@@ -110,8 +110,8 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
     // Fetch medicine names for both accepted and cancelled
     // Fetch medicine names for both accepted and cancelled, and merge with quantity/price for accepted
     const [acceptedRaw, cancelledNames] = await Promise.all([
-        Medicine.find({ _id: { $in: unCancelledItems.map((i: any) => i.medicineId) } }).select('name coverImage mrp'),
-        Medicine.find({ _id: { $in: cancelledForRefund.map((i: any) => i.medicineId) } }).select('name coverImage mrp'),
+        Medicine.find({ _id: { $in: unCancelledItems.map((i: any) => i.medicineId) } }).select('name coverImage mrp batchNumber'),
+        Medicine.find({ _id: { $in: cancelledForRefund.map((i: any) => i.medicineId) } }).select('name coverImage mrp batchNumber'),
     ]);
 
     // Merge acceptedRaw with unCancelledItems to include quantity and price
