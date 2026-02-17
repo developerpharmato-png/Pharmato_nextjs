@@ -73,6 +73,41 @@ export function decryptMargData(cipherText: string) {
     }
 }
 
+function decrypt(data: string) {
+
+    const key = MARG_KEY
+
+    // Base64 decode
+    const encryptedBuffer = Buffer.from(data, "base64");
+
+    // Create 16 byte key (same as C# logic)
+    const keyBuffer = Buffer.alloc(16);
+    const keyBytes = Buffer.from(key, "utf8");
+    keyBytes.copy(keyBuffer, 0, 0, Math.min(keyBytes.length, 16));
+
+    // Same key used as IV (exactly like C#)
+    const iv = keyBuffer;
+
+    const decipher = crypto.createDecipheriv(
+        "aes-128-cbc",
+        keyBuffer,
+        iv
+    );
+
+    decipher.setAutoPadding(true);
+
+    let decrypted = decipher.update(encryptedBuffer);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+
+    return decrypted.toString("utf8");
+}
+
+function decompress(compressedString: string) {
+    const buffer = Buffer.from(compressedString, "base64");
+    const decompressed = zlib.inflateRawSync(buffer); // DeflateStream equivalent
+    return decompressed.toString("utf8");
+}
+
 /**
  * @swagger
  * /api/customer/dummy:
@@ -101,18 +136,16 @@ export async function POST(request: NextRequest) {
 
     const payload = {
         OrderID: "",
-        OrderNo: `1008`,
-        Partycode: "STACjn", //Online order
-        CustomerID: "11906405",//12324265
-        // Partycode: "APP   ", //Online order
-        // CustomerID: "12324265",//12324265
+        OrderNo: `7000`,
+        // Partycode: "STACjn", //Online order
+        // CustomerID: "11906405",//12324265
+        Partycode: "APP   ", //Online order
+        CustomerID: "12324265",//12324265
         MargID: "486257",
         Type: "C",
         Sid: "306832",
-
-        // ProductCode: "1061746",   // ✅ EXACT as Marg sample
-        ProductCode: "1034726",   // ✅ EXACT as Marg sample
-        Quantity: "1",
+        ProductCode: '1061705',
+        Quantity: '1',
         Free: "0",
 
         Lat: "",
@@ -171,5 +204,14 @@ export async function POST(request: NextRequest) {
         success: true,
         data: result.data
     });
+
+    // try {
+    //     const decrypted = decrypt(response.data);
+    //     const finalOutput = decompress(decrypted);
+
+    //     console.log("FINAL OUTPUT:",finalOutput);
+    // } catch (err) {
+    //     console.error("ERROR:", err);
+    // }
 
 }
