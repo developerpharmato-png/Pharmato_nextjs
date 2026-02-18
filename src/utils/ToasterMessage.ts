@@ -56,7 +56,7 @@ export const ToastMessages = {
   ADMIN_INVITE_RESEND_FAILED: "Failed to send password reset link",
   SUPERADMIN_STATUS_LOCKED: "Cannot change SuperAdmin status",
 
-  
+
   // Permission messages
   PERMISSIONS_UPDATED: "Permissions updated successfully",
   PERMISSIONS_UPDATE_FAILED: "Failed to update permissions",

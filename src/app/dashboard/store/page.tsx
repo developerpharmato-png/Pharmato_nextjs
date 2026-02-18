@@ -96,6 +96,16 @@ export default function StoreDashboard() {
   // CustomTable columns definition
   const baseColumns: Column<any>[] = [
     {
+      id: "uniqueCode",
+      label: "ID",
+      minWidth: 80,
+      selector: (row) => (
+        <CustomTooltip title={row.uniqueCode || "-"}>
+          <span className="ID-List">{row.uniqueCode || "-"}</span>
+        </CustomTooltip>
+      ),
+    },
+    {
       id: "name",
       label: "Name",
       minWidth: 120,
