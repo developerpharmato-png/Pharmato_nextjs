@@ -1,11 +1,6 @@
 name: Call Next.js Cron API
 
 on:
-  # 1️⃣ Deploy / push hote hi chalega
-  push:
-    branches:
-      - main
-
   # 2️⃣ हर 1 मिनट में चलेगा
   schedule:
     - cron: "0 */2 * * *"
@@ -21,4 +16,4 @@ jobs:
       - name: Call Next.js cron API
         run: |
           echo "Calling Next.js cron API..."
-          curl -X POST https://pharmato-nextjs.vercel.app/api/admin/marg/cron
+          curl -X POST https://dev.api.pharmato.bareclearact.com/api/admin/marg/cron
