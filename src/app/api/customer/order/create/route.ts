@@ -164,7 +164,6 @@ export async function POST(req: NextRequest) {
             deliveryFeeThreshold,
             deliveryFee
         );
-
     }
 
     // Validate delivery fee

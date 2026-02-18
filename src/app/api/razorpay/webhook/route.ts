@@ -446,7 +446,7 @@ async function runBackground(body: any) {
                         $push: { paymentHistory: paymentHistory },
                         $set: {
                             payment_status: 'Failed',
-                            order_status: 'pending'
+                            order_status: 'Cancelled'
                         }
                     }
                 );
