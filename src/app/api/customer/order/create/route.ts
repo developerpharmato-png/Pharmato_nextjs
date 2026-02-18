@@ -158,8 +158,7 @@ export async function POST(req: NextRequest) {
         if (setting.type === 'deliveryFeeThreshold') deliveryFeeThreshold = setting.data;
     }
 
-    if (deliveryFeeThreshold && deliveryFeeThreshold !== "") {
-        console.log(`"######if (deliveryFeeThreshold && deliveryFeeThreshold"`);
+    if (deliveryFeeThreshold !== "") {
         deliveryFee = calculateDeliveryFee(
             calculationData.priceTotalSumAfterDiscount,
             deliveryFeeThreshold,
