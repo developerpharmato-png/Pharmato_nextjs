@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
     const medicineId: any[] = [];
     const medicineQuantity: any[] = [];
     let deliveryFee = 0;
-    let deliveryFeeThreshold = 0;
+    let deliveryFeeThreshold : any = "";
 
     for (const setting of settings) {
         if (setting.type === 'gst') calculationData.gstInPercent = Number(setting.data);
@@ -176,7 +176,7 @@ export async function POST(req: NextRequest) {
         if (setting.type === 'razorPay comission') calculationData.razorPayCommissionInPercent = Number(setting.data);
         if (setting.type === 'razorPay gst') calculationData.razorPayCommissionGstInPercent = Number(setting.data);
         if (setting.type === 'deliveryFee') deliveryFee = Number(setting.data);
-        if (setting.type === 'deliveryFeeThreshold') deliveryFeeThreshold = Number(setting.data);
+        if (setting.type === 'deliveryFeeThreshold') deliveryFeeThreshold = setting.data;
     }
 
     // console.log("$$$$$$$$$cartData$$$$$$$$$",cartData);
@@ -196,9 +196,9 @@ export async function POST(req: NextRequest) {
     // Apply discount to priceTotalSum
     const priceTotalSumAfterDiscount = Math.max(0, priceTotalSumBeforeDiscount - discountValue);
     calculationData.priceTotalSumAfterDiscount = Number(priceTotalSumAfterDiscount.toFixed(2));
-    calculationData.deliveryFee = calculateDeliveryFee(
+    calculationData.deliveryFee = deliveryFeeThreshold == "" ? deliveryFee :  calculateDeliveryFee(
         priceTotalSumAfterDiscount,
-        deliveryFeeThreshold,
+        Number(deliveryFeeThreshold),
         deliveryFee
     );
     const userTotalCharged = priceTotalSumAfterDiscount + platformFee;
