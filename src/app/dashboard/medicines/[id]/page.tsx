@@ -12,6 +12,7 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import RelatedProductsPopup from "../components/RelatedProductsPopup";
 import { MedicinesGetBYIDPath } from "../../storeAPICall/API/BaseApi";
+import { Box } from "@mui/material";
 
 export default function MedicineDetailPage() {
   const { id } = useParams();
@@ -22,7 +23,20 @@ export default function MedicineDetailPage() {
   const [tabIndex, setTabIndex] = useState(0);
   const [showRelatedPopup, setShowRelatedPopup] = useState(false);
   const [showCrossSellPopup, setShowCrossSellPopup] = useState(false);
-  console.log(showRelatedPopup, "showRelatedPopupshowRelatedPopup");
+  const [canEdit, setCanEdit] = useState(false);
+
+  useEffect(() => {
+    const p = localStorage.getItem("adminPermissions");
+    if (p) {
+      try {
+        const perms = JSON.parse(p);
+        const medicinePerm = perms["Medicines"];
+        setCanEdit(medicinePerm ? medicinePerm.edit : false);
+      } catch (e) {
+        setCanEdit(false);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -58,7 +72,7 @@ export default function MedicineDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ medicineId: id, relatedProductIds: ids }),
       });
-    } catch (err) {}
+    } catch (err) { }
     setShowRelatedPopup(false);
     // Refetch medicine detail to update UI
     setLoading(true);
@@ -69,7 +83,7 @@ export default function MedicineDetailPage() {
     } catch (err) {
       setMedicine(null);
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
 
@@ -80,7 +94,7 @@ export default function MedicineDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ medicineId: id, crossSellProductIds: ids }),
       });
-    } catch (err) {}
+    } catch (err) { }
     setShowCrossSellPopup(false);
     // Refetch medicine detail to update UI
     setLoading(true);
@@ -126,22 +140,23 @@ export default function MedicineDetailPage() {
         showBack={true}
         showSearch={false}
         rightNode={
-          <div className="flex items-center gap-3">
-            <a
-              href={`/dashboard/medicines/AddEdit/${id}`}
-              className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-sm font-medium shadow-md transition duration-150 ease-in-out"
-            >
-              <span className="material-icons text-base">edit</span>
-              <span>Edit</span>
-            </a>
+          <div className="flex items-center gap-2 sm:gap-3">
+            {canEdit && (
+              <a
+                href={`/dashboard/medicines/AddEdit/${id}`}
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-xs sm:text-sm font-medium shadow-md transition duration-150 ease-in-out"
+              >
+                <span className="material-icons text-sm sm:text-base">edit</span>
+                <span>Edit</span>
+              </a>
+            )}
             <button
-              className={`hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border ${
-                medicine.isActive
+              className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium border ${medicine.isActive
                   ? "bg-green-50 text-green-700 border-green-200"
                   : "bg-red-50 text-red-700 border-red-200"
-              }`}
+                }`}
             >
-              <span className="material-icons text-base">
+              <span className="material-icons text-sm sm:text-base">
                 {medicine.isActive ? "check_circle" : "highlight_off"}
               </span>
               <span>{medicine.isActive ? "Active" : "Inactive"}</span>
@@ -150,14 +165,23 @@ export default function MedicineDetailPage() {
         }
       />
       <div className="bg-white rounded-xl p-6 md:p-8 grid  gap-8">
-        <div className="lg:col-span-2">
-          <Tabs value={tabIndex} onChange={(_, v) => setTabIndex(v)}>
-            <Tab label="Gallery" />
-            <Tab label="Details" />
-            <Tab label="Previous Details" />
-            <Tab label="Related Products" />
-            <Tab label="Cross-Sell Products" />
-          </Tabs>
+        <div className="lg:col-span-2 overflow-hidden">
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }}>
+            <Tabs
+              value={tabIndex}
+              onChange={(_, v) => setTabIndex(v)}
+              variant="scrollable"
+              scrollButtons="auto"
+              allowScrollButtonsMobile
+              aria-label="medicine details tabs"
+            >
+              <Tab label="Gallery" />
+              <Tab label="Details" />
+              <Tab label="Previous Details" />
+              <Tab label="Related Products" />
+              <Tab label="Cross-Sell Products" />
+            </Tabs>
+          </Box>
           <div className="mt-6">
             {tabIndex === 0 && (
               <ProductImageSlider images={images} productName={medicine.name} />
@@ -222,7 +246,7 @@ export default function MedicineDetailPage() {
                     Overview
                   </h2>
                   <div className="mt-3 text-gray-700">
-                    {medicine.description }
+                    {medicine.description}
                   </div>
                   <div className="mt-4">
                     <div className="text-sm font-semibold text-gray-800 mb-2">
@@ -411,7 +435,7 @@ export default function MedicineDetailPage() {
                     Overview
                   </h2>
                   <div className="mt-3 text-gray-700">
-                    {previousMedicine?.description }
+                    {previousMedicine?.description}
                   </div>
                   <div className="mt-4">
                     <div className="text-sm font-semibold text-gray-800 mb-2">
@@ -543,7 +567,7 @@ export default function MedicineDetailPage() {
             {tabIndex === 3 && (
               <div>
                 <div className="flex items-center mb-4"></div>
-                <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {medicine.relatedProducts?.map((prod: any) => (
                     <div
                       onClick={() => mediumDetails(prod._id)}
@@ -614,7 +638,7 @@ export default function MedicineDetailPage() {
             )}
             {tabIndex === 4 && (
               <div>
-                <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {medicine.crossSellProducts?.map((prod: any) => (
                     <div
                       key={prod._id}

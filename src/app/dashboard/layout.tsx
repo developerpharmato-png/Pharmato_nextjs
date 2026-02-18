@@ -297,13 +297,11 @@ export default function DashboardLayout({
 
       {/* Sidebar */}
       <aside
-        className={`${
-          isMobile
-            ? `fixed inset-y-0 left-0 z-40 transform ${
-                sidebarOpen ? "translate-x-0" : "-translate-x-full"
-              }`
-            : `relative ${sidebarOpen ? "w-64" : "w-20"}`
-        } bg-white shadow-xl transition-all duration-300 ease-in-out shrink-0 overflow-hidden h-full`}
+        className={`${isMobile
+          ? `fixed inset-y-0 left-0 z-40 transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`
+          : `relative ${sidebarOpen ? "w-64" : "w-20"}`
+          } bg-white shadow-xl transition-all duration-300 ease-in-out shrink-0 overflow-hidden h-full`}
       >
         <div className="flex flex-col h-full">
           <div className="p-4 border-b border-gray-200">
@@ -381,6 +379,9 @@ export default function DashboardLayout({
                   ) : (
                     <Link
                       href={item.path || "#"}
+                      onClick={() => {
+                        if (isMobile) setSidebarOpen(false);
+                      }}
                       className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${isActiveLink ? "bg-green-600 text-white shadow-md" : "text-gray-700 hover:bg-green-100"
                         } ${!sidebarOpen ? "justify-center" : ""}`}
                     >
@@ -400,6 +401,9 @@ export default function DashboardLayout({
                           <Link
                             key={child.path}
                             href={child.path}
+                            onClick={() => {
+                              if (isMobile) setSidebarOpen(false);
+                            }}
                             className={`flex items-center px-4 py-2 rounded-lg text-sm transition-all ${isChildActive ? "text-green-600 font-bold" : "text-gray-600 hover:text-green-600"
                               }`}
                           >
@@ -448,7 +452,7 @@ export default function DashboardLayout({
           </button>
         )}
         <DashboardTopHeader />
-        <main className="p-6 flex-1 overflow-y-auto w-full">
+        <main className="p-1 sm:p-6 flex-1 overflow-y-auto w-full">
           {!isOnline ? (
             <div className="flex items-center justify-center h-full">
               <div className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">

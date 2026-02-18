@@ -97,24 +97,37 @@ body {
   background: #fff;
   border-radius: 0.75rem;
   box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
-  padding: 1rem;
-  padding-left: 2rem;
-  padding-right: 2rem;
+  padding: 10px;
   width: 100%;
   overflow: auto;
   height: 84vh;
-  /* padding-bottom: 5rem; */
+}
+
+@media (min-width: 768px) {
+  .containerStyle {
+    padding: 1rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
 }
 
 .containerStyleStick {
   background: #fff;
   border-radius: 0.75rem;
   box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
-
+  padding: 10px;
   width: 100%;
   overflow: auto;
   height: 84vh;
   padding-bottom: 5rem;
+}
+
+@media (min-width: 768px) {
+  .containerStyleStick {
+    padding: 1rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
 }
 
 .stikcHeader {
