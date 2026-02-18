@@ -107,7 +107,7 @@ export function CustomTable<T>({
 
   return (
     <Paper sx={{ width: "100%", overflow: "hidden" }}>
-    
+
       <TableContainer sx={{ height: { xs: '53vh', sm: '53vh', md: '54vh', lg: '50vh', xl: '60vh' } }}>
         <Table stickyHeader>
           <TableHead>
@@ -148,7 +148,7 @@ export function CustomTable<T>({
                 <TableRow hover tabIndex={-1} key={idx}>
                   {columns.map((col) => (
                     <TableCell key={col.id} align={col.align || "left"}
-                    sx={{padding:"8px"}}
+                      sx={{ padding: "8px" }}
                     >
                       {col.selector(row)}
                     </TableCell>

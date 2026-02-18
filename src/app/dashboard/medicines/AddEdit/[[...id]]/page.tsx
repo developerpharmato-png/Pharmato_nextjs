@@ -79,7 +79,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                 unitInput = med.unit.slice(0, -suffix.length);
               }
             }
-             enableReinitialize: false;
+            enableReinitialize: false;
             setInitialValues({
               ...initialMedicineFormValues,
               ...med,
@@ -96,7 +96,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
               unitInput: unitInput,
               unit: med.unit || "",
             });
-           
+
             setComposition(
               Array.isArray(med.composition)
                 ? med.composition
@@ -608,7 +608,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
     (sub) => sub._id === formik.values.subCategoryId
   );
   const todayStr = new Date().toISOString().split("T")[0];
-console.log(formik.dirty,"formik.dirtyformik.dirty");
+  console.log(formik.dirty, "formik.dirtyformik.dirty");
 
   return (
     <>
@@ -621,7 +621,7 @@ console.log(formik.dirty,"formik.dirtyformik.dirty");
         </>
       ) :
         (
-          <> 
+          <>
 
             <div className="containerStyle scrollbar-hide">
               <HeaderWithAction
@@ -694,7 +694,7 @@ console.log(formik.dirty,"formik.dirtyformik.dirty");
                             } as React.ChangeEvent<HTMLSelectElement>);
                           }}
                         >
-                        
+
                           {stores.map((s) => (
                             <MenuItem key={String(s._id)} value={String(s._id)}>
                               {s.name}
@@ -1149,10 +1149,16 @@ console.log(formik.dirty,"formik.dirtyformik.dirty");
                     {composition.map((c, idx) => (
                       <div
                         key={idx}
-                        className="flex gap-4 mb-3 items-center p-3 border border-gray-200 rounded-lg bg-gray-50 shadow-sm"
+                        className="relative p-4 pt-10 md:pt-4 border border-gray-200 rounded-lg bg-gray-50 shadow-sm flex flex-col md:flex-row gap-3 md:items-center"
                       >
-                        {" "}
-                        {/* Added box styling */}
+                        <button
+                          type="button"
+                          onClick={() => removeCompositionRow(idx)}
+                          className="absolute top-2 right-2 md:static text-red-600 hover:text-red-800 font-medium p-1 transition shrink-0"
+                          title="Remove composition row"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </button>
                         <input
                           type="text"
                           placeholder="Name"
@@ -1160,7 +1166,7 @@ console.log(formik.dirty,"formik.dirtyformik.dirty");
                           onChange={(e) =>
                             handleCompositionChange(idx, "name", e.target.value)
                           }
-                          className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-green-500 focus:border-green-500 transition"
+                          className="w-full min-w-0 border bg-white text-gray-900 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500 transition"
                         />
                         <input
                           type="text"
@@ -1169,15 +1175,8 @@ console.log(formik.dirty,"formik.dirtyformik.dirty");
                           onChange={(e) =>
                             handleCompositionChange(idx, "value", e.target.value)
                           }
-                          className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-green-500 focus:border-green-500 transition"
+                          className="w-full min-w-0 border bg-white text-gray-900 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500 transition"
                         />
-                        <button
-                          type="button"
-                          onClick={() => removeCompositionRow(idx)}
-                          className="text-red-600 hover:text-red-800 font-medium p-1 transition"
-                        >
-                          <DeleteIcon />
-                        </button>
                       </div>
                     ))}
                     {(composition || []).length < 5 && (
@@ -1203,24 +1202,22 @@ console.log(formik.dirty,"formik.dirtyformik.dirty");
                     {formik.values.highlights.map((h, idx) => (
                       <div
                         key={idx}
-                        className="flex gap-4 mb-3 items-center p-3 border border-gray-200 rounded-lg bg-yellow-50 shadow-sm"
+                        className="flex gap-2 items-center p-3 border border-gray-200 rounded-lg bg-yellow-50 shadow-sm"
                       >
-                        {" "}
-                        {/* Added box styling with yellow tint */}
                         <input
                           type="text"
                           placeholder={`Highlight #${idx + 1}`}
                           value={h}
                           onChange={(e) => handleHighlightChange(idx, e.target.value)}
                           onBlur={formik.handleBlur}
-                          className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 focus:ring-yellow-500 focus:border-yellow-500 transition"
+                          className="border bg-white text-gray-900 rounded-lg px-3 py-2 flex-1 min-w-0 focus:ring-yellow-500 focus:border-yellow-500 transition"
                         />
                         <button
                           type="button"
                           onClick={() => removeHighlightRow(idx)}
-                          className="text-red-600 hover:text-red-800 font-medium p-1 transition"
+                          className="text-red-600 hover:text-red-800 font-medium p-1 transition shrink-0"
                         >
-                          <DeleteIcon />
+                          <DeleteIcon fontSize="small" />
                         </button>
                       </div>
                     ))}

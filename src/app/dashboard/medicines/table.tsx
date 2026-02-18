@@ -213,12 +213,12 @@ const MedicinesTable: React.FC<
         minWidth: 120,
         selector: (row) => (
           <CustomTooltip title={row.uniqueCode || "-"}>
-          <span
+            <span
               className="ID-List"
               onClick={() => router.push(`/dashboard/medicines/${row._id}`)}
-          >
-            {row.uniqueCode || "-"}
-          </span>
+            >
+              {row.uniqueCode || "-"}
+            </span>
           </CustomTooltip>
         ),
       },
