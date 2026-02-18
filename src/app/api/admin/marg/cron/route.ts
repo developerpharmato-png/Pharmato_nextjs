@@ -158,9 +158,9 @@ async function importMedicinesFromMarg() {
     const payload = {
       CompanyCode: 'PharmatoInd2',
       MargID: 486257,
-      Datetime: `${lastSyncDateTime}`,
+      // Datetime: `${lastSyncDateTime}`,
       // Datetime: `2026-02-06 19:30:17`, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
-      // Datetime: ``, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
+      Datetime: ``, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
       index: 0
     };
     const response = await axios.post(url, payload, {
@@ -211,9 +211,13 @@ async function importMedicinesFromMarg() {
       const expiry = convertExpiry(p.exp);
       const { categoryId, subCategoryId } = getRandomCategoryAndSubcategory();
 
-      const purchasePrice = ((Number(p.PRate) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
-      const mrp = ((Number(p.MRP) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
-      const price = computePriceFromMrp(mrp); // Price calculate karna using MRP, discount ko consider karte hue
+      
+      const purchasePrice = Number(((Number(p.PRate) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye  
+      const mrp = Number(((Number(p.MRP) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
+      const price = Number(computePriceFromMrp(mrp).toFixed(2)); // Price calculate karna using MRP, discount ko consider karte hue
+      // const purchasePrice = ((Number(p.PRate) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
+      // const mrp = ((Number(p.MRP) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
+      // const price = computePriceFromMrp(mrp); // Price calculate karna using MRP, discount ko consider karte hue
       const stock = Math.floor((Number(p.stock) || 0) / Number(unitPackFactor)); // Stock ko unit pack factor se divide karna, taki correct stock aaye
 
 
@@ -288,9 +292,9 @@ async function importMedicinesFromMarg() {
       // const price = computePriceFromMrp(p.MRP);
       // const mrp = Number(p.MRP) || 0;
 
-      const purchasePrice = ((Number(p.PRate) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye  
-      const mrp = ((Number(p.MRP) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
-      const price = computePriceFromMrp(mrp); // Price calculate karna using MRP, discount ko consider karte hue
+      const purchasePrice = Number(((Number(p.PRate) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye  
+      const mrp = Number(((Number(p.MRP) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
+      const price = Number(computePriceFromMrp(mrp).toFixed(2)); // Price calculate karna using MRP, discount ko consider karte hue
       const stock = Math.floor((Number(p.stock) || 0) / Number(unitPackFactor)); // Stock ko unit pack factor se divide karna, taki correct stock aaye
 
       if (checkMedicine) {
@@ -378,9 +382,12 @@ async function importMedicinesFromMarg() {
       if (checkMedicine) {
 
         const unitPackFactor = checkMedicine.unitPackFactor || 1;
-        const purchasePrice = ((Number(p.PRate) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye  
-        const mrp = ((Number(p.MRP) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
-        const price = computePriceFromMrp(mrp); // Price calculate karna using MRP, discount ko consider karte hue
+        const purchasePrice = Number(((Number(p.PRate) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye  
+        const mrp = Number(((Number(p.MRP) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
+        const price = Number(computePriceFromMrp(mrp).toFixed(2)); // Price calculate karna using MRP, discount ko consider karte hue
+        // const purchasePrice = ((Number(p.PRate) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye  
+        // const mrp = ((Number(p.MRP) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
+        // const price = computePriceFromMrp(mrp); // Price calculate karna using MRP, discount ko consider karte hue
         const stock = Math.floor((Number(p.stock) || 0) / Number(unitPackFactor)); // Stock ko unit pack factor se divide karna, taki correct stock aaye
 
         const medObj = {
