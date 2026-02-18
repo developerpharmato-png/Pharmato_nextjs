@@ -57,9 +57,7 @@ export default function NewDashboardPage() {
   const [ordersData, setOrdersData] = React.useState<any>(null);
   const [inventoryData, setInventoryData] = React.useState<any>(null);
   const [revenueData, setRevenueData] = React.useState<any>(null);
-  const [trendToggle, setTrendToggle] = React.useState<"orders" | "revenue">(
-    "orders",
-  );
+
   const [exportOrdersLoading, setExportOrdersLoading] = React.useState(false);
   const [exportInventoryLoading, setExportInventoryLoading] =
     React.useState(false);
@@ -221,7 +219,7 @@ export default function NewDashboardPage() {
               className="bg-transparent font-medium text-slate-700 focus:outline-none cursor-pointer"
             >
               <option value="today">Today</option>
-              <option value="week">This Week</option>
+             
               <option value="month">This Month</option>
               <option value="year">This Year</option>
               <option value="all">All Time</option>
@@ -260,56 +258,26 @@ export default function NewDashboardPage() {
 
       {/* Analytics & Charts Section */}
       <section className="mb-10">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <span className="w-2 h-6 bg-blue-600 rounded-full"></span>
-            Analytics & Trends
-          </h2>
-
-          <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200">
-            <button
-              onClick={() => setTrendToggle("orders")}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-tight transition-all ${
-                trendToggle === "orders"
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              Orders
-            </button>
-            <button
-              onClick={() => setTrendToggle("revenue")}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-tight transition-all ${
-                trendToggle === "revenue"
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              Revenue
-            </button>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+              <span className="w-2 h-6 bg-blue-600 rounded-full"></span>
+              Orders Volume Trend
+            </h2>
           </div>
-        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Chart Card */}
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">
-              {trendToggle === "orders"
-                ? "Orders Volume Trend"
-                : "Revenue Growth Trend"}
+              Orders Volume Trend
             </h3>
             <div className="h-[300px] w-full">
               {loading ? (
                 <SkeletonLoader />
-              ) : (trendToggle === "orders" && ordersData?.trend?.length) ||
-                (trendToggle === "revenue" && revenueData?.trend?.length) ? (
+              ) : ordersData?.trend?.length ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
-                    data={
-                      trendToggle === "orders"
-                        ? ordersData.trend
-                        : revenueData.trend
-                    }
+                    data={ordersData.trend}
                   >
                     <CartesianGrid
                       strokeDasharray="3 3"
@@ -337,12 +305,12 @@ export default function NewDashboardPage() {
                     />
                     <Line
                       type="monotone"
-                      dataKey={trendToggle === "orders" ? "value" : "revenue"}
-                      stroke={trendToggle === "orders" ? "#3b82f6" : "#10b981"}
+                      dataKey="value"
+                      stroke="#3b82f6"
                       strokeWidth={4}
                       dot={{
                         r: 4,
-                        fill: trendToggle === "orders" ? "#3b82f6" : "#10b981",
+                        fill: "#3b82f6",
                         strokeWidth: 2,
                         stroke: "#fff",
                       }}
@@ -778,6 +746,66 @@ export default function NewDashboardPage() {
           <span className="w-2 h-6 bg-emerald-500 rounded-full"></span>
           Revenue & Growth
         </h2>
+
+        {/* Revenue Chart */}
+        <div className="mb-6 bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">
+            Revenue Growth Trend
+          </h3>
+          <div className="h-[300px] w-full">
+            {loading ? (
+              <SkeletonLoader />
+            ) : revenueData?.trend?.length ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={revenueData.trend}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#f1f5f9"
+                  />
+                  <XAxis
+                    dataKey="label"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#94a3b8", fontSize: 12 }}
+                    dy={10}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#94a3b8", fontSize: 12 }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "12px",
+                      border: "none",
+                      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#10b981"
+                    strokeWidth={4}
+                    dot={{
+                      r: 4,
+                      fill: "#10b981",
+                      strokeWidth: 2,
+                      stroke: "#fff",
+                    }}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState
+                title="No Revenue Data"
+                message="Try adjusting your filters"
+              />
+            )}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div className="bg-gradient-to-br from-emerald-600 to-teal-700 p-6 rounded-2xl shadow-lg text-white">
             <div className="flex items-center gap-3 mb-4">

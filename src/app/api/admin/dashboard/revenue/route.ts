@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         const match: any = {
             $and: [
                 { $or: [{ deliveredDate: { $exists: true, $ne: null } }, { createdAt: { $exists: true } }] },
-                { $or: [{ payment_status: 'paid' }, { order_status: /deliv|complete/i }] }
+                { $or: [{ payment_status: { $in: ['paid', 'captured'] } }, { order_status: /deliv|complete/i }] }
             ]
         };
 

@@ -96,7 +96,8 @@ export default function HeaderWithAction({
   handleAdd,
   isunsaved = false,
   onBack,
-  ExportButton, showclearAll = true,
+  ExportButton,
+  showclearAll = true,
   lastSyncDateTime = ""
 }: Props) {
   const router = useRouter();
@@ -124,7 +125,7 @@ export default function HeaderWithAction({
     <button
       type="button"
       onClick={handleBack}
-      className="absolute left-0 top-0 inline-flex items-center justify-center w-10 h-10 text-gray-500 bg-white border border-gray-200 rounded-full shadow hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+      className="absolute left-0 top-0 inline-flex items-center justify-center w-10 h-10 text-gray-500 bg-white border border-gray-200 rounded-full shadow hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 z-10"
       aria-label={`Go ${backLabel}`}
     >
       <BackArrowIcon />
@@ -132,62 +133,78 @@ export default function HeaderWithAction({
   );
 
   const addAction = addShow ? (
-    <CustomButton type="submit" onClick={handleAdd} width="100px">
+    <CustomButton type="submit" onClick={handleAdd} width="auto" className="min-w-[40px] sm:min-w-[100px] px-3">
+      <span className="material-icons sm:hidden">add</span>
       <span className="hidden sm:inline">{addLabel}</span>
     </CustomButton>
   ) : (
     addHref && (
       <Link
         href={addHref}
-        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition shadow-md flex items-center gap-2 font-medium"
+        className="p-2 sm:px-4 sm:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition shadow-md flex items-center gap-2 font-medium"
       >
-        <span className="material-icons">add</span>
+        <span className="material-icons text-xl">add</span>
         <span className="hidden sm:inline">{addLabel}</span>
       </Link>
     )
   );
 
   return (
-    <div className="relative mb-4">
+    <div className="relative mb-6 w-full">
       {backButton}
 
-      <div className="flex items-center justify-between">
-        <div className={`flex items-center gap-4 ${showBack ? "pl-14" : ""}`}>
-          <div>
-            <h1
-              className="text-2xl sm:text-4xl font-bold text-gray-800"
-              style={{
-                // Title gradient retained
-                backgroundImage: `linear-gradient(90deg, #10B981, #059669)`,
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                color: "#10B981",
-              }}
-            >
-              {title}
-            </h1>
-            {subtitle && (
-              // Subtitle and the new styled line
-              <div>
-                <p className="text-gray-600 hidden sm:block">{subtitle}</p>
-                <div
-                  // NEW: Styled green gradient line below the subtitle
-                  className="hidden sm:block mt-1 h-0.5 w-12 rounded-full"
-                  style={{
-                    backgroundImage: `linear-gradient(90deg, #059669, #10B981, #A7F3D0)`, // Dark Green to Light Green Gradient
-                  }}
-                />
-                {lastSyncDateTime && <p className="text-gray-600 hidden sm:block">Last Synced :- {lastSyncDateTime}</p>}
-              </div>
+      {/* Main Flex Wrapper: Stacks on mobile, row on desktop */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 
-            )}
-          </div>
+        {/* Title and Subtitle Area */}
+        <div className={`flex flex-col gap-1 ${showBack ? "pl-12 sm:pl-14" : ""}`}>
+          <h1
+            className="text-xl sm:text-3xl md:text-4xl font-bold leading-tight"
+            style={{
+              backgroundImage: `linear-gradient(90deg, #10B981, #059669)`,
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              color: "#10B981",
+            }}
+          >
+            {title}
+          </h1>
+
+          {subtitle && (
+            <div className="flex flex-col">
+              {/* Subtitle: Visible on small screens but smaller font, full detail on desktop */}
+              <p className="text-gray-500 text-xs sm:text-sm md:text-base line-clamp-1 sm:line-clamp-none">
+                {subtitle}
+              </p>
+
+              <div
+                className="mt-1 h-0.5 w-8 sm:w-12 rounded-full"
+                style={{
+                  backgroundImage: `linear-gradient(90deg, #059669, #10B981, #A7F3D0)`,
+                }}
+              />
+
+              {lastSyncDateTime && (
+                <p className="text-gray-400 text-[10px] sm:text-xs mt-1 italic">
+                  Last Synced: {lastSyncDateTime}
+                </p>
+              )}
+            </div>
+          )}
         </div>
-        <div className="flex items-center gap-3">
-          {ExportButton && <>{ExportButton}</>}
 
-          {rightNode}
-          {addAction}
+        {/* Actions Area (Export, RightNode/Wallet, Add) */}
+        <div className="flex items-center justify-end gap-2 sm:gap-3 flex-wrap">
+          {ExportButton && (
+            <div className="scale-90 sm:scale-100">
+              {ExportButton}
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            {rightNode}
+            {addAction}
+          </div>
         </div>
       </div>
     </div>

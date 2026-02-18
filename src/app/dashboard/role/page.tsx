@@ -34,6 +34,18 @@ export default function RolePage() {
   const [search, setSearch] = useState("");
   const [editId, setEditId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [adminPermissions, setAdminPermissions] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("adminPermissions");
+      if (p) setAdminPermissions(JSON.parse(p));
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  const canEditRoles = adminPermissions?.Role?.edit ?? true;
 
   const fetchRoles = async () => {
     setLoading(true);
@@ -146,6 +158,7 @@ export default function RolePage() {
       confirmButtonText: isActive ? "Inactivate" : "Activate",
     }).then(async (result) => {
       if (!result.isConfirmed) return;
+      if (!canEditRoles) return; // double check
       try {
         const res = await axios.patch(`/api/admin/role/${id}/toggle-status`);
         if (res.data.success) {
@@ -184,33 +197,27 @@ export default function RolePage() {
       label: "Role Name",
       selector: (row) => <span>{row.name}</span>,
     },
-   
+
     {
       id: "isActive",
       label: "Status",
       selector: (row) => {
         const isSuper = row.name === "SuperAdmin";
         return (
-          <button
-            onClick={() => !isSuper && handleToggle(row._id, row.isActive)}
-            className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
-              isSuper ? "opacity-60 cursor-not-allowed" : ""
-            }`}
-            style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
-            title={
-              isSuper
-                ? "Cannot change SuperAdmin status"
-                : row.isActive
-                ? "Click to deactivate"
-                : "Click to activate"
-            }
-          >
-            <span
-              className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
-                row.isActive ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
-          </button>
+          <CustomTooltip title={isSuper ? "Cannot change SuperAdmin status" : (!canEditRoles ? "Status Toggle Permission Denied" : (row.isActive ? "Click to deactivate" : "Click to activate"))}>
+            <button
+              onClick={() => !isSuper && canEditRoles && handleToggle(row._id, row.isActive)}
+              disabled={!canEditRoles && !isSuper}
+              className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${isSuper || !canEditRoles ? "opacity-60 cursor-not-allowed" : ""
+                }`}
+              style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
+            >
+              <span
+                className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${row.isActive ? "translate-x-6" : "translate-x-1"
+                  }`}
+              />
+            </button>
+          </CustomTooltip>
         );
       },
     },
@@ -221,11 +228,11 @@ export default function RolePage() {
         const isSuper = row.name === "SuperAdmin";
         return (
           <div className="flex gap-2">
-            <CustomTooltip title={isSuper ? "Edit disabled for SuperAdmin" : "Edit"}>
+            <CustomTooltip title={isSuper ? "Edit disabled for SuperAdmin" : (!canEditRoles ? "Edit Permission Denied" : "Edit")}>
               <button
-                onClick={() => !isSuper && handleEdit(row)}
-                disabled={isSuper}
-                className={`flex items-center justify-center p-2 rounded ${isSuper ? 'opacity-60 cursor-not-allowed' : ''}`}
+                onClick={() => !isSuper && canEditRoles && handleEdit(row)}
+                disabled={isSuper || !canEditRoles}
+                className={`flex items-center justify-center p-2 rounded ${isSuper || !canEditRoles ? 'opacity-60 cursor-not-allowed' : ''}`}
                 aria-label="Edit"
               >
                 <EditIcon fontSize="small" />
@@ -247,11 +254,11 @@ export default function RolePage() {
         searchValue={search}
         onSearchChange={setSearch}
         addLabel="Add "
-        addShow={true}
+        addShow={canEditRoles}
         handleAdd={() => {
           setShowModal(true);
           setEditId(null);
-          formik.resetForm(); 
+          formik.resetForm();
         }}
       />
 

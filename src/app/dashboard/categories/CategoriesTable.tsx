@@ -66,14 +66,13 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
       minWidth: 50,
 
       selector: (row: Category) => (
-        <CustomTooltip title={row.uniqueCode || "-"}>
-          <span
-            className="ID-List"
-            onClick={() => router.push(`/dashboard/categories/edit/${row._id}`)}
-          >
-            {row.uniqueCode || "-"}
-          </span>
-        </CustomTooltip>
+        <span
+          className={canEditCategories ? "ID-List" : ""}
+          style={{ cursor: canEditCategories ? "pointer" : "default" }}
+          onClick={() => canEditCategories && router.push(`/dashboard/categories/edit/${row._id}`)}
+        >
+          {row.uniqueCode || "-"}
+        </span>
       ),
     },
     {
@@ -152,45 +151,46 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
 
   const columns: Column<Category>[] = [...baseColumns];
 
-  if (canEditCategories) {
-    columns.push({
-      id: "isActive",
-      label: "Status",
-      minWidth: 80,
-      selector: (row: Category) => (
-        <button
-          onClick={() => {
-            showConfirmStatusAlert({
-              isActive: !!row.isActive,
-              title:
-                confirmStatusMsg?.title ||
-                (row.isActive ? "Deactivate Status?" : "Activate Status?"),
-              text:
-                confirmStatusMsg?.text ||
-                (row.isActive
-                  ? "Are you sure you want to deactivate this Category?"
-                  : "Are you sure you want to activate this Category?"),
-              confirmText:
-                confirmStatusMsg?.confirmText ||
-                (row.isActive ? "Deactivate" : "Activate"),
-              cancelText: confirmStatusMsg?.cancelText || "Cancel",
-              onConfirm: () =>
-                onToggleStatus && onToggleStatus(row._id, !row.isActive),
-            });
-          }}
-          className="relative  cursor-pointer inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-          style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
-          title={row.isActive ? "Click to deactivate" : "Click to activate"}
-        >
-          <span
-            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
-              row.isActive ? "translate-x-6" : "translate-x-1"
+  columns.push({
+    id: "isActive",
+    label: "Status",
+    minWidth: 80,
+    selector: (row: Category) => (
+      <button
+        onClick={() => {
+          if (!canEditCategories) return;
+          showConfirmStatusAlert({
+            isActive: !!row.isActive,
+            title:
+              confirmStatusMsg?.title ||
+              (row.isActive ? "Deactivate Status?" : "Activate Status?"),
+            text:
+              confirmStatusMsg?.text ||
+              (row.isActive
+                ? "Are you sure you want to deactivate this Category?"
+                : "Are you sure you want to activate this Category?"),
+            confirmText:
+              confirmStatusMsg?.confirmText ||
+              (row.isActive ? "Deactivate" : "Activate"),
+            cancelText: confirmStatusMsg?.cancelText || "Cancel",
+            onConfirm: () =>
+              onToggleStatus && onToggleStatus(row._id, !row.isActive),
+          });
+        }}
+        disabled={!canEditCategories}
+        className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${!canEditCategories ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
+        style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
+        title={!canEditCategories ? "Status Toggle Permission Denied" : (row.isActive ? "Click to deactivate" : "Click to activate")}
+      >
+        <span
+          className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${row.isActive ? "translate-x-6" : "translate-x-1"
             }`}
-          />
-        </button>
-      ),
-    });
+        />
+      </button>
+    ),
+  });
 
+  if (canEditCategories) {
     columns.push({
       id: "actions",
       label: "Edit",

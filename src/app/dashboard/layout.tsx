@@ -28,6 +28,8 @@ import {
   Bell,
   TagIcon,
   Ticket,
+  Menu, // Add Menu icon
+  X,    // Add X icon for close
 } from "lucide-react";
 import { requestPermissionAndGetToken } from "../firebase/firebaseConfig";
 
@@ -80,8 +82,11 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [adminPermOpen, setAdminPermOpen] = useState(false);
   const [dataAnalyticsOpen, setDataAnalyticsOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(false); // Add isMobile state
   const [permissions, setPermissions] = useState<Record<
     string,
     { view: boolean; edit: boolean }
@@ -107,6 +112,20 @@ export default function DashboardLayout({
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
+  }, []);
+
+  // Handle Resize for Mobile Detection
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setSidebarOpen(false); // Default close on mobile
+      else setSidebarOpen(true); // Default open on desktop
+    };
+
+    handleResize(); // Initial check
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
@@ -176,14 +195,14 @@ export default function DashboardLayout({
   };
 
   const menuItems = [
-    { name: "Dashboard", path: "/dashboard/DashboardApp", icon: "dashboard", isActive: true },
-    // { name: "Dashboard", path: "/dashboard/NewDashboard", icon: "dashboard", isActive: true },
+    // { name: "Dashboard", path: "/dashboard/DashboardApp", icon: "dashboard", isActive: true },
+    { name: "Dashboard", path: "/dashboard/NewDashboard", icon: "dashboard", isActive: true },
     { name: "Medicines", path: "/dashboard/medicines", icon: "medication", isActive: true },
     { name: "Categories", path: "/dashboard/categories", icon: "category", isActive: true },
     { name: "Subcategories", path: "/dashboard/subcategories", icon: "folder", isActive: true },
     { name: "Orders", path: "/dashboard/orders", icon: "receipt_long", isActive: true },
     { name: "Customers", path: "/dashboard/admin/customers", icon: "person", isActive: true },
-    // { name: "Coupons", path: "/dashboard/coupon", icon: "tag", isActive: true },
+    { name: "Coupons", path: "/dashboard/coupon", icon: "tag", isActive: true },
     {
       name: "Send Notifications", path: "/dashboard/notifications", icon: "bell",
       isActive: true,
@@ -267,10 +286,24 @@ export default function DashboardLayout({
     .filter((item) => item.isVisible);
 
   return (
-    <div className="flex h-screen w-full">
+    <div className="flex h-screen w-full relative">
+      {/* Mobile Backdrop */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
       <aside
-        className={`${sidebarOpen ? "w-64" : "w-20"
-          } bg-white shadow-xl transition-all duration-300 ease-in-out shrink-0 z-20 overflow-hidden`}
+        className={`${
+          isMobile
+            ? `fixed inset-y-0 left-0 z-40 transform ${
+                sidebarOpen ? "translate-x-0" : "-translate-x-full"
+              }`
+            : `relative ${sidebarOpen ? "w-64" : "w-20"}`
+        } bg-white shadow-xl transition-all duration-300 ease-in-out shrink-0 overflow-hidden h-full`}
       >
         <div className="flex flex-col h-full">
           <div className="p-4 border-b border-gray-200">
@@ -404,7 +437,16 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      <div className="flex flex-col flex-1 bg-gradient-to-br from-green-50 to-teal-50 overflow-hidden">
+      <div className="flex flex-col flex-1 bg-gradient-to-br from-green-50 to-teal-50 overflow-hidden w-full relative">
+        {/* Mobile Toggle Button (Only visible on mobile when sidebar is closed) */}
+        {isMobile && !sidebarOpen && (
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="absolute top-4 left-4 z-50 p-2 bg-white rounded-md shadow-md text-gray-600 hover:text-green-600"
+          >
+            <Menu size={24} />
+          </button>
+        )}
         <DashboardTopHeader />
         <main className="p-6 flex-1 overflow-y-auto w-full">
           {!isOnline ? (

@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>HPBOSE | NEET &amp; JEE Preparation</title>
+      
         <link rel="icon" href="/vercel.svg" />
       </Head>
       <LoginPage />

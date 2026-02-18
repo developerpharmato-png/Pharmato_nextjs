@@ -164,138 +164,144 @@ function SubCategoriesTable({ canEdit }: { canEdit?: boolean }) {
     {
       id: "uniqueCode",
       label: "Id",
+      minWidth: 100,
       selector: (row) => (
-        <CustomTooltip title={row.uniqueCode || "—"}
-          onClick={() => router.push(`/dashboard/subcategories/AddEdit/${row._id}`)}
+        <span
+          className={canEdit ? "ID-List" : ""}
+          style={{ cursor: canEdit ? "pointer" : "default" }}
+          onClick={() =>
+            canEdit && router.push(`/dashboard/subcategories/AddEdit/${row._id}`)
+          }
         >
-          <span className="ID-List">{row.uniqueCode || "—"}</span>
-        </CustomTooltip>
+          {row.uniqueCode || "—"}
+        </span>
       ),
     },
     {
       id: "image",
       label: "Image",
-      selector: (row) => (
-        <CustomTooltip title={row.name || "Image"}>
-          {Array.isArray(row.images) && row.images[0] ? (
-            <div className=" h-[50px] w-[50px]">
+      minWidth: 80,
+      selector: (row) =>
+        Array.isArray(row.images) && row.images[0] ? (
+          <div className="h-[40px] w-[40px] flex items-center">
             <CustomImage
               coverImage={row.images[0]}
               images={row.images}
               alt="Subcategory"
               style={{ width: 32, height: 32, borderRadius: 6 }}
             />
-            </div>
-          ) : (
-            <span className="text-gray-400">—</span>
-          )}
-        </CustomTooltip>
-      ),
+          </div>
+        ) : (
+          <span className="text-gray-400">—</span>
+        ),
     },
     {
       id: "name",
       label: "Name",
+      minWidth: 140,
       selector: (row) => (
-        <CustomTooltip title={row.name || "-"}>
-          <span
-            style={{
-              maxWidth: 120,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {row.name}
-          </span>
-        </CustomTooltip>
+        <span
+          style={{
+            display: "inline-block",
+            maxWidth: 140,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {row.name}
+        </span>
       ),
     },
     {
       id: "description",
       label: "Description",
+      minWidth: 200,
       selector: (row) => (
-        <CustomTooltip title={row.description || "-"}>
-          <span
-            className="text-gray-600"
-            style={{
-              maxWidth: 180,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {row.description}
-          </span>
-        </CustomTooltip>
+        <span
+          className="text-gray-600"
+          style={{
+            display: "inline-block",
+            maxWidth: 200,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {row.description || "—"}
+        </span>
       ),
     },
     {
       id: "category",
       label: "Category",
+      minWidth: 120,
       selector: (row) => (
-        <CustomTooltip title={row.categoryId?.name || "N/A"}>
-          <span className="Category">{row.categoryId?.name || "N/A"}</span>
-        </CustomTooltip>
+        <span className="Category">{row.categoryId?.name || "N/A"}</span>
       ),
     },
     {
       id: "isOTC",
       label: "OTC",
-      selector: (row) => (
-        <CustomTooltip title={row.isOTC ? "Yes" : "No"}>
-          {row.isOTC ? (
-            <span className="OTCYes">Yes</span>
-          ) : (
-            <span className="OTCNo">No</span>
-          )}
-        </CustomTooltip>
-      ),
+      minWidth: 80,
+      selector: (row) =>
+        row.isOTC ? (
+          <span className="OTCYes">Yes</span>
+        ) : (
+          <span className="OTCNo">No</span>
+        ),
     },
   ];
 
   const columns: Column<any>[] = [...baseColumns];
 
-  if (canEdit) {
-    columns.push({
-      id: "isActive",
-      label: "Status",
-      selector: (row) => (
-        <CustomTooltip title={row.isActive ? "Active" : "Inactive"}>
-          <button
-            onClick={() => handleToggleStatus(row._id, row.isActive)}
-            className="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-            style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
-            title={row.isActive ? "Click to deactivate" : "Click to activate"}
-          >
-            <span
-              className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${row.isActive ? "translate-x-6" : "translate-x-1"
-                }`}
-            />
-          </button>
-        </CustomTooltip>
-      ),
-    });
+  columns.push({
+    id: "isActive",
+    label: "Status",
+    minWidth: 100,
+    selector: (row) => (
+      <button
+        onClick={() => canEdit && handleToggleStatus(row._id, row.isActive)}
+        className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${!canEdit ? "opacity-60 cursor-not-allowed" : "cursor-pointer"
+          }`}
+        disabled={!canEdit}
+        style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
+        title={
+          !canEdit
+            ? "Status Toggle Permission Denied"
+            : row.isActive
+              ? "Click to deactivate"
+              : "Click to activate"
+        }
+      >
+        <span
+          className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${row.isActive ? "translate-x-6" : "translate-x-1"
+            }`}
+        />
+      </button>
+    ),
+  });
 
+  if (canEdit) {
     columns.push({
       id: "actions",
       label: "Actions",
+      minWidth: 60,
       selector: (row) => (
-        <CustomTooltip title="Edit">
-          <span
-            style={{
-              cursor: "pointer",
-              color: "var(--primary)",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-            onClick={() =>
-              router.push(`/dashboard/subcategories/AddEdit/${row._id}`)
-            }
-          >
-            <EditIcon fontSize="small" />
-          </span>
-        </CustomTooltip>
+        <span
+          style={{
+            cursor: "pointer",
+            color: "var(--primary)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          onClick={() =>
+            router.push(`/dashboard/subcategories/AddEdit/${row._id}`)
+          }
+        >
+          <EditIcon fontSize="small" />
+        </span>
       ),
     });
   }

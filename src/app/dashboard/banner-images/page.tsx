@@ -176,129 +176,135 @@ export default function BannerImagesDashboard() {
                   </CustomTooltip>
                 ),
               },
-            // Updated App Image Column
-{
-  id: "image",
-  label: "App Image",
-  selector: (row: any) => (
-    <div className="h-[80px] w-[140px] bg-gray-100 border border-gray-200 rounded-md overflow-hidden flex items-center justify-center">
-      <CustomImage
-        coverImage={row.url}
-        images={[row.url]}
-        alt={row.alt || "Banner"}
-        // Ensure CustomImage accepts style props, or apply these classes inside it
-        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-      />
-    </div>
-  ),
-},
+              // Updated App Image Column
+              {
+                id: "image",
+                label: "App Image",
+                selector: (row: any) => (
+                  <div className="h-[80px] w-[140px] bg-gray-100 border border-gray-200 rounded-md overflow-hidden flex items-center justify-center">
+                    <CustomImage
+                      coverImage={row.url}
+                      images={[row.url]}
+                      alt={row.alt || "Banner"}
+                      // Ensure CustomImage accepts style props, or apply these classes inside it
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    />
+                  </div>
+                ),
+              },
 
-// Updated Web Image Column
-{
-  id: "webImage",
-  label: "Web Image",
-  selector: (row: any) =>
-    row.webImage ? (
-      <div className="h-[80px] w-[140px] bg-gray-100 border border-gray-200 rounded-md overflow-hidden flex items-center justify-center">
-        <CustomImage
-          coverImage={row.webImage}
-          images={[row.webImage]}
-          alt={row.alt || "Banner"}
-          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-        />
-      </div>
-    ) : (
-      <div className="h-[80px] w-[140px] bg-gray-50 border border-dashed border-gray-300 rounded-md flex items-center justify-center">
-        <span className="text-gray-400 text-xs italic">No Image</span>
-      </div>
-    ),
-},
+              // Updated Web Image Column
+              {
+                id: "webImage",
+                label: "Web Image",
+                selector: (row: any) =>
+                  row.webImage ? (
+                    <div className="h-[80px] w-[140px] bg-gray-100 border border-gray-200 rounded-md overflow-hidden flex items-center justify-center">
+                      <CustomImage
+                        coverImage={row.webImage}
+                        images={[row.webImage]}
+                        alt={row.alt || "Banner"}
+                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-[80px] w-[140px] bg-gray-50 border border-dashed border-gray-300 rounded-md flex items-center justify-center">
+                      <span className="text-gray-400 text-xs italic">No Image</span>
+                    </div>
+                  ),
+              },
             ];
 
-            if (canEditBanner) {
-              baseColumns.push({
-                id: "isActive",
-                label: "Status",
-                minWidth: 80,
-                selector: (row: any) => (
-                  <button
-                    onClick={() => {
-                      showConfirmStatusAlert({
-                        isActive: !!row.isActive,
-                        title: row.isActive
-                          ? "Deactivate Status?"
-                          : "Activate Status?",
-                        text: row.isActive
-                          ? "Are you sure you want to deactivate this banner?"
-                          : "Are you sure you want to activate this banner?",
-                        confirmText: row.isActive ? "Deactivate" : "Activate",
-                        cancelText: "Cancel",
-                        onConfirm: async () => {
-                          const idx = images.findIndex(
-                            (img) => img.url === row.url
-                          );
-                          if (idx === -1) return;
-                          const updated = images.map((img, i) =>
-                            i === idx ? { ...img, isActive: !img.isActive } : img
-                          );
-                          setLoading(true);
-                          try {
-                            const res = await axios.post("/api/admin/banner-images", {
-                              images: updated,
-                            });
-                            if (res.data && res.data.success === false) {
-                              Swal.fire({
-                                toast: true,
-                                position: "top-end",
-                                icon: "error",
-                                title: res.data.message || ToastMessages.BANNER_STATUS_UPDATE_FAILED,
-                                showConfirmButton: false,
-                                timer: 2000,
-                              });
-                            } else {
-                              setImages(updated);
-                              Swal.fire({
-                                toast: true,
-                                position: "top-end",
-                                icon: "success",
-                                title: updated[idx].isActive
-                                  ? "Banner activated successfully"
-                                  : "Banner deactivated successfully",
-                                showConfirmButton: false,
-                                timer: 2000,
-                              });
-                            }
-                          } catch (err: any) {
+            baseColumns.push({
+              id: "isActive",
+              label: "Status",
+              minWidth: 80,
+              selector: (row: any) => (
+                <button
+                  onClick={() => {
+                    if (!canEditBanner) return;
+                    showConfirmStatusAlert({
+                      isActive: !!row.isActive,
+                      title: row.isActive
+                        ? "Deactivate Status?"
+                        : "Activate Status?",
+                      text: row.isActive
+                        ? "Are you sure you want to deactivate this banner?"
+                        : "Are you sure you want to activate this banner?",
+                      confirmText: row.isActive ? "Deactivate" : "Activate",
+                      cancelText: "Cancel",
+                      onConfirm: async () => {
+                        const idx = images.findIndex(
+                          (img) => img.url === row.url
+                        );
+                        if (idx === -1) return;
+                        const updated = images.map((img, i) =>
+                          i === idx ? { ...img, isActive: !img.isActive } : img
+                        );
+                        setLoading(true);
+                        try {
+                          const res = await axios.post("/api/admin/banner-images", {
+                            images: updated,
+                          });
+                          if (res.data && res.data.success === false) {
                             Swal.fire({
                               toast: true,
                               position: "top-end",
                               icon: "error",
-
-                              text: err?.response?.data?.message || err?.message || "An error occurred",
+                              title: res.data.message || ToastMessages.BANNER_STATUS_UPDATE_FAILED,
+                              showConfirmButton: false,
+                              timer: 2000,
+                            });
+                          } else {
+                            setImages(updated);
+                            Swal.fire({
+                              toast: true,
+                              position: "top-end",
+                              icon: "success",
+                              title: updated[idx].isActive
+                                ? "Banner activated successfully"
+                                : "Banner deactivated successfully",
                               showConfirmButton: false,
                               timer: 2000,
                             });
                           }
-                          setLoading(false);
-                        },
-                      });
-                    }}
-                    className="relative cursor-pointer inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                    style={{
-                      backgroundColor: row.isActive ? "#10b981" : "#d1d5db",
-                    }}
-                    title={
-                      row.isActive ? "Click to deactivate" : "Click to activate"
-                    }
-                  >
-                    <span
-                      className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${row.isActive ? "translate-x-6" : "translate-x-1"
-                        }`}
-                    />
-                  </button>
-                ),
-              });
+                        } catch (err: any) {
+                          Swal.fire({
+                            toast: true,
+                            position: "top-end",
+                            icon: "error",
+                            title: "Update failed",
+                            text: err?.response?.data?.message || err?.message || "An error occurred",
+                            showConfirmButton: false,
+                            timer: 2000,
+                          });
+                        }
+                        setLoading(false);
+                      },
+                    });
+                  }}
+                  disabled={!canEditBanner}
+                  className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${!canEditBanner ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
+                  style={{
+                    backgroundColor: row.isActive ? "#10b981" : "#d1d5db",
+                  }}
+                  title={
+                    !canEditBanner
+                      ? "Status Toggle Permission Denied"
+                      : row.isActive
+                        ? "Click to deactivate"
+                        : "Click to activate"
+                  }
+                >
+                  <span
+                    className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${row.isActive ? "translate-x-6" : "translate-x-1"
+                      }`}
+                  />
+                </button>
+              ),
+            });
 
+            if (canEditBanner) {
               baseColumns.push({
                 id: "actions",
                 label: "Edit",

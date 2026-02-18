@@ -40,6 +40,18 @@ export default function AdminCustomerListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [adminPermissions, setAdminPermissions] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("adminPermissions");
+      if (p) setAdminPermissions(JSON.parse(p));
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  const canEditCustomers = adminPermissions?.Customers?.edit ?? true;
 
   // Ensure the status filter is passed correctly to the API
   useEffect(() => {
@@ -126,7 +138,7 @@ export default function AdminCustomerListPage() {
       selector: (row: Customer) => (
         <button
           onClick={async () => {
-            if (row.isDelete) return;
+            if (row.isDelete || !canEditCustomers) return;
             showConfirmStatusAlert({
               isActive: row.isActive,
               title: row.isActive ? "Deactivate Customer?" : "Activate Customer?",
@@ -169,14 +181,25 @@ export default function AdminCustomerListPage() {
             });
           }}
           className="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-          style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db", opacity: row.isDelete ? 0.5 : 1, cursor: row.isDelete ? 'not-allowed' : 'pointer' }}
-          title={row.isDelete ? "Account deleted" : row.isActive ? "Click to deactivate" : "Click to activate"}
-          disabled={row.isDelete}
+          style={{
+            backgroundColor: row.isActive ? "#10b981" : "#d1d5db",
+            opacity: (row.isDelete || !canEditCustomers) ? 0.5 : 1,
+            cursor: (row.isDelete || !canEditCustomers) ? 'not-allowed' : 'pointer'
+          }}
+          title={
+            row.isDelete
+              ? "Account deleted"
+              : !canEditCustomers
+                ? "Status Toggle Permission Denied"
+                : row.isActive
+                  ? "Click to deactivate"
+                  : "Click to activate"
+          }
+          disabled={row.isDelete || !canEditCustomers}
         >
           <span
-            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
-              row.isActive ? "translate-x-6" : "translate-x-1"
-            }`}
+            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${row.isActive ? "translate-x-6" : "translate-x-1"
+              }`}
           />
         </button>
       ),
@@ -197,7 +220,7 @@ export default function AdminCustomerListPage() {
         showBack={false}
         showSearch={false}
         searchValue={searchTerm}
-        onSearchChange={setSearchTerm} 
+        onSearchChange={setSearchTerm}
         isunsaved={false}
       />
       <FilterSearch

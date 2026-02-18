@@ -174,68 +174,74 @@ export default function StoreDashboard() {
 
   const columns: Column<any>[] = [...baseColumns];
 
-  if (canEditStores) {
-    columns.push({
-      id: "status",
-      label: "Status",
-      minWidth: 100,
-      selector: (row) => (
-        <button
-          onClick={() => {
-            showConfirmStatusAlert({
-              isActive: row.status === 1,
-              title: row.status === 1 ? "Deactivate Store?" : "Activate Store?",
-              text:
-                row.status === 1
-                  ? "Are you sure you want to deactivate this store?"
-                  : "Are you sure you want to activate this store?",
-              confirmText: row.status === 1 ? "Deactivate" : "Activate",
-              cancelText: "Cancel",
-              onConfirm: async () => {
-                try {
-                  const newStatus = row.status === 1 ? 0 : 1;
-                  const resp = await axios.post('/api/admin/store/active', { id: row._id, status: newStatus });
-                  const msg = resp?.data?.message || ToastMessages.STORE_STATUS_UPDATED;
-                  Swal.fire({
-                    toast: true,
-                    position: "top-end",
-                    icon: "success",
-                    title: msg,
-                    showConfirmButton: false,
-                    timer: 2000,
-                  });
-                  GetStores({ url: StorePath, data: { isListRequest: true, search: search } });
-                } catch (err: any) {
-                  const errMsg = err?.response?.data?.message || ToastMessages.STORE_STATUS_UPDATE_FAILED;
-                  Swal.fire({
-                    toast: true,
-                    position: "top-end",
-                    icon: "error",
-                    title: errMsg,
-                    showConfirmButton: false,
-                    timer: 2000,
-                  });
-                  console.error('Error updating store status:', err);
-                }
-              },
-            });
-          }}
-          className="relative cursor-pointer inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-          style={{
-            backgroundColor: row.status === 1 ? "#10b981" : "#d1d5db",
-          }}
-          title={
-            row.status === 1 ? "Click to deactivate" : "Click to activate"
-          }
-        >
-          <span
-            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${row.status === 1 ? "translate-x-6" : "translate-x-1"
-              }`}
-          />
-        </button>
-      ),
-    });
+  columns.push({
+    id: "status",
+    label: "Status",
+    minWidth: 100,
+    selector: (row) => (
+      <button
+        onClick={() => {
+          if (!canEditStores) return;
+          showConfirmStatusAlert({
+            isActive: row.status === 1,
+            title: row.status === 1 ? "Deactivate Store?" : "Activate Store?",
+            text:
+              row.status === 1
+                ? "Are you sure you want to deactivate this store?"
+                : "Are you sure you want to activate this store?",
+            confirmText: row.status === 1 ? "Deactivate" : "Activate",
+            cancelText: "Cancel",
+            onConfirm: async () => {
+              try {
+                const newStatus = row.status === 1 ? 0 : 1;
+                const resp = await axios.post('/api/admin/store/active', { id: row._id, status: newStatus });
+                const msg = resp?.data?.message || ToastMessages.STORE_STATUS_UPDATED;
+                Swal.fire({
+                  toast: true,
+                  position: "top-end",
+                  icon: "success",
+                  title: msg,
+                  showConfirmButton: false,
+                  timer: 2000,
+                });
+                GetStores({ url: StorePath, data: { isListRequest: true, search: search } });
+              } catch (err: any) {
+                const errMsg = err?.response?.data?.message || ToastMessages.STORE_STATUS_UPDATE_FAILED;
+                Swal.fire({
+                  toast: true,
+                  position: "top-end",
+                  icon: "error",
+                  title: errMsg,
+                  showConfirmButton: false,
+                  timer: 2000,
+                });
+                console.error('Error updating store status:', err);
+              }
+            },
+          });
+        }}
+        disabled={!canEditStores}
+        className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${!canEditStores ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
+        style={{
+          backgroundColor: row.status === 1 ? "#10b981" : "#d1d5db",
+        }}
+        title={
+          !canEditStores
+            ? "Status Toggle Permission Denied"
+            : row.status === 1
+              ? "Click to deactivate"
+              : "Click to activate"
+        }
+      >
+        <span
+          className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${row.status === 1 ? "translate-x-6" : "translate-x-1"
+            }`}
+        />
+      </button>
+    ),
+  });
 
+  if (canEditStores) {
     columns.push({
       id: "actions",
       label: "Actions",
@@ -257,7 +263,7 @@ export default function StoreDashboard() {
         </CustomTooltip>
       ),
     });
-  } 
+  }
 
   return (
     <div className="containerStyle scrollbar-hide">
@@ -290,7 +296,7 @@ export default function StoreDashboard() {
         onPageChange={() => { }}
         loading={storesLoading}
       />
-     
+
     </div>
   );
 }

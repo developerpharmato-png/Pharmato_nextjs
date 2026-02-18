@@ -129,7 +129,16 @@ export async function POST(req: NextRequest) {
                     pending,
                     cancelled
                 },
-                statusCounts,
+                statusCounts: [
+                    { _id: 'Delivered', count: statusCounts.reduce((acc: any, s: any) => /deliv|complete|out for/i.test(s._id) ? acc + s.count : acc, 0) },
+                    { _id: 'Pending', count: statusCounts.reduce((acc: any, s: any) => /pending|upload/i.test(s._id) ? acc + s.count : acc, 0) },
+                    { _id: 'Confirmed', count: statusCounts.reduce((acc: any, s: any) => /confirm/i.test(s._id) ? acc + s.count : acc, 0) },
+                    { _id: 'Cancelled', count: statusCounts.reduce((acc: any, s: any) => /cancel|reject|return/i.test(s._id) ? acc + s.count : acc, 0) },
+                    { _id: 'Order Placed', count: statusCounts.reduce((acc: any, s: any) => /placed|order/i.test(s._id) && !/deliv|out|complete|cancel|confirm/i.test(s._id) ? acc + s.count : acc, 0) }
+                ].filter(s => s.count > 0).sort((a, b) => {
+                    const order = ['Pending', 'Confirmed', 'Delivered', 'Order Placed', 'Cancelled'];
+                    return order.indexOf(a._id) - order.indexOf(b._id);
+                }),
                 trend: formatTrend,
                 period: { start, end },
                 overallKpis: {

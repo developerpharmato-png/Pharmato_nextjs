@@ -9,7 +9,7 @@ import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { ToastMessages } from "@/utils/ToasterMessage";
 import HeaderWithAction from "../components/HeaderWithAction";
-import { CustomButton } from "../components/miniComponents";
+import { CustomButton, CustomTooltip } from "../components/miniComponents";
 import { customGet, customPost } from "../BaseURL/CustomNetwork";
 
 type Role = { _id: string; name: string };
@@ -30,10 +30,19 @@ export default function PermissionPage() {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [values, setValues] = useState<Record<string, { view: boolean; edit: boolean }>>({});
   const [loading, setLoading] = useState(true);
+  const [adminPermissions, setAdminPermissions] = useState<any>(null); // New state
 
   useEffect(() => {
     fetchRoles();
+    try {
+      const p = localStorage.getItem("adminPermissions");
+      if (p) setAdminPermissions(JSON.parse(p));
+    } catch (e) {
+      // ignore
+    }
   }, []);
+
+  const canEditPermissions = adminPermissions?.Permission?.edit ?? true;
 
   const fetchRoles = async () => {
     setLoading(true);
@@ -49,7 +58,7 @@ export default function PermissionPage() {
     } catch (err) {
       setRoles([]);
     }
-    
+
   };
 
   const loadPermissions = async (roleId: string) => {
@@ -95,7 +104,7 @@ export default function PermissionPage() {
   const isSuperAdmin = selectedRoleName === "SuperAdmin";
 
   const toggle = (menu: string, field: "view" | "edit") => {
-    if (isSuperAdmin) return;
+    if (isSuperAdmin || !canEditPermissions) return; // Prevent toggle if no permission
     setValues((prev) => {
       const current = prev[menu] || { view: false, edit: false };
       // Toggle target field
@@ -199,7 +208,7 @@ export default function PermissionPage() {
       <div className="mt-6">
         {loading && roles.length === 0 ? (
           <PageSkeleton />
-         
+
         ) : (
           <div className="space-y-6">
             {/* Role Switcher */}
@@ -219,15 +228,16 @@ export default function PermissionPage() {
                 </select>
               </div>
 
-              <CustomButton 
-                onClick={save}
-                disabled={loading || isSuperAdmin}
-                className={`px-8 py-3 rounded-xl font-bold transition-all shadow-lg ${
-                  isSuperAdmin ? "bg-gray-200 text-gray-400" : "bg-green-600 text-white hover:bg-green-700 active:scale-95"
-                }`}
-              >
-                {loading ? "Processing..." : "Save Changes"}
-              </CustomButton>
+              {canEditPermissions && (
+                  <CustomButton
+                    onClick={save}
+                  disabled={loading || isSuperAdmin}
+                  className={`px-8 py-3 rounded-xl font-bold transition-all shadow-lg w-full md:w-auto mt-4 md:mt-0 ${isSuperAdmin ? "bg-gray-200 text-gray-400" : "bg-green-600 text-white hover:bg-green-700 active:scale-95"
+                      }`}
+                  >
+                    {loading ? "Processing..." : "Save Changes"}
+                  </CustomButton>
+              )}
             </div>
 
             {loading ? (
@@ -235,40 +245,43 @@ export default function PermissionPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {menuItems.map((menu) => (
-                  <div 
-                    key={menu} 
-                    className={`p-5 rounded-2xl border transition-all duration-200 ${
-                      values[menu]?.view || values[menu]?.edit 
-                        ? "bg-white border-green-100 shadow-sm" 
-                        : "bg-gray-50 border-transparent opacity-70"
-                    }`}
+                  <div
+                    key={menu}
+                    className={`p-5 rounded-2xl border transition-all duration-200 ${values[menu]?.view || values[menu]?.edit
+                      ? "bg-white border-green-100 shadow-sm"
+                      : "bg-gray-50 border-transparent opacity-70"
+                      }`}
                   >
                     <h3 className="font-bold text-gray-800 mb-4 truncate">
                       {prettyLabel(menu)}
                     </h3>
-                    
-                    <div className="space-y-3">
-                      <label className="flex items-center justify-between cursor-pointer group">
-                        <span className="text-sm font-medium text-gray-500 group-hover:text-gray-700">View Access</span>
-                        <input
-                          type="checkbox"
-                          checked={!!values[menu]?.view}
-                          onChange={() => toggle(menu, "view")}
-                          disabled={isSuperAdmin || !!values[menu]?.edit}
-                          className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500 disabled:opacity-50"
-                        />
-                      </label>
 
-                      <label className="flex items-center justify-between cursor-pointer group">
-                        <span className="text-sm font-medium text-gray-500 group-hover:text-gray-700">Edit Access</span>
-                        <input
-                          type="checkbox"
-                          checked={!!values[menu]?.edit}
-                          onChange={() => toggle(menu, "edit")}
-                          disabled={isSuperAdmin}
-                          className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500 disabled:opacity-50"
-                        />
-                      </label>
+                    <div className="space-y-3">
+                      <CustomTooltip title={!canEditPermissions ? "Toggle Permission Denied" : ""}>
+                        <label className="flex items-center justify-between cursor-pointer group">
+                          <span className="text-sm font-medium text-gray-500 group-hover:text-gray-700">View Access</span>
+                          <input
+                            type="checkbox"
+                            checked={!!values[menu]?.view}
+                            onChange={() => toggle(menu, "view")}
+                            disabled={isSuperAdmin || !!values[menu]?.edit || !canEditPermissions}
+                            className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500 disabled:opacity-50"
+                          />
+                        </label>
+                      </CustomTooltip>
+
+                      <CustomTooltip title={!canEditPermissions ? "Toggle Permission Denied" : ""}>
+                        <label className="flex items-center justify-between cursor-pointer group">
+                          <span className="text-sm font-medium text-gray-500 group-hover:text-gray-700">Edit Access</span>
+                          <input
+                            type="checkbox"
+                            checked={!!values[menu]?.edit}
+                            onChange={() => toggle(menu, "edit")}
+                            disabled={isSuperAdmin || !canEditPermissions}
+                            className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500 disabled:opacity-50"
+                          />
+                        </label>
+                      </CustomTooltip>
                     </div>
                   </div>
                 ))}

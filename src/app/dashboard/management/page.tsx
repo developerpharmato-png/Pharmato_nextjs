@@ -6,7 +6,7 @@ import { CustomTable, Column } from "../components/CustomTable";
 import { showConfirmStatusAlert } from "../components/ConfirmStatusAlert";
 import AdminForm from "./AdminForm";
 import { Edit2Icon, EditIcon, Trash2 } from "lucide-react";
-import { CustomButton } from "../components/miniComponents";
+import { CustomButton, CustomTooltip } from "../components/miniComponents";
 import Swal from "sweetalert2";
 import { ToastMessages } from "@/utils/ToasterMessage";
 
@@ -32,6 +32,7 @@ export default function ManagementPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<Admin | null>(null);
   const [search, setSearch] = useState<string>("");
+  const [adminPermissions, setAdminPermissions] = useState<any>(null);
 
   const roleMap = Object.fromEntries(roles.map((r) => [r._id, r.name]));
 
@@ -64,7 +65,15 @@ export default function ManagementPage() {
 
   useEffect(() => {
     fetchRoles();
+    try {
+      const p = localStorage.getItem("adminPermissions");
+      if (p) setAdminPermissions(JSON.parse(p));
+    } catch (e) {
+      // ignore
+    }
   }, []);
+
+  const canEditManagement = adminPermissions?.Management?.edit ?? true;
 
   useEffect(() => {
     fetchAdmins();
@@ -117,7 +126,7 @@ export default function ManagementPage() {
         timer: 2000,
       });
       return;
-    }  
+    }
 
     showConfirmStatusAlert({
       isActive: !!isActive,
@@ -125,6 +134,7 @@ export default function ManagementPage() {
       text: isActive ? "Deactivate this admin?" : "Activate this admin?",
       confirmText: isActive ? "Deactivate" : "Activate",
       onConfirm: async () => {
+        if (!canEditManagement) return; // double check
         try {
           const res = await fetch(`/api/admins/${id}/toggle-status`, {
             method: "PATCH",
@@ -159,7 +169,7 @@ export default function ManagementPage() {
     });
   }
 
-  
+
 
   function openAdd() {
     setEditing(null);
@@ -273,26 +283,20 @@ export default function ManagementPage() {
         const roleName = row.roleName || roleMap[row.roleId || ""] || "";
         const disabled = roleName === "SuperAdmin";
         return (
-          <button
-            onClick={() => !disabled && toggleActive(row._id, row.isActive)}
-            className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
-              disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"
-            }`}
-            style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
-            title={
-              disabled
-                ? "Cannot change SuperAdmin status"
-                : row.isActive
-                ? "Click to deactivate"
-                : "Click to activate"
-            }
-          >
-            <span
-              className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
-                row.isActive ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
-          </button>
+          <CustomTooltip title={disabled ? "Cannot change SuperAdmin status" : (!canEditManagement ? "Status Toggle Permission Denied" : (row.isActive ? "Click to deactivate" : "Click to activate"))}>
+            <button
+              onClick={() => !disabled && canEditManagement && toggleActive(row._id, row.isActive)}
+              disabled={disabled || !canEditManagement}
+              className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${disabled || !canEditManagement ? "opacity-60 cursor-not-allowed" : "cursor-pointer"
+                }`}
+              style={{ backgroundColor: row.isActive ? "#10b981" : "#d1d5db" }}
+            >
+              <span
+                className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${row.isActive ? "translate-x-6" : "translate-x-1"
+                  }`}
+              />
+            </button>
+          </CustomTooltip>
         );
       },
     },
@@ -304,17 +308,17 @@ export default function ManagementPage() {
         const isSuper = roleName === "SuperAdmin";
         return (
           <div className="flex items-center justify-center gap-3">
-            <button
-              onClick={() => !isSuper && openEdit(r)}
-              title={isSuper ? "Edit disabled for SuperAdmin" : "Edit"}
-              className={`EditListStyle  ${
-                isSuper ? "opacity-60 cursor-not-allowed" : ""
-              }`}
-              aria-label="Edit"
-              disabled={isSuper}
-            >
-              <EditIcon />
-            </button>
+            <CustomTooltip title={isSuper ? "Edit disabled for SuperAdmin" : (!canEditManagement ? "Edit Permission Denied" : "Edit")}>
+              <button
+                onClick={() => !isSuper && canEditManagement && openEdit(r)}
+                className={`EditListStyle  ${isSuper || !canEditManagement ? "opacity-60 cursor-not-allowed" : ""
+                  }`}
+                aria-label="Edit"
+                disabled={isSuper || !canEditManagement}
+              >
+                <EditIcon />
+              </button>
+            </CustomTooltip>
           </div>
         );
       },
@@ -324,9 +328,18 @@ export default function ManagementPage() {
       label: "Reset Password",
       minWidth: 140,
       selector: (r) => (
-        <CustomButton onClick={() => resendInvite(r._id)} width="200px">
-          Reset Password
-        </CustomButton>
+        <CustomTooltip title={!canEditManagement ? "Reset Password Permission Denied" : ""}>
+          <div className="w-full h-full flex items-center justify-center">
+            <CustomButton
+              onClick={() => canEditManagement && resendInvite(r._id)}
+              width="160px"
+              disabled={!canEditManagement}
+              className={!canEditManagement ? "opacity-60 cursor-not-allowed" : ""}
+            >
+              Reset Password
+            </CustomButton>
+          </div>
+        </CustomTooltip>
       ),
     },
   ];
@@ -350,7 +363,7 @@ export default function ManagementPage() {
         title="Admin Management"
         subtitle="Manage admin accounts"
         addLabel="Add"
-        addShow={true}
+        addShow={canEditManagement}
         handleAdd={openAdd}
         showBack={false}
       />
@@ -376,16 +389,16 @@ export default function ManagementPage() {
         initialValues={
           editing
             ? {
-                name: editing.name,
-                email: editing.email,
-                roleId: editing.roleId,
-                mobile: editing.mobile,
-              }
+              name: editing.name,
+              email: editing.email,
+              roleId: editing.roleId,
+              mobile: editing.mobile,
+            }
             : undefined
         }
         roles={roles}
         editing={!!editing}
       />
     </div>
-  ); 
+  );
 }
