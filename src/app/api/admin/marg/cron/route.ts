@@ -93,6 +93,20 @@ function calculateDiscount(mrp?: number, price?: number) {
   return 0;
 }
 
+function extractPackSize(name: string): number {
+  if (!name) return 1;
+
+  // Match patterns like 1X15, 1*15, 2x10, 5*6 etc
+  const match = name.match(/(\d+)\s*[xX*]\s*(\d+)/);
+
+  if (match && match[2]) {
+    return parseInt(match[2], 10);
+  }
+
+  return 1; // default if not found
+}
+
+
 /**
  * @swagger
  * /api/admin/marg/cron:
@@ -144,9 +158,9 @@ async function importMedicinesFromMarg() {
     const payload = {
       CompanyCode: 'PharmatoInd2',
       MargID: 486257,
-      Datetime: `${lastSyncDateTime}`,
+      // Datetime: `${lastSyncDateTime}`,
       // Datetime: `2026-02-06 19:30:17`, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
-      // Datetime: ``, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
+      Datetime: ``, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
       index: 0
     };
     const response = await axios.post(url, payload, {
@@ -191,12 +205,21 @@ async function importMedicinesFromMarg() {
     let medCount = await Medicine.countDocuments();
     for (const p of products_pro_N) {
 
+      const unitPackFactor = extractPackSize(p.name);
+
       const checkMedicine = await Medicine.findOne({ uniqueIdentity: p.rid });
       const expiry = convertExpiry(p.exp);
       const { categoryId, subCategoryId } = getRandomCategoryAndSubcategory();
 
-      const price = computePriceFromMrp(p.MRP);
-      const mrp = Number(p.MRP) || 0;
+      
+      const purchasePrice = Number(((Number(p.PRate) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye  
+      const mrp = Number(((Number(p.MRP) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
+      const price = Number(computePriceFromMrp(mrp).toFixed(2)); // Price calculate karna using MRP, discount ko consider karte hue
+      // const purchasePrice = ((Number(p.PRate) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
+      // const mrp = ((Number(p.MRP) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
+      // const price = computePriceFromMrp(mrp); // Price calculate karna using MRP, discount ko consider karte hue
+      const stock = Math.floor((Number(p.stock) || 0) / Number(unitPackFactor)); // Stock ko unit pack factor se divide karna, taki correct stock aaye
+
 
       if (checkMedicine) {
 
@@ -204,8 +227,9 @@ async function importMedicinesFromMarg() {
           price,
           mrp,
           discount: calculateDiscount(mrp, price), // ✅ MANUAL
-          purchasePrice: Number(p.PRate) || 0,
-          stock: Number(p.stock) || 0,
+          purchasePrice: purchasePrice,
+          stock: stock,
+          unitPackFactor: unitPackFactor,
           isDeleted: p.Is_Deleted === "1",
           expiryDate: expiry instanceof Date && !isNaN(expiry.getTime()) ? expiry : null,
           margData: p,
@@ -234,8 +258,9 @@ async function importMedicinesFromMarg() {
           mrp,
           discount: calculateDiscount(mrp, price), // ✅ REQUIRED
 
-          purchasePrice: Number(p.PRate) || 0,
-          stock: Number(p.stock) || 0,
+          purchasePrice: purchasePrice,
+          stock: stock,
+          unitPackFactor: unitPackFactor,
           batchNumber: p.code,
           isDeleted: p.Is_Deleted === "1",
           expiryDate: expiry instanceof Date && !isNaN(expiry.getTime()) ? expiry : null,
@@ -258,12 +283,19 @@ async function importMedicinesFromMarg() {
 
     for (const p of products_pro_U) {
 
+      const unitPackFactor = extractPackSize(p.name);
+
       const checkMedicine = await Medicine.findOne({ uniqueIdentity: p.rid });
       const expiry = convertExpiry(p.exp);
       const { categoryId, subCategoryId } = getRandomCategoryAndSubcategory();
 
-      const price = computePriceFromMrp(p.MRP);
-      const mrp = Number(p.MRP) || 0;
+      // const price = computePriceFromMrp(p.MRP);
+      // const mrp = Number(p.MRP) || 0;
+
+      const purchasePrice = Number(((Number(p.PRate) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye  
+      const mrp = Number(((Number(p.MRP) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
+      const price = Number(computePriceFromMrp(mrp).toFixed(2)); // Price calculate karna using MRP, discount ko consider karte hue
+      const stock = Math.floor((Number(p.stock) || 0) / Number(unitPackFactor)); // Stock ko unit pack factor se divide karna, taki correct stock aaye
 
       if (checkMedicine) {
 
@@ -271,8 +303,9 @@ async function importMedicinesFromMarg() {
           price,
           mrp,
           discount: calculateDiscount(mrp, price), // ✅ MANUAL
-          purchasePrice: Number(p.PRate) || 0,
-          stock: Number(p.stock) || 0,
+          purchasePrice: purchasePrice,
+          stock: stock,
+          unitPackFactor: unitPackFactor,
           isDeleted: p.Is_Deleted === "1",
           expiryDate: expiry instanceof Date && !isNaN(expiry.getTime()) ? expiry : null,
           margData: p,
@@ -302,7 +335,8 @@ async function importMedicinesFromMarg() {
           discount: calculateDiscount(mrp, price), // ✅ REQUIRED
 
           purchasePrice: Number(p.PRate) || 0,
-          stock: Number(p.stock) || 0,
+          stock: stock,
+          unitPackFactor: unitPackFactor,
           batchNumber: p.code,
           isDeleted: p.Is_Deleted === "1",
           expiryDate: expiry instanceof Date && !isNaN(expiry.getTime()) ? expiry : null,
@@ -322,8 +356,10 @@ async function importMedicinesFromMarg() {
 
       if (checkMedicine) {
 
+        const stock = Math.floor((Number(p.stock) || 0) / Number(checkMedicine.unitPackFactor || 1)); // Stock ko unit pack factor se divide karna, taki correct stock aaye
+
         const medObj = {
-          stock: Number(p.stock) || 0
+          stock: stock
         };
 
         bulkOps.push({
@@ -345,15 +381,22 @@ async function importMedicinesFromMarg() {
 
       if (checkMedicine) {
 
-        const price = computePriceFromMrp(p.MRP);
-        const mrp = Number(p.MRP) || 0;
+        const unitPackFactor = checkMedicine.unitPackFactor || 1;
+        const purchasePrice = Number(((Number(p.PRate) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye  
+        const mrp = Number(((Number(p.MRP) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
+        const price = Number(computePriceFromMrp(mrp).toFixed(2)); // Price calculate karna using MRP, discount ko consider karte hue
+        // const purchasePrice = ((Number(p.PRate) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye  
+        // const mrp = ((Number(p.MRP) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
+        // const price = computePriceFromMrp(mrp); // Price calculate karna using MRP, discount ko consider karte hue
+        const stock = Math.floor((Number(p.stock) || 0) / Number(unitPackFactor)); // Stock ko unit pack factor se divide karna, taki correct stock aaye
 
         const medObj = {
           price,
           mrp,
           discount: calculateDiscount(mrp, price), // ✅ REQUIRED
-          purchasePrice: Number(p.PRate) || 0,
-          stock: Number(p.stock) || 0
+          purchasePrice: purchasePrice,
+          stock: stock,
+          unitPackFactor: unitPackFactor,
         };
 
         bulkOps.push({
@@ -393,16 +436,14 @@ async function importMedicinesFromMarg() {
 // 👇👇 API HANDLER
 export async function POST(request: NextRequest) {
 
-  const response = await NextResponse.json({
-    success: true,
-    message: 'Marg data Import started'
-  });
-
   // background me chala do
   setImmediate(() => {
     importMedicinesFromMarg();
   });
 
-  return response;
+  return NextResponse.json({
+    success: true,
+    message: 'Marg data import started'
+  });
 
 }

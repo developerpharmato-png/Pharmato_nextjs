@@ -55,7 +55,8 @@ export async function POST(request: NextRequest) {
         // console.log("$$$$$$$$$resourceType$$$$$$$$$", resourceType);
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-        const publicId = `admin_${Date.now()}`;
+        const publicId = resourceType == "image" ? `admin_${Date.now()}` : `admin_${Date.now()}`;
+        console.log("#######file######",file);
         // const result = await uploadToCloudinary(buffer, publicId);
         const result = await uploadToCloudinary(
             buffer,

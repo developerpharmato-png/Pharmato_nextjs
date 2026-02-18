@@ -29,6 +29,7 @@ export interface IMedicine {
     mrp: number; // mrp
     discount: number; // percent difference between mrp and price
     stock: number;
+    unitPackFactor: number;
     expiryDate: Date;
     batchNumber: string;
     isOTC: boolean;
@@ -140,6 +141,11 @@ const MedicineSchema = new Schema<IMedicine>({
         type: Number,
         default: 0,
         min: [0, 'Stock cannot be negative'],
+    },
+    unitPackFactor: {
+        type: Number,
+        default: 0,
+        min: [0, 'Unit pack factor cannot be negative'],
     },
     expiryDate: {
         type: Date,

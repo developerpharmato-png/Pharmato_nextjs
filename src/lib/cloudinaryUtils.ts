@@ -15,23 +15,50 @@ export const uploadToCloudinary = async (
     resourceType: 'image' | 'raw'
 ) => {
     try {
-        const result = await new Promise((resolve, reject) => {
-            const uploadStream = cloudinary.uploader.upload_stream(
-                {
-                    public_id: publicId,
-                    resource_type: resourceType, // 🔥 MAIN CHANGE
-                    folder: 'uploads'
-                },
-                (error, result) => {
-                    if (error) return reject(error);
-                    resolve(result);
-                }
-            );
 
-            uploadStream.end(fileBuffer);
-        });
+        if (resourceType == 'raw') {
 
-        return result;
+            const result = await new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    {
+                        public_id: publicId,
+                        resource_type: 'image', // 🔥 MAIN CHANGE
+                        folder: 'uploads',
+                        format : 'pdf'
+                    },
+                    (error, result) => {
+                        if (error) return reject(error);
+                        resolve(result);
+                    }
+                );
+
+                uploadStream.end(fileBuffer);
+            });
+
+            return result;
+
+        } else {
+
+            const result = await new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    {
+                        public_id: publicId,
+                        resource_type: 'image', // 🔥 MAIN CHANGE
+                        folder: 'uploads'
+                    },
+                    (error, result) => {
+                        if (error) return reject(error);
+                        resolve(result);
+                    }
+                );
+
+                uploadStream.end(fileBuffer);
+            });
+
+            return result;
+
+        }
+
     } catch (err) {
         throw err;
     }
