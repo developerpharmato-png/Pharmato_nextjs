@@ -151,21 +151,25 @@ export async function POST(req: NextRequest) {
     // Get settings
     const settings = await Setting.find().lean();
     let deliveryFee = 0;
-    let deliveryFeeThreshold = 0;
+    let deliveryFeeThreshold: any = "";
 
     for (const setting of settings) {
         if (setting.type === 'deliveryFee') deliveryFee = Number(setting.data);
-        if (setting.type === 'deliveryFeeThreshold') deliveryFeeThreshold = Number(setting.data);
+        if (setting.type === 'deliveryFeeThreshold') deliveryFeeThreshold = setting.data;
     }
 
-    deliveryFee = calculateDeliveryFee(
-        calculationData.priceTotalSumAfterDiscount,
-        deliveryFeeThreshold,
-        deliveryFee
-    );
+    if (deliveryFeeThreshold !== "") {
+
+        deliveryFee = calculateDeliveryFee(
+            calculationData.priceTotalSumAfterDiscount,
+            deliveryFeeThreshold,
+            deliveryFee
+        );
+
+    }
 
     // Validate delivery fee
-    if(deliveryFee !== Number(calculationData.deliveryFee)) {
+    if (deliveryFee !== Number(calculationData.deliveryFee)) {
 
         return NextResponse.json({ success: false, message: 'Delivery fee changed' }, { status: 400 });
 
