@@ -106,6 +106,21 @@ function extractPackSize(name: string): number {
   return 1; // default if not found
 }
 
+function extractPackSizeFromRemarks(remarks: string): number {
+  if (!remarks) return 1;
+
+  // Match patterns like 1*10, 2x15, 10X1 etc
+  const match = remarks.match(/(\d+)\s*[xX*]\s*(\d+)/);
+
+  if (match && match[2]) {
+    return parseInt(match[2], 10);
+    // 👆 agar sirf second number chahiye (jaise 1*10 → 10)
+  }
+
+  return 1;
+}
+
+
 
 /**
  * @swagger
@@ -158,9 +173,9 @@ async function importMedicinesFromMarg() {
     const payload = {
       CompanyCode: 'PharmatoInd2',
       MargID: 486257,
-      // Datetime: `${lastSyncDateTime}`,
-      // Datetime: `2026-02-06 19:30:17`, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
-      Datetime: ``, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
+      Datetime: `${lastSyncDateTime}`,
+      // Datetime: `2026-02-18 19:30:17`, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
+      // Datetime: ``, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
       index: 0
     };
     const response = await axios.post(url, payload, {
@@ -205,13 +220,17 @@ async function importMedicinesFromMarg() {
     let medCount = await Medicine.countDocuments();
     for (const p of products_pro_N) {
 
-      const unitPackFactor = extractPackSize(p.name);
+      // const unitPackFactor = extractPackSize(p.name);
+      const unitPackFactor = extractPackSizeFromRemarks(p.remarks);
+
+      // console.log('#####unitPackFactor######', unitPackFactor);
+
 
       const checkMedicine = await Medicine.findOne({ uniqueIdentity: p.rid });
       const expiry = convertExpiry(p.exp);
       const { categoryId, subCategoryId } = getRandomCategoryAndSubcategory();
 
-      
+
       const purchasePrice = Number(((Number(p.PRate) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye  
       const mrp = Number(((Number(p.MRP) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
       const price = Number(computePriceFromMrp(mrp).toFixed(2)); // Price calculate karna using MRP, discount ko consider karte hue
@@ -283,7 +302,10 @@ async function importMedicinesFromMarg() {
 
     for (const p of products_pro_U) {
 
-      const unitPackFactor = extractPackSize(p.name);
+      // const unitPackFactor = extractPackSize(p.name);
+      const unitPackFactor = extractPackSizeFromRemarks(p.remarks);
+
+      // console.log('#####unitPackFactor######', unitPackFactor);
 
       const checkMedicine = await Medicine.findOne({ uniqueIdentity: p.rid });
       const expiry = convertExpiry(p.exp);
