@@ -4,11 +4,15 @@ import HeaderWithAction from "../components/HeaderWithAction";
 import MargTable from "./MargTable";
 import { MargStore } from "../storeAPICall/useUserStore";
 import { MargImportPath, MargListPath } from "../storeAPICall/API/BaseApi";
+import Swal from "sweetalert2";
+import { CustomButton } from "../components/miniComponents";
 
 const MargPage = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const { data, loading, fetchData, postData } = MargStore();
+  const { data, fetchData, postData } = MargStore();
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [checkLoading, setCheckLoading] = useState(false);
 
   const margList = (data && data.data) || [];
   const lastSyncDateTime = (data && data.lastSyncDateTime) || ""
@@ -19,8 +23,54 @@ const MargPage = () => {
   }, [fetchData, page, rowsPerPage]);
 
   const handleImport = async () => {
-    await postData(MargImportPath, {});
-    fetchData({ url: MargListPath, data: { limit: rowsPerPage, offset: page + 1 } });
+    setSyncLoading(true);
+    try {
+      await postData(MargImportPath, {});
+      fetchData({ url: MargListPath, data: { limit: rowsPerPage, offset: page + 1 } });
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
+  const handleCheckUpdate = async () => {
+    setCheckLoading(true);
+    try {
+      const response = await fetch("/api/admin/marg/check-live-order-dispatch-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const resData = await response.json();
+      if (response.ok) {
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: resData.message || "Live order dispatch status checked successfully.",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      } else {
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "error",
+          title: resData.message || "Failed to check update",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "error",
+        title: "Something went wrong",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+    } finally {
+      setCheckLoading(false);
+    }
   };
   console.log(lastSyncDateTime, "margList")
 
@@ -29,11 +79,16 @@ const MargPage = () => {
       <HeaderWithAction
         title="Marg"
         subtitle="Sync data from Marg ERP"
-        addLabel="Sync from Marg"
+        addLabel={syncLoading ? "Syncing..." : "Sync from Marg"}
         handleAdd={handleImport}
         addShow={true}
         showBack={false}
         lastSyncDateTime={lastSyncDateTime}
+        rightNode={
+          <CustomButton onClick={handleCheckUpdate} disabled={checkLoading} width="auto" className="ml-2">
+            {checkLoading ? "Checking..." : "Check Update"}
+          </CustomButton>
+        }
       />
       <div className="mt-10">
         <MargTable
@@ -43,7 +98,7 @@ const MargPage = () => {
           totalCount={totalCount}
           onPageChange={setPage}
           onRowsPerPageChange={setRowsPerPage}
-          loading={loading}
+          loading={syncLoading}
         />
       </div>
     </div>
