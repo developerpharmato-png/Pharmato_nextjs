@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'; 
 import Order from '@/models/Order';
 import { getDb, sendPushNotificationWithData } from '@/utils/firebase.helper';
 import Notification from '@/models/Notification';
