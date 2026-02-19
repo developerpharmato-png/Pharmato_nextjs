@@ -36,6 +36,9 @@ export interface IOrder extends Document {
     expectedDeliveryDate?: Date;
     deliveredDate?: Date;
     refunds: Record<string, any>[];
+    margOrderNo: string;
+    margOrderInsertData: Record<string, any>;
+    margOrderDispatchData: Record<string, any>;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -78,6 +81,9 @@ const OrderSchema = new Schema<IOrder>({
     expectedDeliveryDate: { type: Date },
     deliveredDate: { type: Date },
     refunds: { type: [Object], default: [] },
+    margOrderNo: { type: String, default: '' },
+    margOrderInsertData: { type: Object, default: {} },
+    margOrderDispatchData: { type: Object, default: {} },
 }, { timestamps: true });
 
 

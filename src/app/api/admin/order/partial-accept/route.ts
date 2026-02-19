@@ -26,66 +26,19 @@ const db = getDb();
 
 const MARG_KEY = "48TPI07W1R2S";
 
-export function decryptMargData(cipherText: string) {
+export async function decryptMargData(data: string) {
+    const buffer = Buffer.from(data, "base64");
 
-    // 🔴 C# reference se PROVEN:
-    // Short response = NOT encrypted (ACK)
-    if (!cipherText || cipherText.length < 150) {
-        return {
-            ok: true,
-            data: {
-                status: "ACK",
-                message: "Order accepted by Marg"
-            }
-        };
-    }
+    const result = zlib.inflateRawSync(buffer);
 
-    try {
-        // Step 1️⃣ Base64 decode (Convert.FromBase64String)
-        const encryptedData = Buffer.from(cipherText, "base64");
+    // Buffer → string
+    const text = result.toString("utf8");
 
-        // Step 2️⃣ KeyBytes (exact C# logic)
-        const keyBytes = Buffer.alloc(16);
-        Buffer.from(MARG_KEY, "utf8").copy(keyBytes);
+    // Remove BOM
+    const cleaned = text.replace(/^\uFEFF/, "");
 
-        const ivBytes = keyBytes; // C# me IV = Key
-
-        // Step 3️⃣ AES-128-CBC decrypt
-        const decipher = crypto.createDecipheriv(
-            "aes-128-cbc",
-            keyBytes,
-            ivBytes
-        );
-        decipher.setAutoPadding(true);
-
-        const decryptedBytes = Buffer.concat([
-            decipher.update(encryptedData),
-            decipher.final()
-        ]);
-
-        // Step 4️⃣ UTF8 string (Encoding.UTF8.GetString)
-        const decryptedText = decryptedBytes.toString("utf8");
-
-        // Step 5️⃣ Base64 decode (Convert.FromBase64String)
-        const compressedBytes = Buffer.from(decryptedText, "base64");
-
-        // Step 6️⃣ DeflateStream decompress
-        const output = zlib.inflateRawSync(compressedBytes);
-
-        const finalText = output.toString("utf8").trim();
-
-        return {
-            ok: true,
-            data: JSON.parse(finalText)
-        };
-
-    } catch (err: any) {
-        return {
-            ok: false,
-            reason: "MARG_DECRYPT_FAIL",
-            error: err.message
-        };
-    }
+    // Convert to JSON object
+    return JSON.parse(cleaned);
 }
 
 
@@ -179,8 +132,8 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
     // Fetch medicine names for both accepted and cancelled
     // Fetch medicine names for both accepted and cancelled, and merge with quantity/price for accepted
     const [acceptedRaw, cancelledNames] = await Promise.all([
-        Medicine.find({ _id: { $in: unCancelledItems.map((i: any) => i.medicineId) } }).select('name coverImage mrp batchNumber'),
-        Medicine.find({ _id: { $in: cancelledForRefund.map((i: any) => i.medicineId) } }).select('name coverImage mrp batchNumber'),
+        Medicine.find({ _id: { $in: unCancelledItems.map((i: any) => i.medicineId) } }).select('name coverImage mrp batchNumber unitPackFactor'),
+        Medicine.find({ _id: { $in: cancelledForRefund.map((i: any) => i.medicineId) } }).select('name coverImage mrp batchNumber unitPackFactor'),
     ]);
 
     // Merge acceptedRaw with unCancelledItems to include quantity and price
@@ -418,105 +371,115 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
 
     if (acceptedNames.length > 0) {
 
-        // // console.log("###acceptedNames######", acceptedNames);
+        console.log("###acceptedNames######", acceptedNames);
 
-        // // 1️⃣ Extract batch numbers
-        // const batchNumbersArray = acceptedNames
-        //     .map(item => item.batchNumber)
-        //     .filter(Boolean); // remove null/undefined
+        // 1️⃣ Extract batch numbers
+        const batchNumbersArray = acceptedNames
+            .map(item => item.batchNumber)
+            .filter(Boolean); // remove null/undefined
 
-        // // 2️⃣ Extract quantities
-        // const quantitiesArray = acceptedNames
-        //     .map(item => item.quantity)
-        //     .filter(q => q !== undefined && q !== null);
+        // 2️⃣ Extract quantities
+        const quantitiesArray = acceptedNames
+            .map(item => item.quantity * (item.unitPackFactor || 1)) // multiply by unitPackFactor if exists
+            .filter(q => q !== undefined && q !== null);
 
-        // const zeroArray = new Array(batchNumbersArray.length).fill(0);
+        const zeroArray = new Array(batchNumbersArray.length).fill(0);
 
-        // // 3️⃣ Convert to comma separated string
-        // const productCode = batchNumbersArray.join(',');
-        // const productQuantity = quantitiesArray.join(',');
-        // const freeItems = zeroArray.join(',');
+        // 3️⃣ Convert to comma separated string
+        const productCode = batchNumbersArray.join(',');
+        const productQuantity = quantitiesArray.join(',');
+        const freeItems = zeroArray.join(',');
 
-        //     console.log("###productCode######productQuantity####freeItems##", productCode, productQuantity, freeItems);
+        console.log("###productCode######productQuantity####freeItems##", productCode, productQuantity, freeItems);
 
-        // //Firebase realtime data update
-        // const firebaseRef = db.ref(`marg/order/count`);
-        // const snapshot = await firebaseRef.once('value');
-        // const totalOrderCount: any = Number(snapshot.val()?.totalOrderCount || 0) + 1
-        // await firebaseRef.update({
-        //     totalOrderCount: totalOrderCount
-        // });
+        //Firebase realtime data update
+        const firebaseRef = db.ref(`marg/order/count`);
+        const snapshot = await firebaseRef.once('value');
+        const totalOrderCount: any = Number(snapshot.val()?.totalOrderCount || 0) + 1
+        await firebaseRef.update({
+            totalOrderCount: totalOrderCount
+        });
 
-        // const payload = {
-        //     OrderID: "",
-        //     OrderNo: `${totalOrderCount}`,
-        //     Partycode: "STACjn", //Online order
-        //     CustomerID: "11906405",//12324265
-        //     // Partycode: "APP   ", //Online order
-        //     // CustomerID: "12324265",//12324265
-        //     MargID: "486257",
-        //     Type: "C",
-        //     Sid: "306832",
+        const payload = {
+            OrderID: "",
+            OrderNo: `${totalOrderCount}`,
+            // Partycode: "STACjn", //Online order
+            // CustomerID: "11906405",//12324265
+            Partycode: "APP   ", //Online order
+            CustomerID: "12324265",//12324265
+            MargID: "486257",
+            Type: "C",
+            Sid: "306832",
 
-        //     // ProductCode: "1061746",   // ✅ EXACT as Marg sample
-        //     ProductCode: `${productCode}`,   // ✅ EXACT as Marg sample
-        //     Quantity: `${productQuantity}`,
-        //     Free: `${freeItems}`,
+            // ProductCode: "1061746",   // ✅ EXACT as Marg sample
+            ProductCode: `${productCode}`,   // ✅ EXACT as Marg sample
+            Quantity: `${productQuantity}`,
+            Free: `${freeItems}`,
 
-        //     Lat: "",
-        //     Lng: "",
-        //     Address: "",
-        //     GpsID: "0",
-        //     UserType: "1",
-        //     Points: "0.00",
+            Lat: "",
+            Lng: "",
+            Address: "",
+            GpsID: "0",
+            UserType: "1",
+            Points: "0.00",
 
-        //     Discounts: "1",
-        //     Transport: "",
-        //     Delivery: "",
+            Discounts: "1",
+            Transport: "",
+            Delivery: "",
 
-        //     Bankname: "",
-        //     BankAdd1: "",
-        //     BankAdd2: "",
+            Bankname: "",
+            BankAdd1: "",
+            BankAdd2: "",
 
-        //     shipname: "",
-        //     shipAdd1: "",
-        //     shipAdd2: "",
-        //     shipAdd3: "",
+            shipname: "",
+            shipAdd1: "",
+            shipAdd2: "",
+            shipAdd3: "",
 
-        //     paymentmode: "1",
-        //     paymentmodeAmount: "0",
-        //     payment_remarks: "",
-        //     order_remarks: "order place",
+            paymentmode: "1",
+            paymentmodeAmount: "0",
+            payment_remarks: "",
+            order_remarks: "order place",
 
-        //     CustName: "Sunil",
-        //     CustMobile: "7470376772",
+            CustName: "Sunil",
+            CustMobile: "7470376772",
 
-        //     DoctorName: "",
-        //     DoctorMobile: "",
+            DoctorName: "",
+            DoctorMobile: "",
 
-        //     CompanyCode: "PharmatoInd2",
-        //     OrderFrom: "PharmatoInd2"
-        // };
+            CompanyCode: "PharmatoInd2",
+            OrderFrom: "PharmatoInd2"
+        };
 
-        // console.log("#############payload##############", payload);
+        console.log("#############payload##############", payload);
 
-        // const response = await axios.post(
-        //     "https://corporate.margerp.com/api/eOnlineData/InsertOrderDetailB2C",
-        //     payload,
-        //     { headers: { "Content-Type": "application/json" } }
-        // );
+        const response = await axios.post(
+            "https://corporate.margerp.com/api/eOnlineData/InsertOrderDetailB2C",
+            payload,
+            { headers: { "Content-Type": "application/json" } }
+        );
 
-        // console.log("📥 RAW:", response.data);
+        console.log("📥 RAW:", response.data);
 
-        // const result = decryptMargData(response.data);
+        const result = await decryptMargData(response.data);
 
-        // console.log("$$$$$$$$$$$result$$$$$$$$$$$$$$", result);
+        console.log("$$$$$$$$$$$result$$$$$$$$$$$$$$", result);
 
-        // if (!result.ok) {
-        //     console.log("❌ Marg Error:", result);
-        // } else {
-        //     console.log("✅ Marg Success:", result);
-        // }
+        if (result?.Details) {
+
+            await Order.updateOne(
+                { _id: order._id },
+                {
+                    $set: {
+                        margOrderNo: result?.Details?.OrderDetails[0].OrderNo || '',
+                        margOrderInsertData: result || {}
+                    }
+                }
+            );
+
+        } else {
+            console.log("##########result####Kuch to gadbad hain baba#######", result);
+        }
 
         let invoiceMedicinesHtml = ``
         let invoiceNumber = '';

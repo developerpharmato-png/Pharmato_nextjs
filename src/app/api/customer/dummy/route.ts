@@ -11,101 +11,19 @@ import zlib from "zlib";
 
 const MARG_KEY = "48TPI07W1R2S";
 
-export function decryptMargData(cipherText: string) {
+export function decryptMargData(data: string) {
+    const buffer = Buffer.from(data, "base64");
 
-    // 🔴 C# reference se PROVEN:
-    // Short response = NOT encrypted (ACK)
-    if (!cipherText || cipherText.length < 150) {
-        return {
-            ok: true,
-            data: {
-                status: "ACK",
-                message: "Order accepted by Marg"
-            }
-        };
-    }
+    const result = zlib.inflateRawSync(buffer);
 
-    try {
-        // Step 1️⃣ Base64 decode (Convert.FromBase64String)
-        const encryptedData = Buffer.from(cipherText, "base64");
+    // Buffer → string
+    const text = result.toString("utf8");
 
-        // Step 2️⃣ KeyBytes (exact C# logic)
-        const keyBytes = Buffer.alloc(16);
-        Buffer.from(MARG_KEY, "utf8").copy(keyBytes);
+    // Remove BOM
+    const cleaned = text.replace(/^\uFEFF/, "");
 
-        const ivBytes = keyBytes; // C# me IV = Key
-
-        // Step 3️⃣ AES-128-CBC decrypt
-        const decipher = crypto.createDecipheriv(
-            "aes-128-cbc",
-            keyBytes,
-            ivBytes
-        );
-        decipher.setAutoPadding(true);
-
-        const decryptedBytes = Buffer.concat([
-            decipher.update(encryptedData),
-            decipher.final()
-        ]);
-
-        // Step 4️⃣ UTF8 string (Encoding.UTF8.GetString)
-        const decryptedText = decryptedBytes.toString("utf8");
-
-        // Step 5️⃣ Base64 decode (Convert.FromBase64String)
-        const compressedBytes = Buffer.from(decryptedText, "base64");
-
-        // Step 6️⃣ DeflateStream decompress
-        const output = zlib.inflateRawSync(compressedBytes);
-
-        const finalText = output.toString("utf8").trim();
-
-        return {
-            ok: true,
-            data: JSON.parse(finalText)
-        };
-
-    } catch (err: any) {
-        return {
-            ok: false,
-            reason: "MARG_DECRYPT_FAIL",
-            error: err.message
-        };
-    }
-}
-
-function decrypt(data: string) {
-
-    const key = MARG_KEY
-
-    // Base64 decode
-    const encryptedBuffer = Buffer.from(data, "base64");
-
-    // Create 16 byte key (same as C# logic)
-    const keyBuffer = Buffer.alloc(16);
-    const keyBytes = Buffer.from(key, "utf8");
-    keyBytes.copy(keyBuffer, 0, 0, Math.min(keyBytes.length, 16));
-
-    // Same key used as IV (exactly like C#)
-    const iv = keyBuffer;
-
-    const decipher = crypto.createDecipheriv(
-        "aes-128-cbc",
-        keyBuffer,
-        iv
-    );
-
-    decipher.setAutoPadding(true);
-
-    let decrypted = decipher.update(encryptedBuffer);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-
-    return decrypted.toString("utf8");
-}
-
-function decompress(compressedString: string) {
-    const buffer = Buffer.from(compressedString, "base64");
-    const decompressed = zlib.inflateRawSync(buffer); // DeflateStream equivalent
-    return decompressed.toString("utf8");
+    // Convert to JSON object
+    return JSON.parse(cleaned);
 }
 
 /**
@@ -144,9 +62,9 @@ export async function POST(request: NextRequest) {
         MargID: "486257",
         Type: "C",
         Sid: "306832",
-        ProductCode: '1061705',
-        Quantity: '1',
-        Free: "0",
+        ProductCode: '1061705,1061765',
+        Quantity: '1,1',
+        Free: "0,0",
 
         Lat: "",
         Lng: "",
@@ -195,23 +113,9 @@ export async function POST(request: NextRequest) {
 
     console.log("$$$$$$$$$$$result$$$$$$$$$$$$$$", result);
 
-    if (!result.ok) {
-        console.log("❌ Marg Error:", result);
-        return NextResponse.json(result, { status: 400 });
-    }
-
     return NextResponse.json({
         success: true,
-        data: result.data
+        data: result
     });
-
-    // try {
-    //     const decrypted = decrypt(response.data);
-    //     const finalOutput = decompress(decrypted);
-
-    //     console.log("FINAL OUTPUT:",finalOutput);
-    // } catch (err) {
-    //     console.error("ERROR:", err);
-    // }
 
 }
