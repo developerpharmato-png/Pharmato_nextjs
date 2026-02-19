@@ -410,8 +410,8 @@ export default function PartialCancelPage() {
           >
             {order.order_status
               ? order.order_status
-                  .replace(/_/g, " ")
-                  .replace(/\b\w/g, (c: string) => c.toUpperCase())
+                .replace(/_/g, " ")
+                .replace(/\b\w/g, (c: string) => c.toUpperCase())
               : "Status Unknown"}
           </span>
         </div>
@@ -814,7 +814,7 @@ export default function PartialCancelPage() {
                       // clear inline error when user types
                       try {
                         setCancelReasonError("");
-                      } catch (e) {}
+                      } catch (e) { }
                     }}
                     // placeholder="Enter description here"
                     maxLength={200}
@@ -823,7 +823,7 @@ export default function PartialCancelPage() {
                     className="mb-4"
                   />
                   {typeof cancelReasonError !== "undefined" &&
-                  cancelReasonError ? (
+                    cancelReasonError ? (
                     <p className="text-sm text-red-600 mt-1">
                       {cancelReasonError}
                     </p>
@@ -840,7 +840,7 @@ export default function PartialCancelPage() {
               setShowCancelReasonDialog(false);
               try {
                 setCancelReasonError("");
-              } catch (e) {}
+              } catch (e) { }
             }}
             sx={modalStyles.cancelBtn}
           >
@@ -854,7 +854,7 @@ export default function PartialCancelPage() {
               ) {
                 try {
                   setCancelReasonError("Reason is required!");
-                } catch (e) {}
+                } catch (e) { }
                 return;
               }
               setAcceptLoading(true);
@@ -1235,12 +1235,12 @@ export default function PartialCancelPage() {
                       </svg>
                       {order?.createdAt
                         ? new Date(order.createdAt).toLocaleString("en-IN", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                         : "N/A"}
                     </p>
                   </div>
@@ -1274,7 +1274,7 @@ export default function PartialCancelPage() {
                     <span className="font-bold text-green-600 uppercase">
                       {" "}
                       {order?.calculationData?.deliveryFee !== undefined &&
-                      order?.calculationData?.deliveryFee > 0
+                        order?.calculationData?.deliveryFee > 0
                         ? `₹${order?.calculationData?.deliveryFee?.toFixed(2)}`
                         : "FREE"}
                     </span>
@@ -1313,7 +1313,7 @@ export default function PartialCancelPage() {
                       />
                     </svg>
                     {order?.payment_status == "captured" ||
-                    order?.payment_status == "Deducted From Wallet"
+                      order?.payment_status == "Deducted From Wallet"
                       ? " Payment Received"
                       : "Awaiting Payment"}
                   </div>
@@ -1322,6 +1322,134 @@ export default function PartialCancelPage() {
             </div>
           </div>
         </div>
+
+        {/* --- MARG ORDER DETAILS CARD --- */}
+        {order?.margOrderNo && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-3">
+                <div className="w-5 h-5 text-blue-600">
+                  <svg
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-lg font-bold text-gray-800 tracking-tight">
+                  Marg Order Details
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {/* Integration Status */}
+                <div className="space-y-5">
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                      Marg Order No
+                    </p>
+                    <p className="font-bold text-sm text-blue-600">
+                      {order?.margOrderNo}
+                    </p>
+                  </div>
+                  {order?.margOrderInsertData?.Details?.CustomerID && (
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                        Customer ID
+                      </p>
+                      <p className="text-sm font-bold text-gray-800">
+                        {order?.margOrderInsertData?.Details?.CustomerID}
+                      </p>
+                    </div>
+                  )}
+                  {order?.margOrderInsertData?.Details?.Message && (
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                        Status Message
+                      </p>
+                      <p className="text-xs font-medium text-green-600 bg-green-50 px-2.5 py-1 rounded inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                        {order?.margOrderInsertData?.Details?.Message}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Dispatch Details */}
+                {order?.margOrderDispatchData && (
+                  <div className="lg:col-span-2 bg-gray-50 rounded-xl p-5 border border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-4">
+                      Dispatch Information
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
+                      {/* Removed Marg Order ID */}
+                      {order?.margOrderDispatchData?.datesub && (
+                        <div className="flex justify-between items-center sm:block">
+                          <span className="text-xs text-gray-500 sm:mb-1 block">
+                            Submitted Date
+                          </span>
+                          <span className="text-sm font-medium text-gray-700">
+                            {order?.margOrderDispatchData?.datesub}
+                          </span>
+                        </div>
+                      )}
+                      {order?.margOrderDispatchData?.dateisu && (
+                        <div className="flex justify-between items-center sm:block">
+                          <span className="text-xs text-gray-500 sm:mb-1 block">
+                            Issued Date
+                          </span>
+                          <span className="text-sm font-medium text-gray-700">
+                            {order?.margOrderDispatchData?.dateisu}
+                          </span>
+                        </div>
+                      )}
+                      {order?.margOrderDispatchData?.datedis && (
+                        <div className="flex justify-between items-center sm:block">
+                          <span className="text-xs text-gray-500 sm:mb-1 block">
+                            Dispatch Date
+                          </span>
+                          <span className="text-sm font-medium text-gray-700">
+                            {order?.margOrderDispatchData?.datedis}
+                          </span>
+                        </div>
+                      )}
+                      {order?.margOrderDispatchData?.Is_Deleted === 1 && (
+                        <>
+                          <div className="flex justify-between items-center sm:block">
+                            <span className="text-xs text-gray-500 sm:mb-1 block">
+                              Process Status
+                            </span>
+                            <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tighter bg-red-100 text-red-600">
+                              Deleted
+                            </span>
+                          </div>
+                          {order?.margOrderDispatchData?.deleted_date && (
+                            <div className="flex justify-between items-center sm:block">
+                              <span className="text-xs text-red-400 sm:mb-1 block">
+                                Deletion Date
+                              </span>
+                              <span className="text-sm font-medium text-red-600">
+                                {order?.margOrderDispatchData?.deleted_date}
+                              </span>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* --- ACTIVE / PENDING ITEMS TABLE --- */}
       </div>
     </div>
