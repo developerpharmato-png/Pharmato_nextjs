@@ -61,6 +61,34 @@ function safeJSONParse(str: string) {
  *                   type: string
  *                   example: Live order dispatch status checked successfully.
  */
+
+
+async function runBackground(jsonData: any) {
+
+        const OrderInfo = jsonData?.Details?.OrderInfo || [];
+        const bulkOps: any[] = [];
+
+        for (const element of OrderInfo) {
+
+            // const checkOrder = await Order.findOne({ margOrderNo: element.OrderID });        
+
+            bulkOps.push({
+                updateOne: {
+                    filter: { margOrderNo: element.OrderID },
+                    update: {
+                        $set: {
+                            margOrderDispatchData: element
+                        }
+                    }
+                }
+            });
+
+        }
+
+        await Order.bulkWrite(bulkOps, { ordered: false });
+
+}
+
 export async function POST(req: NextRequest) {
 
     const url = 'https://corporate.margerp.com/api/eOnlineData/LiveOrderDispatchStatus2017';
@@ -80,38 +108,29 @@ export async function POST(req: NextRequest) {
         headers: { 'Content-Type': 'application/json' }
     });
 
-    console.log("response", response);
+    // console.log("response", response);
 
     const encryptedResponse = response.data;
-    console.log("encryptedResponse", encryptedResponse);
+    // console.log("encryptedResponse", encryptedResponse);
     const decrypted = decryptAES(encryptedResponse, key);
     // console.log("decrypted", decrypted);
     const inflated = gzinflate(decrypted.toString());
     // console.log("inflated", inflated);
     const jsonData = safeJSONParse(inflated);
-    console.log("jsonData", jsonData);
+    // console.log("jsonData", jsonData);
 
-    const OrderInfo = jsonData?.Details?.OrderInfo || [];
-    const bulkOps: any[] = [];
+    if (jsonData?.Details) {
 
-    for (const element of OrderInfo) {
-
-        // const checkOrder = await Order.findOne({ margOrderNo: element.OrderID });        
-
-        bulkOps.push({
-          updateOne: {
-            filter: { margOrderNo: element.OrderID },
-            update: {
-              $set: {
-                        margOrderDispatchData: element
-                    }
-            }    
-          }
+        // background me chala do
+        setImmediate(() => {
+            runBackground(jsonData);
         });
 
+        return NextResponse.json({ success: true, message: 'Live order dispatch status checked successfully.' ,data: jsonData});
+
+    } else {
+
+        return NextResponse.json({ success: false, message: 'Live order dispatch status checked failed.' });
+
     }
-
-    await Order.bulkWrite(bulkOps, { ordered: false });
-
-    return NextResponse.json({ message: 'Live order dispatch status checked successfully.', data: jsonData });
 }
