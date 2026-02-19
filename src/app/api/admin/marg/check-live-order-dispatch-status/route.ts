@@ -108,16 +108,16 @@ export async function POST(req: NextRequest) {
         headers: { 'Content-Type': 'application/json' }
     });
 
-    console.log("response", response);
+    // console.log("response", response);
 
     const encryptedResponse = response.data;
-    console.log("encryptedResponse", encryptedResponse);
+    // console.log("encryptedResponse", encryptedResponse);
     const decrypted = decryptAES(encryptedResponse, key);
     // console.log("decrypted", decrypted);
     const inflated = gzinflate(decrypted.toString());
     // console.log("inflated", inflated);
     const jsonData = safeJSONParse(inflated);
-    console.log("jsonData", jsonData);
+    // console.log("jsonData", jsonData);
 
     if (jsonData?.Details) {
 
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
             runBackground(jsonData);
         });
 
-        return NextResponse.json({ success: true, message: 'Live order dispatch status checked successfully.' });
+        return NextResponse.json({ success: true, message: 'Live order dispatch status checked successfully.' ,data: jsonData});
 
     } else {
 
