@@ -131,7 +131,89 @@ function OrdersPageContent() {
         showBack={false}
         ExportButton={
           <div className="flex items-center gap-2 p-1 bg-gray-50 rounded-lg border border-gray-200">
-            {/* ...existing code... */}
+            <LocalizationProvider
+              dateAdapter={AdapterDateFns}
+              adapterLocale={enGB}
+            >
+              <DatePicker
+                label="Start date"
+                format="dd/MM/yyyy"
+                value={exportStartDate}
+                maxDate={new Date()}
+                onChange={(d) => {
+                  setExportStartDate(d);
+                  if (d && exportEndDate && !(exportEndDate > d))
+                    setExportEndDate(null);
+                }}
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    sx: {
+                      width: 160,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "6px",
+                        backgroundColor: "white",
+                      },
+                    },
+                  },
+                }}
+              />
+              <DatePicker
+                label="End date"
+                format="dd/MM/yyyy"
+                value={exportEndDate}
+                minDate={
+                  exportStartDate ? addDays(exportStartDate, 1) : undefined
+                }
+                maxDate={new Date()}
+                onChange={(d) => setExportEndDate(d)}
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    sx: {
+                      width: 160,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "6px",
+                        backgroundColor: "white",
+                      },
+                    },
+                  },
+                }}
+              />
+            </LocalizationProvider>
+            <CustomButton
+              width="140px"
+              onClick={async () => {
+                setExportLoading(true);
+                try {
+                  const body: any = {
+                    startDate: exportStartDate
+                      ? format(exportStartDate, "dd-MM-yyyy")
+                      : undefined,
+                    endDate: exportEndDate
+                      ? format(exportEndDate, "dd-MM-yyyy")
+                      : undefined,
+                  };
+                  if (searchTerm) body.search = searchTerm;
+                  const blob = await ExportPost?.(OrderExportPath, body);
+                  if (!blob) throw new Error("Export failed");
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `orders_${Date.now()}.xlsx`;
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                } catch (e) {
+                  // alert("Export failed");
+                } finally {
+                  setExportLoading(false);
+                }
+              }}
+              disabled={exportLoading}
+            >
+              {exportLoading ? "Wait..." : "Export"}
+            </CustomButton>
+          
           </div>
         }
       />
