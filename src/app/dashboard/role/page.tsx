@@ -8,13 +8,15 @@ import HeaderWithAction from "../components/HeaderWithAction";
 import { CustomTable, Column } from "../components/CustomTable";
 import { CustomTooltip, CustomButton } from "../components/miniComponents";
 import RoleModal from './RoleModal';
-import { EditIcon } from "lucide-react";
+import { EditIcon, Trash2, Shield, ShieldAlert } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
 interface RoleItem {
   _id: string;
   name: string;
+  uniqueCode?: string;
   permissions?: string[];
   isActive: boolean;
 }
@@ -192,6 +194,15 @@ export default function RolePage() {
   };
 
   const columns: Column<RoleItem>[] = [
+    {
+      id: "uniqueCode",
+      label: "ID",
+      selector: (row) => (
+        <CustomTooltip title={row.uniqueCode || "-"}>
+          <span className="ID-List">{row.uniqueCode || "-"}</span>
+        </CustomTooltip>
+      ),
+    },
     {
       id: "name",
       label: "Role Name",

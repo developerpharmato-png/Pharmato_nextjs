@@ -32,7 +32,12 @@ export async function POST(req: NextRequest) {
         if (!name || typeof name !== 'string') {
             return NextResponse.json({ success: false, message: 'Store name is required' }, { status: 400 });
         }
-        const store = await Store.create({ name, servicePinCodes, address, GoogleAddress, status, adminManagerId });
+
+        // Generate uniqueCode
+        const count = await Store.countDocuments({ uniqueCode: { $exists: true } });
+        const uniqueCode = `STO-${String(count + 1).padStart(3, '0')}`;
+
+        const store = await Store.create({ name, uniqueCode, servicePinCodes, address, GoogleAddress, status, adminManagerId });
 
         // If adminManagerId provided, link store to admin.managedStores
         if (adminManagerId) {
@@ -74,9 +79,16 @@ export async function PUT(req: NextRequest) {
 
         const prevAdminId = existing.adminManagerId?.toString();
 
+        // Ensure uniqueCode exists for old stores
+        let uniqueCode = existing.uniqueCode;
+        if (!uniqueCode) {
+            const count = await Store.countDocuments({ uniqueCode: { $exists: true } });
+            uniqueCode = `STO-${String(count + 1).padStart(3, '0')}`;
+        }
+
         const updated = await Store.findByIdAndUpdate(
             id,
-            { name, servicePinCodes, address, GoogleAddress, status, adminManagerId },
+            { name, uniqueCode, servicePinCodes, address, GoogleAddress, status, adminManagerId },
             { new: true }
         ).populate('adminManagerId', 'email firstName lastName');
         if (!updated) {

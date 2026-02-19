@@ -135,8 +135,8 @@ export default function RoleModal({
 
           <div className="flex gap-3 justify-end pt-4  border-gray-100">
             <CustomButton type="submit" disabled={formik.isSubmitting}>
-                                   <MdSave size={22} />{" "}
-              
+              <MdSave size={22} />{" "}
+
               {formik.isSubmitting ? "Saving..." : editId ? "Update " : "Add "}
             </CustomButton>
           </div>

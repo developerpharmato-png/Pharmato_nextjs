@@ -32,7 +32,12 @@ export async function POST(req: NextRequest) {
   if (exists) {
     return NextResponse.json({ success: false, message: 'Role already exists' }, { status: 409 });
   }
-  const role = await Role.create({ name, permissions, isActive });
+
+  // Generate uniqueCode
+  const count = await Role.countDocuments();
+  const uniqueCode = `ROLE-${String(count + 1).padStart(3, '0')}`;
+
+  const role = await Role.create({ name, permissions, isActive, uniqueCode });
   return NextResponse.json({ success: true, message: 'Role added', data: role });
 }
 
@@ -43,8 +48,23 @@ export async function PUT(req: NextRequest) {
   const id = url.searchParams.get('id');
   if (!id) return NextResponse.json({ success: false, message: 'Role id is required' }, { status: 400 });
 
+  const role = await Role.findById(id);
+  if (!role) return NextResponse.json({ success: false, message: 'Role not found' }, { status: 404 });
+
   const { name, permissions = [], isActive } = await req.json();
-  const updated = await Role.findByIdAndUpdate(id, { name, permissions, isActive }, { new: true });
-  if (!updated) return NextResponse.json({ success: false, message: 'Role not found' }, { status: 404 });
+
+  // Ensure uniqueCode exists for old roles
+  let uniqueCode = role.uniqueCode;
+  if (!uniqueCode) {
+    const count = await Role.countDocuments({ uniqueCode: { $exists: true } });
+    uniqueCode = `ROLE-${String(count + 1).padStart(3, '0')}`;
+  }
+
+  const updated = await Role.findByIdAndUpdate(
+    id,
+    { name, permissions, isActive, uniqueCode },
+    { new: true }
+  );
+
   return NextResponse.json({ success: true, message: 'Role updated', data: updated });
 }

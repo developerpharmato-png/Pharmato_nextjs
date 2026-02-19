@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IStore extends Document {
     name: string;
+    uniqueCode?: string;
     servicePinCodes: string[];
     address?: Record<string, any>;
     GoogleAddress?: string;
@@ -11,6 +12,7 @@ export interface IStore extends Document {
 
 const StoreSchema: Schema = new Schema({
     name: { type: String },
+    uniqueCode: { type: String },
     servicePinCodes: { type: [String], default: [] },
     address: { type: Object, default: {} },
     GoogleAddress: { type: String, default: '' },

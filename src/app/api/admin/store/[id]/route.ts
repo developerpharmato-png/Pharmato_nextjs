@@ -10,13 +10,19 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
         if (!id) {
             return NextResponse.json({ success: false, message: 'Store ID is required' }, { status: 400 });
         }
-        const store = await Store.findById(id)
-            .populate('adminManagerId', 'email firstName lastName')
-            .lean();
+        const store = await Store.findById(id).populate('adminManagerId', 'email firstName lastName');
         if (!store) {
             return NextResponse.json({ success: false, message: 'Store not found' }, { status: 404 });
         }
-        return NextResponse.json({ success: true, data: store });
+
+        // Ensure uniqueCode exists for old stores when viewing details
+        if (!store.uniqueCode) {
+            const count = await Store.countDocuments({ uniqueCode: { $exists: true } });
+            store.uniqueCode = `STO-${String(count + 1).padStart(3, '0')}`;
+            await store.save();
+        }
+
+        return NextResponse.json({ success: true, data: store.toObject ? store.toObject() : store });
     } catch (error: any) {
         console.error('GET /api/admin/store/[id] error:', error);
         return NextResponse.json(
@@ -25,4 +31,3 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
         );
     }
 }
-  
