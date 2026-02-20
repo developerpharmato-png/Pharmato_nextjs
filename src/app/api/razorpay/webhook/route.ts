@@ -32,7 +32,7 @@ async function runBackground(body: any) {
         const refundId = body?.payload?.refund?.entity?.id || '';
 
         // Find the order in DB
-        const checkOrder : any = await Order.findOne({ order_id: orderId });
+        const checkOrder: any = await Order.findOne({ order_id: orderId });
 
         if (checkOrder) {
 
@@ -186,11 +186,11 @@ async function runBackground(body: any) {
 
 
                     const itemsHtml = checkOrder.medicineQuantity
-                        .filter(mq => !mq.cancelDetail?.is_cancelled) // cancelled skip
-                        .map(mq => {
+                        .filter((mq: Record<string, any>) => !mq.cancelDetail?.is_cancelled) // cancelled skip
+                        .map((mq: Record<string, any>) => {
 
                             const product = checkOrder.medicineId.find(
-                                m => m._id === mq.medicineId
+                                (m: any) => m._id === mq.medicineId
                             );
 
                             if (!product) return '';
