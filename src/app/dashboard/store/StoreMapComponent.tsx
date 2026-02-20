@@ -191,7 +191,7 @@ const StoreMapComponent: React.FC<StoreMapComponentProps> = ({
 
         {/* Suggestions Dropdown */}
         {showSuggestions && suggestions.length > 0 && (
-          <div 
+          <div
             className="absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-2xl max-h-60 overflow-y-auto"
             style={{ zIndex: 9999 }}
           >
@@ -207,7 +207,7 @@ const StoreMapComponent: React.FC<StoreMapComponentProps> = ({
           </div>
         )}
       </div>
-      
+
       {searchError && (
         <p className="text-sm text-red-600 mb-2">{searchError}</p>
       )}
@@ -233,7 +233,7 @@ const StoreMapComponent: React.FC<StoreMapComponentProps> = ({
           />
         </MapContainer>
       </div>
-     
+
     </div>
   );
 };

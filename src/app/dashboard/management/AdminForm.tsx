@@ -166,12 +166,15 @@ export default function AdminForm({ open, onClose, onSubmit, initialValues = {},
             variant="outlined"
             {...formik.getFieldProps('mobile')}
             error={formik.touched.mobile && Boolean(formik.errors.mobile)}
-            inputProps={{ maxLength: 10 }}
+            inputProps={{ maxLength: 10, inputMode: 'numeric' }}
+            onKeyDown={(e) => {
+              const allowed = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
+              if (!allowed.includes(e.key) && !/^\d$/.test(e.key)) {
+                e.preventDefault();
+              }
+            }}
             sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
           />
-          {formik.touched.mobile && formik.errors.mobile && (
-            <ErrorMessageCom error={formik.errors.mobile as string} />
-          )}
           {formik.touched.mobile && formik.errors.mobile && (
             <ErrorMessageCom error={formik.errors.mobile as string} />
           )}

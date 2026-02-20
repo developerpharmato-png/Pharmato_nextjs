@@ -259,11 +259,11 @@ export default function AddStorePage() {
 
         <form
           onSubmit={formik.handleSubmit}
-          className="flex flex-col gap-8 px-4 "
+          className="flex flex-col gap-8 px-4 mb-4 "
         >
 
 
-          <div className="stikcHeader ">
+          <div className="stikcHeader flex   justify-between ">
             <HeaderWithAction
               title={isEditMode ? "Edit Store" : "Add Store"}
               subtitle={
@@ -273,7 +273,7 @@ export default function AddStorePage() {
               showSearch={false}
               isunsaved={formik.dirty}
             />
-            <div className="">
+            <div className="w-[300px]">
 
               <CustomButton
                 type="submit"
@@ -283,7 +283,7 @@ export default function AddStorePage() {
                   storeDetailLoading ||
                   updateStoreLoading
                 }
-                width="100%"
+                width="300px"
               >
                 {" "}
                 <MdSave size={22} /> {isEditMode ? "Update Store" : "Add Store"}

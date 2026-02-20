@@ -13,7 +13,10 @@ import {
   DollarSign,
   Calendar,
   TrendingUp,
-  ArrowUpRight, // <--- Add this
+  ArrowUpRight,
+  BarChart3,
+  History as HistoryIcon,
+  RotateCcw,
 } from "lucide-react";
 import {
   LineChart,
@@ -29,6 +32,8 @@ import {
   Pie,
   Cell,
   Legend,
+  AreaChart,
+  Area,
 } from "recharts";
 import HeaderWithAction from "../components/HeaderWithAction";
 import {
@@ -173,16 +178,13 @@ export default function NewDashboardPage() {
         <HeaderWithAction
           title="Pharmacy  Dashboard
 "
-          subtitle="Monitor your pharmacy's vital signs: performance, inventory health, and revenue trends.
-
-
- "
+          subtitle="Real-time overview of your pharmacy's performance."
           backLabel="Back"
           addLabel="Add "
           showBack={false}
           showSearch={false}
         />
-        <div className="flex -wrap items-center gap-2">
+        {/* <div className="flex -wrap items-center gap-2">
           <button
             onClick={() => exportOrders()}
             disabled={exportOrdersLoading}
@@ -203,75 +205,112 @@ export default function NewDashboardPage() {
             )}
             {exportInventoryLoading ? "Exporting..." : "Export Inventory"}
           </button>
-        </div>
-      </div>
+        </div> */}
 
-      {/* Control Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-3 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+        {/* Header Controls */}
+        <div className="flex flex-wrap items-center gap-2 bg-white p-2 px-3 rounded-2xl border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-2 pr-3 border-r border-slate-100">
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">
               Period
             </label>
             <select
               value={period}
               onChange={(e) => setPeriod(e.target.value as any)}
-              className="bg-transparent font-medium text-slate-700 focus:outline-none cursor-pointer"
+              className="bg-transparent text-sm font-bold text-slate-700 focus:outline-none cursor-pointer"
             >
               <option value="today">Today</option>
-             
+              <option value="week">This Week</option>
               <option value="month">This Month</option>
-              <option value="year">This Year</option>
               <option value="all">All Time</option>
-              {/* <option value="custom">Custom Range</option> */}
+              <option value="custom">Custom Range</option>
             </select>
           </div>
 
           {period === "custom" && (
-            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2">
+            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2 pr-3 border-r border-slate-100">
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                className="px-2 py-1 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 outline-none"
               />
               <span className="text-slate-400">—</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                className="px-2 py-1 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </div>
           )}
-        </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 pr-2 border-r border-slate-100">
+            {/* <button
+              onClick={() => exportOrders()}
+              disabled={exportOrdersLoading}
+              className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 disabled:opacity-50 shadow-sm transition-colors flex items-center gap-2"
+              title="Export Orders"
+            >
+              <ShoppingCart size={14} />
+              <span className="text-[10px] font-bold uppercase tracking-tight">Orders</span>
+            </button>
+            <button
+              onClick={() => exportInventory()}
+              disabled={exportInventoryLoading}
+              className="p-1.5 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 disabled:opacity-50 shadow-sm transition-colors flex items-center gap-2"
+              title="Export Inventory"
+            >
+              <Package size={14} />
+              <span className="text-[10px] font-bold uppercase tracking-tight">Stock</span>
+            </button> */}
+          </div>
+
           <button
             onClick={() => fetchAll()}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-all shadow-md active:scale-95"
+            className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm active:scale-95 group"
           >
+            <RotateCcw size={14} className="group-hover:rotate-180 transition-transform duration-500" />
             Refresh Data
           </button>
         </div>
       </div>
 
-      {/* Analytics & Charts Section */}
-      <section className="mb-10">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-              <span className="w-2 h-6 bg-blue-600 rounded-full"></span>
-              Orders Volume Trend
-            </h2>
-          </div>
 
+
+      {/* Analytics & Charts Section */}
+      <section className="mb-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Chart Card */}
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">
-              Orders Volume Trend
-            </h3>
-            <div className="h-[300px] w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+              <div>
+                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                  Orders Volume Trend
+                </h4>
+                
+              </div>
+
+              {/* Compact Summaries */}
+              <div className="flex flex-wrap items-center gap-2">
+                {[
+                  { label: "Today", value: ordersData?.summary?.daily || 0, color: "blue" },
+                  { label: "Week", value: ordersData?.summary?.weekly || 0, color: "indigo" },
+                  { label: "Month", value: ordersData?.summary?.monthly || 0, color: "purple" },
+                ].map((card) => (
+                  <div
+                    key={card.label}
+                    className="bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-xl flex items-center gap-2 shrink-0"
+                  >
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{card.label}:</span>
+                    <span className={`text-sm font-black text-${card.color}-600`}>
+                      {loading ? "—" : card.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="h-[280px] w-full">
               {loading ? (
                 <SkeletonLoader />
               ) : ordersData?.trend?.length ? (
@@ -327,12 +366,11 @@ export default function NewDashboardPage() {
             </div>
           </div>
 
-          {/* Pie Chart Card */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">
-              Order Status
-            </h3>
-            <div className="h-[300px] w-full">
+          {/* Unified Order Status & Performance Card */}
+          <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200 flex flex-col h-full">
+
+            {/* Donut Chart Area */}
+            <div className="h-[240px] w-full mb-6">
               {loading ? (
                 <SkeletonLoader />
               ) : ordersData?.statusCounts?.length ? (
@@ -343,265 +381,406 @@ export default function NewDashboardPage() {
                         name: s._id || "Unknown",
                         value: s.count,
                       }))}
-                      innerRadius={60}
-                      outerRadius={80}
+                      innerRadius={70}
+                      outerRadius={90}
                       paddingAngle={5}
                       dataKey="value"
+                      stroke="none"
                     >
                       {[
-                        "#10b981",
-                        "#f59e0b",
-                        "#ef4444",
-                        "#f97316",
-                        "#3b82f6",
+                        "#10b981", // Confirmed/Success
+                        "#f59e0b", // Pending/Warning
+                        "#ef4444", // Cancelled/Error
+                        "#3b82f6", // Processing/Info
+                        "#8b5cf6", // Shipped/Purple
+                        "#64748b", // Other/Slate
                       ].map((color, idx) => (
-                        <Cell key={`cell-${idx}`} fill={color} stroke="none" />
+                        <Cell key={`cell-${idx}`} fill={color} />
                       ))}
                     </Pie>
-                    <Tooltip />
-                    <Legend
-                      iconType="circle"
-                      layout="horizontal"
-                      verticalAlign="bottom"
-                      align="center"
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: '12px',
+                        border: 'none',
+                        boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'
+                      }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <EmptyState
-                  title="No Orders"
-                  message="Stats will appear here"
-                />
+                <EmptyState title="No Orders" message="Stats will appear here" />
               )}
+            </div>
+
+            {/* Total and List Section */}
+            <div className="flex-1">
+              <div className="mb-4">
+                <h4 className="text-lg font-bold text-slate-800">Order Status</h4>
+                <p className="text-sm font-medium text-slate-500">
+                  Total Orders: <span className="text-slate-900 font-bold">{loading ? "—" : (ordersData?.kpis?.totalOrders ?? 0)}</span>
+                </p>
+              </div>
+
+              <div className="border-t border-slate-100 pt-4 space-y-3">
+                {loading ? (
+                  [1, 2, 3].map((i) => <div key={i} className="h-6 bg-slate-100 animate-pulse rounded" />)
+                ) : ordersData?.statusCounts?.length ? (
+                  ordersData.statusCounts.map((s: any, idx: number) => {
+                    const colors = ["#10b981", "#f59e0b", "#ef4444", "#3b82f6", "#8b5cf6", "#64748b"];
+                    const statusColor = colors[idx % colors.length];
+                    return (
+                      <div
+                        key={s._id}
+                        className="flex items-center justify-between group cursor-pointer hover:bg-slate-50 p-1 rounded-lg transition-colors"
+                        onClick={() => window.location.href = `/dashboard/orders?filter=${encodeURIComponent(s._id)}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-3 h-3 rounded-sm shadow-sm"
+                            style={{ backgroundColor: statusColor }}
+                          />
+                          <span className="text-sm font-medium text-slate-600 group-hover:text-slate-900 capitalize">
+                            {s._id || "Unknown"}
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-slate-900">
+                          {s.count}
+                        </span>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="text-xs text-slate-400 text-center py-4">No status data available</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Orders KPI Cards */}
-      <section className="mb-10">
-        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-          <span className="w-2 h-6 bg-indigo-500 rounded-full"></span>
-          Order Performance
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            {
-              label: "Total Orders",
-              value: ordersData?.kpis?.totalOrders,
-              icon: <ShoppingCart size={24} />,
-              color: "blue",
-            },
-            {
-              label: "Confirmed",
-              value:
-                ordersData?.kpis?.ordersConfirmed ||
-                ordersData?.kpis?.confirmed,
-              icon: <CheckCircle size={24} />,
-              color: "emerald",
-            },
-            {
-              label: "Pending",
-              value:
-                ordersData?.kpis?.ordersPending || ordersData?.kpis?.pending,
-              icon: <Clock size={24} />,
-              color: "amber",
-            },
-            {
-              label: "Cancelled",
-              value:
-                ordersData?.kpis?.ordersCancelled ||
-                ordersData?.kpis?.cancelled,
-              icon: <XCircle size={24} />,
-              color: "rose",
-            },
-          ].map((stat) => (
-            <button
-              key={stat.label}
-              onClick={() =>
-                (window.location.href = `/dashboard/orders?filter=${encodeURIComponent(stat.label)}`)
-              }
-              className="group relative bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all text-left"
-            >
-              <div
-                className={`mb-4 w-12 h-12 flex items-center justify-center rounded-xl bg-${stat.color}-50 text-${stat.color}-600 group-hover:scale-110 transition-transform`}
-              >
-                {stat.icon}
+
+
+
+
+
+
+
+      {/* Unified Revenue & Growth Card */}
+      <section className="mb-6">
+        <div className="bg-white/70 backdrop-blur-md rounded-3xl shadow-sm p-5 border border-slate-200/60 transition-all hover:shadow-md">
+          {/* Header Section */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+            <div>
+              <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">
+                Revenue & Growth
+              </h3>
+             
+            </div>
+
+            {/* Compact Revenue Summaries */}
+            <div className="flex flex-wrap items-center gap-2">
+              {[
+                { label: "Today", value: revenueData?.summary?.daily || 0, color: "emerald", periodVal: 'today' },
+                { label: "Month", value: revenueData?.summary?.monthly || 0, color: "blue", periodVal: 'month' },
+                { label: "Year", value: revenueData?.summary?.yearly || 0, color: "indigo", periodVal: 'all' },
+              ].map((card) => (
+                <div
+                  key={card.label}
+                  onClick={() => setPeriod(card.periodVal as any)}
+                  className="bg-white/50 border border-slate-100 px-3 py-1.5 rounded-xl flex items-center gap-2 shrink-0 cursor-pointer hover:bg-white hover:border-blue-200 transition-all group"
+                >
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{card.label}:</span>
+                  <span className={`text-sm font-black text-${card.color}-600 group-hover:scale-105 transition-transform`}>
+                    {loading ? "—" : `₹${card.value.toLocaleString()}`}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+            {/* Revenue Trend Chart - Occupies 3 columns */}
+            <div className="lg:col-span-3">
+              <div className="h-[350px] w-full">
+                {loading ? (
+                  <SkeletonLoader />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={revenueData?.trend || []}>
+                      <defs>
+                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.1} />
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis
+                        dataKey="label"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#94a3b8", fontSize: 10 }}
+                        dy={10}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#94a3b8", fontSize: 10 }}
+                        tickFormatter={(val) => `₹${val}`}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "16px",
+                          border: "none",
+                          boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke="#10b981"
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill="url(#colorRevenue)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
               </div>
-              <p className="text-sm font-medium text-slate-500 mb-1">
-                {stat.label}
-              </p>
-              <p className="text-3xl font-extrabold text-slate-900">
-                {loading ? "—" : (stat.value ?? 0)}
-              </p>
-              <div className="absolute top-4 right-4 text-slate-300 group-hover:text-blue-500 transition-colors">
-                <ArrowUpRight size={20} />
+            </div>
+
+            {/* Revenue KPIs Side-panel - Occupies 1 column */}
+            <div className="space-y-2.5">
+              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">Comparative Analysis</h4>
+
+              {/* Filtered Revenue - Dynamic Card */}
+              <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-4 rounded-xl shadow-lg text-white group hover:scale-[1.02] transition-transform">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-1.5 bg-white/20 rounded-lg text-white">
+                    <BarChart3 size={16} />
+                  </div>
+                  <span className="text-[10px] font-bold text-blue-100 uppercase tracking-wider">
+                    {period === 'all' ? 'All Time Revenue' : `Revenue (${period})`}
+                  </span>
+                </div>
+                <p className="text-xl font-black">
+                  {loading
+                    ? "—"
+                    : `₹${(revenueData?.kpis?.totalRevenue ?? 0).toLocaleString()}`}
+                </p>
+                <div className="mt-2 pt-2 border-t border-white/10 flex items-center justify-between">
+                  <span className="text-[9px] text-blue-100 uppercase font-bold">Growth</span>
+                  <div className={`flex items-center text-xs font-bold ${(revenueData?.previousPeriod?.growth ?? 0) >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+                    {(revenueData?.previousPeriod?.growth ?? 0) >= 0 ? <TrendingUp size={12} className="mr-1" /> : <TrendingDown size={12} className="mr-1" />}
+                    {Math.abs(revenueData?.previousPeriod?.growth ?? 0)}%
+                  </div>
+                </div>
               </div>
-            </button>
-          ))}
+
+              {/* Analysis Period */}
+              <div className="bg-white/50 p-3 rounded-xl border border-slate-100 shadow-sm transition-all hover:bg-white group">
+                <div className="flex items-center gap-3 mb-1.5">
+                  <div className="p-1 bg-blue-50 text-blue-600 rounded-lg group-hover:scale-110 transition-transform">
+                    <Calendar size={16} />
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Period Details
+                  </span>
+                </div>
+                <p className="text-xs font-bold text-slate-800 capitalize">
+                  {period === "custom" ? `${startDate} to ${endDate}` : period}
+                </p>
+              </div>
+
+              {/* Vs Previous Period Details */}
+              {/* <div className="bg-slate-50/50 p-3 rounded-xl border border-dashed border-slate-200 shadow-sm transition-all hover:bg-white group">
+                <div className="flex items-center gap-3 mb-1.5">
+                  <div className="p-1 bg-purple-50 text-purple-600 rounded-lg group-hover:scale-110 transition-transform">
+                    <HistoryIcon size={16} />
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Previous Period
+                  </span>
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <p className="text-sm font-bold text-slate-700">
+                    ₹{(revenueData?.previousPeriod?.totalRevenue ?? 0).toLocaleString()}
+                  </p>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase">Total</span>
+                </div>
+                <p className="text-[9px] text-slate-400 mt-1 italic">
+                  Comparison based on the last {period === 'all' ? 'year' : period}
+                </p>
+              </div> */}
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Inventory Health Full Width Chart */}
 
-      <section className="mb-10">
-        <div className="mt-6 bg-white/70 backdrop-blur-md rounded-3xl shadow-sm p-8 border border-slate-200/60 transition-all hover:shadow-md">
-          {/* Header Section with better typography */}
-          <div className="flex items-center justify-between mb-8">
+
+
+
+
+      {/* Since we merged Performance into the card above, we can remove the old KPI section or repurpose it */}
+
+      {/* Unified Inventory Health & Control Card */}
+      <section className="mb-6">
+        <div className="bg-white/70 backdrop-blur-md rounded-3xl shadow-sm p-5 border border-slate-200/60 transition-all hover:shadow-md">
+          {/* Header Section */}
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">
                 Inventory Health Status
               </h3>
-              <p className="text-sm text-slate-400 mt-1">
-                Real-time stock analytics
+              <p className="text-[12px] text-slate-400 mt-0.5">
+                Real-time stock analytics & medicine control
               </p>
             </div>
           </div>
 
-          {loading ? (
-            <SkeletonLoader />
-          ) : (
-            <div className="h-[350px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={[
-                    {
-                      name: "Inventory",
-                      "In Stock": Math.max(
-                        0,
-                        (inventoryData?.kpis?.totalMedicines || 0) -
-                          (inventoryData?.kpis?.outOfStockMedicines || 0),
-                      ),
-                      "Low Stock": inventoryData?.kpis?.lowStockMedicines || 0,
-                      "Out of Stock":
-                        inventoryData?.kpis?.outOfStockMedicines || 0,
-                      Expired: inventoryData?.kpis?.expiredMedicines || 0,
-                    },
-                  ]}
-                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                  barGap={12}
-                >
-                  <CartesianGrid
-                    strokeDasharray="4 4"
-                    vertical={false}
-                    stroke="#e2e8f0"
-                  />
-                  <XAxis dataKey="name" hide />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#94a3b8", fontSize: 12 }}
-                  />
-                  <Tooltip
-                    cursor={{ fill: "#f1f5f9", opacity: 0.4 }}
-                    contentStyle={{
-                      borderRadius: "12px",
-                      border: "none",
-                      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
-                      padding: "12px",
-                    }}
-                  />
-                  <Legend
-                    verticalAlign="top"
-                    align="right"
-                    iconType="circle"
-                    wrapperStyle={{
-                      paddingBottom: "20px",
-                      fontSize: "12px",
-                      fontWeight: "500",
-                    }}
-                  />
-
-                  {/* Smoother Bar styling using softer colors and higher radius */}
-                  <Bar
-                    dataKey="In Stock"
-                    fill="#10b981"
-                    radius={[6, 6, 0, 0]}
-                    barSize={50}
-                  />
-                  <Bar
-                    dataKey="Low Stock"
-                    fill="#f59e0b"
-                    radius={[6, 6, 0, 0]}
-                    barSize={50}
-                  />
-                  <Bar
-                    dataKey="Out of Stock"
-                    fill="#ef4444"
-                    radius={[6, 6, 0, 0]}
-                    barSize={50}
-                  />
-                  <Bar
-                    dataKey="Expired"
-                    fill="#64748b" // Switched to a sophisticated slate for Expired
-                    radius={[6, 6, 0, 0]}
-                    barSize={50}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+            {/* Real-time stock analytics graph */}
+            <div className="lg:col-span-3">
+              <div className="h-[350px] w-full">
+                {loading ? (
+                  <SkeletonLoader />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={[
+                        {
+                          name: "Inventory",
+                          "In Stock": Math.max(
+                            0,
+                            (inventoryData?.kpis?.totalMedicines || 0) -
+                            (inventoryData?.kpis?.outOfStockMedicines || 0),
+                          ),
+                          "Low Stock": inventoryData?.kpis?.lowStockMedicines || 0,
+                          "Out of Stock":
+                            inventoryData?.kpis?.outOfStockMedicines || 0,
+                          Expired: inventoryData?.kpis?.expiredMedicines || 0,
+                        },
+                      ]}
+                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                      barGap={12}
+                    >
+                      <CartesianGrid
+                        strokeDasharray="4 4"
+                        vertical={false}
+                        stroke="#e2e8f0"
+                      />
+                      <XAxis dataKey="name" hide />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#94a3b8", fontSize: 12 }}
+                      />
+                      <Tooltip
+                        cursor={{ fill: "#f1f5f9", opacity: 0.4 }}
+                        contentStyle={{
+                          borderRadius: "12px",
+                          border: "none",
+                          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                          padding: "12px",
+                        }}
+                      />
+                      <Legend
+                        verticalAlign="top"
+                        align="right"
+                        iconType="circle"
+                        wrapperStyle={{
+                          paddingBottom: "20px",
+                          fontSize: "12px",
+                          fontWeight: "500",
+                        }}
+                      />
+                      <Bar
+                        dataKey="In Stock"
+                        fill="#10b981"
+                        radius={[6, 6, 0, 0]}
+                        barSize={50}
+                      />
+                      <Bar
+                        dataKey="Low Stock"
+                        fill="#f59e0b"
+                        radius={[6, 6, 0, 0]}
+                        barSize={50}
+                      />
+                      <Bar
+                        dataKey="Out of Stock"
+                        fill="#ef4444"
+                        radius={[6, 6, 0, 0]}
+                        barSize={50}
+                      />
+                      <Bar
+                        dataKey="Expired"
+                        fill="#64748b"
+                        radius={[6, 6, 0, 0]}
+                        barSize={50}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
             </div>
-          )}
+
+            {/* Inventory Control Side-panel */}
+            <div className="space-y-2.5">
+              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">Inventory Control</h4>
+              {[
+                {
+                  label: "Total Medicines",
+                  value: inventoryData?.kpis?.totalMedicines,
+                  icon: <Package size={18} />,
+                  color: "purple",
+                },
+                {
+                  label: "Low Stock",
+                  value: inventoryData?.kpis?.lowStockMedicines,
+                  icon: <TrendingDown size={18} />,
+                  color: "amber",
+                },
+                {
+                  label: "Out of Stock",
+                  value: inventoryData?.kpis?.outOfStockMedicines,
+                  icon: <Box size={18} />,
+                  color: "rose",
+                },
+                {
+                  label: "Expired",
+                  value: inventoryData?.kpis?.expiredMedicines,
+                  icon: <AlertCircle size={18} />,
+                  color: "pink",
+                },
+              ].map((stat) => (
+                <button
+                  key={stat.label}
+                  onClick={() =>
+                    (window.location.href = `/dashboard/medicines?filter=${encodeURIComponent(stat.label)}`)
+                  }
+                  className="w-full bg-white/50 p-3 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 hover:bg-white hover:border-blue-200 transition-all text-left group"
+                >
+                  <div
+                    className={`w-9 h-9 flex items-center justify-center rounded-lg bg-${stat.color}-50 text-${stat.color}-600 shadow-sm group-hover:scale-105 transition-transform`}
+                  >
+                    {stat.icon}
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      {stat.label}
+                    </p>
+                    <p className="text-lg font-black text-slate-800">
+                      {loading ? "—" : (stat.value ?? 0)}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
-
-      {/* Inventory Section */}
-      <section className="mb-10">
-        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-          <span className="w-2 h-6 bg-purple-500 rounded-full"></span>
-          Inventory Control
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {[
-            {
-              label: "Total Medicines",
-              value: inventoryData?.kpis?.totalMedicines,
-              icon: <Package size={24} />,
-              color: "purple",
-            },
-            {
-              label: "Low Stock",
-              value: inventoryData?.kpis?.lowStockMedicines,
-              icon: <TrendingDown size={24} />,
-              color: "amber",
-            },
-            {
-              label: "Out of Stock",
-              value: inventoryData?.kpis?.outOfStockMedicines,
-              icon: <Box size={24} />,
-              color: "rose",
-            },
-            {
-              label: "Expired",
-              value: inventoryData?.kpis?.expiredMedicines,
-              icon: <AlertCircle size={24} />,
-              color: "pink",
-            },
-          ].map((stat) => (
-            <button
-              key={stat.label}
-              onClick={() =>
-                (window.location.href = `/dashboard/medicines?filter=${encodeURIComponent(stat.label)}`)
-              }
-              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 hover:bg-slate-50 transition-colors text-left"
-            >
-              <div
-                className={`w-12 h-12 flex items-center justify-center rounded-xl bg-${stat.color}-50 text-${stat.color}-600 shadow-sm`}
-              >
-                {stat.icon}
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  {stat.label}
-                </p>
-                <p className="text-2xl font-black text-slate-800">
-                  {loading ? "—" : (stat.value ?? 0)}
-                </p>
-              </div>
-            </button>
-          ))}
-        </div>
-
-        {/* Sample Lists */}
+      {/* Sample Lists */}
+      <section className="mb-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
@@ -617,14 +796,10 @@ export default function NewDashboardPage() {
                 </p>
               ) : inventoryData?.lowStockList?.length ? (
                 <div className="space-y-1">
-                  {inventoryData.lowStockList.slice(0, 6).map((m: any) => (
+                  {inventoryData.lowStockList.slice(0, 5).map((m: any) => (
                     <div
                       key={m._id}
-                      onClick={() =>
-                        (window.location.href = `/dashboard/medicines?filter=${encodeURIComponent(
-                          "Low Stock",
-                        )}&search=${encodeURIComponent(m.name)}`)
-                      }
+                      onClick={() => (window.location.href = `/dashboard/medicines/${m._id}`)}
                       className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
                     >
                       <span className="text-sm font-medium text-slate-700">
@@ -635,6 +810,14 @@ export default function NewDashboardPage() {
                       </span>
                     </div>
                   ))}
+                  {inventoryData.lowStockList.length > 5 && (
+                    <button
+                      onClick={() => (window.location.href = `/dashboard/medicines?filter=Low Stock`)}
+                      className="w-full mt-2 py-2 text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 rounded-lg transition-all border border-dashed border-blue-200"
+                    >
+                      View All Low Stock
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="p-10 text-center text-slate-400">
@@ -658,14 +841,10 @@ export default function NewDashboardPage() {
                 </p>
               ) : inventoryData?.expiringSoonList?.length ? (
                 <div className="space-y-1">
-                  {inventoryData.expiringSoonList.slice(0, 6).map((m: any) => (
+                  {inventoryData.expiringSoonList.slice(0, 5).map((m: any) => (
                     <div
                       key={m._id}
-                      onClick={() =>
-                        (window.location.href = `/dashboard/medicines?search=${encodeURIComponent(
-                          m.name,
-                        )}`)
-                      }
+                      onClick={() => (window.location.href = `/dashboard/medicines/${m._id}`)}
                       className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
                     >
                       <span className="text-sm font-medium text-slate-700">
@@ -674,14 +853,22 @@ export default function NewDashboardPage() {
                       <span className="text-xs font-mono text-slate-500">
                         {m.expiryDate
                           ? new Date(m.expiryDate).toLocaleDateString("en-GB", {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "2-digit",
-                            })
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "2-digit",
+                          })
                           : "-"}
                       </span>
                     </div>
                   ))}
+                  {inventoryData.expiringSoonList.length > 5 && (
+                    <button
+                      onClick={() => (window.location.href = `/dashboard/medicines?filter=Expiring Soon`)}
+                      className="w-full mt-2 py-2 text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 rounded-lg transition-all border border-dashed border-blue-200"
+                    >
+                      View All Expiring
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="p-10 text-center text-slate-400">
@@ -690,7 +877,7 @@ export default function NewDashboardPage() {
               )}
             </div>
           </div>
-          {/* Expired Items - added below Expiring Soon */}
+          {/* Expired Items */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
               <h3 className="font-bold text-slate-800">Expired Items</h3>
@@ -705,14 +892,10 @@ export default function NewDashboardPage() {
                 </p>
               ) : inventoryData?.expiredList?.length ? (
                 <div className="space-y-1">
-                  {inventoryData.expiredList.slice(0, 6).map((m: any) => (
+                  {inventoryData.expiredList.slice(0, 5).map((m: any) => (
                     <div
                       key={m._id}
-                      onClick={() =>
-                        (window.location.href = `/dashboard/medicines?search=${encodeURIComponent(
-                          m.name,
-                        )}`)
-                      }
+                      onClick={() => (window.location.href = `/dashboard/medicines/${m._id}`)}
                       className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
                     >
                       <span className="text-sm font-medium text-slate-700">
@@ -721,14 +904,22 @@ export default function NewDashboardPage() {
                       <span className="text-xs font-mono text-slate-500">
                         {m.expiryDate
                           ? new Date(m.expiryDate).toLocaleDateString("en-GB", {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "2-digit",
-                            })
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "2-digit",
+                          })
                           : "-"}
                       </span>
                     </div>
                   ))}
+                  {inventoryData.expiredList.length > 5 && (
+                    <button
+                      onClick={() => (window.location.href = `/dashboard/medicines?filter=Expired`)}
+                      className="w-full mt-2 py-2 text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50/50 rounded-lg transition-all border border-dashed border-rose-200"
+                    >
+                      View All Expired
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="p-10 text-center text-slate-400">
@@ -740,125 +931,7 @@ export default function NewDashboardPage() {
         </div>
       </section>
 
-      {/* Revenue Section */}
-      <section className="pb-10">
-        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-          <span className="w-2 h-6 bg-emerald-500 rounded-full"></span>
-          Revenue & Growth
-        </h2>
 
-        {/* Revenue Chart */}
-        <div className="mb-6 bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">
-            Revenue Growth Trend
-          </h3>
-          <div className="h-[300px] w-full">
-            {loading ? (
-              <SkeletonLoader />
-            ) : revenueData?.trend?.length ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={revenueData.trend}>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="#f1f5f9"
-                  />
-                  <XAxis
-                    dataKey="label"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#94a3b8", fontSize: 12 }}
-                    dy={10}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#94a3b8", fontSize: 12 }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: "12px",
-                      border: "none",
-                      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#10b981"
-                    strokeWidth={4}
-                    dot={{
-                      r: 4,
-                      fill: "#10b981",
-                      strokeWidth: 2,
-                      stroke: "#fff",
-                    }}
-                    activeDot={{ r: 6, strokeWidth: 0 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <EmptyState
-                title="No Revenue Data"
-                message="Try adjusting your filters"
-              />
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-gradient-to-br from-emerald-600 to-teal-700 p-6 rounded-2xl shadow-lg text-white">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-white/20 rounded-lg">
-                <DollarSign size={24} />
-              </div>
-              <span className="text-sm font-medium text-emerald-100">
-                Total Revenue
-              </span>
-            </div>
-            <p className="text-4xl font-black">
-              {loading
-                ? "—"
-                : revenueData?.kpis?.totalRevenue
-                  ? `₹${revenueData.kpis.totalRevenue.toLocaleString()}`
-                  : "₹0"}
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                <Calendar size={24} />
-              </div>
-              <span className="text-sm font-medium text-slate-500 uppercase tracking-wider">
-                Analysis Period
-              </span>
-            </div>
-            <p className="text-2xl font-bold text-slate-800 capitalize">
-              {period === "custom" ? `${startDate} to ${endDate}` : period}
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
-                <TrendingUp size={24} />
-              </div>
-              <span className="text-sm font-medium text-slate-500 uppercase tracking-wider">
-                Growth Rate
-              </span>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-black text-slate-800">
-                {loading ? "—" : (revenueData?.previousPeriod?.growth ?? 0)}%
-              </p>
-              <span className="text-xs font-bold text-slate-400">
-                vs. last period
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
