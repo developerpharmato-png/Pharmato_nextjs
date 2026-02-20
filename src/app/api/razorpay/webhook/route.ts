@@ -246,7 +246,7 @@ ${header}
       </tr>
       <tr>
         <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
-        <td style="padding:8px;border:1px solid #eee;">${checkOrder.order_status}</td>
+        <td style="padding:8px;border:1px solid #eee;">Order Placed</td>
       </tr>
       <tr>
         <td style="padding:8px;border:1px solid #eee;font-weight:600;">Expected Delivery</td>
@@ -300,14 +300,6 @@ ${header}
         </td>
       </tr>
     </table>
-
-    <!-- Invoice Button -->
-    <div style="text-align:center;margin-top:25px;">
-      <a href="${checkOrder.invoice_url}"
-         style="background:#2ecc71;color:#fff;padding:12px 20px;text-decoration:none;border-radius:5px;">
-         Download Invoice
-      </a>
-    </div>
 
     <p style="margin-top:25px;">
       You can track your order anytime from the <strong>My Orders</strong>
