@@ -259,7 +259,7 @@ export default function AddStorePage() {
 
         <form
           onSubmit={formik.handleSubmit}
-          className="flex flex-col gap-8 px-4 "
+          className="flex flex-col gap-8 px-4 mb-4 "
         >
 
 
