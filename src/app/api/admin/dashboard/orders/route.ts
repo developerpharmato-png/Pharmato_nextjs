@@ -6,14 +6,30 @@ type Period = 'today' | 'week' | 'month' | 'year' | 'all';
 
 function parseDateRange(body: any, defaultPeriod: Period = 'month') {
     const { startDate, endDate, period } = body || {};
-    if (startDate && endDate) {
-        return { start: new Date(startDate), end: new Date(endDate), period: 'custom' };
+
+    function parseDateFlexible(ds: any) {
+        if (!ds || typeof ds !== 'string') return null;
+        const ddmmyyyy = /^\s*(\d{2})[:\-\/](\d{2})[:\-\/](\d{4})\s*$/;
+        const ymd = /^\s*(\d{4})-(\d{2})-(\d{2})\s*$/;
+        let m = ds.match(ddmmyyyy);
+        if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+        m = ds.match(ymd);
+        if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+        const parsed = new Date(ds);
+        return isNaN(parsed.getTime()) ? null : parsed;
     }
+
+    if (startDate || endDate) {
+        const start = parseDateFlexible(startDate) || new Date(0);
+        const end = parseDateFlexible(endDate) || new Date();
+        if (endDate && typeof endDate === 'string' && endDate.trim().length <= 10) {
+            end.setHours(23, 59, 59, 999);
+        }
+        return { start, end, period: 'custom' };
+    }
+
     const now = new Date();
-    if (period === 'all') {
-        // Return all time - very old start date to far future
-        return { start: new Date('2000-01-01'), end: new Date('2099-12-31'), period };
-    }
+    if (period === 'all') return { start: new Date('2000-01-01'), end: new Date('2099-12-31'), period };
     if (period === 'today') {
         const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const end = new Date(start.getTime() + 24 * 60 * 60 * 1000 - 1);
@@ -54,6 +70,7 @@ export async function POST(req: NextRequest) {
     try {
         await dbConnect();
         const body = await req.json().catch(() => ({}));
+        const now = new Date();
         const { start, end, period } = parseDateRange(body, body?.period || 'month');
 
         const match: any = { createdAt: { $gte: start, $lte: end } };
@@ -73,13 +90,42 @@ export async function POST(req: NextRequest) {
 
         console.log('Orders trend aggregation:', { dateRange: { start, end }, trendLength: trend.length, trend, totalOrders });
 
-        // Also compute all-time status counts (no date filter) so dashboard can show/compare overall totals
-        const [totalOrdersAll, statusCountsAll] = await Promise.all([
+        const [totalOrdersAll, statusCountsAll, summaryAgg] = await Promise.all([
             Order.countDocuments({}),
             Order.aggregate([
                 { $group: { _id: '$order_status', count: { $sum: 1 } } }
+            ]),
+            Order.aggregate([
+                {
+                    $facet: {
+                        daily: [
+                            { $match: { createdAt: { $gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()) } } },
+                            { $count: 'total' }
+                        ],
+                        weekly: [
+                            {
+                                $match: {
+                                    createdAt: {
+                                        $gte: new Date(now.getTime() - (now.getDay() * 24 * 60 * 60 * 1000))
+                                    }
+                                }
+                            },
+                            { $count: 'total' }
+                        ],
+                        monthly: [
+                            { $match: { createdAt: { $gte: new Date(now.getFullYear(), now.getMonth(), 1) } } },
+                            { $count: 'total' }
+                        ]
+                    }
+                }
             ])
         ]);
+
+        const summary = {
+            daily: summaryAgg[0]?.daily[0]?.total || 0,
+            weekly: summaryAgg[0]?.weekly[0]?.total || 0,
+            monthly: summaryAgg[0]?.monthly[0]?.total || 0
+        };
 
         const formatTrend = trend.map((d: any) => ({ label: d._id, value: d.count }));
 
@@ -129,6 +175,7 @@ export async function POST(req: NextRequest) {
                     pending,
                     cancelled
                 },
+                summary,
                 statusCounts: [
                     { _id: 'Delivered', count: statusCounts.reduce((acc: any, s: any) => /deliv|complete|out for/i.test(s._id) ? acc + s.count : acc, 0) },
                     { _id: 'Pending', count: statusCounts.reduce((acc: any, s: any) => /pending|upload/i.test(s._id) ? acc + s.count : acc, 0) },
