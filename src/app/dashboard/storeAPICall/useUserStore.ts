@@ -62,4 +62,5 @@ export const CouponCreateStore = createApiStore<any>();
 export const CouponUpdateStore = createApiStore<any>();
 export const CouponDeleteStore = createApiStore<any>();
 export const CouponStatusStore = createApiStore<any>();
-export const CouponSGEtBYIDsStore = createApiStore<any>();  
+export const CouponSGEtBYIDsStore = createApiStore<any>();
+export const PincodeDetailStore = createApiStore<any>();

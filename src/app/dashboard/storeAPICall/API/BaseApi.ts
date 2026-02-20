@@ -39,6 +39,7 @@ export const updaterelatedPath = `/api/medicines/update-related`;
 
 export const PincodeListPath = `/api/admin/pincode/list`;
 export const PincodeActiveListPath = `/api/admin/pincode/active-list`;
+export const PincodeDetailAPIPath = `https://api.postalpincode.in/pincode/`;
 
 // Customer Notifications
 export const CustomerDropdownPath = `/api/admin/customers/dropdown`;

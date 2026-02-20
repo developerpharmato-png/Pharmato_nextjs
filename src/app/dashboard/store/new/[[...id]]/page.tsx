@@ -387,12 +387,7 @@ export default function AddStorePage() {
             errors={formik.errors.address as Record<string, string> | undefined}
             touched={formik.touched.address}
             onBlur={(field) => formik.setFieldTouched(`address.${field}`, true)}
-            onChange={(field, value) =>
-              formik.setFieldValue("address", {
-                ...formik.values.address,
-                [field]: value,
-              })
-            }
+            onChange={(field, value) => formik.setFieldValue(`address.${field}`, value)}
           />
 
           {/* OpenStreetMap for GPS Location Selection */}
