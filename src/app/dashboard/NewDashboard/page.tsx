@@ -182,7 +182,7 @@ export default function NewDashboardPage() {
           showBack={false}
           showSearch={false}
         />
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex -wrap items-center gap-2">
           <button
             onClick={() => exportOrders()}
             disabled={exportOrdersLoading}

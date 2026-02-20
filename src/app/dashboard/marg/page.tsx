@@ -79,14 +79,14 @@ const MargPage = () => {
       <HeaderWithAction
         title="Marg"
         subtitle="Sync data from Marg ERP"
-        addLabel={syncLoading ? "Syncing..." : "Sync from Marg"}
+        addLabel={syncLoading ? "Syncing..." : "Sync Medicines"}
         handleAdd={handleImport}
         addShow={true}
         showBack={false}
         lastSyncDateTime={lastSyncDateTime}
         rightNode={
           <CustomButton onClick={handleCheckUpdate} disabled={checkLoading} width="auto" className="ml-2">
-            {checkLoading ? "Checking..." : "Check Update"}
+            {checkLoading ? "Checking..." : "Sync Order"}
           </CustomButton>
         }
       />

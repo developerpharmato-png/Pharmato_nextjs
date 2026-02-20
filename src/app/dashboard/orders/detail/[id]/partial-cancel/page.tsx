@@ -342,15 +342,17 @@ export default function PartialCancelPage() {
           marginBottom: 8,
         }}
       >
-        <HeaderWithAction
-          title="Order Details
+        <div className="">
+          <HeaderWithAction
+            title="Order Details
 "
-          subtitle={`Order ID: ${order?.order_id}`}
-          showBack={true}
-          onBack={() => router.back()}
-          showSearch={false}
-          addShow={false}
-        />
+            subtitle={`Order ID: ${order?.order_id}`}
+            showBack={true}
+            onBack={() => router.back()}
+            showSearch={false}
+            addShow={false}
+          />
+       </div>
         {order?.order_status === "Confirmed" && (
           <CustomButton
             width="250px"
