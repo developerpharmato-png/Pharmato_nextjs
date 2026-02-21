@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import TextField from "@mui/material/TextField";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
+import CircularProgress from "@mui/material/CircularProgress";
+import InputAdornment from "@mui/material/InputAdornment";
 import { ErrorMessageCom } from "../components/miniComponents";
+import { PincodeDetailAPIPath } from "../storeAPICall/API/BaseApi";
 
 export default function AddressFields({
   address,
@@ -19,6 +22,8 @@ export default function AddressFields({
   onBlur?: (field: string) => void;
   touched?: any;
 }) {
+  const [pincodeLoading, setPincodeLoading] = useState(false);
+
   const getError = (field: string) => {
     if (!errors) return null;
     if (touched?.[field]) {
@@ -30,6 +35,52 @@ export default function AddressFields({
   const handleBlur = (field: string) => {
     if (onBlur) onBlur(field);
   };
+
+  const handlePincodeChange = async (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 6);
+    onChange("pincode", digits);
+
+    if (digits.length === 6) {
+      setPincodeLoading(true);
+      try {
+        const res = await fetch(`${PincodeDetailAPIPath}${digits}`);
+        const data = await res.json();
+        if (
+          Array.isArray(data) &&
+          data[0]?.Status === "Success" &&
+          Array.isArray(data[0]?.PostOffice) &&
+          data[0].PostOffice.length > 0
+        ) {
+          const po = data[0].PostOffice[0];
+          const city = po.District || po.Block || po.Name || "";
+          const state = po.State || "";
+          const country = po.Country || "India";
+
+          if (city) onChange("city", city);
+          if (state) onChange("state", state);
+          if (country) onChange("country", country);
+        }
+      } catch (error) {
+        console.error("Failed to fetch pincode details:", error);
+      } finally {
+        setPincodeLoading(false);
+      }
+    }
+  };
+
+  // Logic to determine if fields should be disabled
+  const isAutoFilled = address.pincode?.length === 6 && !pincodeLoading && address.city && address.state;
+
+  const INDIAN_STATES = [
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+    "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
+    "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya",
+    "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim",
+    "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand",
+    "West Bengal", "Andaman and Nicobar Islands", "Chandigarh",
+    "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir",
+    "Ladakh", "Lakshadweep", "Puducherry",
+  ];
 
   return (
     <div className=" grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -51,6 +102,34 @@ export default function AddressFields({
           <ErrorMessageCom error={getError("street")} />
         )}
       </div>
+
+      <div>
+        <TextField
+          name="pincode"
+          label="Pincode *"
+          value={address.pincode}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            handlePincodeChange(e.target.value)
+          }
+          onBlur={() => handleBlur("pincode")}
+          fullWidth
+          variant="outlined"
+          placeholder="Enter 6-digit pincode"
+          error={Boolean(getError("pincode"))}
+          inputProps={{ maxLength: 6, inputMode: "numeric" }}
+          InputProps={{
+            endAdornment: pincodeLoading ? (
+              <InputAdornment position="end">
+                <CircularProgress size={20} />
+              </InputAdornment>
+            ) : null,
+          }}
+        />
+        {getError("pincode") && (
+          <ErrorMessageCom error={getError("pincode")} />
+        )}
+      </div>
+
       <div>
         <TextField
           name="city"
@@ -63,17 +142,34 @@ export default function AddressFields({
           fullWidth
           variant="outlined"
           placeholder="City"
+          disabled={Boolean(isAutoFilled)}
           error={Boolean(getError("city"))}
+          sx={{
+            "& .MuiInputBase-input.Mui-disabled": {
+              WebkitTextFillColor: "#000", // Keep text readable when disabled
+              backgroundColor: "#f5f5f5"
+            }
+          }}
         />
         {getError("city") && (
           <ErrorMessageCom error={getError("city")} />
         )}
       </div>
+
       <div>
-        <FormControl 
-          fullWidth 
+        <FormControl
+          fullWidth
           variant="outlined"
+          disabled={Boolean(isAutoFilled)}
           error={Boolean(getError("state"))}
+          sx={{
+            "& .MuiInputBase-root.Mui-disabled": {
+              backgroundColor: "#f5f5f5"
+            },
+            "& .MuiInputBase-input.Mui-disabled": {
+              WebkitTextFillColor: "#000",
+            }
+          }}
         >
           <InputLabel id="state-label">State *</InputLabel>
           <Select
@@ -84,44 +180,7 @@ export default function AddressFields({
             onChange={(e) => onChange("state", e.target.value)}
             onBlur={() => handleBlur("state")}
           >
-            {[
-              "Andhra Pradesh",
-              "Arunachal Pradesh",
-              "Assam",
-              "Bihar",
-              "Chhattisgarh",
-              "Goa",
-              "Gujarat",
-              "Haryana",
-              "Himachal Pradesh",
-              "Jharkhand",
-              "Karnataka",
-              "Kerala",
-              "Madhya Pradesh",
-              "Maharashtra",
-              "Manipur",
-              "Meghalaya",
-              "Mizoram",
-              "Nagaland",
-              "Odisha",
-              "Punjab",
-              "Rajasthan",
-              "Sikkim",
-              "Tamil Nadu",
-              "Telangana",
-              "Tripura",
-              "Uttar Pradesh",
-              "Uttarakhand",
-              "West Bengal",
-              "Andaman and Nicobar Islands",
-              "Chandigarh",
-              "Dadra and Nagar Haveli and Daman and Diu",
-              "Delhi",
-              "Jammu and Kashmir",
-              "Ladakh",
-              "Lakshadweep",
-              "Puducherry",
-            ].map((s) => (
+            {INDIAN_STATES.map((s) => (
               <MenuItem key={s} value={s}>
                 {s}
               </MenuItem>
@@ -130,6 +189,7 @@ export default function AddressFields({
         </FormControl>
         {getError("state") && <ErrorMessageCom error={getError("state")} />}
       </div>
+
       <div>
         <TextField
           name="country"
@@ -148,28 +208,11 @@ export default function AddressFields({
           <ErrorMessageCom error={getError("country")} />
         )}
       </div>
-      <div>
-        <TextField
-          name="pincode"
-          label="Pincode *"
-          value={address.pincode}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            onChange("pincode", e.target.value)
-          }
-          onBlur={() => handleBlur("pincode")}
-          fullWidth
-          variant="outlined"
-          placeholder="Pincode"
-          error={Boolean(getError("pincode"))}
-        />
-        {getError("pincode") && (
-          <ErrorMessageCom error={getError("pincode")} />
-        )}
-      </div>
+
       <div>
         <TextField
           name="gps"
-          label="GPS (lat,long) *"
+          label="GPS (lat,long) "
           value={address.gps}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             onChange("gps", e.target.value)

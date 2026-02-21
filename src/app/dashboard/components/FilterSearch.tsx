@@ -64,6 +64,7 @@ interface FilterSearchProps {
   setDayFilter?: (val: string) => void;
   setExportStartDate?: (date: Date | null) => void;
   setExportEndDate?: (date: Date | null) => void;
+  initialDayFilter?: string;
 }
 
 export default function FilterSearch({
@@ -94,8 +95,9 @@ export default function FilterSearch({
   setExportStartDate,
   setDayFilter,
   initialOrderStatus = "all",
+  initialDayFilter = "all",
 }: FilterSearchProps) {
-  const [dayFilterValue, setDayFilterValue] = useState<string>("all");
+  const [dayFilterValue, setDayFilterValue] = useState<string>(initialDayFilter);
   const [search, setSearch] = useState<string>(initial.search || "");
   const [filterOTC, setFilterOTC] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -123,10 +125,17 @@ export default function FilterSearch({
 
   // Sync orderStatus with initialOrderStatus prop when it changes
   useEffect(() => {
-    if (initialOrderStatus && initialOrderStatus !== "all") {
+    if (initialOrderStatus) {
       setOrderFilterValue(initialOrderStatus);
     }
   }, [initialOrderStatus]);
+
+  // Sync dayFilterValue with initialDayFilter prop when it changes
+  useEffect(() => {
+    if (initialDayFilter) {
+      setDayFilterValue(initialDayFilter);
+    }
+  }, [initialDayFilter]);
 
   // --- LOGIC REMAINS UNCHANGED ---
   useEffect(() => {
