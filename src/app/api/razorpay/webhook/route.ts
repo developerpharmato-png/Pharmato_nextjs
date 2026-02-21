@@ -154,11 +154,13 @@ async function runBackground(body: any) {
                         deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
                     }
 
+                    console.log('##########checkOrder.medicineQuantity#############', checkOrder.medicineQuantity);
+                    console.log('##########checkOrder.medicineId#############', checkOrder.medicineId);
+
                     const acceptedNames = checkOrder.medicineQuantity.map((m: any) => {
                         const item = checkOrder.medicineId.find((i: any) => i._id.toString() === m.medicineId.toString());
                         return {
-                            // ...m._doc,
-                            ...m.toObject(),
+                            ...m._doc,
                             images: item ? item.images : [],
                             coverImage: item ? item.coverImage : "",
                         };
