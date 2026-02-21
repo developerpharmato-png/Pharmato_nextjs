@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
         // Send email to customer if email available using template
         let mailRes: any = null;
         try {
-            if (userEmail && userEmail.trim() !== '') {
+            if (userEmail) {
                 // console.log('Preparing approval email for:', userEmail);
                 const base = process.env.NEXT_PUBLIC_BASE_URL || '';
                 const subject = `Prescription Approved - Order ${order.order_id}`;
@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
         // Create in-app notification for customer
         let notifRes: any = null;
         try {
-            const userIdStr = order.userId && (order.userId._id ? order.userId._id.toString() : order.userId.toString());
+            const userIdStr = order.userId?.toString?.();
             if (userIdStr) {
                 notifRes = await Notification.create({
                     userId: userIdStr,
