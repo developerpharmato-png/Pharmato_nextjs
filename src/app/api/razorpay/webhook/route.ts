@@ -11,6 +11,7 @@ import Razorpay from 'razorpay';
 import { getDb } from '@/utils/firebase.helper';
 import fs from 'fs';
 import path from 'path';
+import Medicine from '@/models/Medicine';
 
 const razorpayInstance = new Razorpay({
     key_id: process.env.razorPay_Key_Id || '',
@@ -157,8 +158,12 @@ async function runBackground(body: any) {
                     console.log('##########checkOrder.medicineQuantity#############', checkOrder.medicineQuantity);
                     console.log('##########checkOrder.medicineId#############', checkOrder.medicineId);
 
+                    const [checkMedicineId] = await Promise.all([
+                        Medicine.find({ _id: { $in: checkOrder.medicineQuantity.map((i: any) => i.medicineId) } }).select('_id coverImage images'),
+                    ]);
+
                     const acceptedNames = checkOrder.medicineQuantity.map((m: any) => {
-                        const item = checkOrder.medicineId.find((i: any) => i._id.toString() === m.medicineId.toString());
+                        const item = checkMedicineId.find((i: any) => i._id.toString() === m.medicineId.toString());
                         return {
                             ...m._doc,
                             images: item ? item.images : [],
