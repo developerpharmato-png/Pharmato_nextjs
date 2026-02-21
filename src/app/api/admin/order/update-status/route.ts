@@ -44,11 +44,14 @@ export async function POST(req: NextRequest) {
 
         // Send notification to user
         const user = await User.findById(order.userId);
+        const messageInApp = status == 'Delivered' ? `Delievery Successful : Your medicines have been delivered successfully at your doorstep.` : `Your order (Order ID: ${order.order_id || order._id}) status is now: ${status}`;
+        const messagePush = status == 'Delivered' ? `Your Order has been delivered successfully.` : `Your order (Order ID: ${order.order_id || order._id}) status is now: ${status}`;
+
         if (user && user.deviceToken) {
             await sendPushNotificationWithData({
                 token: user.deviceToken,
                 title: 'Order Status Updated',
-                body: `Your order (Order ID: ${order.order_id || order._id}) status is now: ${status}`,
+                body: messagePush,
                 data: {
                     orderId: order._id.toString(),
                     targetId: order._id.toString(),
@@ -65,7 +68,7 @@ export async function POST(req: NextRequest) {
                 userId: user._id,
                 role: 'customer',
                 title: 'Order Status Updated',
-                message: `Your order (Order ID: ${order.order_id || order._id}) status is now: ${status}`,
+                message: messageInApp,
                 type: 'order',
                 targetScreen: 'orders/detail',
                 targetId: order._id.toString(),

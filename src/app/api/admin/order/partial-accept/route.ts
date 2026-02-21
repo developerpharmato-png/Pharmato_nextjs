@@ -249,14 +249,15 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
 
     // Create in-app notification for customer and send push notification if device token exists
     try {
-        const title = `Order Update`;
-        const message = `Your order ${order.order_id || ''} status is now ${order.order_status}`;
+        const title = `Order Updated`;
+        const messageInApp = order.order_status == 'Confirmed' ? `Order Confirmed: Your Order has been confirmed . It will be delievered to you soon.` : `Order Cancelled: Your Order has Been Cancelled.`;
+        const messagePush = order.order_status == 'Confirmed' ? `Your Order has been confirmed.` : `Your Order has Been Cancelled.`;
         // Create in-app notification
         await Notification.create({
             userId: order.userId?.toString?.() || (user?._id?.toString?.() || ''),
             role: 'customer',
             title,
-            message,
+            message: messageInApp,
             type: 'order_status',
             targetScreen: 'orders/detail',
             targetId: order._id?.toString?.(),
@@ -270,8 +271,8 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
             try {
                 await sendPushNotificationWithData({
                     token: deviceToken,
-                    title: `Order ${order.order_id} updated`,
-                    body: message,
+                    title: title,
+                    body: messagePush,
                     data: {
                         targetId: order._id?.toString?.(),
                         orderId: order._id?.toString?.(),

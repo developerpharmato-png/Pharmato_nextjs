@@ -642,6 +642,48 @@ ${footer}
                     });
                 }
 
+                const updatedOrder = await Order.findOne({ order_id: orderId });
+                const user = await User.findOne({ _id: checkOrder.userId })
+                const amountValue = (body?.payload?.refund?.entity?.amount_refunded || 0) / 100;
+
+                let notificationUserId = '';
+                if (updatedOrder && typeof updatedOrder === 'object' && !Array.isArray(updatedOrder) && 'userId' in updatedOrder) {
+                    notificationUserId = (updatedOrder as any).userId?.toString() || '';
+                }
+
+                await Notification.create({
+                    userId: notificationUserId,
+                    role: 'customer',
+                    title: 'Refund Processed',
+                    message: `Refund Successful : Refund of ₹${amountValue} has been credited to your original Payment Method.`,
+                    type: 'refund_processed',
+                    targetScreen: 'orders/detail',
+                    targetId: checkOrder._id.toString(),
+                    meta: {
+                        amount: `${amountValue}`,
+                    }
+                });
+
+                // Send push notification to customer if deviceToken exists
+                if (user && (user as any).deviceToken) {
+                    try {
+                        await sendPushNotificationWithData({
+                            token: (user as any).deviceToken,
+                            title: 'Pharmato',
+                            body: `Refund credited Successfully.`,
+                            data: {
+                                targetId: checkOrder._id.toString(),
+                                orderId: checkOrder._id.toString(),
+                                type: 'refund_processed',
+                                targetScreen: 'orders/detail',
+                                amount: `${amountValue}`
+                            }
+                        });
+                    } catch (err) {
+                        console.error('Failed to send push notification:', err);
+                    }
+                }
+
             }
 
             if (body.event == 'refund.failed') {

@@ -85,8 +85,8 @@ async function runBackground(body: any) {
                 await Notification.create({
                     userId: userObjectId.toString(),
                     role: 'customer',
-                    title: 'Wallet Recharge Successful ✅',
-                    message: `✅ Your wallet has been successfully recharged with ₹${checkWallet.amount}. You can now use this balance for your purchases. Happy shopping!`,
+                    title: 'Wallet Recharge',
+                    message: `Wallet Updated : Wallet  Recharge Successful, ₹${checkWallet.amount} ready for your next medicine order.`,
                     type: 'payment',
                     targetScreen: 'wallet',
                     targetId: userObjectId.toString(),
@@ -99,7 +99,7 @@ async function runBackground(body: any) {
                         await sendPushNotificationWithData({
                             token: (user as any).deviceToken,
                             title: 'Pharmato',
-                            body: `✅ Your wallet has been successfully recharged with ₹${checkWallet.amount}. You can now use this balance for your purchases. Happy shopping!`,
+                            body: `Wallet  Recharge Successful.`,
                             data: {
                                 targetId: userObjectId.toString(),
                                 targetScreen: 'wallet'
