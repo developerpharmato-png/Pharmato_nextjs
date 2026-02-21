@@ -156,11 +156,12 @@ async function runBackground(body: any) {
                     }
 
                     console.log('##########checkOrder.medicineQuantity#############', checkOrder.medicineQuantity);
-                    console.log('##########checkOrder.medicineId#############', checkOrder.medicineId);
 
                     const [checkMedicineId] = await Promise.all([
-                        Medicine.find({ _id: { $in: checkOrder.medicineQuantity.map((i: any) => i.medicineId) } }).select('_id coverImage images'),
+                        Medicine.find({ _id: { $in: checkOrder.medicineId.map((i: any) => i) } }).select('_id coverImage images'),
                     ]);
+
+                    console.log('##########checkMedicineId#############', checkMedicineId);
 
                     const acceptedNames = checkOrder.medicineQuantity.map((m: any) => {
                         const item = checkMedicineId.find((i: any) => i._id.toString() === m.medicineId.toString());
