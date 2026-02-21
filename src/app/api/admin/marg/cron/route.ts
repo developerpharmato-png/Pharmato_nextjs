@@ -147,7 +147,7 @@ function extractPackSizeFromRemarks(remarks: string): number {
 
 
 // 👇👇 YAHI BANAO (API ke upar ya niche, dono chalega)
-async function importMedicinesFromMarg() {
+async function importMedicinesFromMarg(){
   try {
 
     // const latestMarg = await Marg.findOne({ status: "Completed" })

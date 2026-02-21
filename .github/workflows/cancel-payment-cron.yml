@@ -14,4 +14,4 @@ jobs:
       - name: Call Cancel Payment Cron API
         run: |
           echo "Calling Cancel Payment cron API..."
-          curl -X POST https://dev.api.pharmato.bareclearact.com/api/customer/order/cancel-payment-cron
+          curl -X POST https://dev.api.pharmatoindia.com/api/customer/order/cancel-payment-cron

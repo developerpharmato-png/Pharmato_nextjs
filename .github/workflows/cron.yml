@@ -16,4 +16,4 @@ jobs:
       - name: Call Next.js cron API
         run: |
           echo "Calling Next.js cron API..."
-          curl -X POST https://dev.api.pharmato.bareclearact.com/api/admin/marg/cron
+          curl -X POST https://dev.api.pharmatoindia.com/api/admin/marg/cron

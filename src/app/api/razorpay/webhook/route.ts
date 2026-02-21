@@ -32,7 +32,7 @@ async function runBackground(body: any) {
         const refundId = body?.payload?.refund?.entity?.id || '';
 
         // Find the order in DB
-        const checkOrder = await Order.findOne({ order_id: orderId });
+        const checkOrder: any = await Order.findOne({ order_id: orderId });
 
         if (checkOrder) {
 
@@ -154,35 +154,156 @@ async function runBackground(body: any) {
                         deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
                     }
 
-                    const html = `${header}
-                        <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.4;">
-                            <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
-                                <p>Hello ${userName},</p>
-                                <p>Thank you for your order!<br>
-                                Your order <b>#${checkOrder.order_id}</b> has been placed successfully and is being processed.✅</p>
-                                <p>Our partner pharmacy is reviewing your order. Once your order is confirmed, your medicines will be packed and delivered to you soon.</p>
-                                <h4 style="margin:12px 0 6px;">Order Summary:</h4>
-                                <table style="width:100%;border-collapse:collapse;margin:16px 0;">
-                                    <tr>
-                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
-                                        <td style="padding:8px;border:1px solid #eee;">${checkOrder.order_id}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
-                                        <td style="padding:8px;border:1px solid #eee;">Order Placed</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Delivery Address</td>
-                                        <td style="padding:8px;border:1px solid #eee;">${deliveryAddressText || 'Address will be updated soon.'}</td>
-                                    </tr>
-                                </table>
-                                <p>You can track your order status anytime from the My Orders section in the Pharmato app or website.</p>
-                                <p>Thank you for choosing Pharmato for your healthcare needs. We’re committed to delivering your medicines safely and on time.</p>
-                                <p>Stay healthy,<br/>Team Pharmato<br/>Your trusted pharmacy partner</p>
-                            </div>
-                        </div>
-                    ${footer}
-                    `;
+                    const acceptedNames = checkOrder.medicineQuantity.map((m: any) => {
+                        const item = checkOrder.medicineId.find((i: any) => i._id.toString() === m.medicineId.toString());
+                        return {
+                            // ...m._doc,
+                            ...m.toObject(),
+                            images: item ? item.images : [],
+                            coverImage: item ? item.coverImage : "",
+                        };
+                    });
+
+                    let itemsHtml = '';
+
+                    if (acceptedNames.length > 0) {
+                        const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
+
+                        itemsHtml += `
+        <p><b>Accepted Medicines:</b></p>
+        <ul style="list-style:none;padding:0;">
+    `;
+
+                        acceptedNames.forEach((m: any) => {
+                            const imgSrc =
+                                m.coverImage && m.coverImage.trim() !== ''
+                                    ? m.coverImage
+                                    : defaultImg;
+
+                            itemsHtml += `
+            <li style="margin-bottom:10px;display:flex;align-items:center;">
+                <img src="${imgSrc}" 
+                     alt="${m.name}" 
+                     style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:10px;border:1px solid #eee;" />
+                <div>
+                    <div style="font-weight:500;">${m.name}</div>
+                    <div style="font-size:14px;color:#555;">
+                        Quantity: ${m.quantity}, 
+                        Price: ₹${Number(m.price).toFixed(2)}
+                    </div>
+                </div>
+            </li>
+        `;
+                        });
+
+                        itemsHtml += `</ul>`;
+                    }
+
+                    const html = `
+${header}
+
+<div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
+  <div style="max-width:700px;margin:0 auto;background:#ffffff;padding:25px;border:1px solid #e6e6e6;border-radius:8px;">
+
+    <p>Hello ${checkOrder.deliveredAddress?.name || 'Customer'},</p>
+
+    <p>
+      Thank you for your order!<br/>
+      Your order has been placed successfully and is being processed. ✅
+    </p>
+
+    <p>
+      Our pharmacy team is reviewing your order. Once confirmed, your medicines
+      will be packed and delivered soon.
+    </p>
+
+    <!-- Order Summary -->
+    <h3 style="margin-top:25px;">Order Summary</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+        <td style="padding:8px;border:1px solid #eee;">#${checkOrder.order_id}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+        <td style="padding:8px;border:1px solid #eee;">Order Placed</td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Expected Delivery</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${new Date(checkOrder.expectedDeliveryDate).toDateString()}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Delivery Address</td>
+        <td style="padding:8px;border:1px solid #eee;">${deliveryAddressText}</td>
+      </tr>
+    </table>
+
+    <!-- Items -->
+    <h3 style="margin-top:25px;">Items in Your Order</h3>
+    ${itemsHtml}
+
+    <!-- Payment Details -->
+    <h3 style="margin-top:25px;">Payment Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Subtotal</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${checkOrder.calculationData.priceTotalSumBeforeDiscount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Delivery Charges</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${checkOrder.calculationData.deliveryFee}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Discount</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${checkOrder.discount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+          Total Amount Paid
+        </td>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+          ₹${checkOrder.total_order_amount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Payment Method</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${checkOrder.payment_mode.toUpperCase()}
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin-top:25px;">
+      You can track your order anytime from the <strong>My Orders</strong>
+      section in the Pharmato app or website.
+    </p>
+
+    <p>
+      Thank you for choosing Pharmato. We’re committed to delivering your
+      medicines safely and on time.
+    </p>
+
+    <p>
+      Stay Healthy,<br/>
+      <strong>Team Pharmato</strong><br/>
+      Your trusted pharmacy partner
+    </p>
+
+  </div>
+</div>
+
+${footer}
+`;
+
+
 
                     if (userEmail) {
                         await sendEmail({ to: userEmail, subject, html });

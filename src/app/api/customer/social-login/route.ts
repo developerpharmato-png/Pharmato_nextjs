@@ -61,18 +61,18 @@ export async function POST(request: NextRequest) {
     const { provider, socialId, name, email, deviceToken } = await request.json();
     if (!provider || !socialId) {
         return NextResponse.json({ success: false, error: 'Provider and socialId required' }, { status: 400 });
-    }    
+    }
 
-        const checkDeviceToken = await User.find({ deviceToken: deviceToken });
+    const checkDeviceToken = await User.find({ deviceToken: deviceToken });
 
-        if (checkDeviceToken && checkDeviceToken.length > 0) {
-            for (const element of checkDeviceToken) {
+    if (checkDeviceToken && checkDeviceToken.length > 0) {
+        for (const element of checkDeviceToken) {
 
-                element.deviceToken = "";
-                await element.save();
+            element.deviceToken = "";
+            await element.save();
 
-            }
         }
+    }
 
     let user = await User.findOne({ socialProvider: provider, socialId });
     if (!user) {
@@ -109,20 +109,94 @@ export async function POST(request: NextRequest) {
                 const displayName = nameVal ? nameVal : (user.mobile || 'Customer');
 
                 const html = ` ${header}
-                    <div style="font-family: Arial, sans-serif; color: #333; line-height:1.5;">
-                      <p>Hello ${displayName},</p>
-                      <p>Welcome to "Pharmato"! 👋<br/>We’re glad to have you with us.</p>
-                      <p>Pharmato makes ordering medicines and healthcare essentials simple, safe, and convenient. Upload your doctor’s prescription, place your order, and let us take care of the rest—right from verified pharmacies to your doorstep.</p>
-                      <p>With Pharmato, you can:</p>
-                      <ul>
-                        <li>Order medicines easily</li>
-                        <li>Upload and manage prescriptions securely</li>
-                        <li>Get medicines delivered to your home</li>
-                        <li>Track your orders in real time</li>
-                      </ul>
-                      <p>Start exploring now and experience hassle-free healthcare delivery.</p>
-                      <p>Stay healthy,<br/>Team Pharmato<br/>Your trusted pharmacy partner</p>
-                    </div>
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Welcome to Pharmato</title>
+</head>
+
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family: Arial, sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8; padding:20px 0;">
+    <tr>
+      <td align="center">
+
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:8px; padding:30px;">
+
+          <!-- Logo / Header -->
+          <tr>
+            <td align="center" style="padding-bottom:20px;">
+              <h2 style="margin:0; color:#2c3e50;">Welcome to Pharmato 👋</h2>
+            </td>
+          </tr>
+
+          <!-- Greeting -->
+          <tr>
+            <td style="color:#333333; font-size:16px; line-height:1.6;">
+              <p>Hello ${displayName},</p>
+
+              <p>
+                We’re glad to have you with us.
+              </p>
+
+              <p>
+                Pharmato makes ordering medicines and healthcare essentials simple, safe, and convenient.
+                Upload your doctor’s prescription, place your order, and let us take care of the rest —
+                right from verified pharmacies to your doorstep.
+              </p>
+
+              <p><strong>With Pharmato, you can:</strong></p>
+
+              <ul style="padding-left:20px;">
+                <li>Order medicines easily</li>
+                <li>Upload and manage prescriptions securely</li>
+                <li>Get medicines delivered to your home</li>
+                <li>Track your orders in real time</li>
+              </ul>
+
+              <p>
+                Start exploring now and experience hassle-free healthcare delivery.
+              </p>
+            </td>
+          </tr>
+
+          <!-- CTA Button -->
+          <tr>
+            <td align="center" style="padding:25px 0;">
+              <a href="${process.env.PHARMATO_WEB_BASE_URL}" style="background-color:#2ecc71;
+                        color:#ffffff;
+                        padding:12px 25px;
+                        text-decoration:none;
+                        border-radius:5px;
+                        font-size:16px;
+                        display:inline-block;">
+                Start Exploring
+              </a>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="font-size:14px; color:#777777; line-height:1.6;">
+              <p>
+                Stay healthy,<br />
+                <strong>Team Pharmato</strong><br />
+                Your trusted pharmacy partner
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+
+</html>
                 ${footer}
                 `;
 
