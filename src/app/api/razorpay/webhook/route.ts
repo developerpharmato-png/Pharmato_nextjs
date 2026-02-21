@@ -11,6 +11,7 @@ import Razorpay from 'razorpay';
 import { getDb } from '@/utils/firebase.helper';
 import fs from 'fs';
 import path from 'path';
+import Medicine from '@/models/Medicine';
 
 const razorpayInstance = new Razorpay({
     key_id: process.env.razorPay_Key_Id || '',
@@ -154,15 +155,24 @@ async function runBackground(body: any) {
                         deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
                     }
 
-                    const acceptedNames = checkOrder.medicineQuantity.map((m: any) => {
-                        const item = checkOrder.medicineId.find((i: any) => i._id.toString() === m.medicineId.toString());
+                    console.log('##########checkOrder.medicineQuantity#############', checkOrder.medicineQuantity);
+
+                    const [checkMedicineId] = await Promise.all([
+                        Medicine.find({ _id: { $in: checkOrder.medicineId.map((i: any) => i) } }).select('_id name coverImage images'),
+                    ]);
+
+                    console.log('##########checkMedicineId#############', checkMedicineId);
+
+                    const acceptedNames = checkMedicineId.map((m: any) => {
+                        const item = checkOrder.medicineQuantity.find((i: any) => i.medicineId.toString() === m._id.toString());
                         return {
-                            // ...m._doc,
-                            ...m.toObject(),
-                            images: item ? item.images : [],
-                            coverImage: item ? item.coverImage : "",
+                            ...m._doc,
+                            quantity: item ? item.quantity : 0,
+                            price: item ? item.price : 0,
                         };
                     });
+
+                    console.log('##########acceptedNames#############', acceptedNames);
 
                     let itemsHtml = '';
 
@@ -170,7 +180,6 @@ async function runBackground(body: any) {
                         const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
 
                         itemsHtml += `
-        <p><b>Accepted Medicines:</b></p>
         <ul style="list-style:none;padding:0;">
     `;
 

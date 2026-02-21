@@ -25,6 +25,7 @@ export interface IUser extends Document {
     otpGenerateTime?: Date;
     isBlocked?: boolean;
     userBlockedTime?: Date;
+    isNewUser?: boolean;
 }
 
 const UserSchema = new Schema<IUser>({
@@ -50,6 +51,7 @@ const UserSchema = new Schema<IUser>({
     otpGenerateTime: { type: Date },
     isBlocked: { type: Boolean, default: false },
     userBlockedTime: { type: Date },
+    isNewUser: { type: Boolean, default: false },
 }, { timestamps: true });
 
 // Auto-generate sequential uniqueCode on new user creation (reference: Category model)
