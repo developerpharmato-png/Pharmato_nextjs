@@ -185,39 +185,51 @@ async function runBackground(body: any) {
                     // `;
 
 
-                    const itemsHtml = checkOrder.medicineQuantity
-                        .filter((mq: Record<string, any>) => !mq.cancelDetail?.is_cancelled) // cancelled skip
-                        .map((mq: Record<string, any>) => {
 
-                            const product = checkOrder.medicineId.find(
-                                (m: any) => m._id === mq.medicineId
-                            );
+                    // Merge acceptedRaw with unCancelledItems to include quantity and price
+                    const acceptedNames = checkOrder.medicineQuantity.map((m: any) => {
+                        const item = checkOrder.medicineId.find((i: any) => i._id.toString() === m.medicineId.toString());
+                        return {
+                            ...m._doc,
+                            images: item ? item.images : [],
+                            coverImage: item ? item.coverImage : "",
+                        };
+                    });
 
-                            if (!product) return '';
+                    let itemsHtml = '';
 
-                            const image =
-                                product.coverImage ||
-                                product.images?.[0] ||
-                                'https://via.placeholder.com/60';
+                    if (acceptedNames.length > 0) {
+                        const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
 
-                            return `
-      <div style="border:1px solid #eee;padding:12px;margin-bottom:12px;border-radius:6px;">
-        <div style="display:flex;align-items:center;">
-          <img src="${image}" width="60" height="60"
-               style="margin-right:12px;border-radius:4px;border:1px solid #ddd;" />
-          <div>
-            <strong>${product.name}</strong><br/>
-            ${product.manufacturer}<br/>
-            Quantity: ${mq.quantity}<br/>
-            Price: ₹${mq.price}
-          </div>
-        </div>
-      </div>
+                        itemsHtml += `
+        <p><b>Accepted Medicines:</b></p>
+        <ul style="list-style:none;padding:0;">
     `;
-                        })
-                        .join('');
 
+                        acceptedNames.forEach((m: any) => {
+                            const imgSrc =
+                                m.coverImage && m.coverImage.trim() !== ''
+                                    ? m.coverImage
+                                    : defaultImg;
 
+                            itemsHtml += `
+            <li style="margin-bottom:10px;display:flex;align-items:center;">
+                <img src="${imgSrc}" 
+                     alt="${m.name}" 
+                     style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:10px;border:1px solid #eee;" />
+                <div>
+                    <div style="font-weight:500;">${m.name}</div>
+                    <div style="font-size:14px;color:#555;">
+                        Quantity: ${m.quantity}, 
+                        Price: ₹${Number(m.price).toFixed(2)}
+                    </div>
+                </div>
+            </li>
+        `;
+                        });
+
+                        itemsHtml += `</ul>`;
+                    }
 
                     const html = `
 ${header}
