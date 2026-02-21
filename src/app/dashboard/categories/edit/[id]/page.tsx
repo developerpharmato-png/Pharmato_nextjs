@@ -74,7 +74,7 @@ const validateEditCategory = (
     errors.name = "Category Name must be at least 3 characters";
   }
 
- 
+
 
   if (values.images.length === 0) {
     errors.images = "A category image is required";
@@ -341,7 +341,7 @@ export default function EditCategoryPage() {
         showSearch={false}
         isunsaved={formik.dirty}
       />
- 
+
 
       <Box
         component="form"
@@ -363,7 +363,7 @@ export default function EditCategoryPage() {
           {formik.touched.name && formik.errors.name && (
             <ErrorMessageCom error={formik.errors.name} />
           )}
-        </Box> 
+        </Box>
 
         {/* Description Textarea (Character Counter) */}
         <TextField
@@ -376,7 +376,7 @@ export default function EditCategoryPage() {
           error={
             formik.touched.description && Boolean(formik.errors.description)
           }
-        
+
           FormHelperTextProps={{
             sx: { textAlign: "right", mr: 0, mt: 0.5 },
           }}

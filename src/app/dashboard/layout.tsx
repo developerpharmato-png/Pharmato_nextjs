@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -7,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { showConfirmStatusAlert } from "./components/ConfirmStatusAlert";
 import { CustomTooltip } from "./components/miniComponents";
 import logo from "./Images/Image 1.png";
+import Swal from "sweetalert2";
 
 import {
   LayoutDashboard,
@@ -28,11 +28,10 @@ import {
   Bell,
   TagIcon,
   Ticket,
-  Menu, // Add Menu icon
-  X,    // Add X icon for close
+  Menu,
+  X,
 } from "lucide-react";
 import { requestPermissionAndGetToken } from "../firebase/firebaseConfig";
-
 
 const iconMap = {
   dashboard: LayoutDashboard,
@@ -83,10 +82,8 @@ export default function DashboardLayout({
   const [adminPermOpen, setAdminPermOpen] = useState(false);
   const [dataAnalyticsOpen, setDataAnalyticsOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
-
   const [settingsOpen, setSettingsOpen] = useState(false);
-
-  const [isMobile, setIsMobile] = useState(false); // Add isMobile state
+  const [isMobile, setIsMobile] = useState(false);
   const [permissions, setPermissions] = useState<Record<
     string,
     { view: boolean; edit: boolean }
@@ -97,33 +94,25 @@ export default function DashboardLayout({
   }, []);
 
   useEffect(() => {
-    // Check initial network status
     setIsOnline(navigator.onLine);
-
-    // Add event listeners for network status changes
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
-
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-
-    // Cleanup event listeners
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
-  // Handle Resize for Mobile Detection
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      if (mobile) setSidebarOpen(false); // Default close on mobile
-      else setSidebarOpen(true); // Default open on desktop
+      if (mobile) setSidebarOpen(false);
+      else setSidebarOpen(true);
     };
-
-    handleResize(); // Initial check
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -146,7 +135,6 @@ export default function DashboardLayout({
         return;
       } catch (e) { }
     }
-
     if (admin?.roleId) {
       (async () => {
         try {
@@ -162,38 +150,6 @@ export default function DashboardLayout({
     }
   }, [admin]);
 
-  useEffect(() => {
-    const adminPermPaths = ["/dashboard/role", "/dashboard/permission", "/dashboard/management"];
-    setAdminPermOpen(adminPermPaths.some((p) => pathname === p || pathname.startsWith(p)));
-
-    const dataAnalyticsPaths = ["/dashboard/data-analytics/products", "/dashboard/data-analytics/orders"];
-    setDataAnalyticsOpen(dataAnalyticsPaths.some((p) => pathname === p || pathname.startsWith(p)));
-
-    const settingsPaths = ["/dashboard/settings", "/dashboard/policies"];
-    setSettingsOpen(settingsPaths.some((p) => pathname === p || pathname.startsWith(p)));
-  }, [pathname]);
-
-  const isCurrentSuperAdmin = admin?.roleName === "SuperAdmin";
-
-  const handleLogout = async () => {
-    showConfirmStatusAlert({
-      isActive: true,
-      title: "Logout Confirmation",
-      text: "Are you sure you want to logout?",
-      confirmText: "Logout",
-      cancelText: "Cancel",
-      onConfirm: async () => {
-        try {
-          await fetch("/api/auth/logout", { method: "POST" });
-          localStorage.removeItem("admin");
-          router.push("/login");
-        } catch (error) {
-          console.error("Logout failed:", error);
-        }
-      },
-    });
-  };
-
   const menuItems = [
     // { name: "Dashboard", path: "/dashboard/DashboardApp", icon: "dashboard", isActive: true },
     { name: "Dashboard", path: "/dashboard/NewDashboard", icon: "dashboard", isActive: true },
@@ -203,25 +159,10 @@ export default function DashboardLayout({
     { name: "Orders", path: "/dashboard/orders", icon: "receipt_long", isActive: true },
     { name: "Customers", path: "/dashboard/admin/customers", icon: "person", isActive: true },
     { name: "Coupons", path: "/dashboard/coupon", icon: "tag", isActive: true },
-    {
-      name: "Send Notifications", path: "/dashboard/notifications", icon: "bell",
-      isActive: true,
-
-      // superAdminOnly: true 
-
-    },
+    { name: "Send Notifications", path: "/dashboard/notifications", icon: "bell", isActive: true, superAdminOnly: true },
     { name: "Stores", path: "/dashboard/store", icon: "store", isActive: true },
     { name: "Banner Management", path: "/dashboard/banner-images", icon: "image", isActive: true },
     { name: "Sync Management", path: "/dashboard/marg", icon: "hospital", isActive: true },
-    // {
-    //   name: "Data Analytics",
-    //   icon: "dashboard",
-    //   isActive: true,
-    //   children: [
-    //     { name: "Product Analytics", path: "/dashboard/data-analytics/products", icon: "medication", isActive: true },
-    //     { name: "Order Analytics", path: "/dashboard/data-analytics/orders", icon: "receipt_long", isActive: true },
-    //   ],
-    // },
     {
       name: "Settings & Policies",
       icon: "folder",
@@ -244,28 +185,110 @@ export default function DashboardLayout({
     },
   ];
 
-  // Logic to filter by isActive and Permissions
+  const handleLogout = async () => {
+    showConfirmStatusAlert({
+      isActive: true,
+      title: "Logout Confirmation",
+      text: "Are you sure you want to logout?",
+      confirmText: "Logout",
+      cancelText: "Cancel",
+      onConfirm: async () => {
+        try {
+          await fetch("/api/auth/logout", { method: "POST" });
+          localStorage.removeItem("admin");
+          router.push("/login");
+        } catch (error) {
+          console.error("Logout failed:", error);
+        }
+      },
+    });
+  };
+
+  const isCurrentSuperAdmin = admin?.roleName === "SuperAdmin";
+
+  useEffect(() => {
+    const adminPermPaths = ["/dashboard/role", "/dashboard/permission", "/dashboard/management"];
+    setAdminPermOpen(adminPermPaths.some((p) => pathname === p || pathname.startsWith(p)));
+
+    const dataAnalyticsPaths = ["/dashboard/data-analytics/products", "/dashboard/data-analytics/orders"];
+    setDataAnalyticsOpen(dataAnalyticsPaths.some((p) => pathname === p || pathname.startsWith(p)));
+
+    const settingsPaths = ["/dashboard/settings", "/dashboard/policies"];
+    setSettingsOpen(settingsPaths.some((p) => pathname === p || pathname.startsWith(p)));
+
+    // --- GLOBAL PERMISSION GUARD ---
+    if (!permissions || !pathname || isCurrentSuperAdmin) return;
+
+    const currentMenuItem = menuItems.find(item => {
+      if (item.path && pathname.startsWith(item.path)) return true;
+      if (item.children) {
+        return item.children.some((child: any) => pathname.startsWith(child.path));
+      }
+      return false;
+    });
+
+    if (currentMenuItem) {
+      // 1. Check for SuperAdmin restricted pages
+      if (currentMenuItem.superAdminOnly && !isCurrentSuperAdmin) {
+        Swal.fire({
+          icon: "error",
+          title: "Restricted Access",
+          text: "This section is only accessible by SuperAdmins.",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#10b981",
+        }).then(() => {
+          router.push("/dashboard/NewDashboard");
+        });
+        return;
+      }
+
+      const sectionName = currentMenuItem.name.trim();
+      const userPerm = (permissions as any)[sectionName];
+      if (userPerm) {
+        // Updated to catch /edit/, /new, and /AddEdit
+        const isActionPage =
+          pathname.includes("/edit/") ||
+          pathname.includes("/new") ||
+          pathname.includes("/AddEdit");
+
+        if (userPerm.view === false) {
+          Swal.fire({
+            icon: "error",
+            title: "Access Denied",
+            text: `You don't have permission to view ${sectionName}.`,
+            confirmButtonText: "OK",
+            confirmButtonColor: "#10b981",
+          }).then(() => {
+            router.push("/dashboard/NewDashboard");
+          });
+        } else if (isActionPage && userPerm.edit === false) {
+          Swal.fire({
+            icon: "error",
+            title: "Permission Required",
+            text: `You don't have permission to add or edit in ${sectionName}.`,
+            confirmButtonText: "OK",
+            confirmButtonColor: "#10b981",
+          }).then(() => {
+            router.push(currentMenuItem.path || "/dashboard/NewDashboard");
+          });
+        }
+      }
+    }
+  }, [pathname, permissions, isCurrentSuperAdmin, router]);
+
   const visibleMenuItems = menuItems
     .filter((item) => item.isActive)
     .map((item: any) => {
-      // Check if item is SuperAdmin only
-      if (item.superAdminOnly && !isCurrentSuperAdmin) {
-        return { ...item, isVisible: false };
-      }
+      if (item.superAdminOnly && !isCurrentSuperAdmin) return { ...item, isVisible: false };
 
-      // 1. Permission check for parent (if it has no children)
       let parentHasViewPermission = true;
       if (permissions) {
         const perm = (permissions as any)[item.name.trim()];
         parentHasViewPermission = perm ? Boolean(perm.view) : true;
       }
 
-      // Special check for Admin section
-      if (item.name === "Admin Permissions") {
-        parentHasViewPermission = isCurrentSuperAdmin;
-      }
+      if (item.name === "Admin Permissions") parentHasViewPermission = isCurrentSuperAdmin;
 
-      // 2. Filter children based on isActive and permissions
       const visibleChildren = (item.children || [])
         .filter((child: any) => child.isActive)
         .filter((child: any) => {
@@ -274,35 +297,17 @@ export default function DashboardLayout({
           return childPerm ? Boolean(childPerm.view) : true;
         });
 
-      // 3. Final show logic:
-      // If it's a dropdown, only show if it has visible children.
-      // If it's a single link, check its own permission.
-      const isVisible = item.children
-        ? visibleChildren.length > 0
-        : parentHasViewPermission;
-
+      const isVisible = item.children ? visibleChildren.length > 0 : parentHasViewPermission;
       return { ...item, isVisible, children: visibleChildren };
     })
     .filter((item) => item.isVisible);
 
   return (
     <div className="flex h-screen w-full relative">
-      {/* Mobile Backdrop */}
       {isMobile && sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30"
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/50 z-30" onClick={() => setSidebarOpen(false)} />
       )}
-
-      {/* Sidebar */}
-      <aside
-        className={`${isMobile
-          ? `fixed inset-y-0 left-0 z-40 transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`
-          : `relative ${sidebarOpen ? "w-64" : "w-20"}`
-          } bg-white shadow-xl transition-all duration-300 ease-in-out shrink-0 overflow-hidden h-full`}
-      >
+      <aside className={`${isMobile ? `fixed inset-y-0 left-0 z-40 transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}` : `relative ${sidebarOpen ? "w-64" : "w-20"}`} bg-white shadow-xl transition-all duration-300 ease-in-out shrink-0 overflow-hidden h-full`}>
         <div className="flex flex-col h-full">
           <div className="p-4 border-b border-gray-200">
             <div className={`flex items-center ${sidebarOpen ? "justify-between" : "justify-center"}`}>
@@ -321,15 +326,12 @@ export default function DashboardLayout({
               </button>
             )}
           </div>
-
           <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
             {visibleMenuItems.map((item: any) => {
               const hasChildren = item.children && item.children.length > 0;
               const normalize = (p?: string) => (p ? p.split("?")[0] : p);
-              // Highlight parent menu for all sub-routes
               let isActiveLink = false;
               if (item.path) {
-                // If current path starts with the menu path, highlight (e.g., /dashboard/medicines/695 highlights Medicines)
                 const normPath = normalize(pathname);
                 const normItem = normalize(item.path);
                 isActiveLink = !!(normPath && normItem && normPath.startsWith(normItem));
@@ -337,37 +339,14 @@ export default function DashboardLayout({
 
               let isOpen = false;
               let setOpen: (open: boolean) => void = () => { };
-
-              if (item.name === "Admin Permissions") {
-                isOpen = adminPermOpen;
-                setOpen = setAdminPermOpen;
-                isActiveLink = isActiveLink || adminPermOpen;
-              } else if (item.name === "Data Analytics") {
-                isOpen = dataAnalyticsOpen;
-                setOpen = setDataAnalyticsOpen;
-                isActiveLink = isActiveLink || dataAnalyticsOpen;
-              } else if (item.name === "Settings & Policies") {
-                isOpen = settingsOpen;
-                setOpen = setSettingsOpen;
-                isActiveLink = isActiveLink || settingsOpen;
-              }
+              if (item.name === "Admin Permissions") { isOpen = adminPermOpen; setOpen = setAdminPermOpen; isActiveLink = isActiveLink || adminPermOpen; }
+              else if (item.name === "Settings & Policies") { isOpen = settingsOpen; setOpen = setSettingsOpen; isActiveLink = isActiveLink || settingsOpen; }
 
               const MenuContent = (
                 <div key={item.name}>
                   {hasChildren ? (
-                    <button
-                      onClick={() => {
-                        if (sidebarOpen) {
-                          if (!isOpen && item.children && item.children.length > 0 && !item.path) {
-                            // Redirect to first child if parent has no direct path
-                            router.push(item.children[0].path);
-                          }
-                          setOpen(!isOpen);
-                        }
-                      }}
-                      className={`w-full flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${isActiveLink ? "bg-green-50 text-green-700" : "text-gray-700 hover:bg-green-100"
-                        } ${!sidebarOpen ? "justify-center" : ""}`}
-                    >
+                    <button onClick={() => { if (sidebarOpen) { if (!isOpen && item.children && item.children.length > 0 && !item.path) { router.push(item.children[0].path); } setOpen(!isOpen); } }}
+                      className={`w-full flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${isActiveLink ? "bg-green-50 text-green-700" : "text-gray-700 hover:bg-green-100"} ${!sidebarOpen ? "justify-center" : ""}`}>
                       {renderIcon(item.icon, sidebarOpen ? 20 : 24)}
                       {sidebarOpen && (
                         <>
@@ -377,36 +356,19 @@ export default function DashboardLayout({
                       )}
                     </button>
                   ) : (
-                    <Link
-                      href={item.path || "#"}
-                      onClick={() => {
-                        if (isMobile) setSidebarOpen(false);
-                      }}
-                      className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${isActiveLink ? "bg-green-600 text-white shadow-md" : "text-gray-700 hover:bg-green-100"
-                        } ${!sidebarOpen ? "justify-center" : ""}`}
-                    >
+                    <Link href={item.path || "#"} onClick={() => { if (isMobile) setSidebarOpen(false); }}
+                      className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${isActiveLink ? "bg-green-600 text-white shadow-md" : "text-gray-700 hover:bg-green-100"} ${!sidebarOpen ? "justify-center" : ""}`}>
                       {renderIcon(item.icon, sidebarOpen ? 20 : 24)}
                       {sidebarOpen && <span className="ml-3 font-medium">{item.name}</span>}
                     </Link>
                   )}
-
                   {sidebarOpen && hasChildren && isOpen && (
                     <div className="mt-1 ml-6 space-y-1">
                       {item.children.map((child: any) => {
-                        // Highlight child if current path starts with child path
-                        const normPath = normalize(pathname);
-                        const normChild = normalize(child.path);
-                        const isChildActive = !!(normPath && normChild && normPath.startsWith(normChild));
+                        const isChildActive = !!(normalize(pathname) && normalize(child.path) && normalize(pathname).startsWith(normalize(child.path)));
                         return (
-                          <Link
-                            key={child.path}
-                            href={child.path}
-                            onClick={() => {
-                              if (isMobile) setSidebarOpen(false);
-                            }}
-                            className={`flex items-center px-4 py-2 rounded-lg text-sm transition-all ${isChildActive ? "text-green-600 font-bold" : "text-gray-600 hover:text-green-600"
-                              }`}
-                          >
+                          <Link key={child.path} href={child.path} onClick={() => { if (isMobile) setSidebarOpen(false); }}
+                            className={`flex items-center px-4 py-2 rounded-lg text-sm transition-all ${isChildActive ? "text-green-600 font-bold" : "text-gray-600 hover:text-green-600"}`}>
                             {renderIcon(child.icon, 16)}
                             <span className="ml-3">{child.name}</span>
                           </Link>
@@ -416,11 +378,9 @@ export default function DashboardLayout({
                   )}
                 </div>
               );
-
               return sidebarOpen ? MenuContent : <CustomTooltip key={item.name} title={item.name}>{MenuContent}</CustomTooltip>;
             })}
           </nav>
-
           <div className="p-4 border-t border-gray-200">
             <div className={`flex items-center ${sidebarOpen ? "space-x-3" : "justify-center"} mb-3`}>
               <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-bold shrink-0">
@@ -440,14 +400,9 @@ export default function DashboardLayout({
           </div>
         </div>
       </aside>
-
       <div className="flex flex-col flex-1 bg-gradient-to-br from-green-50 to-teal-50 overflow-hidden w-full relative">
-        {/* Mobile Toggle Button (Only visible on mobile when sidebar is closed) */}
         {isMobile && !sidebarOpen && (
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="absolute top-4 left-4 z-50 p-2 bg-white rounded-md shadow-md text-gray-600 hover:text-green-600"
-          >
+          <button onClick={() => setSidebarOpen(true)} className="absolute top-4 left-4 z-50 p-2 bg-white rounded-md shadow-md text-gray-600 hover:text-green-600">
             <Menu size={24} />
           </button>
         )}
@@ -457,27 +412,13 @@ export default function DashboardLayout({
             <div className="flex items-center justify-center h-full">
               <div className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
                 <div className="mb-4">
-                  <svg
-                    className="mx-auto h-16 w-16 text-red-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"
-                    />
+                  <svg className="mx-auto h-16 w-16 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414" />
                   </svg>
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">No Internet Connection</h2>
-                <p className="text-gray-600 mb-4">
-                  Please check your network connection and try again.
-                </p>
-                <div className="animate-pulse">
-                  <p className="text-sm text-gray-500">Waiting for connection...</p>
-                </div>
+                <p className="text-gray-600 mb-4">Please check your network connection and try again.</p>
+                <div className="animate-pulse"><p className="text-sm text-gray-500">Waiting for connection...</p></div>
               </div>
             </div>
           ) : (
