@@ -287,7 +287,7 @@ export default function NewDashboardPage() {
                 <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">
                   Orders Volume Trend
                 </h4>
-                
+
               </div>
 
               {/* Compact Summaries */}
@@ -432,7 +432,16 @@ export default function NewDashboardPage() {
                       <div
                         key={s._id}
                         className="flex items-center justify-between group cursor-pointer hover:bg-slate-50 p-1 rounded-lg transition-colors"
-                        onClick={() => window.location.href = `/dashboard/orders?filter=${encodeURIComponent(s._id)}`}
+                        onClick={() => {
+                          const params = new URLSearchParams();
+                          params.set("filter", s._id);
+                          params.set("period", period);
+                          if (period === "custom" && startDate && endDate) {
+                            params.set("startDate", startDate);
+                            params.set("endDate", endDate);
+                          }
+                          window.location.href = `/dashboard/orders?${params.toString()}`;
+                        }}
                       >
                         <div className="flex items-center gap-3">
                           <div
@@ -474,7 +483,7 @@ export default function NewDashboardPage() {
               <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">
                 Revenue & Growth
               </h3>
-             
+
             </div>
 
             {/* Compact Revenue Summaries */}
@@ -775,157 +784,6 @@ export default function NewDashboardPage() {
                   </div>
                 </button>
               ))}
-            </div>
-          </div>
-        </div>
-      </section>
-      {/* Sample Lists */}
-      <section className="mb-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="font-bold text-slate-800">Low Stock Alert</h3>
-              <span className="text-xs font-bold bg-amber-50 text-amber-700 px-2 py-1 rounded">
-                Action Required
-              </span>
-            </div>
-            <div className="p-4">
-              {loading ? (
-                <p className="p-4 text-slate-400 text-center animate-pulse">
-                  Loading items...
-                </p>
-              ) : inventoryData?.lowStockList?.length ? (
-                <div className="space-y-1">
-                  {inventoryData.lowStockList.slice(0, 5).map((m: any) => (
-                    <div
-                      key={m._id}
-                      onClick={() => (window.location.href = `/dashboard/medicines/${m._id}`)}
-                      className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
-                    >
-                      <span className="text-sm font-medium text-slate-700">
-                        {m.name}
-                      </span>
-                      <span className="text-sm font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
-                        {m.stock} left
-                      </span>
-                    </div>
-                  ))}
-                  {inventoryData.lowStockList.length > 5 && (
-                    <button
-                      onClick={() => (window.location.href = `/dashboard/medicines?filter=Low Stock`)}
-                      className="w-full mt-2 py-2 text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 rounded-lg transition-all border border-dashed border-blue-200"
-                    >
-                      View All Low Stock
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="p-10 text-center text-slate-400">
-                  Inventory is healthy
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="font-bold text-slate-800">Expiring Soon</h3>
-              <span className="text-xs font-bold bg-rose-50 text-rose-700 px-2 py-1 rounded">
-                Near Expiry
-              </span>
-            </div>
-            <div className="p-4">
-              {loading ? (
-                <p className="p-4 text-slate-400 text-center animate-pulse">
-                  Checking dates...
-                </p>
-              ) : inventoryData?.expiringSoonList?.length ? (
-                <div className="space-y-1">
-                  {inventoryData.expiringSoonList.slice(0, 5).map((m: any) => (
-                    <div
-                      key={m._id}
-                      onClick={() => (window.location.href = `/dashboard/medicines/${m._id}`)}
-                      className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
-                    >
-                      <span className="text-sm font-medium text-slate-700">
-                        {m.name}
-                      </span>
-                      <span className="text-xs font-mono text-slate-500">
-                        {m.expiryDate
-                          ? new Date(m.expiryDate).toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "2-digit",
-                          })
-                          : "-"}
-                      </span>
-                    </div>
-                  ))}
-                  {inventoryData.expiringSoonList.length > 5 && (
-                    <button
-                      onClick={() => (window.location.href = `/dashboard/medicines?filter=Expiring Soon`)}
-                      className="w-full mt-2 py-2 text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 rounded-lg transition-all border border-dashed border-blue-200"
-                    >
-                      View All Expiring
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="p-10 text-center text-slate-400">
-                  No expiring items found
-                </div>
-              )}
-            </div>
-          </div>
-          {/* Expired Items */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="font-bold text-slate-800">Expired Items</h3>
-              <span className="text-xs font-bold bg-rose-50 text-rose-700 px-2 py-1 rounded">
-                Already Expired
-              </span>
-            </div>
-            <div className="p-4">
-              {loading ? (
-                <p className="p-4 text-slate-400 text-center animate-pulse">
-                  Loading items...
-                </p>
-              ) : inventoryData?.expiredList?.length ? (
-                <div className="space-y-1">
-                  {inventoryData.expiredList.slice(0, 5).map((m: any) => (
-                    <div
-                      key={m._id}
-                      onClick={() => (window.location.href = `/dashboard/medicines/${m._id}`)}
-                      className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
-                    >
-                      <span className="text-sm font-medium text-slate-700">
-                        {m.name}
-                      </span>
-                      <span className="text-xs font-mono text-slate-500">
-                        {m.expiryDate
-                          ? new Date(m.expiryDate).toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "2-digit",
-                          })
-                          : "-"}
-                      </span>
-                    </div>
-                  ))}
-                  {inventoryData.expiredList.length > 5 && (
-                    <button
-                      onClick={() => (window.location.href = `/dashboard/medicines?filter=Expired`)}
-                      className="w-full mt-2 py-2 text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50/50 rounded-lg transition-all border border-dashed border-rose-200"
-                    >
-                      View All Expired
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="p-10 text-center text-slate-400">
-                  No expired items found
-                </div>
-              )}
             </div>
           </div>
         </div>

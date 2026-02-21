@@ -11,7 +11,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { enGB } from "date-fns/locale";
-import { format, addDays } from "date-fns";
+import { format, addDays, parse } from "date-fns";
 import { CustomButton } from "../components/miniComponents";
 
 function OrdersPageContent() {
@@ -41,6 +41,10 @@ function OrdersPageContent() {
   // Apply filter from URL query params on component load
   useEffect(() => {
     const filter = searchParams.get("filter");
+    const period = searchParams.get("period");
+    const startStr = searchParams.get("startDate");
+    const endStr = searchParams.get("endDate");
+
     if (filter) {
       // Map dashboard filter labels to order status values
       const filterMap: { [key: string]: string } = {
@@ -49,8 +53,38 @@ function OrdersPageContent() {
         Pending: "Pending",
         Cancelled: "Cancelled",
       };
-      const mappedFilter = filterMap[filter] || "all";
+      const mappedFilter = filterMap[filter] || filter;
       setOrderStatus(mappedFilter);
+    }
+
+    if (period) {
+      const periodMap: { [key: string]: string } = {
+        today: "today",
+        week: "last7",
+        month: "last30",
+        year: "all",
+        all: "all",
+        custom: "all",
+      };
+      setDayFilter(periodMap[period] || "all");
+    }
+
+    if (startStr) {
+      try {
+        const d = parse(startStr, "yyyy-MM-dd", new Date());
+        setExportStartDate(d);
+      } catch (e) {
+        console.error("Failed to parse startDate", e);
+      }
+    }
+
+    if (endStr) {
+      try {
+        const d = parse(endStr, "yyyy-MM-dd", new Date());
+        setExportEndDate(d);
+      } catch (e) {
+        console.error("Failed to parse endDate", e);
+      }
     }
   }, [searchParams]);
 
@@ -213,7 +247,7 @@ function OrdersPageContent() {
             >
               {exportLoading ? "Wait..." : "Export"}
             </CustomButton>
-          
+
           </div>
         }
       />
@@ -233,6 +267,7 @@ function OrdersPageContent() {
           setPage={setPage}
           setExportStartDate={setExportStartDate}
           setExportEndDate={setExportEndDate}
+          initialDayFilter={dayFilter}
         />
       </Box>
       <OrdersTable

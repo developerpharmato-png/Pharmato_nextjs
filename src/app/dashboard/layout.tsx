@@ -365,7 +365,9 @@ export default function DashboardLayout({
                   {sidebarOpen && hasChildren && isOpen && (
                     <div className="mt-1 ml-6 space-y-1">
                       {item.children.map((child: any) => {
-                        const isChildActive = !!(normalize(pathname) && normalize(child.path) && normalize(pathname).startsWith(normalize(child.path)));
+                        const nPath = normalize(pathname || "");
+                        const nChildPath = normalize(child.path || "");
+                        const isChildActive = !!(nPath && nChildPath && nPath.startsWith(nChildPath));
                         return (
                           <Link key={child.path} href={child.path} onClick={() => { if (isMobile) setSidebarOpen(false); }}
                             className={`flex items-center px-4 py-2 rounded-lg text-sm transition-all ${isChildActive ? "text-green-600 font-bold" : "text-gray-600 hover:text-green-600"}`}>
