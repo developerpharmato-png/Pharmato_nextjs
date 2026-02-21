@@ -154,43 +154,11 @@ async function runBackground(body: any) {
                         deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
                     }
 
-                    // const html = `${header}
-                    //     <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.4;">
-                    //         <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
-                    //             <p>Hello ${userName},</p>
-                    //             <p>Thank you for your order!<br>
-                    //             Your order <b>#${checkOrder.order_id}</b> has been placed successfully and is being processed.✅</p>
-                    //             <p>Our partner pharmacy is reviewing your order. Once your order is confirmed, your medicines will be packed and delivered to you soon.</p>
-                    //             <h4 style="margin:12px 0 6px;">Order Summary:</h4>
-                    //             <table style="width:100%;border-collapse:collapse;margin:16px 0;">
-                    //                 <tr>
-                    //                     <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
-                    //                     <td style="padding:8px;border:1px solid #eee;">${checkOrder.order_id}</td>
-                    //                 </tr>
-                    //                 <tr>
-                    //                     <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
-                    //                     <td style="padding:8px;border:1px solid #eee;">Order Placed</td>
-                    //                 </tr>
-                    //                 <tr>
-                    //                     <td style="padding:8px;border:1px solid #eee;font-weight:600;">Delivery Address</td>
-                    //                     <td style="padding:8px;border:1px solid #eee;">${deliveryAddressText || 'Address will be updated soon.'}</td>
-                    //                 </tr>
-                    //             </table>
-                    //             <p>You can track your order status anytime from the My Orders section in the Pharmato app or website.</p>
-                    //             <p>Thank you for choosing Pharmato for your healthcare needs. We’re committed to delivering your medicines safely and on time.</p>
-                    //             <p>Stay healthy,<br/>Team Pharmato<br/>Your trusted pharmacy partner</p>
-                    //         </div>
-                    //     </div>
-                    // ${footer}
-                    // `;
-
-
-
-                    // Merge acceptedRaw with unCancelledItems to include quantity and price
                     const acceptedNames = checkOrder.medicineQuantity.map((m: any) => {
                         const item = checkOrder.medicineId.find((i: any) => i._id.toString() === m.medicineId.toString());
                         return {
-                            ...m._doc,
+                            // ...m._doc,
+                            ...m.toObject(),
                             images: item ? item.images : [],
                             coverImage: item ? item.coverImage : "",
                         };
