@@ -326,7 +326,7 @@ ${footer}
                         userId: notificationUserId,
                         role: 'customer',
                         title: 'Order Placed',
-                        message: checkOrder.isPrescriptionRequired !== true ? `Your Order ${checkOrder.order_id} has been placed successfully. It will be delievered to you soon.` : `Your Order ${checkOrder.order_id} has been placed successfully. We will Notify you when your prescription is approved.`,
+                        message: checkOrder.isPrescriptionRequired !== true ? `Order Placed : Your Order has been placed successfully. Waiting for confirmation.` : `Order Placed : Your Order has been placed successfully. We will Notify you when your prescription is approved.`,
                         type: 'payment',
                         targetScreen: 'orders/detail',
                         targetId: checkOrder._id.toString(),
@@ -345,7 +345,7 @@ ${footer}
                             await sendPushNotificationWithData({
                                 token: (user as any).deviceToken,
                                 title: 'Pharmato',
-                                body: checkOrder.isPrescriptionRequired !== true ? `Your Order ${checkOrder.order_id} has been placed successfully. It will be delievered to you soon.` : `Your Order ${checkOrder.order_id} has been placed successfully. We will Notify you when your prescription is approved.`,
+                                body: `Your Order has been placed successfully.`,
                                 data: {
                                     targetId: checkOrder._id.toString(),
                                     orderId: checkOrder._id.toString(),

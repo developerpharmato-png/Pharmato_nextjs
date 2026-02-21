@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
             await sendPushNotificationWithData({
                 token: user.deviceToken,
                 title: 'Pharmato',
-                body: oldEmail ? `Your email has been updated from ${oldEmail} to ${email}.` : 'Your email has been updated successfully.',
+                body: `Email Address updated successfully.`,
                 data: {
                     type: 'email-update',
                     targetScreen: 'account',
@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
             userId: user._id.toString(),
             role: 'customer',
             title: 'Email Updated',
-            message: `Your email has been updated to ${email}.`,
+            message: `Email Address updated successfully.`,
             type: 'email-update',
             targetScreen: 'account',
             targetId: user._id.toString(),

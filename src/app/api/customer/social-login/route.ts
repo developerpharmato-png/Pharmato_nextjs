@@ -55,60 +55,81 @@ import { signJwt } from '@/lib/jwt';
 import fs from 'fs';
 import path from 'path';
 import Cart from '@/models/Cart';
+import { sendPushNotificationWithData } from '@/utils/firebase.helper';
 
 export async function POST(request: NextRequest) {
-    await connectDB();
-    const { provider, socialId, name, email, deviceToken } = await request.json();
-    if (!provider || !socialId) {
-        return NextResponse.json({ success: false, error: 'Provider and socialId required' }, { status: 400 });
+  await connectDB();
+  const { provider, socialId, name, email, deviceToken } = await request.json();
+  if (!provider || !socialId) {
+    return NextResponse.json({ success: false, error: 'Provider and socialId required' }, { status: 400 });
+  }
+
+  const checkDeviceToken = await User.find({ deviceToken: deviceToken });
+
+  if (checkDeviceToken && checkDeviceToken.length > 0) {
+    for (const element of checkDeviceToken) {
+
+      element.deviceToken = "";
+      await element.save();
+
+    }
+  }
+
+  let user = await User.findOne({ socialProvider: provider, socialId });
+  if (!user) {
+    user = await User.create({ socialProvider: provider, socialId, name, email, isVerified: true, deviceToken });
+
+    // Send welcome notification
+    try {
+      const Notification = (await import('@/models/Notification')).default;
+      await Notification.create({
+        userId: user._id.toString(),
+        role: 'customer',
+        title: 'Welcome to Pharmato!',
+        message: `“Welcome to Pharmato: Your health essentials are just a tap away!”`,
+        type: 'welcome',
+        targetScreen: 'account',
+        targetId: user._id.toString(),
+        isRead: false,
+        createdAt: new Date(),
+      });
+    } catch (err) {
+      console.error('Failed to create welcome notification:', err);
     }
 
-    const checkDeviceToken = await User.find({ deviceToken: deviceToken });
-
-    if (checkDeviceToken && checkDeviceToken.length > 0) {
-        for (const element of checkDeviceToken) {
-
-            element.deviceToken = "";
-            await element.save();
-
-        }
+    // Send push notification to customer if deviceToken exists
+    if (user && (user as any).deviceToken) {
+      try {
+        await sendPushNotificationWithData({
+          token: (user as any).deviceToken,
+          title: 'Pharmato',
+          body: `“Welcome to Pharmato: Your health essentials are just a tap away!”`,
+          data: {
+            targetId: user._id.toString(),
+            type: 'welcome',
+            targetScreen: 'account',
+          }
+        });
+      } catch (err) {
+        console.error('Failed to send push notification:', err);
+      }
     }
 
-    let user = await User.findOne({ socialProvider: provider, socialId });
-    if (!user) {
-        user = await User.create({ socialProvider: provider, socialId, name, email, isVerified: true, deviceToken });
+    // Choose template based on create or update
+    const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+    const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+    const header = fs.readFileSync(headerPath, 'utf8');
+    const footer = fs.readFileSync(footerPath, 'utf8');
 
-        // Send welcome notification
-        try {
-            const Notification = (await import('@/models/Notification')).default;
-            await Notification.create({
-                userId: user._id.toString(),
-                role: 'customer',
-                title: 'Welcome to Pharmato!',
-                message: 'Thank you for registering. Enjoy your experience!',
-                type: 'welcome',
-                isRead: false,
-                createdAt: new Date(),
-            });
-        } catch (err) {
-            console.error('Failed to create welcome notification:', err);
-        }
+    // Send welcome email if user has email
+    if (user.email) {
+      try {
+        const { sendEmail } = await import('@/utils/sendEmail');
+        const { WELCOME_EMAIL_SUBJECT } = await import('@/utils/emailSubjects');
+        const nameVal = user.name || '';
+        const displayName = nameVal ? nameVal : (user.mobile || 'Customer');
 
-        // Choose template based on create or update
-        const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
-        const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
-        const header = fs.readFileSync(headerPath, 'utf8');
-        const footer = fs.readFileSync(footerPath, 'utf8');
-
-        // Send welcome email if user has email
-        if (user.email) {
-            try {
-                const { sendEmail } = await import('@/utils/sendEmail');
-                const { WELCOME_EMAIL_SUBJECT } = await import('@/utils/emailSubjects');
-                const nameVal = user.name || '';
-                const displayName = nameVal ? nameVal : (user.mobile || 'Customer');
-
-                const html = ` ${header}
+        const html = ` ${header}
 <!DOCTYPE html>
 <html>
 
@@ -200,28 +221,28 @@ export async function POST(request: NextRequest) {
                 ${footer}
                 `;
 
-                await sendEmail({
-                    to: user.email,
-                    subject: WELCOME_EMAIL_SUBJECT,
-                    html
-                });
-            } catch (err) {
-                console.error('Failed to send welcome email:', err);
-            }
-        }
-
+        await sendEmail({
+          to: user.email,
+          subject: WELCOME_EMAIL_SUBJECT,
+          html
+        });
+      } catch (err) {
+        console.error('Failed to send welcome email:', err);
+      }
     }
 
-    if (deviceToken) {
-        user.deviceToken = deviceToken;
-    } else {
-        user.deviceToken = "";
-    }
+  }
 
-    // Issue access and refresh tokens
-    const accessToken = signJwt({ userId: user._id, mobile: user.mobile, provider, role: 'customer' }, '24h');
-    const refreshToken = signJwt({ userId: user._id, mobile: user.mobile, provider, role: 'customer' }, undefined); // default: no expiry
-    user.refreshToken = refreshToken;
-    await user.save();
-    return NextResponse.json({ success: true, message: 'Social login successful', user, accessToken, refreshToken });
+  if (deviceToken) {
+    user.deviceToken = deviceToken;
+  } else {
+    user.deviceToken = "";
+  }
+
+  // Issue access and refresh tokens
+  const accessToken = signJwt({ userId: user._id, mobile: user.mobile, provider, role: 'customer' }, '24h');
+  const refreshToken = signJwt({ userId: user._id, mobile: user.mobile, provider, role: 'customer' }, undefined); // default: no expiry
+  user.refreshToken = refreshToken;
+  await user.save();
+  return NextResponse.json({ success: true, message: 'Social login successful', user, accessToken, refreshToken });
 }

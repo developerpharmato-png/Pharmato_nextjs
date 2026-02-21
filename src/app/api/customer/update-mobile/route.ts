@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
             await sendPushNotificationWithData({
                 token: user.deviceToken,
                 title: 'Pharmato',
-                body: 'Your mobile number has been updated successfully.',
+                body: 'Mobile Number updated successfully.',
                 data: {
                     type: 'mobile-update',
                     targetScreen: 'account',

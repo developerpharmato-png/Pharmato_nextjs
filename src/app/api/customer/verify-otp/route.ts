@@ -55,7 +55,7 @@ import { sendPushNotificationWithData } from '@/utils/firebase.helper';
 
 export async function POST(request: NextRequest) {
     await connectDB();
-    const { userId, otp, deviceToken, isNewUser } = await request.json();
+    const { userId, otp, deviceToken } = await request.json();
     // Log deviceToken if sent in headers (case-insensitive key)
     try {
         const headerDeviceToken = request.headers.get('devicetoken') || request.headers.get('deviceToken') || request.headers.get('device-token');
@@ -122,15 +122,17 @@ export async function POST(request: NextRequest) {
     // =====================================
     // 5️⃣ New User → Create Welcome Notification
     // =====================================
-    if (isNewUser) {
+    if (user.isNewUser) {
         try {
             const Notification = (await import('@/models/Notification')).default;
             await Notification.create({
                 userId: user._id.toString(),
                 role: 'customer',
                 title: 'Welcome to Pharmato!',
-                message: 'Thank you for registering. Enjoy your experience!',
+                message: '“Welcome to Pharmato: Your health essentials are just a tap away!”',
                 type: 'welcome',
+                targetScreen: 'account',
+                targetId: user._id.toString(),
                 isRead: false,
                 createdAt: new Date(),
             });
