@@ -180,7 +180,6 @@ async function runBackground(body: any) {
                         const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
 
                         itemsHtml += `
-        <p><b>Accepted Medicines:</b></p>
         <ul style="list-style:none;padding:0;">
     `;
 
