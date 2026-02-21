@@ -52,7 +52,9 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id order_id name email mobile phone' });
+        // const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id order_id name email mobile phone' });
+
+        const order = await Order.findOne({ _id: orderId });
 
         if (!order) {
             return NextResponse.json(
@@ -82,14 +84,26 @@ export async function POST(req: NextRequest) {
             });
         }
 
+
+        let userName = 'Customer';
+        let userMobile = '';
+        let userEmail = '';
+        let deliveryAddressText = ''
+
+        const deliveredAddr: any = order.deliveredAddress || null;
+        if (deliveredAddr) {
+            userName = deliveredAddr?.name || 'Customer';
+            userMobile = deliveredAddr?.phone || '';
+            userEmail = deliveredAddr?.email || '';
+            deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
+        }
+
         // Send email to customer if email available using template
         let mailRes: any = null;
         try {
-            const userEmail = order.userId && order.userId.email ? order.userId.email : null;
             if (userEmail && userEmail.trim() !== '') {
-                console.log('Preparing approval email for:', userEmail);
+                // console.log('Preparing approval email for:', userEmail);
                 const base = process.env.NEXT_PUBLIC_BASE_URL || '';
-                const orderUrl = `${base}/customer/orders/${order._id}`;
                 const subject = `Prescription Approved - Order ${order.order_id}`;
                 const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
                 const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
@@ -100,14 +114,14 @@ export async function POST(req: NextRequest) {
                     const baseForEmail = base || (process.env.NEXT_PUBLIC_BASE_URL || '');
                     header = header.replace(/{{baseUrl}}/g, baseForEmail);
                     const content = fs.readFileSync(contentPath, 'utf8')
-                        .replace(/{{name}}/g, (order.userId && order.userId.name) || '')
-                        .replace(/{{orderId}}/g, order.order_id || '')
-                        .replace(/{{orderUrl}}/g, orderUrl);
+                        .replace(/{{UserName}}/g, (userName || '').toString())
+                        .replace(/{{OrderID}}/g, order.order_id || '')
+                        .replace(/{{DeliveryAddress}}/g, deliveryAddressText);
                     const footer = fs.readFileSync(footerPath, 'utf8');
                     html = header + content + footer;
                 } catch (readErr) {
                     console.error('Email template read error:', readErr);
-                    html = `<p>Hi ${(order.userId && order.userId.name) || ''},</p><p>Your prescription for order <strong>${order.order_id}</strong> has been approved.</p>`;
+                    html = `<p>Hi ${userName || ''},</p><p>Your prescription for order <strong>${order.order_id}</strong> has been approved.</p>`;
                 }
                 mailRes = await sendEmail({ to: userEmail, subject, html });
                 console.log('Approval email send result:', mailRes);
