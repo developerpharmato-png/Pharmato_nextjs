@@ -163,13 +163,12 @@ async function runBackground(body: any) {
 
                     console.log('##########checkMedicineId#############', checkMedicineId);
 
-                    const acceptedNames = checkOrder.medicineQuantity.map((m: any) => {
-                        const item = checkMedicineId.find((i: any) => i._id.toString() === m.medicineId.toString());
+                    const acceptedNames = checkMedicineId.map((m: any) => {
+                        const item = checkOrder.medicineQuantity.find((i: any) => i.medicineId.toString() === m._id.toString());
                         return {
                             ...m._doc,
-                            images: item ? item.images : [],
-                            coverImage: item ? item.coverImage : "",
-                            name: item ? item.name : "",
+                            quantity: item ? item.quantity : 0,
+                            price: item ? item.price : 0,
                         };
                     });
 
