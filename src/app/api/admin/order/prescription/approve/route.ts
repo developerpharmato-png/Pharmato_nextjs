@@ -7,6 +7,8 @@ import { getDb, sendPushNotificationWithData } from '@/utils/firebase.helper';
 import fs from 'fs';
 import path from 'path';
 import User from '@/models/User';
+import Admin from '@/models/Admin';
+import Store from '@/models/Store';
 
 /**
  * @swagger
@@ -139,7 +141,7 @@ export async function POST(req: NextRequest) {
                     userId: userIdStr,
                     role: 'customer',
                     title: 'Prescription Approved',
-                    message: `Order Update : Your prescription has been approved by the store. `,
+                    message: `Order Update : Your prescription has been approved by the store.`,
                     type: 'prescription_approved',
                     targetScreen: 'orders/detail',
                     targetId: order._id.toString(),
@@ -167,6 +169,68 @@ export async function POST(req: NextRequest) {
                 });
             } catch (err) {
                 console.error('Failed to send notification:', err);
+            }
+        }
+
+        // Notify admin (store manager) and superadmins with detailed message
+        let storeName = '';
+        let adminName = '';
+        let adminEmail = '';
+        let adminRoleName = '';
+        let customerName = userName;
+        if (order.storeId) {
+            const storeId = (order as any).storeId;
+            if (storeId) {
+                const store = await Store.findById(storeId).lean();
+                if (store && typeof store === 'object' && !Array.isArray(store)) {
+                    storeName = (store as any).name || '';
+                    if ('adminManagerId' in store && store.adminManagerId) {
+                        const admin = await Admin.findById((store as any).adminManagerId).lean();
+                        if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+                            adminName = (admin as any).name || '';
+                            adminEmail = (admin as any).email || '';
+                            // Try to get admin's role name
+                            if ('roleId' in admin && admin.roleId) {
+                                const roleDoc = await (await import('@/models/Role')).default.findById(admin.roleId).lean();
+                                if (roleDoc && typeof roleDoc === 'object' && !Array.isArray(roleDoc)) {
+                                    adminRoleName = (roleDoc as any).name || '';
+                                }
+                            }
+
+                            // Notify store admin
+                            await Notification.create({
+                                userId: (store as any).adminManagerId.toString(),
+                                role: 'admin',
+                                title: 'New Order Received',
+                                message: `Prescription Approved: You have approved the prescription for Order #${order.order_id}. Please proceed with order confirmation.`,
+                                type: 'order',
+                                targetScreen: 'orders/detail',
+                                targetId: order._id.toString(),
+                                meta: {}
+                            });
+
+                            try {
+                                const adminToken = (admin as any).deviceToken;
+                                if (adminToken) {
+                                    await sendPushNotificationWithData({
+                                        token: adminToken,
+                                        title: 'Pharmato',
+                                        body: `Prescription Approved: You have approved the prescription for Order #${order.order_id}. Please proceed with order confirmation.`,
+                                        data: {
+                                            targetId: order._id.toString(),
+                                            orderId: order._id.toString(),
+                                            type: 'order_update',
+                                            targetScreen: 'orders/detail'
+                                        }
+                                    });
+                                }
+                            } catch (err) {
+                                console.error('Failed to send push notification to admin:', err);
+                            }
+
+                        }
+                    }
+                }
             }
         }
 

@@ -7,6 +7,8 @@ import fs from 'fs';
 import path from 'path';
 import { getDb, sendPushNotificationWithData } from '@/utils/firebase.helper';
 import User from '@/models/User';
+import Admin from '@/models/Admin';
+import Store from '@/models/Store';
 
 /**
  * @swagger
@@ -89,9 +91,6 @@ export async function POST(req: NextRequest) {
                 isOrderStatusChanged: isOrderStatusChanged
             });
         }
-
-        
-
 
         let userName = 'Customer';
         let userMobile = '';
@@ -176,6 +175,68 @@ export async function POST(req: NextRequest) {
                 html = `<p>Hi ${userName},</p><p>Your prescription for order <strong>${order.order_id}</strong> has been rejected. Reason: ${rejectionReason}</p>`;
             }
             await sendEmail({ to: userEmail, subject, html });
+        }
+
+        // Notify admin (store manager) and superadmins with detailed message
+        let storeName = '';
+        let adminName = '';
+        let adminEmail = '';
+        let adminRoleName = '';
+        let customerName = userName;
+        if (order.storeId) {
+            const storeId = (order as any).storeId;
+            if (storeId) {
+                const store = await Store.findById(storeId).lean();
+                if (store && typeof store === 'object' && !Array.isArray(store)) {
+                    storeName = (store as any).name || '';
+                    if ('adminManagerId' in store && store.adminManagerId) {
+                        const admin = await Admin.findById((store as any).adminManagerId).lean();
+                        if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+                            adminName = (admin as any).name || '';
+                            adminEmail = (admin as any).email || '';
+                            // Try to get admin's role name
+                            if ('roleId' in admin && admin.roleId) {
+                                const roleDoc = await (await import('@/models/Role')).default.findById(admin.roleId).lean();
+                                if (roleDoc && typeof roleDoc === 'object' && !Array.isArray(roleDoc)) {
+                                    adminRoleName = (roleDoc as any).name || '';
+                                }
+                            }
+
+                            // Notify store admin
+                            await Notification.create({
+                                userId: (store as any).adminManagerId.toString(),
+                                role: 'admin',
+                                title: 'Prescription Rejected',
+                                message: `You have rejected the prescription for Order #${order.order_id}. Awaiting prescription re-upload from the user.`,
+                                type: 'order',
+                                targetScreen: 'orders/detail',
+                                targetId: order._id.toString(),
+                                meta: {}
+                            });
+
+                            try {
+                                const adminToken = (admin as any).deviceToken;
+                                if (adminToken) {
+                                    await sendPushNotificationWithData({
+                                        token: adminToken,
+                                        title: 'Pharmato',
+                                        body: `You have rejected the prescription for Order #${order.order_id}. Awaiting prescription re-upload from the user.`,
+                                        data: {
+                                            targetId: order._id.toString(),
+                                            orderId: order._id.toString(),
+                                            type: 'order_update',
+                                            targetScreen: 'orders/detail'
+                                        }
+                                    });
+                                }
+                            } catch (err) {
+                                console.error('Failed to send push notification to admin:', err);
+                            }
+
+                        }
+                    }
+                }
+            }
         }
 
         return NextResponse.json({

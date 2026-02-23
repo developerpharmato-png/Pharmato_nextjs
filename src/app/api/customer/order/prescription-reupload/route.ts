@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
 import { sendEmail } from '@/utils/sendEmail';
+import { sendPushNotificationWithData } from '@/utils/firebase.helper';
 
 /**
  * @swagger
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
             const Role = (await import('@/models/Role')).default;
             const User = (await import('@/models/User')).default;
 
-            
+
 
             // Choose template based on create or update
             const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
@@ -133,7 +134,7 @@ export async function POST(req: NextRequest) {
                                 userId: store.adminManagerId.toString(),
                                 role: 'admin',
                                 title: 'Prescription Re-uploaded',
-                                message: `Customer ${customerName} has re-uploaded prescription for order ${(orderDoc as any).order_id} in store ${storeName}.`,
+                                message: `Prescription Re-uploaded: ${customerName} has re-uploaded prescription for Order #${orderDoc.order_id}. Please review and take action.`,
                                 type: 'prescription',
                                 targetScreen: 'orders/detail',
                                 targetId: (orderDoc as any)._id.toString(),
@@ -180,6 +181,26 @@ export async function POST(req: NextRequest) {
                                 `;
                                 await sendEmail({ to: adminEmail, subject: `Prescription Re-uploaded – Action Required for Order #${orderDoc.order_id}`, html: adminHtml });
                             }
+
+                            try {
+                                const adminToken = (admin as any).deviceToken;
+                                if (adminToken) {
+                                    await sendPushNotificationWithData({
+                                        token: adminToken,
+                                        title: 'Pharmato',
+                                        body: `Prescription Re-uploaded: ${customerName} has re-uploaded prescription for Order #${orderDoc.order_id}. Please review and take action.`,
+                                        data: {
+                                            targetId: orderDoc._id.toString(),
+                                            orderId: orderDoc._id.toString(),
+                                            type: 'prescription_reuploaded',
+                                            targetScreen: 'orders/detail',
+                                        }
+                                    });
+                                }
+                            } catch (err) {
+                                console.error('Failed to send push notification to admin:', err);
+                            }
+
                         }
                     }
                 }

@@ -386,12 +386,14 @@ ${footer}
                                             }
                                         }
 
+                                        const notificationMessage = checkOrder.isPrescriptionRequired == true ? `Order Received: Order #${checkOrder.order_id} has been placed by ${customerName}. Please review and approve/reject the prescription.` : `Order Received: Order #${checkOrder.order_id} has been placed by ${customerName}. Please review and confirm the order.`;
+
                                         // Notify store admin
                                         await Notification.create({
                                             userId: (store as any).adminManagerId.toString(),
                                             role: 'admin',
                                             title: 'New Order Received',
-                                            message: `Order #${checkOrder.order_id} has been placed by ${customerName} at your store ${storeName}. Review and proceed further.`,
+                                            message: notificationMessage,
                                             type: 'order',
                                             targetScreen: 'orders/detail',
                                             targetId: checkOrder._id.toString(),
@@ -414,7 +416,12 @@ ${footer}
                                                         <p>Hello ${adminName},</p>
                                                         <p>A new order <b>#${checkOrder.order_id}</b> has been placed on Pharmato and requires your review.</p>
                                                         <h4 style="margin:12px 0 6px;">Order Details</h4>
-                                                        <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+                                                        <h4 style="margin:12px 0 6px;">Action Required</h4>
+                                                        <p>Please review and confirm the Order. You can review this order by Admin Portal.</p>
+                                                        <p style="margin-top:18px;color:#777;font-size:13px;">Thank you for ensuring safe and compliant medicine delivery.</p>
+                                                        <p style="margin:6px 0 0;color:#333;font-weight:600;">Regards,<br/>Team Pharmato</p>
+                                                    </div>
+                                                </div>     <table style="width:100%;border-collapse:collapse;margin:16px 0;">
                                                             <tr>
                                                                 <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
                                                                 <td style="padding:8px;border:1px solid #eee;">${checkOrder.order_id}</td>
@@ -428,12 +435,7 @@ ${footer}
                                                                 <td style="padding:8px;border:1px solid #eee;">${deliveryAddressText || 'Address will be updated soon.'}</td>
                                                             </tr>
                                                         </table>
-                                                        <h4 style="margin:12px 0 6px;">Action Required</h4>
-                                                        <p>Please review and confirm the Order. You can review this order by Admin Portal.</p>
-                                                        <p style="margin-top:18px;color:#777;font-size:13px;">Thank you for ensuring safe and compliant medicine delivery.</p>
-                                                        <p style="margin:6px 0 0;color:#333;font-weight:600;">Regards,<br/>Team Pharmato</p>
-                                                    </div>
-                                                </div>
+                                                   
                                                 ${footer}
                                             `;
                                             await sendEmail({ to: adminEmail, subject: `New Order Received- ${checkOrder.order_id}`, html: adminHtml });
@@ -445,7 +447,7 @@ ${footer}
                                                 await sendPushNotificationWithData({
                                                     token: adminToken,
                                                     title: 'Pharmato',
-                                                    body: `Order #${checkOrder.order_id} has been placed by ${customerName} at your store ${storeName}. Review and proceed further.`,
+                                                    body: notificationMessage,
                                                     data: {
                                                         targetId: checkOrder._id.toString(),
                                                         orderId: checkOrder._id.toString(),

@@ -3,6 +3,8 @@ import dbConnect from '@/lib/mongodb';
 import Store from '@/models/Store';
 import Pincode from '@/models/Pincode';
 import Admin from '@/models/Admin';
+import Notification from '@/models/Notification';
+import { sendPushNotificationWithData } from '@/utils/firebase.helper';
 
 // POST: List all stores (with search and filters in body)
 export async function POST(req: NextRequest) {
@@ -50,7 +52,40 @@ export async function POST(req: NextRequest) {
                 }
             );
         }
-        const populatedStore = await Store.findById(store._id).populate('adminManagerId', 'email firstName lastName');
+        const populatedStore = await Store.findById(store._id).populate('adminManagerId', 'email firstName lastName');   
+
+        const admin = await Admin.findById(adminManagerId).lean();
+
+        if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+
+            // Notify store admin
+            await Notification.create({
+                userId: adminManagerId.toString(),
+                role: 'admin',
+                title: 'New Store Assigned',
+                message: `Store Assigned : You have been assigned as the Store Manager for ${name}. You can now manage orders for this store.`,
+                type: 'store',
+                targetScreen: 'stores/detail',
+                targetId: store._id.toString(),
+                meta: { storeName: name }
+            });
+
+            try {
+                const adminToken = (admin as any).deviceToken;
+                if (adminToken) {
+                    await sendPushNotificationWithData({
+                        token: adminToken,
+                        title: 'Pharmato',
+                        body: `Store Assigned : You have been assigned as the Store Manager for ${name}. You can now manage orders for this store.`,
+                        data: { storeName: name }
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to send push notification to admin:', err);
+            }
+
+        }
+
         return NextResponse.json({ success: true, message: 'Store added successfully', data: populatedStore }, { status: 201 });
     } catch (error: any) {
         console.error('POST /api/admin/store error:', error);
@@ -121,7 +156,39 @@ export async function PUT(req: NextRequest) {
         await Admin.updateMany(
             { 'managedStores.storeId': updated._id },
             { $set: { 'managedStores.$.storeName': name } }
-        );
+        );        
+
+        const admin = await Admin.findById(adminManagerId).lean();
+
+        if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+
+            // Notify store admin
+            await Notification.create({
+                userId: adminManagerId.toString(),
+                role: 'admin',
+                title: 'New Store Assigned',
+                message: `You have been assigned to manage a new store: ${name}.`,
+                type: 'store',
+                targetScreen: 'stores/detail',
+                targetId: existing._id.toString(),
+                meta: { storeName: name }
+            });
+
+            try {
+                const adminToken = (admin as any).deviceToken;
+                if (adminToken) {
+                    await sendPushNotificationWithData({
+                        token: adminToken,
+                        title: 'Pharmato',
+                        body: `Store Assigned : You have been assigned as the Store Manager for ${name}. You can now manage orders for this store.`,
+                        data: { storeName: name }
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to send push notification to admin:', err);
+            }
+
+        }
 
         return NextResponse.json({ success: true, message: 'Store updated successfully', data: updated });
     } catch (error: any) {
