@@ -352,7 +352,7 @@ export default function PartialCancelPage() {
             showSearch={false}
             addShow={false}
           />
-       </div>
+        </div>
         {order?.order_status === "Confirmed" && (
           <CustomButton
             width="250px"
@@ -1281,6 +1281,16 @@ export default function PartialCancelPage() {
                         : "FREE"}
                     </span>
                   </div>
+                  {order?.discount ? (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Discount</span>
+                      <span className="font-bold text-red-600 uppercase">
+                        {" "}
+                        {order?.discount > 0 ? `- ₹${order?.discount.toFixed(2)}` : "-"}
+                      </span>
+                    </div>
+                  ):""}
+
                   {/* <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Platform Fee</span>
                     <span className="font-bold text-gray-700">

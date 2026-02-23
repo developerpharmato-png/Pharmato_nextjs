@@ -387,16 +387,21 @@ export default function NewDashboardPage() {
                       dataKey="value"
                       stroke="none"
                     >
-                      {[
-                        "#10b981", // Confirmed/Success
-                        "#f59e0b", // Pending/Warning
-                        "#ef4444", // Cancelled/Error
-                        "#3b82f6", // Processing/Info
-                        "#8b5cf6", // Shipped/Purple
-                        "#64748b", // Other/Slate
-                      ].map((color, idx) => (
-                        <Cell key={`cell-${idx}`} fill={color} />
-                      ))}
+                      {ordersData.statusCounts.map((s: any, idx: number) => {
+                        const getStatusColor = (status: string) => {
+                          const lowerStatus = status?.toLowerCase() || "";
+                          if (lowerStatus.includes("delivered") || lowerStatus.includes("success") || lowerStatus.includes("completed")) return "#10b981"; // Green
+                          if (lowerStatus.includes("pending")) return "#f59e0b"; // Orange
+                          if (lowerStatus.includes("cancelled") || lowerStatus.includes("fail") || lowerStatus.includes("rejected")) return "#ef4444"; // Red
+                          if (lowerStatus.includes("confirm")) return "#6366f1"; // Indigo
+                          if (lowerStatus.includes("placed")) return "#3b82f6"; // Blue
+                          if (lowerStatus.includes("shipped") || lowerStatus.includes("dispatch")) return "#8b5cf6"; // Purple
+                          return "#64748b"; // Gray
+                        };
+                        return (
+                          <Cell key={`cell-${idx}`} fill={getStatusColor(s._id)} />
+                        );
+                      })}
                     </Pie>
                     <Tooltip
                       contentStyle={{
@@ -415,7 +420,7 @@ export default function NewDashboardPage() {
             {/* Total and List Section */}
             <div className="flex-1">
               <div className="mb-4">
-                <h4 className="text-lg font-bold text-slate-800">Order Status</h4>
+                <h4 className="text-lg font-bold text-blue-600">Order Status</h4>
                 <p className="text-sm font-medium text-slate-500">
                   Total Orders: <span className="text-slate-900 font-bold">{loading ? "—" : (ordersData?.kpis?.totalOrders ?? 0)}</span>
                 </p>
@@ -426,8 +431,17 @@ export default function NewDashboardPage() {
                   [1, 2, 3].map((i) => <div key={i} className="h-6 bg-slate-100 animate-pulse rounded" />)
                 ) : ordersData?.statusCounts?.length ? (
                   ordersData.statusCounts.map((s: any, idx: number) => {
-                    const colors = ["#10b981", "#f59e0b", "#ef4444", "#3b82f6", "#8b5cf6", "#64748b"];
-                    const statusColor = colors[idx % colors.length];
+                    const getStatusColor = (status: string) => {
+                      const lowerStatus = status?.toLowerCase() || "";
+                      if (lowerStatus.includes("delivered") || lowerStatus.includes("success") || lowerStatus.includes("completed")) return "#10b981"; // Green
+                      if (lowerStatus.includes("pending")) return "#f59e0b"; // Orange
+                      if (lowerStatus.includes("cancelled") || lowerStatus.includes("fail") || lowerStatus.includes("rejected")) return "#ef4444"; // Red
+                      if (lowerStatus.includes("confirm")) return "#6366f1"; // Indigo
+                      if (lowerStatus.includes("placed")) return "#3b82f6"; // Blue
+                      if (lowerStatus.includes("shipped") || lowerStatus.includes("dispatch")) return "#8b5cf6"; // Purple
+                      return "#64748b"; // Gray
+                    };
+                    const statusColor = getStatusColor(s._id);
                     return (
                       <div
                         key={s._id}
@@ -490,12 +504,13 @@ export default function NewDashboardPage() {
             <div className="flex flex-wrap items-center gap-2">
               {[
                 { label: "Today", value: revenueData?.summary?.daily || 0, color: "emerald", periodVal: 'today' },
+                { label: "Week", value: revenueData?.summary?.weekly || 0, color: "indigo", periodVal: 'week' },
                 { label: "Month", value: revenueData?.summary?.monthly || 0, color: "blue", periodVal: 'month' },
-                { label: "Year", value: revenueData?.summary?.yearly || 0, color: "indigo", periodVal: 'all' },
+                { label: "Year", value: revenueData?.summary?.yearly || 0, color: "purple", periodVal: 'all' },
               ].map((card) => (
                 <div
                   key={card.label}
-                  onClick={() => setPeriod(card.periodVal as any)}
+                  // onClick={() => setPeriod(card.periodVal as any)}
                   className="bg-white/50 border border-slate-100 px-3 py-1.5 rounded-xl flex items-center gap-2 shrink-0 cursor-pointer hover:bg-white hover:border-blue-200 transition-all group"
                 >
                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{card.label}:</span>
@@ -600,26 +615,7 @@ export default function NewDashboardPage() {
                 </p>
               </div>
 
-              {/* Vs Previous Period Details */}
-              {/* <div className="bg-slate-50/50 p-3 rounded-xl border border-dashed border-slate-200 shadow-sm transition-all hover:bg-white group">
-                <div className="flex items-center gap-3 mb-1.5">
-                  <div className="p-1 bg-purple-50 text-purple-600 rounded-lg group-hover:scale-110 transition-transform">
-                    <HistoryIcon size={16} />
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Previous Period
-                  </span>
-                </div>
-                <div className="flex items-baseline justify-between">
-                  <p className="text-sm font-bold text-slate-700">
-                    ₹{(revenueData?.previousPeriod?.totalRevenue ?? 0).toLocaleString()}
-                  </p>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase">Total</span>
-                </div>
-                <p className="text-[9px] text-slate-400 mt-1 italic">
-                  Comparison based on the last {period === 'all' ? 'year' : period}
-                </p>
-              </div> */}
+
             </div>
           </div>
         </div>

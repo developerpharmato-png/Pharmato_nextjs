@@ -56,6 +56,10 @@
   /* purple-100 */
   --status-purple-text: #5B21B6;
   /* purple-800 */
+  --status-indigo-bg: #E0E7FF;
+  /* indigo-100 */
+  --status-indigo-text: #3730A3;
+  /* indigo-800 */
   --status-warning-bg: #FFEDD5;
   /* orange-100 */
   --status-warning-text: #9A3412;
@@ -309,6 +313,11 @@ body {
 .status-purple {
   background-color: var(--status-purple-bg);
   color: var(--status-purple-text);
+}
+
+.status-indigo {
+  background-color: var(--status-indigo-bg);
+  color: var(--status-indigo-text);
 }
 
 .status-warning {

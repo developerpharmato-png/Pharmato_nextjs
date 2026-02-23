@@ -109,6 +109,10 @@ export async function POST(req: NextRequest) {
         // --- NEW: Calculate Daily, Monthly, Yearly summaries for KPI Cards ---
         const now = new Date();
         const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const day = now.getDay();
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - day);
+        weekStart.setHours(0, 0, 0, 0);
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
         const yearStart = new Date(now.getFullYear(), 0, 1);
 
@@ -122,6 +126,10 @@ export async function POST(req: NextRequest) {
                 $facet: {
                     daily: [
                         { $match: { $or: [{ deliveredDate: { $gte: todayStart } }, { createdAt: { $gte: todayStart } }] } },
+                        { $group: { _id: null, total: { $sum: '$total_order_amount' } } }
+                    ],
+                    weekly: [
+                        { $match: { $or: [{ deliveredDate: { $gte: weekStart } }, { createdAt: { $gte: weekStart } }] } },
                         { $group: { _id: null, total: { $sum: '$total_order_amount' } } }
                     ],
                     monthly: [
@@ -138,6 +146,7 @@ export async function POST(req: NextRequest) {
 
         const summary = {
             daily: summaryAgg[0]?.daily[0]?.total || 0,
+            weekly: summaryAgg[0]?.weekly[0]?.total || 0,
             monthly: summaryAgg[0]?.monthly[0]?.total || 0,
             yearly: summaryAgg[0]?.yearly[0]?.total || 0
         };

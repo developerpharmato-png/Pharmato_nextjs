@@ -49,8 +49,9 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
     const s = (status || "").toLowerCase();
     switch (s) {
       case "pending":
+        return "status-pending"; // Orange
       case "placed":
-        return "status-pending";
+        return "status-info"; // Blue
       case "completed":
       case "success":
       case "delivered":
@@ -61,9 +62,10 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       case "returned":
         return "status-danger";
       case "processing":
-      case "confirmed":
       case "packed":
         return "status-info";
+      case "confirmed":
+        return "status-indigo"; // Indigo
       case "dispatched":
         return "status-purple";
       case "refunded":
@@ -88,7 +90,7 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
         return "status-default";
     }
   };
- 
+
   const columns: Column<Order>[] = [
     {
       id: "order_id",
@@ -170,7 +172,7 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       selector: (row: Order) => (
 
 
-        <span className="font-medium text-green-600 customTooltip">
+        <span className="font-medium text-red-600 customTooltip">
           {row.discount > 0 ? `₹${row.discount.toFixed(2)}` : "-"}
         </span>
 
