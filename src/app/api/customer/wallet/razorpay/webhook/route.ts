@@ -86,7 +86,7 @@ async function runBackground(body: any) {
                 if (checkWallet?.recharge_id) {
                     const db = getDb();
                     //Firebase realtime data update
-                    const firebaseRef = db.ref(`wallet/recharge/${checkWallet.recharge_id}`);
+                    const firebaseRef = db.ref(`wallet/recharge/${(checkWallet.userId).toString()}`);
                     const snapshot = await firebaseRef.once('value');
                     const isRechargeStatusChanged: any = Number(snapshot.val()?.isRechargeStatusChanged || 0) + 1
                     await firebaseRef.update({
