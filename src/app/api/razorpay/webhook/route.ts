@@ -312,8 +312,6 @@ ${header}
 ${footer}
 `;
 
-
-
                     if (userEmail) {
                         await sendEmail({ to: userEmail, subject, html });
                     }

@@ -4,6 +4,8 @@ import dbConnect from '@/lib/mongodb';
 import '@/models/Medicine';   // 🚨 MUST
 import Order from '@/models/Order';
 import moment from 'moment-timezone';
+import Store from '@/models/Store';
+import Admin from '@/models/Admin';
 
 /**
  * @swagger
@@ -149,7 +151,7 @@ export async function POST(req: NextRequest) {
 
   // Format createdAt and deliveredDate if present using moment
   const orderData = { ...orders[0] };
-  
+
   if (orderData.createdAt) {
     orderData.createdAt = moment(orderData.createdAt)
       .tz('Asia/Kolkata')
@@ -170,7 +172,24 @@ export async function POST(req: NextRequest) {
   } else {
     orderData.expectedDeliveryDate = "";
   }
-  return NextResponse.json({ status: true, data: orderData });
+
+  // Fetch store details
+  let storeDetails : any = null;
+  if (orderData.storeId) {
+    storeDetails = await Store.findById(orderData.storeId).lean();
+    if (storeDetails && storeDetails.adminManagerId) {
+      const admin : any = await Admin.findById(storeDetails.adminManagerId).lean();
+      if (admin) {
+        storeDetails.name = admin.name || '';
+        storeDetails.email = admin.email || '';
+        storeDetails.mobile = admin.mobile || '';
+      }
+    }
+  }
+
+  orderData.storeDetails = storeDetails;
+
+  return NextResponse.json({ status: true, data: { ...orderData } });
 }
 
 

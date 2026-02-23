@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
-import mongoose from 'mongoose'; 
+import mongoose from 'mongoose';
 import Order from '@/models/Order';
 import { getDb, sendPushNotificationWithData } from '@/utils/firebase.helper';
 import Notification from '@/models/Notification';
@@ -158,24 +158,31 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
 
     // Build email HTML
     let html = `${header}<div><p>Dear ${userName},</p>`;
-    html += `<p>The admin has updated your order (Order ID: <b>${order.order_id || order._id}</b>).</p>`;
 
-
-    let emailSubject: any = `Order Update: Partial Acceptance`;
+    let emailSubject: any = `Order Confirmed Successfully`;
 
     if (cancelledNames.length === 0) {
 
-        emailSubject = `Order Confirmed Successfully– Order #${order.order_id}`;
-        html += `<p>All medicines in your order have been accepted.</p>`;
+        emailSubject = `Order Confirmed Successfully`;
+        html += `<p>Your order has been Confirmed successfully. Your medicines will be packed and delivered to you soon.</p>`;
 
     }
 
     if (acceptedNames.length === 0) {
 
-        emailSubject = `Order Cancelled Successfully– Order #${order.order_id}`;
-        html += `<p>All medicines in your order have been cancelled.</p>`;
+        emailSubject = `Order Update : Cancelled `;
+        html += `<p>Your order  has been Cancelled . We’re sorry that we couldn’t fulfill your order this time.</p>`;
 
     }
+
+    if (acceptedNames.length > 0 && cancelledNames.length > 0) {
+        
+        html += `<p>Your order has been Confirmed. Some medicines are available and confirmed, while a few items could not be fulfilled.</p>`;
+        html += `<p>Our pharmacy team has reviewed your order. The confirmed medicines will be packed and delivered to you soon.</p>`;
+
+    }
+
+    html += `<h3 style="margin-top:25px;">Order Summary</h3>`
 
     if (acceptedNames.length > 0) {
         const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
@@ -211,9 +218,56 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
         });
         html += `</ul><b>Refund Amount:</b> ₹${Number(refundAmount).toFixed(2)}</p>`;
     }
-    html += '<p>You can track your order status anytime from the My Orders section on the Pharmato app or website.</p>';
-    html += '<p>If you have any questions or need assistance, our support team is always here to help.</p>';
-    html += '<p>Thank you for choosing Pharmato for your healthcare needs.</p>';
+
+    html += `<h3 style="margin-top:25px;">Payment Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Subtotal</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${order.calculationData.priceTotalSumBeforeDiscount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Delivery Charges</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${order.calculationData.deliveryFee}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Discount</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${order.discount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+          Total Amount Paid
+        </td>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+          ₹${order.total_order_amount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Payment Method</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${order.payment_mode.toUpperCase()}
+        </td>
+      </tr>
+    </table>`
+
+    html += `<h3 style="margin-top:25px;">Refund Information</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Refund Amount</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${refundAmount.toFixed(2)}
+        </td>
+      </tr>
+    </table>`
+
+    html += '<p><strong>Note:</strong>The amount for the cancelled items will be credited to your original payment method within <strong>5–7 business days</strong>.Delivery fees are non-refundable.</p>';
+    html += '<p>You can track your order status anytime from the My Orders section in the Pharmato app or website.</p>';
+    html += '<p>Thank you for choosing Pharmato for your healthcare needs. We’re committed to delivering your medicines safely and on time.</p>';
     html += '<p>Stay healthy,<br/>Team Pharmato<br/>Your trusted pharmacy partner</p></div>';
     html += `${footer}`;
 

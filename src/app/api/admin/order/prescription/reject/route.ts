@@ -56,7 +56,8 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id order_id name email mobile phone' });
+        // const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id order_id name email mobile phone' });
+        const order = await Order.findOne({ _id: orderId });
 
         if (!order) {
             return NextResponse.json(
@@ -87,6 +88,22 @@ export async function POST(req: NextRequest) {
             await firebaseRef.update({
                 isOrderStatusChanged: isOrderStatusChanged
             });
+        }
+
+        
+
+
+        let userName = 'Customer';
+        let userMobile = '';
+        let userEmail = '';
+        let deliveryAddressText = ''
+
+        const deliveredAddr: any = order.deliveredAddress || null;
+        if (deliveredAddr) {
+            userName = deliveredAddr?.name || 'Customer';
+            userMobile = deliveredAddr?.phone || '';
+            userEmail = deliveredAddr?.email || '';
+            deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
         }
 
         // Create in-app notification for customer
@@ -132,14 +149,6 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        let userName = 'Customer';
-        let userEmail = '';
-        const deliveredAddr: any = order.deliveredAddress || null;
-        if (deliveredAddr) {
-            userName = deliveredAddr?.name || 'Customer';
-            userEmail = deliveredAddr?.email || '';
-        }
-
         // Send email to customer if email available using template
         if (userEmail) {
             const base = process.env.NEXT_PUBLIC_BASE_URL || '';
@@ -155,10 +164,10 @@ export async function POST(req: NextRequest) {
                 const baseForEmail = base || (process.env.NEXT_PUBLIC_BASE_URL || '');
                 header = header.replace(/{{baseUrl}}/g, baseForEmail);
                 const content = fs.readFileSync(contentPath, 'utf8')
-                    .replace(/{{name}}/g, (order.userId && order.userId.name) || '')
-                    .replace(/{{orderId}}/g, order.order_id || '')
-                    .replace(/{{reason}}/g, rejectionReason || '')
-                    .replace(/{{orderUrl}}/g, orderUrl);
+                    .replace(/{{UserName}}/g, (order.userId && order.userId.name) || '')
+                    .replace(/{{OrderID}}/g, order.order_id || '')
+                    .replace(/{{RejectionReason}}/g, rejectionReason || '')
+                    .replace(/{{ReuploadLink}}/g, orderUrl);
                 const footer = fs.readFileSync(footerPath, 'utf8');
                 html = header + content + footer;
             } catch (readErr) {

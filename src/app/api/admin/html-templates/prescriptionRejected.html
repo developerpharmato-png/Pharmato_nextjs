@@ -1,33 +1,75 @@
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif;">
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" 
+       style="background-color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif;">
     <tr>
         <td style="padding: 40px 30px;">
-            <h2 style="color: #d9534f; margin-top: 0; font-size: 20px;">Prescription Rejected</h2>
-            <p style="font-size: 16px;">Hello <strong>{{name}}</strong>,</p>
-            <p style="font-size: 16px; color: #555; line-height: 1.6;">
-                The prescription for your order <strong style="color: #333;">#{{orderId}}</strong> has been rejected by the store manager.
+
+            <p style="font-size: 16px; color: #333333; line-height: 1.6;">
+                Hello <strong>{{UserName}}</strong>,
             </p>
 
-            <div style="background-color: #fef2f2; border-left: 4px solid #d9534f; padding: 15px; margin: 25px 0;">
-                <p style="margin: 0; font-size: 14px; font-weight: bold; color: #333;">Reason for Rejection:</p>
-                <p style="margin: 5px 0 0; color: #b91c1c; font-style: italic;">"{{reason}}"</p>
+            <p style="font-size: 16px; color: #555555; line-height: 1.6;">
+                We’re sorry to inform you that the prescription uploaded for your order 
+                <strong>#{{OrderID}}</strong> has been 
+                <strong style="color: #d9534f;">Rejected</strong> by the store manager.
+            </p>
+
+            <div style="background-color: #fef2f2; border-left: 4px solid #d9534f; 
+                        padding: 15px; margin: 25px 0; border-radius: 4px;">
+                <p style="margin: 0; font-size: 14px; font-weight: bold; color: #333;">
+                    Reason for Rejection:
+                </p>
+                <p style="margin: 8px 0 0; color: #b91c1c; font-style: italic; font-size: 14px;">
+                    {{RejectionReason}}
+                </p>
             </div>
 
-            <div style="border: 1px solid #e0e0e0; border-radius: 6px; padding: 20px; margin-bottom: 30px;">
-                <p style="margin-top: 0; font-weight: bold; color: #5DAC5D;">Next Steps:</p>
-                <ul style="padding-left: 20px; font-size: 14px; line-height: 1.8; color: #555;">
-                    <li>Open <strong>My Orders</strong> in the Pharmato app</li>
-                    <li>Select order <strong>#{{orderId}}</strong></li>
-                    <li>Re-upload a valid prescription</li>
+            <p style="font-size: 14px; color: #555555; line-height: 1.6;">
+                To proceed with your order, please re-upload a 
+                <strong>valid prescription</strong> as per the doctor’s guidelines. 
+                Once you re-upload the prescription, our pharmacy team will review it 
+                and continue processing your order.
+            </p>
+
+            <div style="border: 1px solid #e0e0e0; border-radius: 6px; 
+                        padding: 20px; margin: 25px 0;">
+                <p style="margin-top: 0; font-weight: bold; color: #5DAC5D;">
+                    Next Steps:
+                </p>
+
+                <ul style="padding-left: 20px; font-size: 14px; 
+                           line-height: 1.8; color: #555555; margin: 0;">
+                    <li>Open the <strong>Pharmato app or website</strong></li>
+                    <li>Go to <strong>My Orders</strong></li>
+                    <li>Select order <strong>#{{OrderID}}</strong></li>
+                    <li>Re-upload the prescription</li>
                 </ul>
             </div>
 
             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                 <tr>
                     <td align="center">
-                        <a href="#" style="background-color: #5DAC5D; color: #ffffff; padding: 15px 35px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 16px;">Re-upload Now</a>
+                        <a href="#" target="_blank"
+                           style="background-color: #5DAC5D; color: #ffffff; 
+                                  padding: 14px 30px; text-decoration: none; 
+                                  border-radius: 6px; font-weight: bold; 
+                                  display: inline-block; font-size: 15px;">
+                            Re-upload Now
+                        </a>
                     </td>
                 </tr>
             </table>
+
+            <p style="font-size: 14px; color: #555555; 
+                      line-height: 1.6; margin-top: 30px;">
+                Thank you for your understanding and cooperation.
+            </p>
+
+            <p style="margin-top: 20px; font-size: 14px; color: #333333;">
+                Stay healthy,<br/>
+                <strong>Team Pharmato</strong><br/>
+                Your trusted pharmacy partner
+            </p>
+
         </td>
     </tr>
 </table>
