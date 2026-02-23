@@ -50,18 +50,6 @@ async function runBackground(body: any) {
                     }
                 );
 
-                // Update paymentStatus in Firebase Realtime Database
-                if (checkWallet?.recharge_id) {
-                    const db = getDb();
-                    //Firebase realtime data update
-                    const firebaseRef = db.ref(`wallet/recharge/${checkWallet.recharge_id}`);
-                    const snapshot = await firebaseRef.once('value');
-                    const isRechargeStatusChanged: any = Number(snapshot.val()?.isRechargeStatusChanged || 0) + 1
-                    await firebaseRef.update({
-                        isRechargeStatusChanged: isRechargeStatusChanged
-                    });
-                }
-
                 try {
                     const captureResponse = await razorpayInstance.payments.capture(entity.id, amount, currency);
                 } catch (error) { }
