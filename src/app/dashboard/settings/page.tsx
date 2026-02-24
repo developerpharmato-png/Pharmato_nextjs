@@ -4,8 +4,8 @@ import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import Swal from "sweetalert2";
 import { ToastMessages } from "@/utils/ToasterMessage";
-import { TextField, InputAdornment } from "@mui/material";
-import { Truck, Save } from "lucide-react";
+import { TextField, InputAdornment, FormControlLabel, Switch, Typography } from "@mui/material";
+import { Truck, Save, Zap } from "lucide-react";
 
 import HeaderWithAction from "@/app/dashboard/components/HeaderWithAction";
 import {
@@ -15,6 +15,16 @@ import {
 import { PaymentSettingsPath } from "@/app/dashboard/storeAPICall/API/BaseApi";
 import { PaymentSettingsStore } from "../storeAPICall/useUserStore";
 import SettingSkeleton from "../components/skeleton/SettingSkeleton";
+
+const defaultExtraData = [
+  { day: "MON", startTime: "18:00", endTime: "22:00", surgeFee: 60, status: true },
+  { day: "TUE", startTime: "18:00", endTime: "22:00", surgeFee: 60, status: true },
+  { day: "WED", startTime: "18:00", endTime: "22:00", surgeFee: 60, status: true },
+  { day: "THU", startTime: "18:00", endTime: "22:00", surgeFee: 60, status: true },
+  { day: "FRI", startTime: "18:00", endTime: "22:00", surgeFee: 70, status: true },
+  { day: "SAT", startTime: "10:00", endTime: "14:00", surgeFee: 80, status: true },
+  { day: "SUN", startTime: "17:00", endTime: "23:00", surgeFee: 100, status: true },
+];
 
 const SettingsService = {
   getSettings: async () => {
@@ -38,6 +48,8 @@ export default function SettingsPage() {
     deliveryFeeId: "",
     deliveryFeeThresholdId: "",
     expectedDeliveryHoursId: "",
+    surgeFeeId: "",
+    extraData: defaultExtraData,
   });
   const [adminPermissions, setAdminPermissions] = useState<any>(null);
 
@@ -52,6 +64,7 @@ export default function SettingsPage() {
 
   const canEditSettings =
     adminPermissions?.Setting?.edit ?? adminPermissions?.Settings?.edit ?? true;
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -66,6 +79,9 @@ export default function SettingsPage() {
         const hours = (list || []).find(
           (s: any) => s.type === "expectedDeliveryHours",
         );
+        const surge = (list || []).find(
+          (s: any) => s.type === "surgePricing",
+        );
         setInitialValues({
           deliveryFee: fee ? String(fee.data) : "",
           deliveryFeeThreshold: thresh ? String(thresh.data) : "",
@@ -73,6 +89,10 @@ export default function SettingsPage() {
           deliveryFeeId: fee ? String(fee._id) : "",
           deliveryFeeThresholdId: thresh ? String(thresh._id) : "",
           expectedDeliveryHoursId: hours ? String(hours._id) : "",
+          surgeFeeId: surge ? String(surge._id) : "",
+          extraData: (surge?.extraData || surge?.data) && Array.isArray(surge?.extraData || surge?.data)
+            ? (surge.extraData || surge.data)
+            : defaultExtraData,
         });
       } catch (err) {
         console.error(err);
@@ -94,6 +114,18 @@ export default function SettingsPage() {
       .required("Mandatory field")
       .min(1, "Must be at least 1 hour")
       .max(24, "Cannot exceed 24 hours"),
+    extraData: Yup.array().of(
+      Yup.object({
+        startTime: Yup.string().required("Required"),
+        endTime: Yup.string()
+          .required("Required")
+          .test("is-greater", "End time must be after start time", function (value) {
+            const { startTime } = this.parent;
+            if (!startTime || !value) return true;
+            return value > startTime;
+          }),
+      })
+    ),
   });
 
   return (
@@ -115,44 +147,40 @@ export default function SettingsPage() {
           validationSchema={validationSchema}
           onSubmit={async (values) => {
             try {
-              // prepare updates array with ids
-              const updates: any[] = [];
-              if (values.deliveryFeeId || values.deliveryFee !== undefined) {
-                updates.push({
+              const updates: any[] = [
+                {
                   _id: values.deliveryFeeId || undefined,
                   type: "deliveryFee",
                   data: String(values.deliveryFee),
                   data_value_in: "number",
                   description: "delivery fee",
                   is_active: 1,
-                });
-              }
-              if (
-                values.deliveryFeeThresholdId ||
-                values.deliveryFeeThreshold !== undefined
-              ) {
-                updates.push({
+                },
+                {
                   _id: values.deliveryFeeThresholdId || undefined,
                   type: "deliveryFeeThreshold",
                   data: String(values.deliveryFeeThreshold),
                   data_value_in: "number",
                   description: "free delivery threshold",
                   is_active: 1,
-                });
-              }
-              if (
-                values.expectedDeliveryHoursId ||
-                values.expectedDeliveryHours !== undefined
-              ) {
-                updates.push({
+                },
+                {
                   _id: values.expectedDeliveryHoursId || undefined,
                   type: "expectedDeliveryHours",
                   data: String(values.expectedDeliveryHours),
                   data_value_in: "number",
                   description: "expected delivery hours",
                   is_active: 1,
-                });
-              }
+                },
+                {
+                  _id: values.surgeFeeId || undefined,
+                  type: "surgePricing",
+                  data: "",
+                  extraData: values.extraData,
+                  description: "surge fees",
+                  is_active: 1,
+                },
+              ];
               const res = await SettingsService.saveSettings(postData, {
                 updates,
               });
@@ -166,7 +194,7 @@ export default function SettingsPage() {
               });
               try {
                 clearData && clearData();
-              } catch (e) {}
+              } catch (e) { }
             } catch (e: any) {
               Swal.fire({
                 toast: true,
@@ -180,9 +208,9 @@ export default function SettingsPage() {
             }
           }}
         >
-          {({ values, handleChange, handleBlur, touched, errors }) => (
+          {({ values, handleChange, handleBlur, touched, errors, setFieldValue }) => (
             <Form className="space-y-10 mt-8 max-w-5xl">
-              {/* --- Only show Delivery Fee and Threshold --- */}
+              {/* --- Logistics Section --- */}
               <div className="space-y-4">
                 <div className="border-l-4 border-green-600 pl-4 py-1">
                   <div className="flex items-center gap-2 text-green-700">
@@ -204,7 +232,6 @@ export default function SettingsPage() {
                       value={values.deliveryFee}
                       onChange={(e) => {
                         const value = e.target.value;
-                        // Allow empty string and only non-negative values
                         if (value === "" || parseFloat(value) >= 0) {
                           handleChange(e);
                         }
@@ -232,7 +259,6 @@ export default function SettingsPage() {
                       value={values.deliveryFeeThreshold}
                       onChange={(e) => {
                         const value = e.target.value;
-                        // Allow empty string and only non-negative values
                         if (value === "" || parseFloat(value) >= 0) {
                           handleChange(e);
                         }
@@ -265,7 +291,6 @@ export default function SettingsPage() {
                       value={values.expectedDeliveryHours}
                       onChange={(e) => {
                         const value = e.target.value;
-                        // Allow empty string and only non-negative values
                         if (value === "" || parseFloat(value) >= 0) {
                           handleChange(e);
                         }
@@ -291,10 +316,129 @@ export default function SettingsPage() {
                 </div>
               </div>
 
+              {/* --- Surge Pricing Section --- */}
+              <div className="space-y-4">
+                <div className="border-l-4 border-[var(--secondary)] pl-4 py-1">
+                  <div className="flex items-center gap-2 text-[var(--secondary)]">
+                    <Zap size={22} />
+                    <h3 className="font-bold text-xl">Surge Pricing</h3>
+                  </div>
+                  <p className="text-sm text-gray-500 ml-1">
+                    Manage delivery surge fees based on days and time slots.
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="grid grid-cols-1 divide-y divide-gray-100">
+                    {values.extraData.map((item, index) => (
+                      <div key={item.day} className="p-6 transition-colors hover:bg-gray-50">
+                        <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                          <div className="w-24">
+                            <Typography variant="h6" className="font-bold text-gray-700">
+                              {item.day}
+                            </Typography>
+                          </div>
+
+                          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="flex flex-col gap-1 w-full">
+                              <TextField
+                                label="Start Time"
+                                type="time"
+                                size="small"
+                                value={item.startTime}
+                                name={`extraData[${index}].startTime`}
+                                onChange={(e) => {
+                                  const newExtraData = [...values.extraData];
+                                  newExtraData[index].startTime = e.target.value;
+                                  setFieldValue("extraData", newExtraData);
+                                }}
+                                onBlur={handleBlur}
+                                error={touched.extraData?.[index]?.startTime && !!(errors.extraData as any)?.[index]?.startTime}
+                                InputLabelProps={{ shrink: true }}
+                                fullWidth
+                              />
+                              {touched.extraData?.[index]?.startTime && (errors.extraData as any)?.[index]?.startTime && (
+                                <ErrorMessageCom error={(errors.extraData as any)[index].startTime} />
+                              )}
+                            </div>
+
+                            <div className="flex flex-col gap-1 w-full">
+                              <TextField
+                                label="End Time"
+                                type="time"
+                                size="small"
+                                value={item.endTime}
+                                name={`extraData[${index}].endTime`}
+                                inputProps={{
+                                  min: item.startTime,
+                                }}
+                                onChange={(e) => {
+                                  const newExtraData = [...values.extraData];
+                                  newExtraData[index].endTime = e.target.value;
+                                  setFieldValue("extraData", newExtraData);
+                                }}
+                                onBlur={handleBlur}
+                                error={touched.extraData?.[index]?.endTime && !!(errors.extraData as any)?.[index]?.endTime}
+                                InputLabelProps={{ shrink: true }}
+                                fullWidth
+                              />
+                              {touched.extraData?.[index]?.endTime && (errors.extraData as any)?.[index]?.endTime && (
+                                <ErrorMessageCom error={(errors.extraData as any)[index].endTime} />
+                              )}
+                            </div>
+
+                            <TextField
+                              label="Surge Fee"
+                              type="number"
+                              size="small"
+                              value={item.surgeFee}
+                              onChange={(e) => {
+                                const newExtraData = [...values.extraData];
+                                newExtraData[index].surgeFee = parseFloat(e.target.value);
+                                setFieldValue("extraData", newExtraData);
+                              }}
+                              InputProps={{
+                                startAdornment: <InputAdornment position="start">₹</InputAdornment>,
+                              }}
+                              fullWidth
+                            />
+                            <div className="flex items-center justify-between px-2">
+                              <span className="text-sm text-gray-500 lg:hidden">Status</span>
+                              <FormControlLabel
+                                control={
+                                  <Switch
+                                    checked={item.status}
+                                    onChange={(e) => {
+                                      const newExtraData = [...values.extraData];
+                                      newExtraData[index].status = e.target.checked;
+                                      setFieldValue("extraData", newExtraData);
+                                    }}
+                                    sx={{
+                                      "& .MuiSwitch-switchBase.Mui-checked": {
+                                        color: "var(--primary)",
+                                      },
+                                      "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                                        backgroundColor: "var(--primary)",
+                                      },
+                                    }}
+                                  />
+                                }
+                                label={item.status ? "Active" : "Inactive"}
+                                componentsProps={{ typography: { className: "text-sm font-medium" } }}
+                                sx={{ ml: 0 }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               {/* --- Action Row --- */}
               {canEditSettings && (
                 <div className="ButtonOuter">
-                  {" "}
                   <div className="buttoninner">
                     <CustomButton
                       type="submit"
