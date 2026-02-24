@@ -235,8 +235,6 @@ export async function POST(req: NextRequest) {
             }
         }
 
-
-
         // Notify all superadmins
         const superAdminRole = await Role.findOne({ name: /superadmin/i });
         if (superAdminRole && superAdminRole._id) {
