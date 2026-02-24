@@ -18,6 +18,28 @@ function calculateDeliveryFee(
     return deliveryFee;
 }
 
+function getActiveSurge(surgePricing: any[]) {
+    const now = new Date();
+
+    // Get current day in MON format
+    const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    const currentDay = days[now.getDay()];
+
+    // Get current time in HH:mm format
+    const currentTime = now.toTimeString().slice(0, 5);
+
+    const activeSurge = surgePricing.find((item) => {
+        return (
+            item.day === currentDay &&
+            item.status === true &&
+            currentTime >= item.startTime &&
+            currentTime <= item.endTime
+        );
+    });
+
+    return activeSurge || null;
+}
+
 /**
  * @swagger
  * /api/customer/order/cart-calculation:
@@ -167,7 +189,8 @@ export async function POST(req: NextRequest) {
     const medicineId: any[] = [];
     const medicineQuantity: any[] = [];
     let deliveryFee = 0;
-    let deliveryFeeThreshold : any = "";
+    let deliveryFeeThreshold: any = "";
+    let surgePricing: any = [];
 
     for (const setting of settings) {
         if (setting.type === 'gst') calculationData.gstInPercent = Number(setting.data);
@@ -177,13 +200,31 @@ export async function POST(req: NextRequest) {
         if (setting.type === 'razorPay gst') calculationData.razorPayCommissionGstInPercent = Number(setting.data);
         if (setting.type === 'deliveryFee') deliveryFee = Number(setting.data);
         if (setting.type === 'deliveryFeeThreshold') deliveryFeeThreshold = setting.data;
+        if (setting.type === 'surgePricing') surgePricing = setting?.extraData || [];
+    }
+
+    const surge = getActiveSurge(surgePricing);
+
+    //     Surge Active: {
+    //   day: 'TUE',
+    //   startTime: '10:00',
+    //   endTime: '22:00',
+    //   surgeFee: 60,
+    //   status: true
+    // }
+
+    if (surge) {
+        console.log("Surge Active:", surge);
+        deliveryFee = Number(deliveryFee) + Number(surge.surgeFee);
+    } else {
+        console.log("No Surge Now");
     }
 
     // console.log("$$$$$$$$$cartData$$$$$$$$$",cartData);
 
     for (const element of cartData) {
         medicineId.push(new mongoose.Types.ObjectId(element.medicine._id));
-        medicineQuantity.push({ medicineId: `${element.medicine._id}`, quantity: Number(element.quantity), price: Number(element.medicine.price), isPrescription: element.medicine.isPrescription , status: 'pending' });
+        medicineQuantity.push({ medicineId: `${element.medicine._id}`, quantity: Number(element.quantity), price: Number(element.medicine.price), isPrescription: element.medicine.isPrescription, status: 'pending' });
     }
 
     const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
@@ -196,7 +237,7 @@ export async function POST(req: NextRequest) {
     // Apply discount to priceTotalSum
     const priceTotalSumAfterDiscount = Math.max(0, priceTotalSumBeforeDiscount - discountValue);
     calculationData.priceTotalSumAfterDiscount = Number(priceTotalSumAfterDiscount.toFixed(2));
-    calculationData.deliveryFee = deliveryFeeThreshold == "" ? deliveryFee :  calculateDeliveryFee(
+    calculationData.deliveryFee = deliveryFeeThreshold == "" ? deliveryFee : calculateDeliveryFee(
         priceTotalSumAfterDiscount,
         Number(deliveryFeeThreshold),
         deliveryFee

@@ -22,6 +22,28 @@ function calculateDeliveryFee(
     return deliveryFee;
 }
 
+function getActiveSurge(surgePricing: any[]) {
+    const now = new Date();
+
+    // Get current day in MON format
+    const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    const currentDay = days[now.getDay()];
+
+    // Get current time in HH:mm format
+    const currentTime = now.toTimeString().slice(0, 5);
+
+    const activeSurge = surgePricing.find((item) => {
+        return (
+            item.day === currentDay &&
+            item.status === true &&
+            currentTime >= item.startTime &&
+            currentTime <= item.endTime
+        );
+    });
+
+    return activeSurge || null;
+}
+
 /**
  * @swagger
  * /api/customer/order/create:
@@ -152,10 +174,29 @@ export async function POST(req: NextRequest) {
     const settings = await Setting.find().lean();
     let deliveryFee = 0;
     let deliveryFeeThreshold: any = "";
+    let surgePricing: any = [];
 
     for (const setting of settings) {
         if (setting.type === 'deliveryFee') deliveryFee = Number(setting.data);
         if (setting.type === 'deliveryFeeThreshold') deliveryFeeThreshold = setting.data;
+        if (setting.type === 'surgePricing') surgePricing = setting?.extraData || [];
+    }
+
+    const surge = getActiveSurge(surgePricing);
+
+    //     Surge Active: {
+    //   day: 'TUE',
+    //   startTime: '10:00',
+    //   endTime: '22:00',
+    //   surgeFee: 60,
+    //   status: true
+    // }
+
+    if (surge) {
+        console.log("Surge Active:", surge);
+        deliveryFee = Number(deliveryFee) + Number(surge.surgeFee);
+    } else {
+        console.log("No Surge Now");
     }
 
     if (deliveryFeeThreshold && deliveryFeeThreshold !== "") {
