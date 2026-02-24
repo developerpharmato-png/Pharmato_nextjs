@@ -8,6 +8,7 @@ export interface ISetting extends Document {
     description: string;
     is_active: number;
     is_admin_list: number;
+    extraData: Record<string, any>[];
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -20,6 +21,7 @@ const SettingSchema: Schema<ISetting> = new Schema(
         description: { type: String, default: '' },
         is_active: { type: Number, default: 1 },
         is_admin_list: { type: Number, default: 0 },
+        extraData: { type: [Object], default: [] },
     },
     {
         timestamps: true,

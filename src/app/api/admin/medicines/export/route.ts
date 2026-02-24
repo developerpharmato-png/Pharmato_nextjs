@@ -15,17 +15,17 @@ export async function POST(request: NextRequest) {
 
     // Debug log to verify images and all fields
     const data = medicines.map((m) => {
-      console.log('Exporting medicine:', {
-        id: m._id,
-        name: m.name,
-        images: m.images,
-        coverImage: m.coverImage,
-        relatedProducts: m.relatedProducts,
-        crossSellProducts: m.crossSellProducts,
-        composition: m.composition
-      });
+      // console.log('Exporting medicine:', {
+      //   id: m._id,
+      //   name: m.name,
+      //   images: m.images,
+      //   coverImage: m.coverImage,
+      //   relatedProducts: m.relatedProducts,
+      //   crossSellProducts: m.crossSellProducts,
+      //   composition: m.composition
+      // });
       return {
-        // ID: m._id.toString(),
+        ID: m.uniqueCode,
         Name: m.name,
         Description: m.description,
         Manufacturer: m.manufacturer,

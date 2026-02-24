@@ -22,6 +22,73 @@
  *                     $ref: '#/components/schemas/Setting'
  *       500:
  *         description: Failed to fetch admin settings
+ *   post:
+ *     summary: Update or create admin settings
+ *     tags:
+ *       - Admin
+ *     description: Update existing or create new admin settings where is_admin_list is 1. Accepts an array of updates.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               updates:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       description: Setting ID (for update)
+ *                     type:
+ *                       type: string
+ *                     data:
+ *                       type: string
+ *                     data_value_in:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                     is_active:
+ *                       type: integer
+ *                     extraData:
+ *                       type: array
+ *                       description: Array of extra data objects for surge pricing or other settings
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           day:
+ *                             type: string
+ *                             description: Day of the week
+ *                           startTime:
+ *                             type: string
+ *                             description: Start time (HH:mm)
+ *                           endTime:
+ *                             type: string
+ *                             description: End time (HH:mm)
+ *                           surgeFee:
+ *                             type: integer
+ *                             description: Surge fee amount
+ *                           status:
+ *                             type: boolean
+ *                             description: Status for the extra data entry
+ *     responses:
+ *       200:
+ *         description: List of updated admin settings
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Setting'
+ *       500:
+ *         description: Failed to update admin settings
  */
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
@@ -53,6 +120,7 @@ export async function POST(req: NextRequest) {
             if (u.description !== undefined) payload.description = u.description;
             if (u.is_active !== undefined) payload.is_active = u.is_active;
             payload.is_admin_list = 1;
+            if (u.extraData !== undefined) payload.extraData = Array.isArray(u.extraData) ? u.extraData : [];
 
             if (u._id) {
                 const updated = await Setting.findByIdAndUpdate(u._id, { $set: payload }, { new: true, upsert: true }).lean();
