@@ -56,6 +56,8 @@ import fs from 'fs';
 import path from 'path';
 import Cart from '@/models/Cart';
 import { sendPushNotificationWithData } from '@/utils/firebase.helper';
+import Admin from '@/models/Admin';
+import Notification from '@/models/Notification';
 
 export async function POST(request: NextRequest) {
   await connectDB();
@@ -78,6 +80,12 @@ export async function POST(request: NextRequest) {
   let user = await User.findOne({ socialProvider: provider, socialId });
   if (!user) {
     user = await User.create({ socialProvider: provider, socialId, name, email, isVerified: true, deviceToken });
+
+    if (deviceToken) {
+      user.deviceToken = deviceToken;
+    } else {
+      user.deviceToken = "";
+    }
 
     // Send welcome notification
     try {
@@ -231,12 +239,49 @@ export async function POST(request: NextRequest) {
       }
     }
 
-  }
+    // Notify all superadmins
+    try {
+      const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
+      if (superAdminRole && superAdminRole._id) {
+        const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+        for (const superAdmin of superAdmins) {
 
-  if (deviceToken) {
-    user.deviceToken = deviceToken;
-  } else {
-    user.deviceToken = "";
+          await Notification.create({
+            userId: user._id.toString(),
+            role: 'admin',
+            title: 'Welcome to Pharmato!',
+            message: `New User Registered: ${user.name || 'Customer'} has joined Pharmato using ${user.email}.`,
+            type: 'welcome',
+            targetScreen: 'customer/detail',
+            targetId: user._id.toString(),
+            isRead: false,
+            createdAt: new Date(),
+          });
+
+          try {
+            const superToken = (superAdmin as any).deviceToken;
+            if (superToken) {
+              await sendPushNotificationWithData({
+                token: superToken,
+                title: 'Pharmato',
+                body: `New User Registered: ${user.name || 'Customer'} has joined Pharmato using ${user.email}.`,
+                data: {
+                  targetId: user._id.toString(),
+                  type: 'welcome',
+                  targetScreen: 'customer/detail',
+                }
+              });
+            }
+          } catch (err) {
+            console.error('Failed to send push notification to superadmin:', err);
+          }
+
+        }
+      }
+    } catch (err) {
+      console.error('Superadmin notification error:', err);
+    }
+
   }
 
   // Issue access and refresh tokens

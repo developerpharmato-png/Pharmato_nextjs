@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import User from '@/models/User';
 import dbConnect from '@/lib/mongodb';
 import { sendPushNotification, sendPushNotificationWithData } from '@/utils/firebase.helper';
+import Admin from '@/models/Admin';
+import Notification from '@/models/Notification';
 
 /**
  * @swagger
@@ -109,6 +111,49 @@ export async function POST(req: NextRequest) {
         });
     } catch (err) {
         console.error('Failed to create mobile update notification:', err);
+    }
+
+    // Notify all superadmins
+    try {
+        const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
+        if (superAdminRole && superAdminRole._id) {
+            const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+            for (const superAdmin of superAdmins) {
+
+                await Notification.create({
+                    userId: user._id.toString(),
+                    role: 'admin',
+                    title: 'User Mobile Number Updated',
+                    message: `User Update: ${user.name || 'Customer'} has updated their Mobile Number.`,
+                    type: 'mobile-update',
+                    targetScreen: 'customer/detail',
+                    targetId: user._id.toString(),
+                    isRead: false,
+                    createdAt: new Date(),
+                });
+
+                try {
+                    const superToken = (superAdmin as any).deviceToken;
+                    if (superToken) {
+                        await sendPushNotificationWithData({
+                            token: superToken,
+                            title: 'Pharmato',
+                            body: `User Update: ${user.name || 'Customer'} has updated their Mobile Number.`,
+                            data: {
+                                targetId: user._id.toString(),
+                                type: 'mobile-update',
+                                targetScreen: 'customer/detail',
+                            }
+                        });
+                    }
+                } catch (err) {
+                    console.error('Failed to send push notification to superadmin:', err);
+                }
+
+            }
+        }
+    } catch (err) {
+        console.error('Superadmin notification error:', err);
     }
 
     return NextResponse.json({ success: true, message: 'Mobile Number Updated Successfully.' });

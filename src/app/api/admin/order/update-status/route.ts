@@ -155,8 +155,8 @@ export async function POST(req: NextRequest) {
                     await Notification.create({
                         userId: (superAdmin as any)._id.toString(),
                         role: 'admin',
-                        title: 'Order Updated',
-                        message: `Order #${order.order_id} placed by ${userName} at store ${storeName} has been successfully delivered.`,
+                        title: 'Order Delivered',
+                        message: `Order Delivered: Order #${order.order_id} placed by ${userName} has been successfully delivered by ${storeName}.`,
                         type: 'order',
                         targetScreen: 'orders/detail',
                         targetId: order._id.toString(),
@@ -171,11 +171,11 @@ export async function POST(req: NextRequest) {
                             await sendPushNotificationWithData({
                                 token: superToken,
                                 title: 'Pharmato',
-                                body: `Order #${order.order_id} has been successfully delivered to the customer.`,
+                                body: `Order Delivered: Order #${order.order_id} placed by ${userName} has been successfully delivered by ${storeName}.`,
                                 data: {
                                     targetId: order._id.toString(),
                                     orderId: order._id.toString(),
-                                    type: 'order_updated',
+                                    type: 'order_delivered',
                                     targetScreen: 'orders/detail',
                                 }
                             });

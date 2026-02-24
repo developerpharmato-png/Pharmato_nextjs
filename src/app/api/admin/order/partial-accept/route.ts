@@ -403,12 +403,15 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
                 const storeManager: any = await Admin.findById(store.adminManagerId).lean();
                 storeManagerName = storeManager?.name || '';
             }
+
+            let supAdminNotMsg: any = acceptedNames.length === 0 ? `Order Cancelled: Order #${order.order_id} placed by ${userName} has been cancelled by ${storeName}.` : `Order Confirmed: Order #${order.order_id} placed by ${userName} has been confirmed by ${storeName}.`;
+
             for (const superAdmin of superAdmins) {
                 await Notification.create({
                     userId: (superAdmin as any)._id.toString(),
                     role: 'admin',
                     title: 'Order Update',
-                    message: `Order #${order.order_id} placed by ${userName} at store ${storeName} is now ${order.order_status}.`,
+                    message: supAdminNotMsg,
                     type: 'order',
                     targetScreen: 'orders/detail',
                     targetId: order._id.toString()
@@ -456,7 +459,7 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
                         await sendPushNotificationWithData({
                             token: superToken,
                             title: 'Pharmato',
-                            body: `Order #${order.order_id} placed by ${userName} at store ${storeName} is now ${order.order_status}.`,
+                            body: supAdminNotMsg,
                             data: {
                                 targetId: order._id.toString(),
                                 orderId: order.order_id,

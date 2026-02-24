@@ -91,8 +91,6 @@ export async function POST(req: NextRequest) {
             const Role = (await import('@/models/Role')).default;
             const User = (await import('@/models/User')).default;
 
-
-
             // Choose template based on create or update
             const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
             const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
@@ -216,8 +214,8 @@ export async function POST(req: NextRequest) {
                             userId: (superAdmin as any)._id.toString(),
                             role: 'admin',
                             title: 'Prescription Re-uploaded',
-                            message: `Customer ${customerName} has re-uploaded prescription for order ${(orderDoc as any).order_id} in store ${storeName}.`,
-                            type: 'prescription',
+                            message: `Prescription Re-uploaded: Prescription for order #${orderDoc.order_id} has been re-uploaded by ${customerName}. Awaiting verification from ${storeName || 'N/A'}.`,
+                            type: 'prescription_reuploaded',
                             targetScreen: 'orders/detail',
                             targetId: (orderDoc as any)._id.toString(),
                             meta: {
@@ -228,6 +226,25 @@ export async function POST(req: NextRequest) {
                                 order_id: (orderDoc as any).order_id
                             }
                         });
+
+                        try {
+                            const superToken = (superAdmin as any).deviceToken;
+                            if (superToken) {
+                                await sendPushNotificationWithData({
+                                    token: superToken,
+                                    title: 'Pharmato',
+                                    body: `Prescription Re-uploaded: ${customerName} has re-uploaded prescription for Order #${orderDoc.order_id}. Please review and take action.`,
+                                    data: {
+                                        targetId: orderDoc._id.toString(),
+                                        orderId: orderDoc._id.toString(),
+                                        type: 'prescription_reuploaded',
+                                        targetScreen: 'orders/detail',
+                                    }
+                                });
+                            }
+                        } catch (err) {
+                            console.error('Failed to send push notification to superadmin:', err);
+                        }
 
                         // Send email to super admin
                         const superAdminEmail = (superAdmin as any).email;
@@ -307,8 +324,6 @@ export async function POST(req: NextRequest) {
             } catch (emailErr) {
                 console.error('Error sending delivered email:', emailErr);
             }
-
-
 
         } catch (notifyErr) {
             console.error('Notification error on prescription re-upload:', notifyErr);
