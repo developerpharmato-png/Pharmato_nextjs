@@ -682,7 +682,57 @@ ${footer}
                     } catch (err) {
                         console.error('Failed to send push notification:', err);
                     }
-                }
+                }                
+                
+                    // Notify admin (store manager) and superadmins with detailed message
+                    if (updatedOrder.storeId) {
+                        const storeId = (updatedOrder as any).storeId;
+                        if (storeId) {
+                            const store = await Store.findById(storeId).lean();
+                            if (store && typeof store === 'object' && !Array.isArray(store)) {
+                                // storeName = (store as any).name || '';
+                                if ('adminManagerId' in store && store.adminManagerId) {
+                                    const admin = await Admin.findById((store as any).adminManagerId).lean();
+                                    if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+                
+                                        let storeNotMsg: any = `Refund Processed: Refund of ₹${amountValue} for Order #${updatedOrder.order_id} has been processed successfully.`;
+                
+                                        // Notify store admin
+                                        await Notification.create({
+                                            userId: (store as any).adminManagerId.toString(),
+                                            role: 'admin',
+                                            title: 'Refund Processed',
+                                            message: storeNotMsg,
+                                            type: 'order',
+                                            targetScreen: 'orders/detail',
+                                            targetId: updatedOrder._id.toString(),
+                                            meta: {}
+                                        });
+                
+                                        try {
+                                            const adminToken = (admin as any).deviceToken;
+                                            if (adminToken) {
+                                                await sendPushNotificationWithData({
+                                                    token: adminToken,
+                                                    title: 'Pharmato',
+                                                    body: storeNotMsg,
+                                                    data: {
+                                                        targetId: updatedOrder._id.toString(),
+                                                        orderId: updatedOrder._id.toString(),
+                                                        type: 'order_update',
+                                                        targetScreen: 'orders/detail'
+                                                    }
+                                                });
+                                            }
+                                        } catch (err) {
+                                            console.error('Failed to send push notification to admin:', err);
+                                        }
+                
+                                    }
+                                }
+                            }
+                        }
+                    }
 
             }
 

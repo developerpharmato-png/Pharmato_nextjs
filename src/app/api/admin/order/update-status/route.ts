@@ -90,8 +90,58 @@ export async function POST(req: NextRequest) {
 
         invoiceUrl = order.invoice_url || '';
 
-        const store: any = await Store.findById(order.storeId).lean();
-        const storeName = store ? (store.name || 'Store') : 'Store';
+        // const store: any = await Store.findById(order.storeId).lean();
+        let storeName = ``;
+
+        // Notify admin (store manager) and superadmins with detailed message
+        if (order.storeId) {
+            const storeId = (order as any).storeId;
+            if (storeId) {
+                const store = await Store.findById(storeId).lean();
+                if (store && typeof store === 'object' && !Array.isArray(store)) {
+                    storeName = (store as any).name || '';
+                    if ('adminManagerId' in store && store.adminManagerId) {
+                        const admin = await Admin.findById((store as any).adminManagerId).lean();
+                        if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+
+                            let storeNotMsg: any = `Order Delivered Successfully: Order #${order.order_id} has been delivered.`;
+
+                            // Notify store admin
+                            await Notification.create({
+                                userId: (store as any).adminManagerId.toString(),
+                                role: 'admin',
+                                title: 'Order Delivered',
+                                message: storeNotMsg,
+                                type: 'order',
+                                targetScreen: 'orders/detail',
+                                targetId: order._id.toString(),
+                                meta: {}
+                            });
+
+                            try {
+                                const adminToken = (admin as any).deviceToken;
+                                if (adminToken) {
+                                    await sendPushNotificationWithData({
+                                        token: adminToken,
+                                        title: 'Pharmato',
+                                        body: storeNotMsg,
+                                        data: {
+                                            targetId: order._id.toString(),
+                                            orderId: order._id.toString(),
+                                            type: 'order_update',
+                                            targetScreen: 'orders/detail'
+                                        }
+                                    });
+                                }
+                            } catch (err) {
+                                console.error('Failed to send push notification to admin:', err);
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
 
         // Notify all superadmins
         try {
