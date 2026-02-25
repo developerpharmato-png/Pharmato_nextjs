@@ -90,7 +90,7 @@ export const medicineFormValidationSchema = Yup.object().shape({
   storeId: Yup.string().required('Store is required'),
   price: Yup.number()
     .typeError('Price must be a number')
-    .min(0, 'Value cannot be negative')
+    .positive('Price must be greater than 0')
     .required('Selling price is required')
     .test('price-lte-mrp', 'Selling price cannot be greater than MRP', function (value) {
       const mrp = (this.parent as any)?.mrp;
@@ -102,11 +102,11 @@ export const medicineFormValidationSchema = Yup.object().shape({
     }),
   purchasePrice: Yup.number()
     .typeError('Purchase price must be a number')
-    .min(0, 'Value cannot be negative')
+    .positive('Purchase price must be greater than 0')
     .required('Purchase price is required'),
   mrp: Yup.number()
     .typeError('MRP must be a number')
-    .min(0, 'Value cannot be negative')
+    .positive('MRP must be greater than 0')
     .required('MRP is required'),
   discount: Yup.number()
     .min(0, 'Value cannot be negative')
