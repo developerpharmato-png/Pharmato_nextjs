@@ -1294,8 +1294,8 @@ export default function PartialCancelPage() {
                   {/* <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Platform Fee</span>
                     <span className="font-bold text-gray-700">
-                      {" "}
-                      ₹
+                      {" "}   
+                      
                       {order?.calculationData?.platformFee +
                         order?.calculationData?.razorPayCommissionGstAmount +
                         order?.calculationData?.razorPayCommissionAmount}
