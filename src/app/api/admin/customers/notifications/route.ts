@@ -73,7 +73,7 @@ export async function sendAdminCustomerNotification({ userIds, title, message }:
     });
 
     for (const user of users) {
-        if (user?.deviceToken) {
+        
             try {
                 const Notification = (await import('@/models/Notification')).default;
                 await Notification.create({
@@ -89,6 +89,8 @@ export async function sendAdminCustomerNotification({ userIds, title, message }:
                 console.error('Failed to create notification:', err);
             }
 
+        if (user?.deviceToken) {
+
             try {
                 await sendPushNotificationWithData({
                     token: (user as any).deviceToken,
@@ -99,8 +101,9 @@ export async function sendAdminCustomerNotification({ userIds, title, message }:
             } catch (err) {
                 console.error('Failed to send push notification:', err);
             }
-        } else {
+            
         }
+
     }
 
     // Update notification record status
