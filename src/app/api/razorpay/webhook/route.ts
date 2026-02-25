@@ -12,6 +12,7 @@ import { getDb } from '@/utils/firebase.helper';
 import fs from 'fs';
 import path from 'path';
 import Medicine from '@/models/Medicine';
+import moment from 'moment-timezone';
 
 const razorpayInstance = new Razorpay({
     key_id: process.env.razorPay_Key_Id || '',
@@ -141,12 +142,16 @@ async function runBackground(body: any) {
                     const subject = `Order Placed Successfully – Order ${checkOrder.order_id}`;
                     let userName = 'Customer';
                     let userEmail = '';
+                    let userPhone = '';
                     const orderData: any = updatedOrder || checkOrder;
                     const deliveredAddr: any = orderData.deliveredAddress || null;
+
+                    const orderDateTime =  orderData.createdAt ? moment(orderData.createdAt).tz('Asia/Kolkata').format('MMM D, YYYY HH:mm z') : orderData.createdAt;
 
                     if (deliveredAddr) {
                         userName = deliveredAddr?.name || 'Customer';
                         userEmail = deliveredAddr?.email || '';
+                        userPhone = deliveredAddr?.phone || '';
                     }
 
                     let deliveryAddressText = ''
@@ -410,31 +415,128 @@ ${footer}
                                         if (adminEmail) {
                                             const adminHtml = `
                                             ${header}
-                                                <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.4;">
-                                                    <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
-                                                        <h2 style="margin-bottom: 16px;">New Order Received- ${checkOrder.order_id}</h2>
-                                                        <p>Hello ${adminName},</p>
-                                                        <p>A new order <b>#${checkOrder.order_id}</b> has been placed on Pharmato and requires your review.</p>
-                                                        <h4 style="margin:12px 0 6px;">Order Details</h4>
-                                                        <h4 style="margin:12px 0 6px;">Action Required</h4>
-                                                        <p>Please review and confirm the Order. You can review this order by Admin Portal.</p>
-                                                        <p style="margin-top:18px;color:#777;font-size:13px;">Thank you for ensuring safe and compliant medicine delivery.</p>
-                                                        <p style="margin:6px 0 0;color:#333;font-weight:600;">Regards,<br/>Team Pharmato</p>
-                                                    </div>
-                                                </div>     <table style="width:100%;border-collapse:collapse;margin:16px 0;">
-                                                            <tr>
-                                                                <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
-                                                                <td style="padding:8px;border:1px solid #eee;">${checkOrder.order_id}</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
-                                                                <td style="padding:8px;border:1px solid #eee;">Order Placed</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td style="padding:8px;border:1px solid #eee;font-weight:600;">Delivery Address</td>
-                                                                <td style="padding:8px;border:1px solid #eee;">${deliveryAddressText || 'Address will be updated soon.'}</td>
-                                                            </tr>
-                                                        </table>
+
+                                            <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
+  <div style="max-width:700px;margin:0 auto;background:#ffffff;padding:25px;border:1px solid #e6e6e6;border-radius:8px;">
+
+    <p>Hello ${adminName || 'Store Manager'},</p>
+
+    <p>
+      A new order has been placed and requires your review. 📦
+    </p>
+
+    <!-- Order Details -->
+    <h3 style="margin-top:25px;">Order Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+        <td style="padding:8px;border:1px solid #eee;">#${checkOrder.order_id}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+        <td style="padding:8px;border:1px solid #eee;">Order Placed</td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Date & Time</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${new Date(checkOrder.createdAt).toLocaleString()}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Customer Details -->
+    <h3 style="margin-top:25px;">Customer Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Customer Name</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${checkOrder.deliveredAddress?.name}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Mobile Number</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${checkOrder.deliveredAddress?.mobileNumber}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Email ID</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${checkOrder.userEmail}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Delivery Address</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${deliveryAddressText}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Items -->
+    <h3 style="margin-top:25px;">Items in Order</h3>
+    ${itemsHtml}
+
+    <!-- Payment Details -->
+    <h3 style="margin-top:25px;">Payment Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Subtotal</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${checkOrder.calculationData.priceTotalSumBeforeDiscount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Delivery Charges</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${checkOrder.calculationData.deliveryFee}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Discount</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${checkOrder.discount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+          Total Paid
+        </td>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+          ₹${checkOrder.total_order_amount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Payment Method</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${checkOrder.payment_mode.toUpperCase()}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Action Required -->
+    <h3 style="margin-top:25px;color:#d9534f;">Action Required</h3>
+    <ul style="padding-left:18px;">
+      <li>Verify prescription uploaded by customer (If applicable)</li>
+      <li>Validate medicine availability</li>
+      <li>Proceed to confirm order</li>
+    </ul>
+
+    <p style="margin-top:20px;">
+      You can review and process this order from the <strong>Admin Portal</strong>.
+    </p>
+
+    <p>
+      Timely validation ensures faster delivery and better patient care.
+    </p>
+
+    <p style="margin-top:25px;">
+      Regards,<br/>
+      <strong>Team Pharmato</strong>
+    </p>
+
+  </div>
+</div>
                                                    
                                                 ${footer}
                                             `;
@@ -502,36 +604,134 @@ ${footer}
                                 const superAdminEmail = (superAdmin as any).email;
                                 if (superAdminEmail) {
                                     const superAdminHtml = `${header}
-                                        <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.4;">
-                                            <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
-                                                <h2 style="margin-bottom: 16px;">New Order Received – Order #${checkOrder.order_id}</h2>
-                                                <p>Hello Admin,</p>
-                                                <p>A new order <b>#${checkOrder.order_id}</b> has been placed on Pharmato.</p>
-                                                <h4 style="margin:12px 0 6px;">Order Details</h4>
-                                                <table style="width:100%;border-collapse:collapse;margin:16px 0;">
-                                                    <tr>
-                                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
-                                                        <td style="padding:8px;border:1px solid #eee;">${checkOrder.order_id}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
-                                                        <td style="padding:8px;border:1px solid #eee;">Order Placed</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Store Assigned</td>
-                                                        <td style="padding:8px;border:1px solid #eee;">${storeName || 'N/A'}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Delivery Address</td>
-                                                        <td style="padding:8px;border:1px solid #eee;">${deliveryAddressText || 'Address will be updated soon.'}</td>
-                                                    </tr>
-                                                </table>
-                                                <h4 style="margin:12px 0 6px;">Action Overview</h4>
-                                                <p>The order is pending review and confirmation by the assigned store manager.</p>
-                                                <p>You can monitor this order from the <b>Admin Portal</b>.</p>
-                                                <p style="margin:6px 0 0;color:#333;font-weight:600;">Regards,<br/>Team Pharmato</p>
-                                            </div>
-                                        </div>
+
+                                    <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
+  <div style="max-width:700px;margin:0 auto;background:#ffffff;padding:25px;border:1px solid #e6e6e6;border-radius:8px;">
+
+    <p>Hello Super Admin,</p>
+
+    <p>
+      A new order has been received at the following store. 📦
+    </p>
+
+    <!-- Store Details -->
+    <h3 style="margin-top:25px;">Store Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Store Name</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${storeName}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Store Manager</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${adminName}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Order Details -->
+    <h3 style="margin-top:25px;">Order Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+        <td style="padding:8px;border:1px solid #eee;">#${checkOrder.order_id}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Date & Time</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${new Date(checkOrder.createdAt).toLocaleString()}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+        <td style="padding:8px;border:1px solid #eee;">Order Placed</td>
+      </tr>
+    </table>
+
+    <!-- Customer Details -->
+    <h3 style="margin-top:25px;">Customer Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Customer Name</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${checkOrder.deliveredAddress?.name}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Mobile Number</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${checkOrder.deliveredAddress?.mobileNumber}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Email ID</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${checkOrder.userEmail}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Delivery Address</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${deliveryAddressText}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Items Ordered -->
+    <h3 style="margin-top:25px;">Items Ordered</h3>
+    ${itemsHtml}
+
+    <!-- Payment Details -->
+    <h3 style="margin-top:25px;">Payment Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Subtotal</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${checkOrder.calculationData.priceTotalSumBeforeDiscount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Delivery Charges</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${checkOrder.calculationData.deliveryFee}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Discount</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${checkOrder.discount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+          Total Paid
+        </td>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+          ₹${checkOrder.total_order_amount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Payment Method</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${checkOrder.payment_mode.toUpperCase()}
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin-top:25px;">
+      This email is shared for centralized order tracking.
+    </p>
+
+    <p style="margin-top:20px;">
+      Regards,<br/>
+      <strong>Team Pharmato</strong>
+    </p>
+
+  </div>
+</div>
+        
                                         ${footer}
                                     `;
                                     await sendEmail({ to: superAdminEmail, subject: `New Order Received – Order #${checkOrder.order_id}`, html: superAdminHtml });
