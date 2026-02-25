@@ -176,7 +176,7 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
     }
 
     if (acceptedNames.length > 0 && cancelledNames.length > 0) {
-        
+
         html += `<p>Your order has been Confirmed. Some medicines are available and confirmed, while a few items could not be fulfilled.</p>`;
         html += `<p>Our pharmacy team has reviewed your order. The confirmed medicines will be packed and delivered to you soon.</p>`;
 
@@ -342,6 +342,56 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
         console.error('Notification create/send error (partial-accept):', notifErr);
     }
 
+    // Notify admin (store manager) and superadmins with detailed message
+    if (order.storeId) {
+        const storeId = (order as any).storeId;
+        if (storeId) {
+            const store = await Store.findById(storeId).lean();
+            if (store && typeof store === 'object' && !Array.isArray(store)) {
+                // storeName = (store as any).name || '';
+                if ('adminManagerId' in store && store.adminManagerId) {
+                    const admin = await Admin.findById((store as any).adminManagerId).lean();
+                    if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+
+                        let storeNotMsg: any = acceptedNames.length === 0 ? `Order Cancelled Successfully: Order #${order.order_id} for ${userName} has been cancelled.` : `Order Confirmed Successfully: You have confirmed the Order #${order.order_id}. Prepare the order for dispatch.`;
+
+                        // Notify store admin
+                        await Notification.create({
+                            userId: (store as any).adminManagerId.toString(),
+                            role: 'admin',
+                            title: 'New Order Received',
+                            message: storeNotMsg,
+                            type: 'order',
+                            targetScreen: 'orders/detail',
+                            targetId: order._id.toString(),
+                            meta: {}
+                        });
+
+                        try {
+                            const adminToken = (admin as any).deviceToken;
+                            if (adminToken) {
+                                await sendPushNotificationWithData({
+                                    token: adminToken,
+                                    title: 'Pharmato',
+                                    body: storeNotMsg,
+                                    data: {
+                                        targetId: order._id.toString(),
+                                        orderId: order._id.toString(),
+                                        type: 'order_update',
+                                        targetScreen: 'orders/detail'
+                                    }
+                                });
+                            }
+                        } catch (err) {
+                            console.error('Failed to send push notification to admin:', err);
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+
     // Notify all superadmins
     try {
         const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
@@ -353,12 +403,15 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
                 const storeManager: any = await Admin.findById(store.adminManagerId).lean();
                 storeManagerName = storeManager?.name || '';
             }
+
+            let supAdminNotMsg: any = acceptedNames.length === 0 ? `Order Cancelled: Order #${order.order_id} placed by ${userName} has been cancelled by ${storeName}.` : `Order Confirmed: Order #${order.order_id} placed by ${userName} has been confirmed by ${storeName}.`;
+
             for (const superAdmin of superAdmins) {
                 await Notification.create({
                     userId: (superAdmin as any)._id.toString(),
                     role: 'admin',
                     title: 'Order Update',
-                    message: `Order #${order.order_id} placed by ${userName} at store ${storeName} is now ${order.order_status}.`,
+                    message: supAdminNotMsg,
                     type: 'order',
                     targetScreen: 'orders/detail',
                     targetId: order._id.toString()
@@ -406,7 +459,7 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
                         await sendPushNotificationWithData({
                             token: superToken,
                             title: 'Pharmato',
-                            body: `Order #${order.order_id} placed by ${userName} at store ${storeName} is now ${order.order_status}.`,
+                            body: supAdminNotMsg,
                             data: {
                                 targetId: order._id.toString(),
                                 orderId: order.order_id,

@@ -477,12 +477,15 @@ ${footer}
                         if (superAdminRole && superAdminRole._id) {
                             const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
                             for (const superAdmin of superAdmins) {
+
+                                const notificationMessage = checkOrder.isPrescriptionRequired == true ? `Order Received: ${customerName} has placed order #${checkOrder.order_id} with prescription uploaded at ${storeName}. Awaiting prescription review.` : `Order Received: ${customerName} has placed order #${checkOrder.order_id} at ${storeName}. Awaiting store confirmation.`;
+
                                 // User {User Name} has placed order #{OrderID} at store {Store Name}. Waiting for store Manager to accept order.
                                 await Notification.create({
                                     userId: (superAdmin as any)._id.toString(),
                                     role: 'admin',
                                     title: 'New Order Received',
-                                    message: `User ${customerName} has placed order #${checkOrder.order_id} at store ${storeName}. Waiting for store Manager to accept order.`,
+                                    message: notificationMessage,
                                     type: 'order',
                                     targetScreen: 'orders/detail',
                                     targetId: checkOrder._id.toString(),
@@ -540,7 +543,7 @@ ${footer}
                                         await sendPushNotificationWithData({
                                             token: superToken,
                                             title: 'Pharmato',
-                                            body: `User ${customerName} has placed order #${checkOrder.order_id} at store ${storeName}. Waiting for store Manager to accept order.`,
+                                            body: notificationMessage,
                                             data: {
                                                 targetId: checkOrder._id.toString(),
                                                 orderId: checkOrder._id.toString(),
@@ -642,9 +645,13 @@ ${footer}
                     });
                 }
 
+                let userName = 'Customer';
+
                 const updatedOrder = await Order.findOne({ order_id: orderId });
                 const user = await User.findOne({ _id: checkOrder.userId })
                 const amountValue = (body?.payload?.refund?.entity?.amount_refunded || 0) / 100;
+
+                userName = updatedOrder?.deliveredAddress?.name || userName;
 
                 let notificationUserId = '';
                 if (updatedOrder && typeof updatedOrder === 'object' && !Array.isArray(updatedOrder) && 'userId' in updatedOrder) {
@@ -682,6 +689,103 @@ ${footer}
                     } catch (err) {
                         console.error('Failed to send push notification:', err);
                     }
+                }
+
+                // Notify admin (store manager) and superadmins with detailed message
+                if (updatedOrder.storeId) {
+                    const storeId = (updatedOrder as any).storeId;
+                    if (storeId) {
+                        const store = await Store.findById(storeId).lean();
+                        if (store && typeof store === 'object' && !Array.isArray(store)) {
+                            // storeName = (store as any).name || '';
+                            if ('adminManagerId' in store && store.adminManagerId) {
+                                const admin = await Admin.findById((store as any).adminManagerId).lean();
+                                if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+
+                                    let storeNotMsg: any = `Refund Processed: Refund of ₹${amountValue} for Order #${updatedOrder.order_id} has been processed successfully.`;
+
+                                    // Notify store admin
+                                    await Notification.create({
+                                        userId: (store as any).adminManagerId.toString(),
+                                        role: 'admin',
+                                        title: 'Refund Processed',
+                                        message: storeNotMsg,
+                                        type: 'order',
+                                        targetScreen: 'orders/detail',
+                                        targetId: updatedOrder._id.toString(),
+                                        meta: {}
+                                    });
+
+                                    try {
+                                        const adminToken = (admin as any).deviceToken;
+                                        if (adminToken) {
+                                            await sendPushNotificationWithData({
+                                                token: adminToken,
+                                                title: 'Pharmato',
+                                                body: storeNotMsg,
+                                                data: {
+                                                    targetId: updatedOrder._id.toString(),
+                                                    orderId: updatedOrder._id.toString(),
+                                                    type: 'order_update',
+                                                    targetScreen: 'orders/detail'
+                                                }
+                                            });
+                                        }
+                                    } catch (err) {
+                                        console.error('Failed to send push notification to admin:', err);
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Notify all superadmins
+                try {
+                    const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
+                    if (superAdminRole && superAdminRole._id) {
+                        const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+                        for (const superAdmin of superAdmins) {
+
+                            // Order #{OrderID} placed by {User Name} at store {Store Name} has been successfully delivered.
+
+                            await Notification.create({
+                                userId: (superAdmin as any)._id.toString(),
+                                role: 'admin',
+                                title: 'Refund Processed',
+                                message: `Refund Processed: Refund of ₹${amountValue || 0} for order #${updatedOrder.order_id || updatedOrder._id} has been successfully processed for ${userName}.`,
+                                type: 'order',
+                                targetScreen: 'orders/detail',
+                                targetId: updatedOrder._id.toString(),
+                                meta: {
+                                    orderId: updatedOrder._id.toString(),
+                                }
+                            });
+
+                            try {
+                                const superToken = (superAdmin as any).deviceToken;
+                                if (superToken) {
+                                    await sendPushNotificationWithData({
+                                        token: superToken,
+                                        title: 'Pharmato',
+                                        body: `Refund Processed: Refund of ₹${amountValue || 0} for order #${updatedOrder.order_id || updatedOrder._id} has been successfully processed for ${userName}.`,
+                                        data: {
+                                            targetId: updatedOrder._id.toString(),
+                                            orderId: updatedOrder._id.toString(),
+                                            type: 'order_refunded',
+                                            targetScreen: 'orders/detail',
+                                        }
+                                    });
+                                }
+                            } catch (err) {
+                                console.error('Failed to send push notification to superadmin:', err);
+                            }
+
+                        }
+                    }
+                } catch (err) {
+                    console.error('Superadmin notification error:', err);
                 }
 
             }

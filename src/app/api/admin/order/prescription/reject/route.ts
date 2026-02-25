@@ -9,6 +9,7 @@ import { getDb, sendPushNotificationWithData } from '@/utils/firebase.helper';
 import User from '@/models/User';
 import Admin from '@/models/Admin';
 import Store from '@/models/Store';
+import Role from '@/models/Role';
 
 /**
  * @swagger
@@ -234,6 +235,49 @@ export async function POST(req: NextRequest) {
                             }
 
                         }
+                    }
+                }
+            }
+        }
+
+        // Notify all superadmins
+        const superAdminRole = await Role.findOne({ name: /superadmin/i });
+        if (superAdminRole && superAdminRole._id) {
+            const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+            for (const superAdmin of superAdmins) {
+                if (superAdmin && typeof superAdmin === 'object' && !Array.isArray(superAdmin) && '_id' in superAdmin) {
+                    await Notification.create({
+                        userId: (superAdmin as any)._id.toString(),
+                        role: 'admin',
+                        title: 'Prescription Rejected',
+                        message: `Prescription Rejected: Prescription for order ${order.order_id} placed by ${customerName} has been rejected by ${storeName}. Awaiting Prescription Reupload.`,
+                        type: 'prescription_rejected',
+                        targetScreen: 'orders/detail',
+                        targetId: (order as any)._id.toString(),
+                        meta: {
+                            order_id: order.order_id,
+                            customerName,
+                            storeName
+                        }
+                    });
+
+                    try {
+                        const superToken = (superAdmin as any).deviceToken;
+                        if (superToken) {
+                            await sendPushNotificationWithData({
+                                token: superToken,
+                                title: 'Pharmato',
+                                body: `Prescription Rejected: Prescription for order ${order.order_id} placed by ${customerName} has been rejected by ${storeName}. Awaiting Prescription Reupload.`,
+                                data: {
+                                    targetId: order._id.toString(),
+                                    orderId: order._id.toString(),
+                                    type: 'prescription_rejected',
+                                    targetScreen: 'orders/detail',
+                                }
+                            });
+                        }
+                    } catch (err) {
+                        console.error('Failed to send push notification to superadmin:', err);
                     }
                 }
             }
