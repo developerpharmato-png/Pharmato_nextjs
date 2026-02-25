@@ -734,7 +734,7 @@ ${footer}
         
                                         ${footer}
                                     `;
-                                    await sendEmail({ to: superAdminEmail, subject: `New Order Received – Order #${checkOrder.order_id}`, html: superAdminHtml });
+                                    await sendEmail({ to: superAdminEmail, subject: `New Order Received at ${storeName}`, html: superAdminHtml });
                                 }
 
                                 try {

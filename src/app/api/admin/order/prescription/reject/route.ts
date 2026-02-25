@@ -10,6 +10,7 @@ import User from '@/models/User';
 import Admin from '@/models/Admin';
 import Store from '@/models/Store';
 import Role from '@/models/Role';
+import Medicine from '@/models/Medicine';
 
 /**
  * @swagger
@@ -106,6 +107,57 @@ export async function POST(req: NextRequest) {
             deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
         }
 
+        const [checkMedicineId] = await Promise.all([
+            Medicine.find({ _id: { $in: order.medicineId.map((i: any) => i) } }).select('_id name coverImage images'),
+        ]);
+
+        console.log('##########checkMedicineId#############', checkMedicineId);
+
+        const acceptedNames = checkMedicineId.map((m: any) => {
+            const item = order.medicineQuantity.find((i: any) => i.medicineId.toString() === m._id.toString());
+            return {
+                ...m._doc,
+                quantity: item ? item.quantity : 0,
+                price: item ? item.price : 0,
+            };
+        });
+
+        console.log('##########acceptedNames#############', acceptedNames);
+
+        let itemsHtml = '';
+
+        if (acceptedNames.length > 0) {
+            const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
+
+            itemsHtml += `
+                        <ul style="list-style:none;padding:0;">
+                    `;
+
+            acceptedNames.forEach((m: any) => {
+                const imgSrc =
+                    m.coverImage && m.coverImage.trim() !== ''
+                        ? m.coverImage
+                        : defaultImg;
+
+                itemsHtml += `
+                            <li style="margin-bottom:10px;display:flex;align-items:center;">
+                                <img src="${imgSrc}" 
+                                     alt="${m.name}" 
+                                     style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:10px;border:1px solid #eee;" />
+                                <div>
+                                    <div style="font-weight:500;">${m.name}</div>
+                                    <div style="font-size:14px;color:#555;">
+                                        Quantity: ${m.quantity}, 
+                                        Price: ₹${Number(m.price).toFixed(2)}
+                                    </div>
+                                </div>
+                            </li>
+                        `;
+            });
+
+            itemsHtml += `</ul>`;
+        }
+
         // Create in-app notification for customer
         try {
             const userIdStr = order.userId && (order.userId._id ? order.userId._id.toString() : order.userId.toString());
@@ -178,6 +230,12 @@ export async function POST(req: NextRequest) {
             await sendEmail({ to: userEmail, subject, html });
         }
 
+        // Choose template based on create or update
+        const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+        const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+        const header = fs.readFileSync(headerPath, 'utf8');
+        const footer = fs.readFileSync(footerPath, 'utf8');
+
         // Notify admin (store manager) and superadmins with detailed message
         let storeName = '';
         let adminName = '';
@@ -214,6 +272,107 @@ export async function POST(req: NextRequest) {
                                 targetId: order._id.toString(),
                                 meta: {}
                             });
+
+                            // Send email to adminEmail
+                            if (adminEmail) {
+                                const adminHtml = `
+                                                                        ${header}
+
+                                                                        <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
+  <div style="max-width:700px;margin:0 auto;background:#ffffff;padding:25px;border:1px solid #e6e6e6;border-radius:8px;">
+
+    <p>Hello ${adminName || 'Store Manager'},</p>
+
+    <p style="color:#d9534f; font-weight:600;">
+      The prescription submitted for the following order has been rejected. ❌
+    </p>
+
+    <!-- Order Details -->
+    <h3 style="margin-top:25px;">Order Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          #${order.order_id}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          Order Placed
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Date & Time</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${new Date(order.createdAt).toLocaleString()}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Customer Details -->
+    <h3 style="margin-top:25px;">Customer Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Customer Name</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${order.deliveredAddress?.name}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Mobile Number</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${order.deliveredAddress?.mobileNumber}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Email ID</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${order.userEmail}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Delivery Address</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${deliveryAddressText}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Items -->
+    <h3 style="margin-top:25px;">Items in Order</h3>
+    ${itemsHtml}
+
+    <!-- Rejection Reason -->
+    <h3 style="margin-top:25px;color:#d9534f;">Rejection Reason</h3>
+    <div style="padding:12px;background:#fff5f5;border:1px solid #f5c6cb;border-radius:6px;color:#a94442;">
+      ${rejectionReason}
+    </div>
+
+    <!-- Status Update -->
+    <h3 style="margin-top:25px;">Status Update</h3>
+    <ul style="padding-left:18px;">
+      <li>The customer has been notified to upload a valid prescription</li>
+      <li>Order processing is currently on hold</li>
+      <li>No fulfillment action is required until a new prescription is submitted</li>
+    </ul>
+
+    <p style="margin-top:20px;">
+      You will receive another notification once the customer re-uploads the prescription for review.
+    </p>
+
+    <p style="margin-top:25px;">
+      Regards,<br/>
+      <strong>Team Pharmato</strong>
+    </p>
+
+  </div>
+</div>
+                                                                               
+                                                                            ${footer}
+                                                                        `;
+                                await sendEmail({ to: adminEmail, subject: `Prescription Rejected – Awaiting Customer Re-upload`, html: adminHtml });
+                            }
 
                             try {
                                 const adminToken = (admin as any).deviceToken;
@@ -260,6 +419,111 @@ export async function POST(req: NextRequest) {
                             storeName
                         }
                     });
+
+                    // Send email to super admin
+                    const superAdminEmail = (superAdmin as any).email;
+                    if (superAdminEmail) {
+                        const superAdminHtml = `${header}
+                        
+                        <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
+  <div style="max-width:700px;margin:0 auto;background:#ffffff;padding:25px;border:1px solid #e6e6e6;border-radius:8px;">
+
+    <p>Hello Super Admin,</p>
+
+    <p style="color:#d9534f; font-weight:600;">
+      The prescription has been rejected by the assigned store. ❌
+    </p>
+
+    <!-- Store Details -->
+    <h3 style="margin-top:25px;">Store Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Store Name</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${storeName}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Store Manager</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${adminName}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Order Details -->
+    <h3 style="margin-top:25px;">Order Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          #${order.order_id}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          Order Placed
+        </td>
+      </tr>
+    </table>
+
+    <!-- Customer Details -->
+    <h3 style="margin-top:25px;">Customer Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Customer Name</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${order.deliveredAddress?.name}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Mobile Number</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${order.deliveredAddress?.mobileNumber}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Email ID</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${order.userEmail}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Delivery Address</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${deliveryAddressText}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Rejection Reason -->
+    <h3 style="margin-top:25px;color:#d9534f;">Reason for Rejection</h3>
+    <div style="padding:12px;background:#fff5f5;border:1px solid #f5c6cb;border-radius:6px;color:#a94442;">
+      ${rejectionReason}
+    </div>
+
+    <p style="margin-top:25px;">
+      The customer has been notified to re-upload a valid prescription.
+      The order will remain on hold until a new prescription is reviewed and approved.
+    </p>
+
+    <p>
+      You will receive another notification once the customer re-uploads the prescription for review.
+    </p>
+
+    <p style="margin-top:25px;">
+      Regards,<br/>
+      <strong>Team Pharmato</strong>
+    </p>
+
+  </div>
+</div>
+                            
+                                                            ${footer}
+                                                        `;
+                        await sendEmail({ to: superAdminEmail, subject: `Prescription Rejected by ${storeName}`, html: superAdminHtml });
+                    }
 
                     try {
                         const superToken = (superAdmin as any).deviceToken;
