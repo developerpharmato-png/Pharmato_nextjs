@@ -228,7 +228,7 @@ const MedicinesTable: React.FC<
         minWidth: 80,
         selector: (row) =>
           row.coverImage ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 ,height:"50px",width:"50px"}}>
               <CustomImage
                 coverImage={row.coverImage}
                 images={row.images}

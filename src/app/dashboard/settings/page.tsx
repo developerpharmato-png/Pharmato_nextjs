@@ -51,6 +51,10 @@ export default function SettingsPage() {
     surgeFeeId: "",
     extraData: defaultExtraData,
   });
+  const [globalStart, setGlobalStart] = useState("");
+  const [globalEnd, setGlobalEnd] = useState("");
+  const [globalSurgeFee, setGlobalSurgeFee] = useState<string | number>("");
+  const [globalStatus, setGlobalStatus] = useState<boolean>(true);
   const [adminPermissions, setAdminPermissions] = useState<any>(null);
 
   useEffect(() => {
@@ -329,6 +333,140 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                  {/* --- Global Time Override Row --- */}
+                  <div className="p-6 bg-blue-50/50 border-b border-gray-100">
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                      <div className="w-24">
+                        <Typography variant="subtitle2" className="font-bold text-blue-700 uppercase tracking-wider">
+                          Apply All
+                        </Typography>
+                      </div>
+                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                        <TextField
+                          label="Global Start Time"
+                          type="time"
+                          size="small"
+                          value={globalStart}
+                          InputLabelProps={{ shrink: true }}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setGlobalStart(val);
+
+                            // If end time exists and is less than or equal to new start time, clear it or warn
+                            if (globalEnd && val >= globalEnd) {
+                              setGlobalEnd("");
+                            }
+
+                            const newExtraData = values.extraData.map((item: any) => ({
+                              ...item,
+                              startTime: val,
+                              // Also auto-adjust individual end times if they become invalid
+                              endTime: item.endTime <= val ? "" : item.endTime
+                            }));
+                            setFieldValue("extraData", newExtraData);
+                          }}
+                          sx={{
+                            backgroundColor: "white",
+                            "& .MuiInputBase-root": { fontSize: "0.875rem" },
+                          }}
+                        />
+                        <TextField
+                          label="Global End Time"
+                          type="time"
+                          size="small"
+                          value={globalEnd}
+                          InputLabelProps={{ shrink: true }}
+                          inputProps={{
+                            min: globalStart,
+                          }}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (globalStart && val <= globalStart) {
+                              Swal.fire({
+                                toast: true,
+                                position: "top-end",
+                                icon: "warning",
+                                title: "End time must be after start time",
+                                showConfirmButton: false,
+                                timer: 2000,
+                              });
+                              return;
+                            }
+
+                            setGlobalEnd(val);
+                            const newExtraData = values.extraData.map((item: any) => ({
+                              ...item,
+                              endTime: val,
+                            }));
+                            setFieldValue("extraData", newExtraData);
+                          }}
+                          sx={{
+                            backgroundColor: "white",
+                            "& .MuiInputBase-root": { fontSize: "0.875rem" },
+                          }}
+                        />
+                        <TextField
+                          label="Global Surge Fee"
+                          type="number"
+                          size="small"
+                          value={globalSurgeFee}
+                          InputProps={{
+                            startAdornment: <InputAdornment position="start">₹</InputAdornment>,
+                          }}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setGlobalSurgeFee(val);
+                            const newExtraData = values.extraData.map((item: any) => ({
+                              ...item,
+                              surgeFee: val === "" ? 0 : parseFloat(val),
+                            }));
+                            setFieldValue("extraData", newExtraData);
+                          }}
+                          sx={{
+                            backgroundColor: "white",
+                            "& .MuiInputBase-root": { fontSize: "0.875rem" },
+                          }}
+                        />
+
+                        <div className="flex items-center justify-between px-2 bg-white rounded-md border border-[#c4c4c4] h-[40px]">
+                          {/* <span className="text-sm text-gray-500">Global Status</span> */}
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                checked={globalStatus}
+                                onChange={(e) => {
+                                  const val = e.target.checked;
+                                  setGlobalStatus(val);
+                                  const newExtraData = values.extraData.map((item: any) => ({
+                                    ...item,
+                                    status: val,
+                                  }));
+                                  setFieldValue("extraData", newExtraData);
+                                }}
+                                sx={{
+                                  "& .MuiSwitch-switchBase.Mui-checked": {
+                                    color: "var(--primary)",
+                                  },
+                                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                                    backgroundColor: "var(--primary)",
+                                  },
+                                }}
+                              />
+                            }
+                            label={globalStatus ? "Active" : "Inactive"}
+                            componentsProps={{ typography: { className: "text-xs font-medium" } }}
+                            sx={{ ml: 0, mr: 0 }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-4 ml-30 lg:ml-30 flex items-center gap-2">
+                      <p className="text-xs text-blue-600 italic">
+                        * Adjusting any global field above will immediately update all days below. Individual edits are still possible.
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 divide-y divide-gray-100">
                     {values.extraData.map((item, index) => (
                       <div key={item.day} className="p-6 transition-colors hover:bg-gray-50">
@@ -348,8 +486,15 @@ export default function SettingsPage() {
                                 value={item.startTime}
                                 name={`extraData[${index}].startTime`}
                                 onChange={(e) => {
+                                  const val = e.target.value;
                                   const newExtraData = [...values.extraData];
-                                  newExtraData[index].startTime = e.target.value;
+                                  newExtraData[index].startTime = val;
+
+                                  // Auto-clear end time if it becomes invalid
+                                  if (newExtraData[index].endTime && val >= newExtraData[index].endTime) {
+                                    newExtraData[index].endTime = "";
+                                  }
+
                                   setFieldValue("extraData", newExtraData);
                                 }}
                                 onBlur={handleBlur}
@@ -373,8 +518,20 @@ export default function SettingsPage() {
                                   min: item.startTime,
                                 }}
                                 onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (item.startTime && val <= item.startTime) {
+                                    Swal.fire({
+                                      toast: true,
+                                      position: "top-end",
+                                      icon: "warning",
+                                      title: "End time must be after start time",
+                                      showConfirmButton: false,
+                                      timer: 2000,
+                                    });
+                                    return;
+                                  }
                                   const newExtraData = [...values.extraData];
-                                  newExtraData[index].endTime = e.target.value;
+                                  newExtraData[index].endTime = val;
                                   setFieldValue("extraData", newExtraData);
                                 }}
                                 onBlur={handleBlur}
