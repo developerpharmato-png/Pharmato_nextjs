@@ -47,7 +47,7 @@ const razorpayInstance = new Razorpay({
     key_secret: process.env.razorPay_Secret_Key || ''
 });
 
-async function runBackground(order: any, user: any, unCancelledItems: any[]) {
+async function runBackground(order: any, user: any, unCancelledItems: any[], cancelReason: string) {
 
     let refundAmount = 0;
     let responseMessage = '';
@@ -342,7 +342,65 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
         console.error('Notification create/send error (partial-accept):', notifErr);
     }
 
+    let itemsHtml = '<h3 style="margin-top:25px;">Order Summary</h3>';
+    let refundDetailHtml = '';
+
+    if (acceptedNames.length > 0) {
+        const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
+        itemsHtml += '<p><b>Accepted Medicines:</b><ul style="list-style:none;padding:0;">';
+        acceptedNames.forEach((m: any) => {
+            const imgSrc = m.coverImage && m.coverImage.trim() !== '' ? m.coverImage : defaultImg;
+            itemsHtml += `<li style="margin-bottom:10px;display:flex;align-items:center;">
+                    <img src="${imgSrc}" alt="${m.name}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:10px;border:1px solid #eee;" />
+                               <div>
+                <div style="font-weight:500;">${m.name}</div>
+                <div style="font-size:14px;color:#555;">
+                    Quantity: ${m.quantity}, Price: ₹${Number(m.price).toFixed(2)}
+                </div>
+            </div>
+                </li>`;
+        });
+        itemsHtml += '</ul></p>';
+    }
+    if (cancelledNamesWithDetails.length > 0) {
+        const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
+        itemsHtml += '<p><b>Cancelled Medicines:</b><ul style="list-style:none;padding:0;">';
+        cancelledNamesWithDetails.forEach((m: any) => {
+            const imgSrc = m.coverImage && m.coverImage.trim() !== '' ? m.coverImage : defaultImg;
+            itemsHtml += `<li style="margin-bottom:10px;display:flex;align-items:center;">
+                    <img src="${imgSrc}" alt="${m.name}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:10px;border:1px solid #eee;" />
+                               <div>
+                <div style="font-weight:500;">${m.name}</div>
+                <div style="font-size:14px;color:#555;">
+                    Quantity: ${m.quantity}, Price: ₹${Number(m.price).toFixed(2)}
+                </div>
+            </div>
+                            </li>`;
+        });
+        itemsHtml += `</ul></p>`;
+        itemsHtml += ` <h3 style="margin-top:25px;">Cancellation Reason</h3>
+    <div style="padding:12px;background:#fff5f5;border:1px solid #f5c6cb;border-radius:6px;color:#a94442;">
+      ${cancelReason}
+    </div>`;
+
+        refundDetailHtml += `<h3 style="margin-top:25px;color:#f0ad4e;">Refund Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Refund Amount</td>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+          ₹${refundAmount}
+        </td>
+      </tr>
+    </table>`
+
+    }
+
     // Notify admin (store manager) and superadmins with detailed message
+    // let storeName = '';
+    let adminName = '';
+    let adminEmail = '';
+    let adminRoleName = '';
+    let customerName = userName;
     if (order.storeId) {
         const storeId = (order as any).storeId;
         if (storeId) {
@@ -352,6 +410,8 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
                 if ('adminManagerId' in store && store.adminManagerId) {
                     const admin = await Admin.findById((store as any).adminManagerId).lean();
                     if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+                        adminName = (admin as any).name || '';
+                        adminEmail = (admin as any).email || '';
 
                         let storeNotMsg: any = acceptedNames.length === 0 ? `Order Cancelled Successfully: Order #${order.order_id} for ${userName} has been cancelled.` : `Order Confirmed Successfully: You have confirmed the Order #${order.order_id}. Prepare the order for dispatch.`;
 
@@ -366,6 +426,138 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
                             targetId: order._id.toString(),
                             meta: {}
                         });
+
+                        const storeEmailSubject = acceptedNames.length === 0 ? `Order Cancelled – No Items Confirmed` : `Order Confirmed – Prepare Available Items`;
+
+                        // Send email to adminEmail
+                        if (adminEmail) {
+                            const adminHtml = `
+                                                                        ${header}
+
+                                                                        <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
+  <div
+    style="max-width:700px;margin:0 auto;background:#ffffff;padding:25px;border:1px solid #e6e6e6;border-radius:8px;">
+
+    <p>Hello ${adminName || 'Store Manager'},</p>
+
+    <p style="color:#28a745; font-weight:600;">
+      The following order has been Partially Confirmed based on medicine availability.
+    </p>
+
+    <!-- Order Details -->
+    <h3 style="margin-top:25px;">Order Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          #${order.order_id}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+        <td style="padding:8px;border:1px solid #eee;color:#28a745;font-weight:600;">
+          Confirmed
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Date & Time</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${new Date(order.createdAt).toLocaleString()}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Customer Details -->
+    <h3 style="margin-top:25px;">Customer Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Customer Name</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${order.deliveredAddress?.name}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Mobile Number</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${order.deliveredAddress?.mobileNumber}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Email ID</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${order.userEmail}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Delivery Address</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${deliveryAddressText}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Order Summary -->
+    ${itemsHtml}
+
+    <!-- Payment Summary -->
+    <h3 style="margin-top:25px;">Payment Summary</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Subtotal</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${order.calculationData.priceTotalSumBeforeDiscount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Delivery Charges</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${order.calculationData.deliveryFee}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Discount</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${order.discount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+          Total Paid
+        </td>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+          ₹${order.total_order_amount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Payment Method</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${order.payment_mode.toUpperCase()}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Refund Details -->
+    ${refundDetailHtml}
+
+    <h3 style="margin-top:25px;">Action Required:</h3>
+    <ul>
+      <li>Pack only the confirmed medicines</li>
+      <li>Ensure invoice reflects updated order items</li>
+      <li>Handover packed order for dispatch</li>
+    </ul>
+
+    <p style="margin-top:25px;">
+      Regards,<br />
+      <strong>Team Pharmato</strong>
+    </p>
+
+  </div>
+</div>
+                                                                               
+                                                                            ${footer}
+                                                                        `;
+                            await sendEmail({ to: adminEmail, subject: `${storeEmailSubject}`, html: adminHtml });
+                        }
 
                         try {
                             const adminToken = (admin as any).deviceToken;
@@ -422,31 +614,141 @@ async function runBackground(order: any, user: any, unCancelledItems: any[]) {
                 if (superAdminEmail && order.order_status === 'Confirmed') {
                     const superAdminHtml = `
                     ${header}
-                        <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width:600px; margin:0 auto;">
-                            <p>Hello Admin,</p>
-                            <p>Order <b>#${order.order_id}</b> has been successfully confirmed.</p>
-                            <h4>Order Details</h4>
-                            <table style="width:100%;border-collapse:collapse;margin:16px 0;">
-                                <tr>
-                                    <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
-                                    <td style="padding:8px;border:1px solid #eee;">${order.order_id}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
-                                    <td style="padding:8px;border:1px solid #eee;">Confirmed</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding:8px;border:1px solid #eee;font-weight:600;">Confirmed By</td>
-                                    <td style="padding:8px;border:1px solid #eee;">${storeManagerName || 'Store Manager'}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding:8px;border:1px solid #eee;font-weight:600;">Store</td>
-                                    <td style="padding:8px;border:1px solid #eee;">${storeName}</td>
-                                </tr>
-                            </table>
-                            <p>The order is now being prepared for dispatch.</p>
-                            <p>Regards,<br/><b>Team Pharmato</b></p>
-                        </div>
+
+                    <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
+  <div style="max-width:700px;margin:0 auto;background:#ffffff;padding:25px;border:1px solid #e6e6e6;border-radius:8px;">
+
+    <p>Hello Super Admin,</p>
+
+    <p style="color:#28a745; font-weight:600;">
+      The following order has been successfully confirmed by the assigned store.
+    </p>
+
+    <!-- Store Details -->
+    <h3 style="margin-top:25px;">Store Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Store Name</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${storeName}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Store Manager</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${storeManagerName}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Order Details -->
+    <h3 style="margin-top:25px;">Order Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          #${order.order_id}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+        <td style="padding:8px;border:1px solid #eee;color:#28a745;font-weight:600;">
+          Confirmed
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Date & Time</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${new Date(order.createdAt).toLocaleString()}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Customer Details -->
+    <h3 style="margin-top:25px;">Customer Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Customer Name</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${order.deliveredAddress?.name}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Mobile Number</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${order.deliveredAddress?.mobileNumber}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Email ID</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${order.userEmail}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Delivery Address</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${deliveryAddressText}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Order Summary -->
+    ${itemsHtml}
+
+    <!-- Payment Summary -->
+    <h3 style="margin-top:25px;">Payment Summary</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Subtotal</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${order.calculationData.priceTotalSumBeforeDiscount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Delivery Charges</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${order.calculationData.deliveryFee}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Discount</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ₹${order.discount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+          Total Paid
+        </td>
+        <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+          ₹${order.total_order_amount}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px;border:1px solid #eee;">Payment Method</td>
+        <td style="padding:8px;border:1px solid #eee;">
+          ${order.payment_mode.toUpperCase()}
+        </td>
+      </tr>
+    </table>    
+
+    <!-- Refund Details -->
+    ${refundDetailHtml}
+
+    <p style="margin-top:25px;">
+      The store will proceed with packing and dispatching only the confirmed medicines.
+      The refund for cancelled items will be processed separately to the customer.
+    </p>
+
+    <p style="margin-top:25px;">
+      Regards,<br/>
+      <strong>Team Pharmato</strong>
+    </p>
+
+  </div>
+</div>
+
                         ${footer}
                     `;
                     await sendEmail({ to: superAdminEmail, subject: `Order Confirmed Successfully – Order #${order.order_id}`, html: superAdminHtml });
@@ -911,7 +1213,7 @@ export async function POST(req: NextRequest) {
         await order.save();
 
         setImmediate(() => {
-            runBackground(order, user, unCancelledItems);
+            runBackground(order, user, unCancelledItems, cancelReason);
         });
 
         return NextResponse.json({ success: true, message: 'Order status updated', data: order });

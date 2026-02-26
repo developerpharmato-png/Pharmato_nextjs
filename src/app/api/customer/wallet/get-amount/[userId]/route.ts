@@ -70,7 +70,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
             // Hours + Minutes
             const hours = Math.floor(diffMinutes / 60);
             const minutes = diffMinutes % 60;
-            formattedTime = `${hours} hour ${minutes} min`;
+            formattedTime = `${hours} hour`;
 
         } else {
             // Days + Hours + Minutes
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
             const hours = Math.floor(remainingMinutes / 60);
             const minutes = remainingMinutes % 60;
 
-            formattedTime = `${days} day ${hours} hour ${minutes} min`;
+            formattedTime = `${days} day`;
         }
 
         return NextResponse.json({
