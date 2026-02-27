@@ -267,18 +267,22 @@ ${header}
           ₹${checkOrder.calculationData.priceTotalSumBeforeDiscount}
         </td>
       </tr>
-      <tr>
+      
+      ${checkOrder.calculationData.deliveryFee > 0 ? `       <tr>
         <td style="padding:8px;border:1px solid #eee;">Delivery Charges</td>
         <td style="padding:8px;border:1px solid #eee;">
           ₹${checkOrder.calculationData.deliveryFee}
         </td>
-      </tr>
-      <tr>
+      </tr>` : ``}
+
+      
+      ${checkOrder.discount > 0 ? ` <tr>
         <td style="padding:8px;border:1px solid #eee;">Discount</td>
         <td style="padding:8px;border:1px solid #eee;">
           ₹${checkOrder.discount}
         </td>
-      </tr>
+      </tr>` : ``}
+
       <tr>
         <td style="padding:8px;border:1px solid #eee;font-weight:600;">
           Total Amount Paid
@@ -486,18 +490,22 @@ ${footer}
           ₹${checkOrder.calculationData.priceTotalSumBeforeDiscount}
         </td>
       </tr>
-      <tr>
+      
+      ${checkOrder.calculationData.deliveryFee > 0 ? `       <tr>
         <td style="padding:8px;border:1px solid #eee;">Delivery Charges</td>
         <td style="padding:8px;border:1px solid #eee;">
           ₹${checkOrder.calculationData.deliveryFee}
         </td>
-      </tr>
-      <tr>
+      </tr>` : ``}
+
+      
+      ${checkOrder.discount > 0 ? ` <tr>
         <td style="padding:8px;border:1px solid #eee;">Discount</td>
         <td style="padding:8px;border:1px solid #eee;">
           ₹${checkOrder.discount}
         </td>
-      </tr>
+      </tr>` : ``}
+
       <tr>
         <td style="padding:8px;border:1px solid #eee;font-weight:600;">
           Total Paid
@@ -692,18 +700,22 @@ ${footer}
           ₹${checkOrder.calculationData.priceTotalSumBeforeDiscount}
         </td>
       </tr>
-      <tr>
+      
+      ${checkOrder.calculationData.deliveryFee > 0 ? `       <tr>
         <td style="padding:8px;border:1px solid #eee;">Delivery Charges</td>
         <td style="padding:8px;border:1px solid #eee;">
           ₹${checkOrder.calculationData.deliveryFee}
         </td>
-      </tr>
-      <tr>
+      </tr>` : ``}
+
+      
+      ${checkOrder.discount > 0 ? ` <tr>
         <td style="padding:8px;border:1px solid #eee;">Discount</td>
         <td style="padding:8px;border:1px solid #eee;">
           ₹${checkOrder.discount}
         </td>
-      </tr>
+      </tr>` : ``}
+      
       <tr>
         <td style="padding:8px;border:1px solid #eee;font-weight:600;">
           Total Paid

@@ -227,18 +227,22 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
           ₹${order.calculationData.priceTotalSumBeforeDiscount}
         </td>
       </tr>
-      <tr>
+      
+      ${order.calculationData.deliveryFee > 0 ? `<tr>
         <td style="padding:8px;border:1px solid #eee;">Delivery Charges</td>
         <td style="padding:8px;border:1px solid #eee;">
           ₹${order.calculationData.deliveryFee}
         </td>
-      </tr>
-      <tr>
+      </tr>` : ``}
+
+      
+      ${order.discount > 0 ? `<tr>
         <td style="padding:8px;border:1px solid #eee;">Discount</td>
         <td style="padding:8px;border:1px solid #eee;">
           ₹${order.discount}
         </td>
-      </tr>
+      </tr>` : ``}
+
       <tr>
         <td style="padding:8px;border:1px solid #eee;font-weight:600;">
           Total Amount Paid
@@ -508,18 +512,22 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
           ₹${order.calculationData.priceTotalSumBeforeDiscount}
         </td>
       </tr>
-      <tr>
+      
+      ${order.calculationData.deliveryFee > 0 ? `       <tr>
         <td style="padding:8px;border:1px solid #eee;">Delivery Charges</td>
         <td style="padding:8px;border:1px solid #eee;">
           ₹${order.calculationData.deliveryFee}
         </td>
-      </tr>
-      <tr>
+      </tr>` : ``}
+
+      
+      ${order.discount > 0 ? ` <tr>
         <td style="padding:8px;border:1px solid #eee;">Discount</td>
         <td style="padding:8px;border:1px solid #eee;">
           ₹${order.discount}
         </td>
-      </tr>
+      </tr>` : ``}
+
       <tr>
         <td style="padding:8px;border:1px solid #eee;font-weight:600;">
           Total Paid
