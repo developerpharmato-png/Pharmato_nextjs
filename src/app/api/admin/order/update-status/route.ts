@@ -660,9 +660,7 @@ ${footer}
                     } catch (emailErr) {
                         console.error('Error sending delivered email:', emailErr);
                     }
-
-
-
+                    
                 }
             }
         } catch (err) {
