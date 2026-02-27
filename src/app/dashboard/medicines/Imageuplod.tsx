@@ -216,12 +216,12 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
         </div>
       )}
 
-      
+
       {sliderOpen && (
         <div className="fixed inset-0  bg-opacity-75 flex items-center justify-center z-[1000] p-4 backdrop-blur-sm">
           <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl relative p-4">
             {" "}
-          
+
             <button
               onClick={handleCloseSlider}
               // Close button position and color updated for a dark overlay
@@ -267,4 +267,3 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
 };
 
 export default MedicineImageUploader;
- 
