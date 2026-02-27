@@ -216,8 +216,8 @@ export default function SettingsPage() {
             <Form className="space-y-10 mt-8 max-w-5xl">
               {/* --- Logistics Section --- */}
               <div className="space-y-4">
-                <div className="border-l-4 border-green-600 pl-4 py-1">
-                  <div className="flex items-center gap-2 text-green-700">
+                  <div className="border-l-4 border-[var(--secondary)] pl-4 py-1">
+                    <div className="flex items-center gap-2 text-[var(--secondary)]">
                     <Truck size={22} />
                     <h3 className="font-bold text-xl">Logistics</h3>
                   </div>
