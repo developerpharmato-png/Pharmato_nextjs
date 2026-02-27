@@ -3,7 +3,7 @@ name: Call Next.js Cron API
 on:
   # 2️⃣ हर 1 मिनट में चलेगा
   schedule:
-    - cron: "0 */2 * * *"
+    - cron: "*/30 * * * *"
 
   # 3️⃣ Manually GitHub se run kar sakega
   workflow_dispatch:
