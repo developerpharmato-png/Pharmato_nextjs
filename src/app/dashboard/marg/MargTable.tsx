@@ -15,6 +15,7 @@ interface MargItem {
   createdAt: string;
   updatedAt: string;
   margInsertData?: any[];
+  uniqueCode?: string;
 }
 
 interface MargTableProps {
@@ -53,7 +54,7 @@ const MargTable: React.FC<MargTableProps> = ({ data, page, rowsPerPage, totalCou
             className={`ID-List ${row.margInsertDataCount === 1 ? "cursor-pointer text-green-600" : "text-gray-700"}`}
             onClick={() => handleOpenDetail(row)}
           >
-            {row._id}
+            {row.uniqueCode}
           </span>
         </CustomTooltip>
       ),
@@ -63,8 +64,8 @@ const MargTable: React.FC<MargTableProps> = ({ data, page, rowsPerPage, totalCou
     { id: "margGetDataCount", label: "Get Count", minWidth: 90, selector: (row) => row.margGetDataCount },
     { id: "margInsertDataCount", label: "Insert Count", minWidth: 100, selector: (row) => row.margInsertDataCount },
     { id: "margUpdateDataCount", label: "Update Count", minWidth: 100, selector: (row) => row.margUpdateDataCount },
-    { id: "createdAt", label: "Created At", minWidth: 140, selector: (row) => formatMargDate(row.createdAt) },
-    { id: "updatedAt", label: "Updated At", minWidth: 140, selector: (row) => formatMargDate(row.updatedAt) },
+    { id: "createdAt", label: "Started", minWidth: 140, selector: (row) => formatMargDate(row.createdAt) },
+    { id: "updatedAt", label: "End", minWidth: 140, selector: (row) => formatMargDate(row.updatedAt) },
   ];
 
   return (
@@ -78,7 +79,7 @@ const MargTable: React.FC<MargTableProps> = ({ data, page, rowsPerPage, totalCou
       onRowsPerPageChange={onRowsPerPageChange}
       loading={loading}
     />
-  ); 
+  );
 };
 
 export default MargTable;
