@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
       if (userEmail) {
         // console.log('Preparing approval email for:', userEmail);
         const base = process.env.NEXT_PUBLIC_BASE_URL || '';
-        const subject = `Prescription Approved - Order ${order.order_id}`;
+        const subject = `Order Update : Prescription Approved`;
         const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
         const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
         const contentPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/prescriptionApproved.html');

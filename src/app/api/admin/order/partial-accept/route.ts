@@ -279,16 +279,6 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
         await sendEmail({ to: userEmail, subject: emailSubject, html });
     }
 
-    //     // Update orderStatus in Firebase Realtime Database
-    //     if (order?.order_id) {
-    //         const db = getDb();
-    //         const firebaseRef = db.ref(`orders/${order.order_id}`);
-    //         const snapshot = await firebaseRef.once('value');
-    //         const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1;
-    //         await firebaseRef.update({
-    //             isOrderStatusChanged: isOrderStatusChanged
-    //         });
-    //     }
 
     try {
         if (!order?.order_id) return;
@@ -620,6 +610,9 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                 // Send custom confirmation email to super admin if order is confirmed
                 const superAdminEmail = (superAdmin as any).email;
                 if (superAdminEmail && order.order_status === 'Confirmed') {
+
+                    const superAdminEmailSubject = acceptedNames.length === 0 ? `Order Cancelled – No Items Confirmed` : `Order Confirmed – Ready for Fulfillment`;
+
                     const superAdminHtml = `
                     ${header}
 
@@ -759,7 +752,7 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
 
                         ${footer}
                     `;
-                    await sendEmail({ to: superAdminEmail, subject: `Order Confirmed Successfully – Order #${order.order_id}`, html: superAdminHtml });
+                    await sendEmail({ to: superAdminEmail, subject: superAdminEmailSubject, html: superAdminHtml });
                 }
 
                 // Optionally, still send push notification
