@@ -14,6 +14,7 @@ interface ImageFormState {
 
 // Props for the main Uploader component
 interface MedicineImageUploaderProps {
+  id?: string;
   form: ImageFormState;
   touched: { images?: boolean };
   errors: { images?: string | string[] };
@@ -144,6 +145,7 @@ const ImageDisplayCard: React.FC<ImageDisplayCardProps> = ({
 // --- Main Component: MedicineImageUploader ---
 
 const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
+  id,
   form,
   touched,
   errors,
@@ -166,7 +168,7 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
   };
 
   return (
-    <div>
+    <div id={id} tabIndex={-1} className="outline-none">
       <label className="block text-sm font-bold text-gray-800 mb-2">
         Medicine Images *
         <p className="text-xs text-gray-500 font-normal">

@@ -207,6 +207,45 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
   });
   const [uploading, setUploading] = useState(false);
   useEffect(() => {
+    if (formik.submitCount > 0 && Object.keys(formik.errors).length > 0) {
+      const firstErrorKey = Object.keys(formik.errors)[0];
+
+      // Give a tiny delay for MUI and animations to settle
+      setTimeout(() => {
+        // Prioritize ID as it's more specific than Name (which can collide with meta tags like 'description')
+        const element = document.getElementById(firstErrorKey) || document.getElementsByName(firstErrorKey)[0];
+
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+
+          // Comprehensive focus logic to find the actual interactive element
+          const focusableElement = (
+            element.tagName === 'INPUT' ||
+            element.tagName === 'TEXTAREA' ||
+            element.tagName === 'SELECT' ||
+            element.hasAttribute('tabindex')
+          ) ? element : (
+            element.querySelector('input:not([type="hidden"]), textarea, select, button, [tabindex="0"]') as HTMLElement
+          );
+
+          if (focusableElement) {
+            (focusableElement as HTMLElement).focus({ preventScroll: true });
+          }
+        }
+      }, 100);
+
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "error",
+        title: "Please fill all the required field",
+        showConfirmButton: false,
+        timer: 3000,
+      });
+    }
+  }, [formik.submitCount, formik.errors]);
+
+  useEffect(() => {
     console.log(formik?.values, "formik");
     console.log(formik.errors, "formik");
   }, [formik]);
@@ -639,6 +678,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
               <div>
                 <form onSubmit={formik.handleSubmit} className="space-y-8">
                   <MedicineImageUploader
+                    id="images"
                     form={{
                       images: formik.values.images,
                       coverImage: formik.values.coverImage || "",
@@ -656,6 +696,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                     <div className="">
                       <TextField
                         name="name"
+                        id="name"
                         label="Medicine Name *"
                         value={formik.values.name}
                         onChange={handleChange}
@@ -677,13 +718,19 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                     </div>
 
                     <div>
-                      <FormControl fullWidth variant="outlined">
+                      <FormControl
+                        fullWidth
+                        variant="outlined"
+                        error={formik.touched.storeId && Boolean(formik.errors.storeId)}
+                      >
                         <InputLabel id="store-select-label">Store</InputLabel>
                         <Select
                           labelId="store-select-label"
                           name="storeId"
+                          id="storeId"
                           value={formik.values.storeId}
                           label="Store"
+                          onBlur={formik.handleBlur}
                           onChange={(e) => {
                             handleChange({
                               target: {
@@ -710,28 +757,27 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
 
                   <div>
                     <TextareaField
-                      id="targetScreen"
-                      name="alt"
-                      label="Description"
+                      id="description"
+                      name="description"
+                      label="Description *"
                       value={formik.values.description}
                       onChange={(e) => {
                         console.log("Description updated:", e.target.value); // Debugging log
                         formik.setFieldValue("description", e.target.value);
                       }}
+                      onBlur={formik.handleBlur}
                       placeholder="Enter description here"
                       maxLength={400}
                       rows={5}
                       showCount={true}
-
+                      error={formik.touched.description && formik.errors.description}
                     />
-                    {formik.touched.description && formik.errors.description && (
-                      <ErrorMessageCom error={formik.errors.description} />
-                    )}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
                       <TextField
                         name="manufacturer"
+                        id="manufacturer"
                         label="Manufacturer *"
                         value={formik.values.manufacturer}
                         onChange={handleChange}
@@ -758,6 +804,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                     <div>
                       <TextField
                         name="stock"
+                        id="stock"
                         label="Stock Quantity *"
                         type="text"
                         value={formik.values.stock}
@@ -782,12 +829,19 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
 
                     {/* Form Type */}
                     <div className="flex gap-4 items-end">
-                      <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                      <FormControl
+                        fullWidth
+                        variant="outlined"
+                        sx={{ mb: 2 }}
+                        error={formik.touched.category && Boolean(formik.errors.category)}
+                      >
                         <InputLabel id="form-type-label">Form Type *</InputLabel>
                         <Select
                           labelId="form-type-label"
                           name="category"
+                          id="category"
                           value={formik.values.category}
+                          onBlur={formik.handleBlur}
                           onChange={(event) => {
                             handleChange({
                               target: {
@@ -916,12 +970,19 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                     {/* Increased grid gap */}
                     {/* Category */}
                     <div>
-                      <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                      <FormControl
+                        fullWidth
+                        variant="outlined"
+                        sx={{ mb: 2 }}
+                        error={formik.touched.categoryId && Boolean(formik.errors.categoryId)}
+                      >
                         <InputLabel id="category-label">Category</InputLabel>
                         <Select
                           labelId="category-label"
                           name="categoryId"
+                          id="categoryId"
                           value={formik.values.categoryId}
+                          onBlur={formik.handleBlur}
                           onChange={(event) => {
                             handleChange({
                               target: {
@@ -944,11 +1005,17 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                     </div>
                     {/* Subcategory */}
                     <div>
-                      <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                      <FormControl
+                        fullWidth
+                        variant="outlined"
+                        sx={{ mb: 2 }}
+                        error={formik.touched.subCategoryId && Boolean(formik.errors.subCategoryId)}
+                      >
                         <InputLabel id="subcategory-label">Subcategory</InputLabel>
                         <Select
                           labelId="subcategory-label"
                           name="subCategoryId"
+                          id="subCategoryId"
                           value={formik.values.subCategoryId}
                           onChange={(event) => {
                             handleChange({
@@ -993,6 +1060,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                           slotProps={{
                             textField: {
                               name: "expiryDate",
+                              id: "expiryDate",
                               fullWidth: true,
                               variant: "outlined",
                               onBlur: formik.handleBlur,
@@ -1018,6 +1086,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                     <div className="">
                       <TextField
                         name="batchNumber"
+                        id="batchNumber"
                         label="Batch Number*"
                         type="text"
                         value={formik.values.batchNumber}
@@ -1047,6 +1116,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                     <div>
                       <TextField
                         name="mrp"
+                        id="mrp"
                         label="MRP (₹) *"
                         type="text"
                         value={formik.values.mrp}
@@ -1071,6 +1141,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                     <div>
                       <TextField
                         name="purchasePrice"
+                        id="purchasePrice"
                         label="Purchase Price (₹) *"
                         type="text"
                         value={formik.values.purchasePrice}
@@ -1099,6 +1170,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                     <div>
                       <TextField
                         name="price"
+                        id="price"
                         label="Selling Price (₹) *"
                         type="text"
                         value={formik.values.price}

@@ -38,6 +38,7 @@ import PartialCancel from "@/app/dashboard/components/skeleton/PartialCancel";
 import ProductManageTable from "@/app/dashboard/components/ProductManageTable";
 import TextareaField from "@/app/dashboard/components/skeleton/FieldCom";
 import OdermangeSkeleton from "@/app/dashboard/components/skeleton/odermangeSkeleton";
+import PolicyExpandable from "@/app/dashboard/components/ExpandableText";
 
 export default function PartialCancelPage() {
   const router = useRouter();
@@ -1518,6 +1519,23 @@ export default function PartialCancelPage() {
             </div>
           )}
       </div>
+
+      {(order?.privacyPolicy || order?.termAndCondition) && (
+        <div className="space-y-8 mt-10 mb-12">
+          {order?.privacyPolicy && (
+            <PolicyExpandable
+              title="Privacy Policy"
+              htmlContent={order.privacyPolicy}
+            />
+          )}
+          {order?.termAndCondition && (
+            <PolicyExpandable
+              title="Terms & Conditions"
+              htmlContent={order.termAndCondition}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }
