@@ -174,23 +174,19 @@ export async function POST(req: NextRequest) {
     const settings = await Setting.find().lean();
     let deliveryFee = 0;
     let deliveryFeeThreshold: any = "";
+    let privacyPolicy: any = "";
+    let termAndCondition: any = "";
     let surgePricing: any = [];
 
     for (const setting of settings) {
         if (setting.type === 'deliveryFee') deliveryFee = Number(setting.data);
         if (setting.type === 'deliveryFeeThreshold') deliveryFeeThreshold = setting.data;
+        if (setting.type === 'userPrivacyPolicy') privacyPolicy = setting.data;
+        if (setting.type === 'userTerm&Condition') termAndCondition = setting.data;
         if (setting.type === 'surgePricing') surgePricing = setting?.extraData || [];
     }
 
     const surge = getActiveSurge(surgePricing);
-
-    //     Surge Active: {
-    //   day: 'TUE',
-    //   startTime: '10:00',
-    //   endTime: '22:00',
-    //   surgeFee: 60,
-    //   status: true
-    // }
 
     if (surge) {
         console.log("Surge Active:", surge);
@@ -404,6 +400,8 @@ export async function POST(req: NextRequest) {
         prescription_status: isPrescriptionRequired ? 'Pending' : 'Not Required',
         deliveredAddress: addressDoc.toObject(),
         expectedDeliveryDate,
+        privacyPolicy,
+        termAndCondition
     });
 
     if (isPaymentByWallet) {
