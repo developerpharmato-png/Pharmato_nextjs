@@ -67,7 +67,6 @@ export async function POST(req: NextRequest) {
                 .select('_id name categoryId subCategoryId manufacturer isPrescription mrp price discount images stock coverImage')
                 .lean();
 
-
         }
         // Get user's cart or guest cart
         let cartItems: any[] = [];
@@ -105,12 +104,25 @@ export async function POST(req: NextRequest) {
             return true;
         });
 
+        // Filter medicineQuantity so only items matching medicineId in finalMedicines (where medicineId matches _id) are included
+        order.medicineQuantity = order.medicineQuantity.filter((item: any) => {
+            return finalMedicines.some((med: any) => {
+                // item.medicineId matches med._id
+                return item.medicineId?.toString() === med._id?.toString();
+            });
+        });
+
+        // Determine if any item requires a prescription
+        const isPrescriptionRequired = finalMedicines.some((item: any) => item.isPrescription === true);
+
         return NextResponse.json(
             {
                 success: true,
                 message: 'Medicines fetched successfully',
                 medicines: finalMedicines,
                 medicineQuantity: order.medicineQuantity,
+                isPrescriptionRequired: isPrescriptionRequired ? true : false,
+                prescription_url: isPrescriptionRequired ? order?.prescription_url : [],
                 orderCreatedAt: moment(order.createdAt)
                     .tz('Asia/Kolkata')
                     .format('MMM D, YYYY')

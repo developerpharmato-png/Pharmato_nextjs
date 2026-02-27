@@ -72,13 +72,15 @@ export async function POST(req: NextRequest) {
 
         // Update prescription status. Do NOT overwrite existing prescription_url
         // unless the request explicitly provides a value for it.
+
+        const finalRejectUrls = [...(Array.isArray(order.reject_prescription_url) ? order.reject_prescription_url : []), ...(Array.isArray(order.prescription_url) ? order.prescription_url : [])];
+
         order.prescription_status = 'Rejected';
         order.prescription_rejected_by = adminId;
         order.prescription_rejected_at = new Date();
         order.prescription_rejection_reason = rejectionReason;
-        if (typeof prescription_url !== 'undefined') {
-            order.prescription_url = prescription_url;
-        }
+        order.reject_prescription_url = finalRejectUrls; // Preserve existing URLs in reject_prescription_url
+        order.prescription_url = []; // Clear prescription_url since it's rejected
 
         await order.save();
 
