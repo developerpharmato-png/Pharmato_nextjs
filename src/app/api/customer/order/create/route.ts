@@ -210,7 +210,7 @@ export async function POST(req: NextRequest) {
     // Validate delivery fee
     if (deliveryFee !== Number(calculationData.deliveryFee)) {
 
-        return NextResponse.json({ success: false, message: 'Delivery fee changed' }, { status: 400 });
+        return NextResponse.json({ success: false, message: 'Delivery fee changed. Refresh your cart to continue.' }, { status: 400 });
 
     }
 
@@ -276,12 +276,12 @@ export async function POST(req: NextRequest) {
 
             // Agar cart me medicine hi nahi mili
             if (!cartItem) {
-                return NextResponse.json({ success: false, message: 'Cart item changed' }, { status: 400 });
+                return NextResponse.json({ success: false, message: 'Cart updated. Refresh your cart to continue.' }, { status: 400 });
             }
 
             // Agar quantity mismatch hai
             if (cartItem.quantity !== calcItem.quantity) {
-                return NextResponse.json({ success: false, message: 'Cart item changed' }, { status: 400 });
+                return NextResponse.json({ success: false, message: 'Cart updated. Refresh your cart to continue.' }, { status: 400 });
             }
         }
 
@@ -295,7 +295,7 @@ export async function POST(req: NextRequest) {
             // Agar calculationData me medicine hi nahi mili
             if (!calcItem) {
                 return NextResponse.json(
-                    { success: false, message: 'Cart item changed' },
+                    { success: false, message: 'Cart updated. Refresh your cart to continue.' },
                     { status: 400 }
                 );
             }
@@ -303,7 +303,7 @@ export async function POST(req: NextRequest) {
             // Agar quantity mismatch hai
             if (cartItem.quantity !== calcItem.quantity) {
                 return NextResponse.json(
-                    { success: false, message: 'Cart item changed' },
+                    { success: false, message: 'Cart updated. Refresh your cart to continue.' },
                     { status: 400 }
                 );
             }
@@ -350,7 +350,7 @@ export async function POST(req: NextRequest) {
     if (Number(priceTotalSumBeforeDiscount.toFixed(2)) !== Number(calculationData?.priceTotalSumBeforeDiscount || 0)) {
 
         return NextResponse.json(
-            { success: false, message: 'Item price changed' },
+            { success: false, message: 'Cart updated. Refresh your cart to continue.' },
             { status: 400 }
         );
 

@@ -15,6 +15,7 @@ interface MargItem {
   createdAt: string;
   updatedAt: string;
   margInsertData?: any[];
+  uniqueCode?: string;
 }
 
 interface MargTableProps {
@@ -53,7 +54,7 @@ const MargTable: React.FC<MargTableProps> = ({ data, page, rowsPerPage, totalCou
             className={`ID-List ${row.margInsertDataCount === 1 ? "cursor-pointer text-green-600" : "text-gray-700"}`}
             onClick={() => handleOpenDetail(row)}
           >
-            {row._id}
+            {row.uniqueCode}
           </span>
         </CustomTooltip>
       ),

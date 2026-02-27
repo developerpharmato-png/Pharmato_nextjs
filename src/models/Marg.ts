@@ -2,6 +2,7 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IMarg extends Document {
+    uniqueCode?: string;
     margGetDataCount: number;
     margInsertDataCount: number;
     margUpdateDataCount: number;
@@ -16,6 +17,9 @@ export interface IMarg extends Document {
 
 const MargSchema: Schema<IMarg> = new Schema(
     {
+        uniqueCode: {
+            type: String
+        },
         margGetDataCount: { type: Number, default: 0 },
         margInsertDataCount: { type: Number, default: 0 },
         margUpdateDataCount: { type: Number, default: 0 },
@@ -29,6 +33,18 @@ const MargSchema: Schema<IMarg> = new Schema(
         timestamps: true,
     }
 );
+
+// Auto-increment uniqueCode on new medicine creation (count-based) before save
+MargSchema.pre('save', async function (next) {
+    // @ts-ignore
+    if (this.isNew && !this.uniqueCode) {
+        const Marg = mongoose.models.Marg || mongoose.model<IMarg>('Marg', MargSchema);
+        const count = await Marg.countDocuments();
+        // @ts-ignore
+        this.uniqueCode = `SYN-${count + 1}`;
+    }
+    next();
+});
 
 const Marg: Model<IMarg> = mongoose.models.Marg || mongoose.model<IMarg>('Marg', MargSchema);
 

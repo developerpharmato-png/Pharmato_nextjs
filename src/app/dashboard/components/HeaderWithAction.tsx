@@ -161,10 +161,10 @@ export default function HeaderWithAction({
           <h1
             className="text-xl sm:text-3xl md:text-4xl font-bold leading-tight"
             style={{
-              backgroundImage: `linear-gradient(90deg, #10B981, #059669)`,
+              backgroundImage: `linear-gradient(90deg, var(--secondary), var(--secondary))`,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
-              color: "#10B981",
+              color: "var(--secondary)",
             }}
           >
             {title}

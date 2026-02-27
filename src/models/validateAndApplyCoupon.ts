@@ -110,5 +110,5 @@ export async function validateAndApplyCoupon(
         if (discount > eligibleAmount) discount = eligibleAmount;
     }
 
-    return { discount, eligibleAmount, coupon };
+    return { discount, eligibleAmount, coupon , reason: 'Coupon applied successfully' };
 }

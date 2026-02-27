@@ -77,7 +77,7 @@ const MargPage = () => {
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
-        title="Marg"
+        title="Sync Management  "
         subtitle="Sync data from Marg ERP"
         addLabel={syncLoading ? "Syncing..." : "Sync Medicines"}
         handleAdd={handleImport}

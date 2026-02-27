@@ -174,7 +174,7 @@ async function importMedicinesFromMarg(){
       CompanyCode: 'PharmatoInd2',
       MargID: 486257,
       Datetime: `${lastSyncDateTime}`,
-      // Datetime: `2026-02-18 19:30:17`, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
+      // Datetime: `2026-02-16 19:30:17`, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
       // Datetime: ``, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
       index: 0
     };
