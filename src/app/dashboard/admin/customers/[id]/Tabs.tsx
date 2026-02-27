@@ -263,12 +263,12 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
 
         {/* Responsive Grid: 1 column on mobile, 2 columns on small screens and up */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 md:gap-x-8 gap-y-3 md:gap-y-4 text-gray-700 text-sm sm:text-base">
-          <div className="flex flex-wrap items-center gap-1">
+          {/* <div className="flex flex-wrap items-center gap-1">
             <span className="font-semibold">ID:</span>{" "}
             <span className="truncate max-w-full">
               {customer._id || <span className="text-gray-400">-</span>}
             </span>
-          </div>
+          </div> */}
 
           <div className="flex items-center gap-1">
             <span className="font-semibold">Code:</span>{" "}
@@ -299,7 +299,7 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
 
           {/* Hidden on mobile to maintain grid alignment on desktop, or simply omitted */}
           <div className="hidden sm:block"></div>
-
+{/* 
           <div className="flex items-center gap-1">
             <span className="font-semibold">Verified:</span>{" "}
             {customer.isVerified ? (
@@ -311,7 +311,7 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
                 No
               </span>
             )}
-          </div>
+          </div> */}
 
           <div className="flex items-center gap-1">
             <span className="font-semibold">Active:</span>{" "}
@@ -485,24 +485,27 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
             {!loading && customer && (
               <div className="mb-4 p-4 bg-gray-50 rounded-lg">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div className="flex flex-col sm:flex-row sm:gap-2">
-                    <span className="text-gray-600">Email:</span>{" "}
-                    <span className="font-medium truncate">
-                      {customer.email || "-"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col sm:flex-row sm:gap-2">
-                    <span className="text-gray-600">Mobile:</span>{" "}
-                    <span className="font-medium">
-                      {customer.countryCode}   {customer.mobile || "-"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col sm:flex-row sm:gap-2">
-                    <span className="text-gray-600">Wallet:</span>{" "}
-                    <span className="font-medium text-green-600">
-                      ₹{(customer.walletAmount ?? 0).toFixed(2)}
-                    </span>
-                  </div>
+
+                  {/* Email */}
+                  {customer.email && (
+                    <div className="flex flex-col sm:flex-row sm:gap-2">
+                      <span className="text-gray-600">Email:</span>
+                      <span className="font-medium truncate">
+                        {customer.email}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Mobile */}
+                  {customer.mobile && (
+                    <div className="flex flex-col sm:flex-row sm:gap-2">
+                      <span className="text-gray-600">Mobile:</span>
+                      <span className="font-medium">
+                        {customer.countryCode} {customer.mobile}
+                      </span>
+                    </div>
+                  )}
+
                 </div>
               </div>
             )}

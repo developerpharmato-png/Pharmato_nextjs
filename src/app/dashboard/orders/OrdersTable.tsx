@@ -134,19 +134,18 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
     {
       id: "items",
       label: "Items",
-      minWidth: 70,
+      minWidth: 80,
+      align: "center",
       selector: (row: Order) => (
-
         <span className="text-gray-700 customTooltip">
           {row.medicineId?.length || 0}
         </span>
-
       ),
     },
     {
       id: "payment_id",
       label: "Payment ID",
-      minWidth: 100,
+      minWidth: 180,
       selector: (row: Order) => (
         <CustomTooltip title={row.payment_id || "Not Available"}>
           <span className="customTooltip">{row.payment_id || "-"}</span>
@@ -157,6 +156,7 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       id: "total_amount",
       label: "Amount",
       minWidth: 100,
+      align: "right",
       selector: (row: Order) => (
 
         <span className="customTooltip">
@@ -169,6 +169,7 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       id: "discount",
       label: "Discount",
       minWidth: 90,
+      align: "center",
       selector: (row: Order) => (
 
 
@@ -194,6 +195,7 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       id: "payment_status",
       label: "Payment Status",
       minWidth: 120,
+      align: "center",
       selector: (row: Order) => (
         <CustomTooltip title={row.payment_status || "Pending"}>
           <span
@@ -211,6 +213,7 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       id: "order_status",
       label: "Order Status",
       minWidth: 120,
+      align: "center",
       selector: (row: Order) => (
         <CustomTooltip title={row.order_status || "Pending"}>
           <span
@@ -228,6 +231,7 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
       id: "prescription_status",
       label: "Prescription",
       minWidth: 140,
+      align: "center",
       selector: (row: Order) => (
         <CustomTooltip title={row.prescription_status || "Not Required"}>
           <span

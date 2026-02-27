@@ -234,55 +234,31 @@ export default function PartialCancelPage() {
     }
   };
 
-  // const handleAcceptSelected = async (e?: React.MouseEvent) => {
-  //   if (e && typeof (e as any).preventDefault === "function")
-  //     (e as any).preventDefault();
-  //   if (!order) return;
-
-  //   const selectedMedsArr = order.medicineId.filter((med: any) =>
-  //     selected.includes(med._id)
-  //   );
-  //   const unselectedMedsArr = order.medicineId.filter(
-  //     (med: any) => !selected.includes(med._id)
-  //   );
-
-  //   // If there are no unselected meds, proceed immediately (no reason required)
-  //   if (!unselectedMedsArr.length) {
-  //     try {
-  //       const res = await fetch("/api/admin/order/partial-accept", {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({
-  //           orderId,
-  //           medicineIds: selected,
-  //           cancelReason: undefined,
-  //         }),
-  //       });
-  //       const data = await res.json();
-  //       if (data.success) {
-  //         setToastMsg("Selected medicines accepted");
-  //         setTimeout(() => setToastMsg(""), 3500);
-  //         setSelected([]);
-  //         setCancelReason("");
-  //         fetchOrder();
-  //       } else {
-  //         Swal.fire("Error", data.message || "Failed to accept", "error");
-  //       }
-  //     } catch (e) {
-  //       Swal.fire("Error", "Failed to accept", "error");
-  //     }
-  //     return;
-  //   }
-
-  //   // otherwise preview and open styled dialog
-  //   setPreviewSelectedMeds(selectedMedsArr);
-  //   setPreviewUnselectedMeds(unselectedMedsArr);
-  //   setShowCancelReasonDialog(true);
-  // };
-
   const handleAcceptSelected = async (e?: React.MouseEvent) => {
     if (e?.preventDefault) e.preventDefault();
     if (!order) return;
+
+    // Validation: Check if prescription is required and approved
+    if (
+      order.isPrescriptionRequired &&
+      order.prescription_status?.toLowerCase() !== "approved"
+    ) {
+      const result = await Swal.fire({
+        title: "Prescription Not Approved",
+        text: "The prescription for this order has not been approved yet. Do you still want to proceed with confirming the order?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#10b981", // Success green
+        cancelButtonColor: "#f43f5e", // Danger red
+        confirmButtonText: "Yes, proceed",
+        cancelButtonText: "No, check again",
+        reverseButtons: true,
+      });
+
+      if (!result.isConfirmed) {
+        return;
+      }
+    }
 
     const selectedMedsArr = order.medicineId.filter((med: any) =>
       selected.includes(med._id),
@@ -1289,7 +1265,7 @@ export default function PartialCancelPage() {
                         {order?.discount > 0 ? `- ₹${order?.discount.toFixed(2)}` : "-"}
                       </span>
                     </div>
-                  ):""}
+                  ) : ""}
 
                   {/* <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Platform Fee</span>
@@ -1462,7 +1438,85 @@ export default function PartialCancelPage() {
           </div>
         )}
 
-        {/* --- ACTIVE / PENDING ITEMS TABLE --- */}
+        {/* --- REJECTED PRESCRIPTIONS --- */}
+        {order?.reject_prescription_url &&
+          order.reject_prescription_url.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-red-100 p-6 mt-6 mb-6">
+              <div className="flex items-center gap-2 mb-4 border-b border-red-50 pb-3">
+                <div className="p-1.5 bg-red-50 rounded-lg text-red-600">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-lg font-bold text-gray-800 tracking-tight">
+                  Rejected Prescriptions
+                </h2>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {order.reject_prescription_url.map(
+                  (url: string, idx: number) => {
+                    if (!url) return null;
+                    const lowerUrl = url.toLowerCase();
+                    const isPdf =
+                      lowerUrl.endsWith(".pdf") || lowerUrl.includes("/raw/");
+
+                    return (
+                      <div
+                        key={idx}
+                        className="group relative aspect-[6/5] rounded-xl border border-gray-200 overflow-hidden bg-gray-50 hover:shadow-md transition-all h-[200px] w-[200px]"
+                      >
+                        {isPdf ? (
+                          <div
+                            onClick={() => window.open(url, "_blank")}
+                            className="w-full h-full cursor-pointer bg-gradient-to-br from-red-50 to-red-100 flex flex-col items-center justify-center gap-2"
+                          >
+                            <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center shadow-md text-white">
+                              <svg
+                                className="w-7 h-7"
+                                fill="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-8-6z" />
+                              </svg>
+                            </div>
+                            <span className="text-red-600 font-bold text-[10px] uppercase">
+                              View PDF
+                            </span>
+                          </div>
+                        ) : (
+                          <CustomImage
+                            coverImage={url}
+                            images={order.reject_prescription_url.filter(
+                              (u: string) => {
+                                const l = u.toLowerCase();
+                                return !l.endsWith(".pdf") && !l.includes("/raw/");
+                              }
+                            )}
+                            alt={`Rejected Prescription ${idx + 1}`}
+                            style={{
+                              height: "100%",
+                              width: "100%",
+                              objectFit: "contain",
+                            }}
+                          />
+                        )}
+                      </div>
+                    );
+                  }
+                )}
+              </div>
+            </div>
+          )}
       </div>
     </div>
   );
