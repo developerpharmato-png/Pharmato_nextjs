@@ -104,7 +104,7 @@ export default function NotificationsPanel({
       {/* Backdrop */}
       {open && (
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[45] transition-opacity"
+          className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[45] transition-opacity z-100"
           onClick={onClose}
         />
       )}

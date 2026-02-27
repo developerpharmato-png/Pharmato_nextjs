@@ -11,7 +11,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { enGB } from "date-fns/locale";
-import { format, addDays, parse } from "date-fns";
+import { format, addDays, parse, startOfMonth } from "date-fns";
 import { CustomButton } from "../components/miniComponents";
 
 function OrdersPageContent() {
@@ -28,8 +28,10 @@ function OrdersPageContent() {
   const [orderStatus, setOrderStatus] = useState<string>("all");
   const [dayFilter, setDayFilter] = useState<string>("all");
   const [exportLoading, setExportLoading] = useState(false);
-  const [exportStartDate, setExportStartDate] = useState<Date | null>(null);
-  const [exportEndDate, setExportEndDate] = useState<Date | null>(null);
+  const [exportStartDate, setExportStartDate] = useState<Date | null>(
+    startOfMonth(new Date())
+  );
+  const [exportEndDate, setExportEndDate] = useState<Date | null>(new Date());
 
   const {
     postData: ListPost,
