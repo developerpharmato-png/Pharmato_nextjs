@@ -207,7 +207,7 @@ export async function POST(req: NextRequest) {
         if (userEmail) {
             const base = process.env.NEXT_PUBLIC_BASE_URL || '';
             const orderUrl = `${base}/customer/orders/${order._id}`;
-            const subject = `Prescription Rejected - Order ${order.order_id}`;
+            const subject = `Action Required: Prescription Re-Upload Required`;
             const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
             const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
             const contentPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/prescriptionRejected.html');

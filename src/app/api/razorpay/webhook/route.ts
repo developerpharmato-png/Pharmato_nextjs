@@ -139,7 +139,7 @@ async function runBackground(body: any) {
                     const user = await User.findOne({ _id: checkOrder.userId })
                     // console.log("$$$updatedOrder$$$$$$$$$$$$$$user$$", updatedOrder, user);
                     const amountValue = typeof entity.amount === 'number' ? entity.amount / 100 : 0;
-                    const subject = `Order Placed Successfully – Order ${checkOrder.order_id}`;
+                    const subject = `Order Placed Successfully`;
                     let userName = 'Customer';
                     let userEmail = '';
                     let userPhone = '';
@@ -548,7 +548,7 @@ ${footer}
                                                    
                                                 ${footer}
                                             `;
-                                            await sendEmail({ to: adminEmail, subject: `New Order Received- ${checkOrder.order_id}`, html: adminHtml });
+                                            await sendEmail({ to: adminEmail, subject: `New Order Received – Review & Process`, html: adminHtml });
                                         }
 
                                         try {

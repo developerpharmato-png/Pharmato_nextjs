@@ -440,7 +440,7 @@ ${footer}
                                                                                
                                                                             ${footer}
                                                                         `;
-                                await sendEmail({ to: adminEmail, subject: `Order Delivered Successfully `, html: adminHtml });
+                                await sendEmail({ to: adminEmail, subject: `Order Delivered Successfully`, html: adminHtml });
                             }
 
                             try {
@@ -514,7 +514,7 @@ ${footer}
                         const statusLower = String(status || '').toLowerCase();
                         if (statusLower.includes('deliv')) {
 
-                            const subject = `Order Delivered Successfully – Order #${order.order_id}`;
+                            const subject = `Order Delivered Successfully`;
                             const html = `${header}
 
                             <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
