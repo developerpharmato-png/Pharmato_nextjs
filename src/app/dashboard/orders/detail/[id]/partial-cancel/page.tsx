@@ -1465,20 +1465,20 @@ export default function PartialCancelPage() {
               </div>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {order.reject_prescription_url.map(
-                  (url: string, idx: number) => {
-                    if (!url) return null;
-                    const lowerUrl = url.toLowerCase();
+                  (urlObj: { url: string; rejectedAt?: string; rejectionReason?: string }, idx: number) => {
+                    if (!urlObj?.url) return null;
+                    const lowerUrl = urlObj.url.toLowerCase();
                     const isPdf =
                       lowerUrl.endsWith(".pdf") || lowerUrl.includes("/raw/");
 
                     return (
                       <div
                         key={idx}
-                        className="group relative aspect-[6/5] rounded-xl border border-gray-200 overflow-hidden bg-gray-50 hover:shadow-md transition-all h-[200px] w-[200px]"
+                        className="group relative aspect-[6/5] rounded-xl border border-gray-200 overflow-hidden bg-gray-50 hover:shadow-md transition-all h-[200px] w-[200px] flex flex-col"
                       >
                         {isPdf ? (
                           <div
-                            onClick={() => window.open(url, "_blank")}
+                            onClick={() => window.open(urlObj.url, "_blank")}
                             className="w-full h-full cursor-pointer bg-gradient-to-br from-red-50 to-red-100 flex flex-col items-center justify-center gap-2"
                           >
                             <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center shadow-md text-white">
@@ -1496,10 +1496,10 @@ export default function PartialCancelPage() {
                           </div>
                         ) : (
                           <CustomImage
-                            coverImage={url}
+                            coverImage={urlObj.url}
                             images={order.reject_prescription_url.filter(
-                              (u: string) => {
-                                const l = u.toLowerCase();
+                              (u: { url: string }) => {
+                                const l = u.url.toLowerCase();
                                 return !l.endsWith(".pdf") && !l.includes("/raw/");
                               }
                             )}
@@ -1511,6 +1511,15 @@ export default function PartialCancelPage() {
                             }}
                           />
                         )}
+                        {/* Rejected date and reason */}
+                        <div className="mt-2 px-2 pb-2 text-xs text-gray-700">
+                          {urlObj.rejectedAt && (
+                            <div><span className="font-semibold">Date:</span> {urlObj.rejectedAt}</div>
+                          )}
+                          {urlObj.rejectionReason && (
+                            <div><span className="font-semibold">Reason:</span> {urlObj.rejectionReason}</div>
+                          )}
+                        </div>
                       </div>
                     );
                   }

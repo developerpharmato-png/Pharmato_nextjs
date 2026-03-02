@@ -74,12 +74,10 @@ export async function POST(req: NextRequest) {
     // Update prescription status. Do NOT overwrite existing prescription_url
     // unless the request explicitly provides a value for it.
 
-    const rejectUrls = [...(Array.isArray(order.reject_prescription_url) ? order.reject_prescription_url : []), ...(Array.isArray(order.prescription_url) ? order.prescription_url : [])];
-
-    const finalRejectUrls: any = []
-
+    const rejectUrls = [...(Array.isArray(order.prescription_url) ? order.prescription_url : [])];
+    const updatedRejectUrls: any = [];
     for (const url of rejectUrls) {
-      finalRejectUrls.push({
+      updatedRejectUrls.push({
         url: url,
         rejectedAt: moment()
           .tz("Asia/Kolkata")
@@ -87,6 +85,7 @@ export async function POST(req: NextRequest) {
         rejectionReason: rejectionReason
       });
     }
+    const finalRejectUrls = [...(Array.isArray(order.reject_prescription_url) ? order.reject_prescription_url : []), ...(Array.isArray(updatedRejectUrls) ? updatedRejectUrls : [])];
 
     order.prescription_status = 'Rejected';
     order.prescription_rejected_by = adminId;

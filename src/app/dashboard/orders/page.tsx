@@ -28,10 +28,18 @@ function OrdersPageContent() {
   const [orderStatus, setOrderStatus] = useState<string>("all");
   const [dayFilter, setDayFilter] = useState<string>("all");
   const [exportLoading, setExportLoading] = useState(false);
-  const [exportStartDate, setExportStartDate] = useState<Date | null>(
-    startOfMonth(new Date())
-  );
-  const [exportEndDate, setExportEndDate] = useState<Date | null>(new Date());
+  const [exportStartDate, setExportStartDate] = useState<Date | null>(null);
+  const [exportEndDate, setExportEndDate] = useState<Date | null>(null);
+
+  // Set initial dates on client only to avoid hydration mismatch
+  useEffect(() => {
+    if (exportStartDate === null) {
+      setExportStartDate(startOfMonth(new Date()));
+    }
+    if (exportEndDate === null) {
+      setExportEndDate(new Date());
+    }
+  }, []);
 
   const {
     postData: ListPost,
