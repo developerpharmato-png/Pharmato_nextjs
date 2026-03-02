@@ -11,6 +11,7 @@ import Admin from '@/models/Admin';
 import Store from '@/models/Store';
 import Role from '@/models/Role';
 import Medicine from '@/models/Medicine';
+import moment from "moment-timezone";
 
 /**
  * @swagger
@@ -48,100 +49,112 @@ import Medicine from '@/models/Medicine';
  */
 
 export async function POST(req: NextRequest) {
-    await dbConnect();
+  await dbConnect();
 
-    try {
-        const { orderId, adminId, rejectionReason, prescription_url } = await req.json();
+  try {
+    const { orderId, adminId, rejectionReason, prescription_url } = await req.json();
 
-        if (!orderId || !adminId || !rejectionReason) {
-            return NextResponse.json(
-                { success: false, message: 'orderId, adminId, and rejectionReason are required' },
-                { status: 400 }
-            );
-        }
+    if (!orderId || !adminId || !rejectionReason) {
+      return NextResponse.json(
+        { success: false, message: 'orderId, adminId, and rejectionReason are required' },
+        { status: 400 }
+      );
+    }
 
-        // const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id order_id name email mobile phone' });
-        const order = await Order.findOne({ _id: orderId });
+    // const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id order_id name email mobile phone' });
+    const order = await Order.findOne({ _id: orderId });
 
-        if (!order) {
-            return NextResponse.json(
-                { success: false, message: 'Order not found' },
-                { status: 404 }
-            );
-        }
+    if (!order) {
+      return NextResponse.json(
+        { success: false, message: 'Order not found' },
+        { status: 404 }
+      );
+    }
 
-        // Update prescription status. Do NOT overwrite existing prescription_url
-        // unless the request explicitly provides a value for it.
+    // Update prescription status. Do NOT overwrite existing prescription_url
+    // unless the request explicitly provides a value for it.
 
-        const finalRejectUrls = [...(Array.isArray(order.reject_prescription_url) ? order.reject_prescription_url : []), ...(Array.isArray(order.prescription_url) ? order.prescription_url : [])];
+    const rejectUrls = [...(Array.isArray(order.reject_prescription_url) ? order.reject_prescription_url : []), ...(Array.isArray(order.prescription_url) ? order.prescription_url : [])];
 
-        order.prescription_status = 'Rejected';
-        order.prescription_rejected_by = adminId;
-        order.prescription_rejected_at = new Date();
-        order.prescription_rejection_reason = rejectionReason;
-        order.reject_prescription_url = finalRejectUrls; // Preserve existing URLs in reject_prescription_url
-        order.prescription_url = []; // Clear prescription_url since it's rejected
+    const finalRejectUrls: any = []
 
-        await order.save();
+    for (const url of rejectUrls) {
+      finalRejectUrls.push({
+        url: url,
+        rejectedAt: moment()
+          .tz("Asia/Kolkata")
+          .format("MMM D, YYYY HH:mm [IST]"),
+        rejectionReason: rejectionReason
+      });
+    }
 
-        // Update orderStatus in Firebase Realtime Database
-        if (order?.order_id) {
-            const db = getDb();
-            //Firebase realtime data update
-            const firebaseRef = db.ref(`orders/${order.order_id}`);
-            const snapshot = await firebaseRef.once('value');
-            const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
-            await firebaseRef.update({
-                isOrderStatusChanged: isOrderStatusChanged
-            });
-        }
+    order.prescription_status = 'Rejected';
+    order.prescription_rejected_by = adminId;
+    order.prescription_rejected_at = new Date();
+    order.prescription_rejection_reason = rejectionReason;
+    order.reject_prescription_url = finalRejectUrls; // Preserve existing URLs in reject_prescription_url
+    order.prescription_url = []; // Clear prescription_url since it's rejected
 
-        let userName = 'Customer';
-        let userMobile = '';
-        let userEmail = '';
-        let deliveryAddressText = ''
+    await order.save();
 
-        const deliveredAddr: any = order.deliveredAddress || null;
-        if (deliveredAddr) {
-            userName = deliveredAddr?.name || 'Customer';
-            userMobile = deliveredAddr?.phone || '';
-            userEmail = deliveredAddr?.email || '';
-            deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
-        }
+    // Update orderStatus in Firebase Realtime Database
+    if (order?.order_id) {
+      const db = getDb();
+      //Firebase realtime data update
+      const firebaseRef = db.ref(`orders/${order.order_id}`);
+      const snapshot = await firebaseRef.once('value');
+      const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+      await firebaseRef.update({
+        isOrderStatusChanged: isOrderStatusChanged
+      });
+    }
 
-        const [checkMedicineId] = await Promise.all([
-            Medicine.find({ _id: { $in: order.medicineId.map((i: any) => i) } }).select('_id name coverImage images'),
-        ]);
+    let userName = 'Customer';
+    let userMobile = '';
+    let userEmail = '';
+    let deliveryAddressText = ''
 
-        console.log('##########checkMedicineId#############', checkMedicineId);
+    const deliveredAddr: any = order.deliveredAddress || null;
+    if (deliveredAddr) {
+      userName = deliveredAddr?.name || 'Customer';
+      userMobile = deliveredAddr?.phone || '';
+      userEmail = deliveredAddr?.email || '';
+      deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
+    }
 
-        const acceptedNames = checkMedicineId.map((m: any) => {
-            const item = order.medicineQuantity.find((i: any) => i.medicineId.toString() === m._id.toString());
-            return {
-                ...m._doc,
-                quantity: item ? item.quantity : 0,
-                price: item ? item.price : 0,
-            };
-        });
+    const [checkMedicineId] = await Promise.all([
+      Medicine.find({ _id: { $in: order.medicineId.map((i: any) => i) } }).select('_id name coverImage images'),
+    ]);
 
-        console.log('##########acceptedNames#############', acceptedNames);
+    console.log('##########checkMedicineId#############', checkMedicineId);
 
-        let itemsHtml = '';
+    const acceptedNames = checkMedicineId.map((m: any) => {
+      const item = order.medicineQuantity.find((i: any) => i.medicineId.toString() === m._id.toString());
+      return {
+        ...m._doc,
+        quantity: item ? item.quantity : 0,
+        price: item ? item.price : 0,
+      };
+    });
 
-        if (acceptedNames.length > 0) {
-            const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
+    console.log('##########acceptedNames#############', acceptedNames);
 
-            itemsHtml += `
+    let itemsHtml = '';
+
+    if (acceptedNames.length > 0) {
+      const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
+
+      itemsHtml += `
                         <ul style="list-style:none;padding:0;">
                     `;
 
-            acceptedNames.forEach((m: any) => {
-                const imgSrc =
-                    m.coverImage && m.coverImage.trim() !== ''
-                        ? m.coverImage
-                        : defaultImg;
+      acceptedNames.forEach((m: any) => {
+        const imgSrc =
+          m.coverImage && m.coverImage.trim() !== ''
+            ? m.coverImage
+            : defaultImg;
 
-                itemsHtml += `
+        itemsHtml += `
                             <li style="margin-bottom:10px;display:flex;align-items:center;">
                                 <img src="${imgSrc}" 
                                      alt="${m.name}" 
@@ -155,129 +168,129 @@ export async function POST(req: NextRequest) {
                                 </div>
                             </li>
                         `;
-            });
+      });
 
-            itemsHtml += `</ul>`;
-        }
+      itemsHtml += `</ul>`;
+    }
 
-        // Create in-app notification for customer
-        try {
-            const userIdStr = order.userId && (order.userId._id ? order.userId._id.toString() : order.userId.toString());
-            if (userIdStr) {
-                await Notification.create({
-                    userId: userIdStr,
-                    role: 'customer',
-                    title: 'Prescription Rejected',
-                    message: `Prescription Rejected : Your prescription has been rejected. Please re-upload a valid prescription or contact the store manager.`,
-                    type: 'prescription_rejected',
-                    targetScreen: 'orders/detail',
-                    targetId: order._id.toString(),
-                    meta: {
-                        orderId: order._id.toString(),
-                        rejectionReason
-                    }
-                });
-            }
-        } catch (notifErr) {
-            console.error('Notification create error:', notifErr);
-        }
+    // Create in-app notification for customer
+    try {
+      const userIdStr = order.userId && (order.userId._id ? order.userId._id.toString() : order.userId.toString());
+      if (userIdStr) {
+        await Notification.create({
+          userId: userIdStr,
+          role: 'customer',
+          title: 'Prescription Rejected',
+          message: `Prescription Rejected : Your prescription has been rejected. Please re-upload a valid prescription or contact the store manager.`,
+          type: 'prescription_rejected',
+          targetScreen: 'orders/detail',
+          targetId: order._id.toString(),
+          meta: {
+            orderId: order._id.toString(),
+            rejectionReason
+          }
+        });
+      }
+    } catch (notifErr) {
+      console.error('Notification create error:', notifErr);
+    }
 
-        // Get user info
-        const user = await User.findById(order.userId);
-        if (user && user.deviceToken) {
-            try {
-                await sendPushNotificationWithData({
-                    token: user.deviceToken,
-                    title: 'Pharmato',
-                    body: `Your prescription has been rejected. Re-upload Required.`,
-                    data: {
-                        targetId: order._id.toString(),
-                        orderId: order._id.toString(),
-                        type: 'prescription_rejected',
-                        targetScreen: 'orders/detail',
-                        rejectionReason
-                    }
-                });
-            } catch (err) {
-                console.error('Failed to send notification:', err);
-            }
-        }
+    // Get user info
+    const user = await User.findById(order.userId);
+    if (user && user.deviceToken) {
+      try {
+        await sendPushNotificationWithData({
+          token: user.deviceToken,
+          title: 'Pharmato',
+          body: `Your prescription has been rejected. Re-upload Required.`,
+          data: {
+            targetId: order._id.toString(),
+            orderId: order._id.toString(),
+            type: 'prescription_rejected',
+            targetScreen: 'orders/detail',
+            rejectionReason
+          }
+        });
+      } catch (err) {
+        console.error('Failed to send notification:', err);
+      }
+    }
 
-        // Send email to customer if email available using template
-        if (userEmail) {
-            const base = process.env.NEXT_PUBLIC_BASE_URL || '';
-            const orderUrl = `${base}/customer/orders/${order._id}`;
-            const subject = `Action Required: Prescription Re-Upload Required`;
-            const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
-            const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
-            const contentPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/prescriptionRejected.html');
-            let html = '';
-            try {
-                let header = fs.readFileSync(headerPath, 'utf8');
-                // Replace baseUrl placeholder so images have absolute URL in email clients
-                const baseForEmail = base || (process.env.NEXT_PUBLIC_BASE_URL || '');
-                header = header.replace(/{{baseUrl}}/g, baseForEmail);
-                const content = fs.readFileSync(contentPath, 'utf8')
-                    .replace(/{{UserName}}/g, (order.userId && order.userId.name) || '')
-                    .replace(/{{OrderID}}/g, order.order_id || '')
-                    .replace(/{{RejectionReason}}/g, rejectionReason || '')
-                    .replace(/{{ReuploadLink}}/g, orderUrl);
-                const footer = fs.readFileSync(footerPath, 'utf8');
-                html = header + content + footer;
-            } catch (readErr) {
-                console.error('Email template read error:', readErr);
-                // fallback simple html
-                html = `<p>Hi ${userName},</p><p>Your prescription for order <strong>${order.order_id}</strong> has been rejected. Reason: ${rejectionReason}</p>`;
-            }
-            await sendEmail({ to: userEmail, subject, html });
-        }
-
-        // Choose template based on create or update
-        const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
-        const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
-        const header = fs.readFileSync(headerPath, 'utf8');
+    // Send email to customer if email available using template
+    if (userEmail) {
+      const base = process.env.NEXT_PUBLIC_BASE_URL || '';
+      const orderUrl = `${base}/customer/orders/${order._id}`;
+      const subject = `Action Required: Prescription Re-Upload Required`;
+      const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+      const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+      const contentPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/prescriptionRejected.html');
+      let html = '';
+      try {
+        let header = fs.readFileSync(headerPath, 'utf8');
+        // Replace baseUrl placeholder so images have absolute URL in email clients
+        const baseForEmail = base || (process.env.NEXT_PUBLIC_BASE_URL || '');
+        header = header.replace(/{{baseUrl}}/g, baseForEmail);
+        const content = fs.readFileSync(contentPath, 'utf8')
+          .replace(/{{UserName}}/g, (order.userId && order.userId.name) || '')
+          .replace(/{{OrderID}}/g, order.order_id || '')
+          .replace(/{{RejectionReason}}/g, rejectionReason || '')
+          .replace(/{{ReuploadLink}}/g, orderUrl);
         const footer = fs.readFileSync(footerPath, 'utf8');
+        html = header + content + footer;
+      } catch (readErr) {
+        console.error('Email template read error:', readErr);
+        // fallback simple html
+        html = `<p>Hi ${userName},</p><p>Your prescription for order <strong>${order.order_id}</strong> has been rejected. Reason: ${rejectionReason}</p>`;
+      }
+      await sendEmail({ to: userEmail, subject, html });
+    }
 
-        // Notify admin (store manager) and superadmins with detailed message
-        let storeName = '';
-        let adminName = '';
-        let adminEmail = '';
-        let adminRoleName = '';
-        let customerName = userName;
-        if (order.storeId) {
-            const storeId = (order as any).storeId;
-            if (storeId) {
-                const store = await Store.findById(storeId).lean();
-                if (store && typeof store === 'object' && !Array.isArray(store)) {
-                    storeName = (store as any).name || '';
-                    if ('adminManagerId' in store && store.adminManagerId) {
-                        const admin = await Admin.findById((store as any).adminManagerId).lean();
-                        if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
-                            adminName = (admin as any).name || '';
-                            adminEmail = (admin as any).email || '';
-                            // Try to get admin's role name
-                            if ('roleId' in admin && admin.roleId) {
-                                const roleDoc = await (await import('@/models/Role')).default.findById(admin.roleId).lean();
-                                if (roleDoc && typeof roleDoc === 'object' && !Array.isArray(roleDoc)) {
-                                    adminRoleName = (roleDoc as any).name || '';
-                                }
-                            }
+    // Choose template based on create or update
+    const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+    const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+    const header = fs.readFileSync(headerPath, 'utf8');
+    const footer = fs.readFileSync(footerPath, 'utf8');
 
-                            // Notify store admin
-                            await Notification.create({
-                                userId: (store as any).adminManagerId.toString(),
-                                role: 'admin',
-                                title: 'Prescription Rejected',
-                                message: `You have rejected the prescription for Order #${order.order_id}. Awaiting prescription re-upload from the user.`,
-                                type: 'order',
-                                targetScreen: 'orders/detail',
-                                targetId: order._id.toString(),
-                                meta: {}
-                            });
+    // Notify admin (store manager) and superadmins with detailed message
+    let storeName = '';
+    let adminName = '';
+    let adminEmail = '';
+    let adminRoleName = '';
+    let customerName = userName;
+    if (order.storeId) {
+      const storeId = (order as any).storeId;
+      if (storeId) {
+        const store = await Store.findById(storeId).lean();
+        if (store && typeof store === 'object' && !Array.isArray(store)) {
+          storeName = (store as any).name || '';
+          if ('adminManagerId' in store && store.adminManagerId) {
+            const admin = await Admin.findById((store as any).adminManagerId).lean();
+            if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+              adminName = (admin as any).name || '';
+              adminEmail = (admin as any).email || '';
+              // Try to get admin's role name
+              if ('roleId' in admin && admin.roleId) {
+                const roleDoc = await (await import('@/models/Role')).default.findById(admin.roleId).lean();
+                if (roleDoc && typeof roleDoc === 'object' && !Array.isArray(roleDoc)) {
+                  adminRoleName = (roleDoc as any).name || '';
+                }
+              }
 
-                            // Send email to adminEmail
-                            if (adminEmail) {
-                                const adminHtml = `
+              // Notify store admin
+              await Notification.create({
+                userId: (store as any).adminManagerId.toString(),
+                role: 'admin',
+                title: 'Prescription Rejected',
+                message: `You have rejected the prescription for Order #${order.order_id}. Awaiting prescription re-upload from the user.`,
+                type: 'order',
+                targetScreen: 'orders/detail',
+                targetId: order._id.toString(),
+                meta: {}
+              });
+
+              // Send email to adminEmail
+              if (adminEmail) {
+                const adminHtml = `
                                                                         ${header}
 
                                                                         <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
@@ -373,59 +386,59 @@ export async function POST(req: NextRequest) {
                                                                                
                                                                             ${footer}
                                                                         `;
-                                await sendEmail({ to: adminEmail, subject: `Prescription Rejected – Awaiting Customer Re-upload`, html: adminHtml });
-                            }
+                await sendEmail({ to: adminEmail, subject: `Prescription Rejected – Awaiting Customer Re-upload`, html: adminHtml });
+              }
 
-                            try {
-                                const adminToken = (admin as any).deviceToken;
-                                if (adminToken) {
-                                    await sendPushNotificationWithData({
-                                        token: adminToken,
-                                        title: 'Pharmato',
-                                        body: `You have rejected the prescription for Order #${order.order_id}. Awaiting prescription re-upload from the user.`,
-                                        data: {
-                                            targetId: order._id.toString(),
-                                            orderId: order._id.toString(),
-                                            type: 'order_update',
-                                            targetScreen: 'orders/detail'
-                                        }
-                                    });
-                                }
-                            } catch (err) {
-                                console.error('Failed to send push notification to admin:', err);
-                            }
-
-                        }
+              try {
+                const adminToken = (admin as any).deviceToken;
+                if (adminToken) {
+                  await sendPushNotificationWithData({
+                    token: adminToken,
+                    title: 'Pharmato',
+                    body: `You have rejected the prescription for Order #${order.order_id}. Awaiting prescription re-upload from the user.`,
+                    data: {
+                      targetId: order._id.toString(),
+                      orderId: order._id.toString(),
+                      type: 'order_update',
+                      targetScreen: 'orders/detail'
                     }
+                  });
                 }
+              } catch (err) {
+                console.error('Failed to send push notification to admin:', err);
+              }
+
             }
+          }
         }
+      }
+    }
 
-        // Notify all superadmins
-        const superAdminRole = await Role.findOne({ name: /superadmin/i });
-        if (superAdminRole && superAdminRole._id) {
-            const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
-            for (const superAdmin of superAdmins) {
-                if (superAdmin && typeof superAdmin === 'object' && !Array.isArray(superAdmin) && '_id' in superAdmin) {
-                    await Notification.create({
-                        userId: (superAdmin as any)._id.toString(),
-                        role: 'admin',
-                        title: 'Prescription Rejected',
-                        message: `Prescription Rejected: Prescription for order ${order.order_id} placed by ${customerName} has been rejected by ${storeName}. Awaiting Prescription Reupload.`,
-                        type: 'prescription_rejected',
-                        targetScreen: 'orders/detail',
-                        targetId: (order as any)._id.toString(),
-                        meta: {
-                            order_id: order.order_id,
-                            customerName,
-                            storeName
-                        }
-                    });
+    // Notify all superadmins
+    const superAdminRole = await Role.findOne({ name: /superadmin/i });
+    if (superAdminRole && superAdminRole._id) {
+      const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+      for (const superAdmin of superAdmins) {
+        if (superAdmin && typeof superAdmin === 'object' && !Array.isArray(superAdmin) && '_id' in superAdmin) {
+          await Notification.create({
+            userId: (superAdmin as any)._id.toString(),
+            role: 'admin',
+            title: 'Prescription Rejected',
+            message: `Prescription Rejected: Prescription for order ${order.order_id} placed by ${customerName} has been rejected by ${storeName}. Awaiting Prescription Reupload.`,
+            type: 'prescription_rejected',
+            targetScreen: 'orders/detail',
+            targetId: (order as any)._id.toString(),
+            meta: {
+              order_id: order.order_id,
+              customerName,
+              storeName
+            }
+          });
 
-                    // Send email to super admin
-                    const superAdminEmail = (superAdmin as any).email;
-                    if (superAdminEmail) {
-                        const superAdminHtml = `${header}
+          // Send email to super admin
+          const superAdminEmail = (superAdmin as any).email;
+          if (superAdminEmail) {
+            const superAdminHtml = `${header}
                         
                         <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
   <div style="max-width:700px;margin:0 auto;background:#ffffff;padding:25px;border:1px solid #e6e6e6;border-radius:8px;">
@@ -524,42 +537,42 @@ export async function POST(req: NextRequest) {
                             
                                                             ${footer}
                                                         `;
-                        await sendEmail({ to: superAdminEmail, subject: `Prescription Rejected by ${storeName}`, html: superAdminHtml });
-                    }
+            await sendEmail({ to: superAdminEmail, subject: `Prescription Rejected by ${storeName}`, html: superAdminHtml });
+          }
 
-                    try {
-                        const superToken = (superAdmin as any).deviceToken;
-                        if (superToken) {
-                            await sendPushNotificationWithData({
-                                token: superToken,
-                                title: 'Pharmato',
-                                body: `Prescription Rejected: Prescription for order ${order.order_id} placed by ${customerName} has been rejected by ${storeName}. Awaiting Prescription Reupload.`,
-                                data: {
-                                    targetId: order._id.toString(),
-                                    orderId: order._id.toString(),
-                                    type: 'prescription_rejected',
-                                    targetScreen: 'orders/detail',
-                                }
-                            });
-                        }
-                    } catch (err) {
-                        console.error('Failed to send push notification to superadmin:', err);
-                    }
+          try {
+            const superToken = (superAdmin as any).deviceToken;
+            if (superToken) {
+              await sendPushNotificationWithData({
+                token: superToken,
+                title: 'Pharmato',
+                body: `Prescription Rejected: Prescription for order ${order.order_id} placed by ${customerName} has been rejected by ${storeName}. Awaiting Prescription Reupload.`,
+                data: {
+                  targetId: order._id.toString(),
+                  orderId: order._id.toString(),
+                  type: 'prescription_rejected',
+                  targetScreen: 'orders/detail',
                 }
+              });
             }
+          } catch (err) {
+            console.error('Failed to send push notification to superadmin:', err);
+          }
         }
-
-        return NextResponse.json({
-            success: true,
-            message: 'Prescription rejected successfully',
-            data: order
-        });
-
-    } catch (error) {
-        console.error('Error rejecting prescription:', error);
-        return NextResponse.json(
-            { success: false, message: 'Failed to reject prescription' },
-            { status: 500 }
-        );
+      }
     }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Prescription rejected successfully',
+      data: order
+    });
+
+  } catch (error) {
+    console.error('Error rejecting prescription:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to reject prescription' },
+      { status: 500 }
+    );
+  }
 }

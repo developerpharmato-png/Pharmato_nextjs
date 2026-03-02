@@ -25,7 +25,7 @@ export interface IOrder extends Document {
     refundHistory: [{}];
     isPrescriptionRequired?: boolean;
     prescription_url: string[];
-    reject_prescription_url: string[];
+    reject_prescription_url: [{}];
     prescription_status: string;
     prescription_rejection_reason?: string;
     prescription_rejected_by?: mongoose.Types.ObjectId;
@@ -73,9 +73,7 @@ const OrderSchema = new Schema<IOrder>({
     prescription_url: [
         { type: String, default: '' }
     ],
-    reject_prescription_url: [
-        { type: String, default: '' }
-    ],
+    reject_prescription_url: [{ type: Object, default: {} }],
     prescription_status: { type: String, default: '' },
     prescription_rejection_reason: { type: String, default: '' },
     prescription_rejected_by: { type: Schema.Types.ObjectId, ref: 'Admin', default: null },
