@@ -76,16 +76,16 @@ export async function POST(req: NextRequest) {
 
     const rejectUrls = [...(Array.isArray(order.prescription_url) ? order.prescription_url : [])];
     const updatedRejectUrls: any = [];
-    for (const url of rejectUrls) {
+    if (rejectUrls.length > 0) {
       updatedRejectUrls.push({
-        url: url,
+        urls: rejectUrls,
         rejectedAt: moment()
           .tz("Asia/Kolkata")
           .format("MMM D, YYYY HH:mm [IST]"),
         rejectionReason: rejectionReason
       });
     }
-    const finalRejectUrls = [...(Array.isArray(order.reject_prescription_url) ? order.reject_prescription_url : []), ...(Array.isArray(updatedRejectUrls) ? updatedRejectUrls : [])];
+    const finalRejectUrls = [...(Array.isArray(updatedRejectUrls) ? updatedRejectUrls : []),...(Array.isArray(order.reject_prescription_url) ? order.reject_prescription_url : [])];
 
     order.prescription_status = 'Rejected';
     order.prescription_rejected_by = adminId;

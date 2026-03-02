@@ -1,11 +1,15 @@
 "use client";
+
+type RejectPrescription = {
+  urls: string[];
+  rejectedAt: string;
+  rejectionReason: string;
+};
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Swal from "sweetalert2";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/pagination";
 import { getStatusColor } from "@/utils/function";
 
 import { ToastMessages } from "@/utils/ToasterMessage";
@@ -1463,67 +1467,85 @@ export default function PartialCancelPage() {
                   Rejected Prescriptions
                 </h2>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {order.reject_prescription_url.map(
-                  (urlObj: { url: string; rejectedAt?: string; rejectionReason?: string }, idx: number) => {
-                    if (!urlObj?.url) return null;
-                    const lowerUrl = urlObj.url.toLowerCase();
-                    const isPdf =
-                      lowerUrl.endsWith(".pdf") || lowerUrl.includes("/raw/");
+              <div className="w-full space-y-6">
+                {order?.reject_prescription_url?.map((urlObj: RejectPrescription, idx: number) => {
+                  const imageUrls =
+                    urlObj.urls?.filter((u) => {
+                      const l = u.toLowerCase();
+                      return !l.endsWith(".pdf") && !l.includes("/raw/");
+                    }) || [];
 
-                    return (
-                      <div
-                        key={idx}
-                        className="group relative aspect-[6/5] rounded-xl border border-gray-200 overflow-hidden bg-gray-50 hover:shadow-md transition-all h-[200px] w-[200px] flex flex-col"
-                      >
-                        {isPdf ? (
-                          <div
-                            onClick={() => window.open(urlObj.url, "_blank")}
-                            className="w-full h-full cursor-pointer bg-gradient-to-br from-red-50 to-red-100 flex flex-col items-center justify-center gap-2"
-                          >
-                            <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center shadow-md text-white">
-                              <svg
-                                className="w-7 h-7"
-                                fill="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-8-6z" />
-                              </svg>
+                  const pdfUrls =
+                    urlObj.urls?.filter((u) => {
+                      const l = u.toLowerCase();
+                      return l.endsWith(".pdf") || l.includes("/raw/");
+                    }) || [];
+
+                  return (
+                    <div
+                      key={idx}
+                      className="w-full flex flex-col md:flex-row rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden"
+                    >
+                      {/* LEFT SIDE */}
+                      <div className="p-6 flex-[3]">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                          {imageUrls.map((url, imgIdx) => (
+                            <CustomImage
+                              key={imgIdx}
+                              coverImage={url}
+                              images={imageUrls}
+                              alt={`Rejected Prescription ${idx + 1}`}
+                              style={{
+                                height: 160,
+                                width: 160,
+                                objectFit: "cover",
+                                borderRadius: "12px",
+                                border: "1px solid #eee",
+                              }}
+                            />
+                          ))}
+
+                          {pdfUrls.map((url, pdfIdx) => (
+                            <div
+                              key={pdfIdx}
+                              onClick={() => window.open(url, "_blank")}
+                              className="h-[160px] w-[160px] rounded-lg border border-gray-200 bg-gradient-to-br from-red-50 to-red-100 flex flex-col items-center justify-center gap-2 cursor-pointer hover:shadow-md transition-all"
+                            >
+                              <span className="text-red-600 font-bold text-sm">
+                                PDF
+                              </span>
                             </div>
-                            <span className="text-red-600 font-bold text-[10px] uppercase">
-                              View PDF
-                            </span>
-                          </div>
-                        ) : (
-                          <CustomImage
-                            coverImage={urlObj.url}
-                            images={order.reject_prescription_url.filter(
-                              (u: { url: string }) => {
-                                const l = u.url.toLowerCase();
-                                return !l.endsWith(".pdf") && !l.includes("/raw/");
-                              }
-                            )}
-                            alt={`Rejected Prescription ${idx + 1}`}
-                            style={{
-                              height: "100%",
-                              width: "100%",
-                              objectFit: "contain",
-                            }}
-                          />
-                        )}
-                        {/* Rejected date and reason */}
-                        <div className="mt-2 px-2 pb-2 text-xs text-gray-700">
-                          {urlObj.rejectedAt && (
-                            <div><span className="font-semibold">Date:</span> {urlObj.rejectedAt}</div>
-                          )}
-                          {urlObj.rejectionReason && (
-                            <div><span className="font-semibold">Reason:</span> {urlObj.rejectionReason}</div>
-                          )}
+                          ))}
                         </div>
                       </div>
-                    );
-                  }
-                )}
+
+                      {/* RIGHT SIDE */}
+                      <div className="p-6 flex-[1] border-t md:border-t-0 md:border-l border-gray-100 bg-gray-50 space-y-4">
+                        {urlObj.rejectedAt && (
+                          <div>
+                            <div className="text-sm font-semibold text-gray-800">
+                              Rejected On
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {urlObj.rejectedAt}
+                            </div>
+                          </div>
+                        )}
+
+                        {urlObj.rejectionReason && (
+                          <div>
+                            <div className="text-sm font-semibold text-gray-800">
+                              Reason
+                            </div>
+                            <div className="mt-1 bg-red-100 text-red-700 px-3 py-2 rounded-md text-sm inline-block">
+                              {urlObj.rejectionReason}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

@@ -1,9 +1,8 @@
+"use client";
 import React, { useState } from "react";
 import { styled } from "@mui/material/styles";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Navigation, Zoom } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/pagination";
 import Tooltip, { tooltipClasses, TooltipProps } from "@mui/material/Tooltip";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
@@ -87,10 +86,9 @@ export const CustomButton = ({
       disabled={disabled}
       style={buttonStyle}
       className={`relative cursor-pointer overflow-hidden px-8 py-2 rounded-xl font-semibold text-white shadow-lg 
-        ${
-          disabled
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-(--primary) hover:bg-(--primary)"
+        ${disabled
+          ? "bg-gray-400 cursor-not-allowed"
+          : "bg-(--primary) hover:bg-(--primary)"
         } 
         transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-(--primary) focus:ring-offset-2 group
         ${className}`}
@@ -118,7 +116,7 @@ export const CustomTooltip = styled(
       {children}
     </Tooltip>
   ),
-)(({}) => ({
+)(({ }) => ({
   [`& .${tooltipClasses.tooltip}`]: {
     backgroundColor: "var(--primary)",
     color: "var(--color-white)",
@@ -160,12 +158,6 @@ interface CustomImageProps {
   alt?: string;
   style?: React.CSSProperties;
 }
-
-// Import Swiper styles
-import "swiper/css";
-import "swiper/css/pagination";
-import "swiper/css/zoom";
-import "swiper/css/navigation";
 
 interface CustomImageProps {
   coverImage: string;
@@ -674,9 +666,8 @@ export const StatusToggleButton: React.FC<StatusToggleButtonProps> = ({
       title={isActive ? "Click to deactivate" : "Click to activate"}
     >
       <span
-        className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
-          isActive ? "translate-x-6" : "translate-x-1"
-        }`}
+        className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${isActive ? "translate-x-6" : "translate-x-1"
+          }`}
       />
     </button>
   );
@@ -705,18 +696,18 @@ export const ConfirmStatusAlertComponent: React.FC<
   onCancel,
   children,
 }) => {
-  const handleClick = () => {
-    const { showConfirmStatusAlert } = require("./ConfirmStatusAlert");
-    showConfirmStatusAlert({
-      isActive,
-      title: title || (isActive ? "Deactivate?" : "Activate?"),
-      text: text || (isActive ? "Are you sure?" : "Are you sure?"),
-      confirmText: confirmText || (isActive ? "Deactivate" : "Activate"),
-      cancelText: cancelText || "Cancel",
-      onConfirm,
-      onCancel,
-    });
-  };
+    const handleClick = () => {
+      const { showConfirmStatusAlert } = require("./ConfirmStatusAlert");
+      showConfirmStatusAlert({
+        isActive,
+        title: title || (isActive ? "Deactivate?" : "Activate?"),
+        text: text || (isActive ? "Are you sure?" : "Are you sure?"),
+        confirmText: confirmText || (isActive ? "Deactivate" : "Activate"),
+        cancelText: cancelText || "Cancel",
+        onConfirm,
+        onCancel,
+      });
+    };
 
-  return <div onClick={handleClick}>{children}</div>;
-};
+    return <div onClick={handleClick}>{children}</div>;
+  };
