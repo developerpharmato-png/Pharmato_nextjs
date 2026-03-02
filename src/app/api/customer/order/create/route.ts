@@ -218,16 +218,32 @@ export async function POST(req: NextRequest) {
     // console.log('Order address:', addressDoc);
     // Prepare medicineId array
     const medicineId = (calculationData.medicineId || []).map((id: string) => new mongoose.Types.ObjectId(id));
-    // Generate unique order and payment IDs
+
+    // // Generate unique order and payment IDs
+    // const now = new Date();
+    // const uniqueNumber = now.getFullYear().toString() +
+    //     (now.getMonth() + 1).toString().padStart(2, '0') +
+    //     now.getDate().toString().padStart(2, '0') +
+    //     now.getHours().toString().padStart(2, '0') +
+    //     now.getMinutes().toString().padStart(2, '0') +
+    //     now.getSeconds().toString().padStart(2, '0') +
+    //     now.getMilliseconds().toString().padStart(3, '0');
+    // const orderID = `PH_ORD-${uniqueNumber}`;
+
     const now = new Date();
-    const uniqueNumber = now.getFullYear().toString() +
-        (now.getMonth() + 1).toString().padStart(2, '0') +
-        now.getDate().toString().padStart(2, '0') +
+    const year = now.getFullYear().toString().slice(-2); // 26
+    const month = (now.getMonth() + 1).toString();       // 3
+    const day = now.getDate().toString();               // 2
+    const shortDate = year + month + day; // 2632
+    const timePart =
         now.getHours().toString().padStart(2, '0') +
         now.getMinutes().toString().padStart(2, '0') +
         now.getSeconds().toString().padStart(2, '0') +
         now.getMilliseconds().toString().padStart(3, '0');
-    const orderID = `SB-ORDER-${uniqueNumber}`;
+
+    const uniqueNumber = shortDate + timePart; // 2632000000
+    const orderID = `PH-${uniqueNumber}`; // PH-2632000000
+
     const paymentId = isPaymentByWallet ? `PAYID-WALLET-PMT-${uniqueNumber}M` : `PAYID-PMT-${uniqueNumber}M`;
     const discount = calculationData.discount || 0;
     const userTotalTaxCharged = calculationData.platformFee || 0;
