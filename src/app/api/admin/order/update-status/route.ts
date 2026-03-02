@@ -45,13 +45,13 @@ export async function POST(req: NextRequest) {
 
         // Send notification to user
         const user = await User.findById(order.userId);
-        const messageInApp = status == 'Delivered' ? `Delievery Successful : Your medicines have been delivered successfully at your doorstep.` : `Your order (Order ID: ${order.order_id || order._id}) status is now: ${status}`;
+        const messageInApp = status == 'Delivered' ? `Your medicines have been delivered successfully at your doorstep.` : `Your order (Order ID: ${order.order_id || order._id}) status is now: ${status}`;
         const messagePush = status == 'Delivered' ? `Your Order has been delivered successfully.` : `Your order (Order ID: ${order.order_id || order._id}) status is now: ${status}`;
 
         if (user && user.deviceToken) {
             await sendPushNotificationWithData({
                 token: user.deviceToken,
-                title: 'Order Status Updated',
+                title: 'Delievery Successful',
                 body: messagePush,
                 data: {
                     orderId: order._id.toString(),
@@ -302,13 +302,13 @@ ${footer}
                             adminName = (admin as any).name || '';
                             adminEmail = (admin as any).email || '';
 
-                            let storeNotMsg: any = `Order Delivered Successfully: Order #${order.order_id} has been delivered.`;
+                            let storeNotMsg: any = `Order #${order.order_id} has been delivered.`;
 
                             // Notify store admin
                             await Notification.create({
                                 userId: (store as any).adminManagerId.toString(),
                                 role: 'admin',
-                                title: 'Order Delivered',
+                                title: 'Order Delivered Successfully',
                                 message: storeNotMsg,
                                 type: 'order',
                                 targetScreen: 'orders/detail',
@@ -448,7 +448,7 @@ ${footer}
                                 if (adminToken) {
                                     await sendPushNotificationWithData({
                                         token: adminToken,
-                                        title: 'Pharmato',
+                                        title: 'Order Delivered Successfully',
                                         body: storeNotMsg,
                                         data: {
                                             targetId: order._id.toString(),
@@ -495,8 +495,8 @@ ${footer}
                         if (superToken) {
                             await sendPushNotificationWithData({
                                 token: superToken,
-                                title: 'Pharmato',
-                                body: `Order Delivered: Order #${order.order_id} placed by ${userName} has been successfully delivered by ${storeName}.`,
+                                title: 'Order Delivered',
+                                body: `Order #${order.order_id} placed by ${userName} has been successfully delivered by ${storeName}.`,
                                 data: {
                                     targetId: order._id.toString(),
                                     orderId: order._id.toString(),

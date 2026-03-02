@@ -102,8 +102,8 @@ async function runBackground(body: any) {
                 await Notification.create({
                     userId: userObjectId.toString(),
                     role: 'customer',
-                    title: 'Wallet Recharge',
-                    message: `Wallet Updated : Wallet  Recharge Successful, ₹${checkWallet.amount} ready for your next medicine order.`,
+                    title: 'Wallet Updated',
+                    message: `Wallet  Recharge Successful, ₹${checkWallet.amount} ready for your next medicine order.`,
                     type: 'payment',
                     targetScreen: 'wallet',
                     targetId: userObjectId.toString(),
@@ -115,7 +115,7 @@ async function runBackground(body: any) {
                     try {
                         await sendPushNotificationWithData({
                             token: (user as any).deviceToken,
-                            title: 'Pharmato',
+                            title: 'Wallet Updated',
                             body: `Wallet  Recharge Successful.`,
                             data: {
                                 targetId: userObjectId.toString(),
@@ -137,7 +137,7 @@ async function runBackground(body: any) {
                                 userId: (superAdmin as any)._id.toString(),
                                 role: 'admin',
                                 title: 'Wallet Recharged',
-                                message: `Wallet Recharge: ${customerName} has recharged their wallet with ₹${checkWallet.amount}.`,
+                                message: `${customerName} has recharged their wallet with ₹${checkWallet.amount}.`,
                                 type: 'wallet_recharged',
                                 targetScreen: 'wallet',
                                 targetId: checkWallet.userId.toString(),
@@ -149,8 +149,8 @@ async function runBackground(body: any) {
                                 if (superToken) {
                                     await sendPushNotificationWithData({
                                         token: superToken,
-                                        title: 'Pharmato',
-                                        body: `Wallet Recharge: ${customerName} has recharged their wallet with ₹${checkWallet.amount}.`,
+                                        title: 'Wallet Recharge',
+                                        body: `${customerName} has recharged their wallet with ₹${checkWallet.amount}.`,
                                         data: {
                                             targetId: checkWallet.userId.toString(),
                                             type: 'wallet_recharged',

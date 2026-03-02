@@ -333,7 +333,7 @@ ${footer}
                         userId: notificationUserId,
                         role: 'customer',
                         title: 'Order Placed',
-                        message: checkOrder.isPrescriptionRequired !== true ? `Order Placed : Your Order has been placed successfully. Waiting for confirmation.` : `Order Placed : Your Order has been placed successfully. We will Notify you when your prescription is approved.`,
+                        message: checkOrder.isPrescriptionRequired !== true ? `Your Order has been placed successfully. Waiting for confirmation.` : `Your Order has been placed successfully. We will Notify you when your prescription is approved.`,
                         type: 'payment',
                         targetScreen: 'orders/detail',
                         targetId: checkOrder._id.toString(),
@@ -351,7 +351,7 @@ ${footer}
                         try {
                             await sendPushNotificationWithData({
                                 token: (user as any).deviceToken,
-                                title: 'Pharmato',
+                                title: 'Order Placed',
                                 body: `Your Order has been placed successfully.`,
                                 data: {
                                     targetId: checkOrder._id.toString(),
@@ -395,13 +395,13 @@ ${footer}
                                             }
                                         }
 
-                                        const notificationMessage = checkOrder.isPrescriptionRequired == true ? `Order Received: Order #${checkOrder.order_id} has been placed by ${customerName}. Please review and approve/reject the prescription.` : `Order Received: Order #${checkOrder.order_id} has been placed by ${customerName}. Please review and confirm the order.`;
+                                        const notificationMessage = checkOrder.isPrescriptionRequired == true ? `Order #${checkOrder.order_id} has been placed by ${customerName}. Please review and approve/reject the prescription.` : `Order Received: Order #${checkOrder.order_id} has been placed by ${customerName}. Please review and confirm the order.`;
 
                                         // Notify store admin
                                         await Notification.create({
                                             userId: (store as any).adminManagerId.toString(),
                                             role: 'admin',
-                                            title: 'New Order Received',
+                                            title: 'Order Received',
                                             message: notificationMessage,
                                             type: 'order',
                                             targetScreen: 'orders/detail',
@@ -556,7 +556,7 @@ ${footer}
                                             if (adminToken) {
                                                 await sendPushNotificationWithData({
                                                     token: adminToken,
-                                                    title: 'Pharmato',
+                                                    title: 'Order Received',
                                                     body: notificationMessage,
                                                     data: {
                                                         targetId: checkOrder._id.toString(),
@@ -588,13 +588,13 @@ ${footer}
                             const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
                             for (const superAdmin of superAdmins) {
 
-                                const notificationMessage = checkOrder.isPrescriptionRequired == true ? `Order Received: ${customerName} has placed order #${checkOrder.order_id} with prescription uploaded at ${storeName}. Awaiting prescription review.` : `Order Received: ${customerName} has placed order #${checkOrder.order_id} at ${storeName}. Awaiting store confirmation.`;
+                                const notificationMessage = checkOrder.isPrescriptionRequired == true ? `${customerName} has placed order #${checkOrder.order_id} with prescription uploaded at ${storeName}. Awaiting prescription review.` : `${customerName} has placed order #${checkOrder.order_id} at ${storeName}. Awaiting store confirmation.`;
 
                                 // User {User Name} has placed order #{OrderID} at store {Store Name}. Waiting for store Manager to accept order.
                                 await Notification.create({
                                     userId: (superAdmin as any)._id.toString(),
                                     role: 'admin',
-                                    title: 'New Order Received',
+                                    title: 'Order Received',
                                     message: notificationMessage,
                                     type: 'order',
                                     targetScreen: 'orders/detail',
@@ -754,7 +754,7 @@ ${footer}
                                     if (superToken) {
                                         await sendPushNotificationWithData({
                                             token: superToken,
-                                            title: 'Pharmato',
+                                            title: 'Order Received',
                                             body: notificationMessage,
                                             data: {
                                                 targetId: checkOrder._id.toString(),
@@ -873,8 +873,8 @@ ${footer}
                 await Notification.create({
                     userId: notificationUserId,
                     role: 'customer',
-                    title: 'Refund Processed',
-                    message: `Refund Successful : Refund of ₹${amountValue} has been credited to your original Payment Method.`,
+                    title: 'Refund Successful',
+                    message: `Refund of ₹${amountValue} has been credited to your original Payment Method.`,
                     type: 'refund_processed',
                     targetScreen: 'orders/detail',
                     targetId: checkOrder._id.toString(),
@@ -888,7 +888,7 @@ ${footer}
                     try {
                         await sendPushNotificationWithData({
                             token: (user as any).deviceToken,
-                            title: 'Pharmato',
+                            title: 'Refund Successful',
                             body: `Refund credited Successfully.`,
                             data: {
                                 targetId: checkOrder._id.toString(),
@@ -920,7 +920,7 @@ ${footer}
                                     await Notification.create({
                                         userId: (store as any).adminManagerId.toString(),
                                         role: 'admin',
-                                        title: 'Refund Processed',
+                                        title: 'Refund Successful',
                                         message: storeNotMsg,
                                         type: 'order',
                                         targetScreen: 'orders/detail',
@@ -933,7 +933,7 @@ ${footer}
                                         if (adminToken) {
                                             await sendPushNotificationWithData({
                                                 token: adminToken,
-                                                title: 'Pharmato',
+                                                title: 'Refund Successful',
                                                 body: storeNotMsg,
                                                 data: {
                                                     targetId: updatedOrder._id.toString(),
@@ -965,8 +965,8 @@ ${footer}
                             await Notification.create({
                                 userId: (superAdmin as any)._id.toString(),
                                 role: 'admin',
-                                title: 'Refund Processed',
-                                message: `Refund Processed: Refund of ₹${amountValue || 0} for order #${updatedOrder.order_id || updatedOrder._id} has been successfully processed for ${userName}.`,
+                                title: 'Refund Successful',
+                                message: `Refund of ₹${amountValue || 0} for order #${updatedOrder.order_id || updatedOrder._id} has been successfully processed for ${userName}.`,
                                 type: 'order',
                                 targetScreen: 'orders/detail',
                                 targetId: updatedOrder._id.toString(),
@@ -980,8 +980,8 @@ ${footer}
                                 if (superToken) {
                                     await sendPushNotificationWithData({
                                         token: superToken,
-                                        title: 'Pharmato',
-                                        body: `Refund Processed: Refund of ₹${amountValue || 0} for order #${updatedOrder.order_id || updatedOrder._id} has been successfully processed for ${userName}.`,
+                                        title: 'Refund Successful',
+                                        body: `Refund of ₹${amountValue || 0} for order #${updatedOrder.order_id || updatedOrder._id} has been successfully processed for ${userName}.`,
                                         data: {
                                             targetId: updatedOrder._id.toString(),
                                             orderId: updatedOrder._id.toString(),

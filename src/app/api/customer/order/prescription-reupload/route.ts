@@ -310,8 +310,8 @@ export async function POST(req: NextRequest) {
                                 if (adminToken) {
                                     await sendPushNotificationWithData({
                                         token: adminToken,
-                                        title: 'Pharmato',
-                                        body: `Prescription Re-uploaded: ${customerName} has re-uploaded prescription for Order #${orderDoc.order_id}. Please review and take action.`,
+                                        title: 'Prescription Re-uploaded',
+                                        body: `${customerName} has re-uploaded prescription for Order #${orderDoc.order_id}. Please review and take action.`,
                                         data: {
                                             targetId: orderDoc._id.toString(),
                                             orderId: orderDoc._id.toString(),
@@ -357,8 +357,8 @@ export async function POST(req: NextRequest) {
                             if (superToken) {
                                 await sendPushNotificationWithData({
                                     token: superToken,
-                                    title: 'Pharmato',
-                                    body: `Prescription Re-uploaded: ${customerName} has re-uploaded prescription for Order #${orderDoc.order_id}. Please review and take action.`,
+                                    title: 'Prescription Re-uploaded',
+                                    body: `${customerName} has re-uploaded prescription for Order #${orderDoc.order_id}. Please review and take action.`,
                                     data: {
                                         targetId: orderDoc._id.toString(),
                                         orderId: orderDoc._id.toString(),

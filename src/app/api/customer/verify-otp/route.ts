@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
                 userId: user._id.toString(),
                 role: 'customer',
                 title: 'Welcome to Pharmato!',
-                message: '“Welcome to Pharmato: Your health essentials are just a tap away!”',
+                message: '“Your health essentials are just a tap away!”',
                 type: 'welcome',
                 targetScreen: 'account',
                 targetId: user._id.toString(),
@@ -147,8 +147,8 @@ export async function POST(request: NextRequest) {
             try {
                 await sendPushNotificationWithData({
                     token: (user as any).deviceToken,
-                    title: 'Pharmato',
-                    body: "“Welcome to Pharmato: Your health essentials are just a tap away!”",
+                    title: 'Welcome to Pharmato',
+                    body: "“Your health essentials are just a tap away!”",
                     data: {
                         targetId: user._id.toString(),
                         type: 'welcome',
@@ -206,8 +206,8 @@ export async function POST(request: NextRequest) {
                     await Notification.create({
                         userId: user._id.toString(),
                         role: 'admin',
-                        title: 'Welcome to Pharmato!',
-                        message: `New User Registered: ${user.name || 'Customer'} has joined Pharmato using ${user.mobile}.`,
+                        title: 'New User Registered',
+                        message: `${user.name || 'Customer'} has joined Pharmato using ${user.mobile}.`,
                         type: 'welcome',
                         targetScreen: 'customer/detail',
                         targetId: user._id.toString(),
@@ -220,8 +220,8 @@ export async function POST(request: NextRequest) {
                         if (superToken) {
                             await sendPushNotificationWithData({
                                 token: superToken,
-                                title: 'Pharmato',
-                                body: `New User Registered: ${user.name || 'Customer'} has joined Pharmato using ${user.mobile}.`,
+                                title: 'New User Registered',
+                                body: `${user.name || 'Customer'} has joined Pharmato using ${user.mobile}.`,
                                 data: {
                                     targetId: user._id.toString(),
                                     type: 'welcome',

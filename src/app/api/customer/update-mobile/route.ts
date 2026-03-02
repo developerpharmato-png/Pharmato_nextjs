@@ -137,8 +137,8 @@ export async function POST(req: NextRequest) {
                     if (superToken) {
                         await sendPushNotificationWithData({
                             token: superToken,
-                            title: 'Pharmato',
-                            body: `User Update: ${user.name || 'Customer'} has updated their Mobile Number.`,
+                            title: 'User Update',
+                            body: `${user.name || 'Customer'} has updated their Mobile Number.`,
                             data: {
                                 targetId: user._id.toString(),
                                 type: 'mobile-update',

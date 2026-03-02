@@ -297,8 +297,8 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
 
     // Create in-app notification for customer and send push notification if device token exists
     try {
-        const title = `Order Updated`;
-        const messageInApp = order.order_status == 'Confirmed' ? `Order Confirmed: Your Order has been confirmed . It will be delievered to you soon.` : `Order Cancelled: Your Order has Been Cancelled.`;
+        const title = order.order_status == 'Confirmed' ? `Order Confirmed` : `Order Cancelled`;
+        const messageInApp = order.order_status == 'Confirmed' ? `Your Order has been confirmed . It will be delievered to you soon.` : `Your Order has Been Cancelled.`;
         const messagePush = order.order_status == 'Confirmed' ? `Your Order has been confirmed.` : `Your Order has Been Cancelled.`;
         // Create in-app notification
         await Notification.create({
@@ -407,7 +407,9 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                         adminName = (admin as any).name || '';
                         adminEmail = (admin as any).email || '';
 
-                        let storeNotMsg: any = acceptedNames.length === 0 ? `Order Cancelled Successfully: Order #${order.order_id} for ${userName} has been cancelled.` : `Order Confirmed Successfully: You have confirmed the Order #${order.order_id}. Prepare the order for dispatch.`;
+                        let storeNotMsg: any = acceptedNames.length === 0 ? `Order #${order.order_id} for ${userName} has been cancelled.` : `You have confirmed the Order #${order.order_id}. Prepare the order for dispatch.`;
+
+                        const title = acceptedNames.length === 0 ? `Order Cancelled Successfully` : `Order Confirmed Successfully`;
 
                         // Notify store admin
                         await Notification.create({
@@ -562,7 +564,7 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                             if (adminToken) {
                                 await sendPushNotificationWithData({
                                     token: adminToken,
-                                    title: 'Pharmato',
+                                    title: title,
                                     body: storeNotMsg,
                                     data: {
                                         targetId: order._id.toString(),
@@ -594,7 +596,9 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                 storeManagerName = storeManager?.name || '';
             }
 
-            let supAdminNotMsg: any = acceptedNames.length === 0 ? `Order Cancelled: Order #${order.order_id} placed by ${userName} has been cancelled by ${storeName}.` : `Order Confirmed: Order #${order.order_id} placed by ${userName} has been confirmed by ${storeName}.`;
+            let supAdminNotMsg: any = acceptedNames.length === 0 ? `Order #${order.order_id} placed by ${userName} has been cancelled by ${storeName}.` : `Order #${order.order_id} placed by ${userName} has been confirmed by ${storeName}.`;
+
+            const title = acceptedNames.length === 0 ? `Order Cancelled` : `Order Confirmed`;
 
             for (const superAdmin of superAdmins) {
                 await Notification.create({
@@ -761,7 +765,7 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                     if (superToken) {
                         await sendPushNotificationWithData({
                             token: superToken,
-                            title: 'Pharmato',
+                            title: title,
                             body: supAdminNotMsg,
                             data: {
                                 targetId: order._id.toString(),

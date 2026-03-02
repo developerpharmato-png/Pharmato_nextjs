@@ -62,8 +62,8 @@ export async function POST(req: NextRequest) {
             await Notification.create({
                 userId: adminManagerId.toString(),
                 role: 'admin',
-                title: 'New Store Assigned',
-                message: `Store Assigned : You have been assigned as the Store Manager for ${name}. You can now manage orders for this store.`,
+                title: 'Store Assigned',
+                message: `You have been assigned as the Store Manager for ${name}. You can now manage orders for this store.`,
                 type: 'store',
                 targetScreen: 'stores/detail',
                 targetId: store._id.toString(),
@@ -75,8 +75,8 @@ export async function POST(req: NextRequest) {
                 if (adminToken) {
                     await sendPushNotificationWithData({
                         token: adminToken,
-                        title: 'Pharmato',
-                        body: `Store Assigned : You have been assigned as the Store Manager for ${name}. You can now manage orders for this store.`,
+                        title: 'Store Assigned',
+                        body: `You have been assigned as the Store Manager for ${name}. You can now manage orders for this store.`,
                         data: { storeName: name }
                     });
                 }
@@ -166,7 +166,7 @@ export async function PUT(req: NextRequest) {
             await Notification.create({
                 userId: adminManagerId.toString(),
                 role: 'admin',
-                title: 'New Store Assigned',
+                title: 'Store Assigned',
                 message: `You have been assigned to manage a new store: ${name}.`,
                 type: 'store',
                 targetScreen: 'stores/detail',
@@ -179,8 +179,8 @@ export async function PUT(req: NextRequest) {
                 if (adminToken) {
                     await sendPushNotificationWithData({
                         token: adminToken,
-                        title: 'Pharmato',
-                        body: `Store Assigned : You have been assigned as the Store Manager for ${name}. You can now manage orders for this store.`,
+                        title: 'Store Assigned',
+                        body: `You have been assigned as the Store Manager for ${name}. You can now manage orders for this store.`,
                         data: { storeName: name }
                     });
                 }

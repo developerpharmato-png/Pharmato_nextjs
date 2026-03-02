@@ -200,7 +200,7 @@ export async function POST(req: NextRequest) {
       try {
         await sendPushNotificationWithData({
           token: user.deviceToken,
-          title: 'Pharmato',
+          title: 'orders Update',
           body: `Your prescription has been rejected. Re-upload Required.`,
           data: {
             targetId: order._id.toString(),
@@ -393,7 +393,7 @@ export async function POST(req: NextRequest) {
                 if (adminToken) {
                   await sendPushNotificationWithData({
                     token: adminToken,
-                    title: 'Pharmato',
+                    title: 'Prescription Rejected',
                     body: `You have rejected the prescription for Order #${order.order_id}. Awaiting prescription re-upload from the user.`,
                     data: {
                       targetId: order._id.toString(),
@@ -544,8 +544,8 @@ export async function POST(req: NextRequest) {
             if (superToken) {
               await sendPushNotificationWithData({
                 token: superToken,
-                title: 'Pharmato',
-                body: `Prescription Rejected: Prescription for order ${order.order_id} placed by ${customerName} has been rejected by ${storeName}. Awaiting Prescription Reupload.`,
+                title: 'Prescription Rejected',
+                body: `Prescription for order ${order.order_id} placed by ${customerName} has been rejected by ${storeName}. Awaiting Prescription Reupload.`,
                 data: {
                   targetId: order._id.toString(),
                   orderId: order._id.toString(),
