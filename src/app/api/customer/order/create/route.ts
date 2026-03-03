@@ -277,7 +277,7 @@ export async function POST(req: NextRequest) {
     // console.log(store);
 
     if (!store || !Array.isArray(store.servicePinCodes) || !store.servicePinCodes.includes(addressDoc.address.pinCode)) {
-        return NextResponse.json({ success: false, message: 'Pin code not serviceable by this store' }, { status: 400 });
+        return NextResponse.json({ success: false, message: 'Oops! Currently We are unservicable in your area.' }, { status: 400 });
     }
 
     const cart = await Cart.findOne({ userId, storeId })

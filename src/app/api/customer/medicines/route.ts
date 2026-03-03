@@ -246,6 +246,7 @@ export async function POST(req: NextRequest) {
           images: med.images,
           coverImage: med.coverImage,
           description: med.description,
+          manufacturer: med.manufacturer,
           category: med.categoryId || null,
           subcategory: med.subCategoryId || null,
           isInCart: quantity > 0,
