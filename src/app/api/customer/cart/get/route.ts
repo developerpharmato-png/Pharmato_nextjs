@@ -124,6 +124,7 @@ export async function POST(request: NextRequest) {
                     mrp: med.mrp,
                     discount: med.discount,
                     stock: med.stock,
+                    isActive: med.isActive,
                     images: med.images,
                     coverImage: med.coverImage
                 } : item.medicineId
