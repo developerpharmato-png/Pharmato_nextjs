@@ -193,7 +193,7 @@ export async function POST(req: NextRequest) {
     // -----------------------------
     // Fetch medicines & total count
     // -----------------------------
-    const [medicines, total] = await Promise.all([
+    const [medicines] = await Promise.all([
       Medicine.find(filter)
         .skip(parsedOffset)
         .limit(parsedLimit)
@@ -202,10 +202,10 @@ export async function POST(req: NextRequest) {
           match: { isActive: true }, // Only active category
         })
         .populate("subCategoryId")
-        .lean(),
-
-      Medicine.countDocuments(filter),
+        .lean()
     ]);
+
+    // console.log("Fetched medicines:", medicines);
 
     // -----------------------------
     // Get Cart Items
@@ -240,7 +240,11 @@ export async function POST(req: NextRequest) {
           _id: med._id,
           name: med.name,
           price: med.price,
-          image: med.image,
+          mrp: med.mrp,          
+          discount: med.discount,          
+          stock: med.stock,          
+          images: med.images,
+          coverImage: med.coverImage,
           description: med.description,
           category: med.categoryId || null,
           subcategory: med.subCategoryId || null,
@@ -248,6 +252,8 @@ export async function POST(req: NextRequest) {
           cartQuantity: quantity,
         };
       });
+
+
 
     return NextResponse.json(
       {

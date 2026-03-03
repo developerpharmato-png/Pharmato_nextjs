@@ -687,7 +687,13 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                     errors={formik.errors}
                     uploading={uploading}
                     handleFileChange={handleFileChange}
-                    setPrimaryImage={(url) => formik.setFieldValue("coverImage", url)}
+                    setPrimaryImage={(url) => {
+                      // Move the selected image to index 0
+                      const imgs = formik.values.images || [];
+                      const newImages = [url, ...imgs.filter((img) => img !== url)];
+                      formik.setFieldValue("images", newImages);
+                      formik.setFieldValue("coverImage", url);
+                    }}
                     handleDeleteImage={handleDeleteImage}
                     openSlider={() => { }} // Provided a no-op function
                   />

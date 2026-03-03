@@ -23,8 +23,16 @@ export default function CrossSellProductsPopup({
       ? window.location.pathname.split("/").pop()
       : "";
 
+
+  const [search, setSearch] = React.useState("");
+
   React.useEffect(() => {
-    fetch(`/api/admin/medicines/by-category/${categoryId}`)
+    setLoading(true);
+    fetch(`/api/admin/medicines/by-category/${categoryId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ search }),
+    })
       .then((res) => res.json())
       .then((data) => {
         // Exclude current medicine from list
@@ -34,7 +42,7 @@ export default function CrossSellProductsPopup({
         setProducts(filtered);
         setLoading(false);
       });
-  }, [categoryId, currentMedicineId]);
+  }, [categoryId, currentMedicineId, search]);
 
   const handleCheck = (id: string) => {
     if (checked.includes(id)) {
@@ -47,7 +55,7 @@ export default function CrossSellProductsPopup({
   };
 
   const handleUpdate = () => {
-onUpdate(checked);
+    onUpdate(checked);
   };
 
   return (
@@ -58,15 +66,24 @@ onUpdate(checked);
       <div className="bg-white rounded-xl shadow-2xl p-6 md:p-8 w-full max-w-lg transform transition-all duration-300 ease-out">
         <h2 className="text-2xl font-bold text-gray-800 mb-5 border-b pb-3">
           Select Cross-Sell Products
-           <div className="text-right text-xs text-gray-500 mt-2">
-              Selected: {checked.length} / 5
+          <div className="text-right text-xs text-gray-500 mt-2">
+            Selected: {checked.length} / 5
+          </div>
+          {checked.length >= 5 && (
+            <div className="text-red-600 text-sm mt-2 text-center font-medium">
+              ⚠️ Maximum 5 products can be selected.
             </div>
-            {checked.length >= 5 && (
-              <div className="text-red-600 text-sm mt-2 text-center font-medium">
-                ⚠️ Maximum 5 products can be selected.
-              </div>
-            )}
+          )}
         </h2>
+        <div className="mb-3">
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name..."
+            className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
+          />
+        </div>
         {loading ? (
           <div className="p-4 text-center text-gray-600">Loading products...</div>
         ) : (
@@ -74,15 +91,13 @@ onUpdate(checked);
             {products.map((prod) => (
               <label
                 key={prod._id}
-                className={`flex items-center gap-3 py-2 px-3 rounded-lg transition-colors duration-150 ease-in-out ${
-                  checked.includes(prod._id)
+                className={`flex items-center gap-3 py-2 px-3 rounded-lg transition-colors duration-150 ease-in-out ${checked.includes(prod._id)
                     ? "bg-blue-50 border border-blue-200"
                     : "hover:bg-gray-100"
-                } ${
-                  checked.length >= 5 && !checked.includes(prod._id)
+                  } ${checked.length >= 5 && !checked.includes(prod._id)
                     ? "opacity-50 cursor-not-allowed"
                     : "cursor-pointer"
-                }`}
+                  }`}
               >
                 <input
                   type="checkbox"
@@ -101,7 +116,7 @@ onUpdate(checked);
                 No other products found in this category.
               </div>
             )}
-           
+
           </div>
         )}
         <div className="flex gap-4 mt-6 justify-end pt-4 border-t">
