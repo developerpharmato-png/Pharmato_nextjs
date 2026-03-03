@@ -183,7 +183,7 @@ export async function POST(req: NextRequest) {
                 updatedAt: 1
             }
         },
-        { $sort: { [sortField]: sortOrder } },
+        { $sort: { stock: -1, [sortField]: sortOrder } },
         { $skip: skip }
     ];
     if (lim > 0) {
