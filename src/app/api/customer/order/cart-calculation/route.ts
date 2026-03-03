@@ -18,32 +18,6 @@ function calculateDeliveryFee(
     return deliveryFee;
 }
 
-// function getActiveSurge(surgePricing: any[]) {
-//     const now = new Date();
-
-//     // Get current day in MON format
-//     const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-//     const currentDay = days[now.getDay()];
-
-//     // Get current time in HH:mm format
-//     const currentTime = now.toTimeString().slice(0, 5);
-
-//     const activeSurge = surgePricing.find((item) => {
-//         return (
-//             item.day === currentDay &&
-//             item.status === true &&
-//             currentTime >= item.startTime &&
-//             currentTime <= item.endTime
-//         );
-//     });
-
-//     console.log("Current Day:", currentDay);
-//     console.log("Current Time:", currentTime);
-//     console.log("Active Surge:", activeSurge);
-
-//     return activeSurge || null;
-// }
-
 function getActiveSurge(surgePricing: any[]) {
     const now = new Date();
 

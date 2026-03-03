@@ -982,7 +982,7 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                     </div>
                     <div style="font-size: 13px; line-height: 1.5; color: #555;">
                         GF PLOT NO A-01, LABHAM GREEN GRAM,<br>
-                        <span style="font-weight: 600;">Phone:</span> 7225026829
+                        <span style="font-weight: 600;">Phone:</span> +91-7225026829
                     </div>
                 </div>
  
@@ -1006,7 +1006,7 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                 <td><strong>Invoice No:</strong> ${invoiceNumber}</td>
             </tr>
             <tr>
-                <td><strong>Mobile:</strong> ${userMobile}</td>
+                <td><strong>Mobile:</strong> +91-${userMobile}</td>
                 <td><strong>Bill Date:</strong> ${invoiceDate}</td>
             </tr>
             <tr>
