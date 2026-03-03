@@ -22,28 +22,6 @@ function calculateDeliveryFee(
     return deliveryFee;
 }
 
-// function getActiveSurge(surgePricing: any[]) {
-//     const now = new Date();
-
-//     // Get current day in MON format
-//     const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-//     const currentDay = days[now.getDay()];
-
-//     // Get current time in HH:mm format
-//     const currentTime = now.toTimeString().slice(0, 5);
-
-//     const activeSurge = surgePricing.find((item) => {
-//         return (
-//             item.day === currentDay &&
-//             item.status === true &&
-//             currentTime >= item.startTime &&
-//             currentTime <= item.endTime
-//         );
-//     });
-
-//     return activeSurge || null;
-// }
-
 function getActiveSurge(surgePricing: any[]) {
     const now = new Date();
 
@@ -398,12 +376,21 @@ export async function POST(req: NextRequest) {
 
     }
 
+
     // Calculate expectedDeliveryDate (only date, no time)
     let expectedDeliveryDate = new Date(now);
     if (now.getHours() >= 22) {
         expectedDeliveryDate.setDate(now.getDate() + 1);
     }
     expectedDeliveryDate.setHours(0, 0, 0, 0); // Set to midnight, so only date part is used
+
+    // Check if any medicine in cartData is inactive
+    if (Array.isArray(cartData)) {
+        const inactiveMed = cartData.find((item) => item.medicine && item.medicine.isActive === false);
+        if (inactiveMed) {
+            return NextResponse.json({ success: false, message: `Order cannot be placed. Inactive medicine in cart: ${inactiveMed.medicine.name}` }, { status: 400 });
+        }
+    }
 
     // Check stock for each medicine in medicineQuantity
     if (Array.isArray(calculationData.medicineQuantity)) {
