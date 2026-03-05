@@ -75,15 +75,18 @@ export default function NotificationList({ refreshTrigger }: NotificationListPro
             label: "ID",
             minWidth: 100,
             selector: (row) => (
-                <Typography variant="body2" fontWeight="medium">
+                <span className="ID-List"
+                    
+                
+                >
                     {row.uniqueCode || "-"}
-                </Typography>
+                </span>
             ),
         },
         {
             id: "title",
             label: "Title",
-            minWidth: 150,
+            minWidth: 100,
             selector: (row) => (
                 <CustomTooltip title={row.title || "-"}>
                     <Typography variant="body2" fontWeight="medium" noWrap>
@@ -95,13 +98,13 @@ export default function NotificationList({ refreshTrigger }: NotificationListPro
         {
             id: "message",
             label: "Message",
-            minWidth: 300,
+            minWidth: 100,
             selector: (row) => (
                 <CustomTooltip title={row.message || "-"}>
                     <Typography
                         variant="body2"
                         sx={{
-                            maxWidth: "300px",
+                            maxWidth: "100px",
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                             whiteSpace: "nowrap",
@@ -111,7 +114,7 @@ export default function NotificationList({ refreshTrigger }: NotificationListPro
                     </Typography>
                 </CustomTooltip>
             ),
-        },
+        }, 
         {
             id: "sentCount",
             label: "Sent",

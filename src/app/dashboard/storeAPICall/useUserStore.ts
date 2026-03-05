@@ -43,6 +43,7 @@ export const markreadNotificationsStore = createApiStore<any>();
 export const CustomerDropdownStore = createApiStore<any>();
 export const SendCustomerNotificationsStore = createApiStore<any>();
 export const CustomerNotificationsListStore = createApiStore<any>();
+export const CustomerNotificationsDetailStore = createApiStore<any>();
 
 // Settings & Policies
 export const PaymentSettingsStore = createApiStore<any>();

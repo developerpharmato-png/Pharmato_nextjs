@@ -353,7 +353,7 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
               const addressDisplayText =
                 addr.address && Object.keys(addr.address).length > 0 ? (
                   Object.entries(addr.address).map(([k, v]) =>
-                    v ? <span key={k}>{v}, </span> : null
+                    v ? <span key={k}>{v}, </span> : null,
                   )
                 ) : (
                   <span className="text-gray-400">
@@ -380,7 +380,10 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
                     <span className="text-gray-600 text-xs sm:text-sm bg-white sm:bg-transparent p-1 rounded sm:p-0 border sm:border-0 border-gray-100">
                       +91 {addr.phone}
                       {addr.email && (
-                        <span className="hidden xs:inline"> | {addr.email}</span>
+                        <span className="hidden xs:inline">
+                          {" "}
+                          | {addr.email}
+                        </span>
                       )}
                     </span>
                     {addr.email && (
@@ -426,7 +429,9 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
                       </a>
                     ) : (
                       <div className="flex items-start">
-                        <span className="leading-relaxed">{addressDisplayText}</span>
+                        <span className="leading-relaxed">
+                          {addressDisplayText}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -451,7 +456,11 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
         showSearch={false}
         isunsaved={false}
         addShow={tabIndex === 2 && canEditCustomers}
-        handleAdd={tabIndex === 2 && canEditCustomers ? () => setShowWalletDialog(true) : undefined}
+        handleAdd={
+          tabIndex === 2 && canEditCustomers
+            ? () => setShowWalletDialog(true)
+            : undefined
+        }
         rightNode={
           customer && (
             <div className="bg-[#e8f5e9] text-[#388e3c] font-bold text-sm md:text-[18px] rounded-lg px-3 py-2 md:px-5 md:py-2 min-w-[100px] md:min-w-[120px] text-center shadow-sm border border-[#a5d6a7] flex items-center gap-1.5 md:gap-[6px]">
@@ -474,7 +483,7 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
         </div>
 
         <TabPanel className="TabPanel">
-          <div className="mt-4 md:mt-8 space-y-6 md:space-y-8">
+          <div className="mt-4 md:mt-8 flex flex-col md:flex-row gap-6 md:gap-8">
             <CustomerDetails />
             {!loading && customer && <CustomerAddresses />}
           </div>
@@ -485,7 +494,6 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
             {!loading && customer && (
               <div className="mb-4 p-4 bg-gray-50 rounded-lg">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-
                   {/* Email */}
                   {customer.email && (
                     <div className="flex flex-col sm:flex-row sm:gap-2">
@@ -505,7 +513,6 @@ export default function AdminCustomerDetail({ id }: { id?: string }) {
                       </span>
                     </div>
                   )}
-
                 </div>
               </div>
             )}

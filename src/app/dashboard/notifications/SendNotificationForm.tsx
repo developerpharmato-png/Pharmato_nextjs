@@ -91,6 +91,7 @@ export default function SendNotificationForm({
   const router = useRouter();
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [disableClose, setDisableClose] = useState(true);
 
   useEffect(() => {
     const loadCustomers = async () => {
@@ -182,9 +183,12 @@ export default function SendNotificationForm({
 
   const handleAutocompleteChange = (event: any, value: any[]) => {
     if (value.some((v) => v._id === "all")) {
-      // If "all" is selected, select all customer IDs
+      // Temporarily allow the dropdown to close and select all customer IDs
+      setDisableClose(false);
       const allCustomerIds = customers.map((c) => c._id);
       formik.setFieldValue("userIds", allCustomerIds);
+      // Restore behavior after the change so other selections don't close dropdown
+      setTimeout(() => setDisableClose(true), 0);
     } else {
       // Map selected items to their IDs
       const selectedIds = value
@@ -197,6 +201,8 @@ export default function SendNotificationForm({
   const handleOptionClick = (event: any, option: any) => {
     // Toggle "All Active Users" selection
     if (option._id === "all") {
+      // Allow the dropdown to close when the user clicks the "all" option
+      setDisableClose(false);
       if (isAllSelected) {
         // All are selected, so unselect all
         formik.setFieldValue("userIds", []);
@@ -205,6 +211,8 @@ export default function SendNotificationForm({
         const allCustomerIds = customers.map((c) => c._id);
         formik.setFieldValue("userIds", allCustomerIds);
       }
+      // Restore the default behavior shortly after
+      setTimeout(() => setDisableClose(true), 0);
     }
   };
 
@@ -216,7 +224,7 @@ export default function SendNotificationForm({
     <Box
       component="form"
       onSubmit={formik.handleSubmit}
-      sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+      sx={{ display: "flex", flexDirection: "column", gap: 1 }}
     >
       {/* Selected Users Count Indicator */}
       <Box
@@ -241,7 +249,7 @@ export default function SendNotificationForm({
       <Autocomplete
         multiple
         disabled={loading}
-        disableCloseOnSelect
+        disableCloseOnSelect={disableClose}
         options={autocompleteOptions}
         value={selectedOptions}
         onChange={handleAutocompleteChange}
@@ -258,7 +266,7 @@ export default function SendNotificationForm({
           width: "100%",
           // Fix for the border: Apply max height to the root container
           "& .MuiOutlinedInput-root": {
-            maxHeight: "120px",
+            maxHeight: "90px",
             overflowY: "auto",
             alignItems: "start",
             "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
@@ -270,6 +278,8 @@ export default function SendNotificationForm({
           <TextField
             {...params}
             label="Select Customers *"
+            size="small"
+            margin="dense"
             error={formik.touched.userIds && Boolean(formik.errors.userIds)}
             placeholder={selectedOptions.length === 0 ? "Search..." : ""}
             InputProps={{
@@ -318,6 +328,7 @@ export default function SendNotificationForm({
           label="Notification Title *"
           size="medium"
           fullWidth
+          margin="dense"
           InputLabelProps={{ shrink: true }}
           value={formik.values.title}
           onChange={(e) => {
@@ -336,7 +347,7 @@ export default function SendNotificationForm({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            mt: 0.5,
+            mt: 0.25,
           }}
         >
           <Box>
@@ -374,8 +385,8 @@ export default function SendNotificationForm({
             formik.setFieldValue("message", e.target.value);
           }}
           placeholder="Enter message here"
-          maxLength={150}
-          rows={5}
+          maxLength={MAX_MESSAGE_LENGTH}
+          rows={4}
           showCount={true}
           className=""
         />
@@ -383,9 +394,9 @@ export default function SendNotificationForm({
       {formik.touched.message && formik.errors.message && (
         <ErrorMessageCom error={formik.errors.message} />
       )}
-      <Box className="ButtonOuter" sx={{ mt: 0.5 }}>
+      <Box className="ButtonOuter" sx={{ mt: 0.5, display: "flex", justifyContent: "flex-end" }}>
         <Box className="buttoninner">
-          <CustomButton type="submit" disabled={loading} width="100%">
+          <CustomButton type="submit" disabled={loading}>
             {formik.isSubmitting ? (
               <>
                 <CircularProgress size={24} color="inherit" />

@@ -45,6 +45,7 @@ export const PincodeDetailAPIPath = `https://api.postalpincode.in/pincode/`;
 export const CustomerDropdownPath = `/api/admin/customers/dropdown`;
 export const SendCustomerNotificationsPath = `/api/admin/customers/notifications`;
 export const CustomerNotificationsListPath = `/api/admin/customers/notifications/list`;
+export const CustomerNotificationsDetailPath = `/api/admin/customers/notifications/detail`;
 
 export const markreadNotificationsPath = `/api/notifications/mark-read`;
 export const NotificationsListPath = `/api/notifications`;
