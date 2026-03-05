@@ -1,11 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Box, CircularProgress, Typography, Paper } from "@mui/material";
+import { Box, Typography, Paper } from "@mui/material";
 import HeaderWithAction from "../../components/HeaderWithAction";
 import { CustomTable, Column } from "../../components/CustomTable";
 import { CustomerNotificationsDetailStore } from "@/app/dashboard/storeAPICall/useUserStore";
 import { CustomerNotificationsDetailPath } from "@/app/dashboard/storeAPICall/API/BaseApi";
+import NotificationDetailSkeleton from "../../components/Skelton/NotificationDetailsSkele";
 
 export default function NotificationDetailPage() {
   const params = useParams();
@@ -13,13 +14,20 @@ export default function NotificationDetailPage() {
   const id = params?.id as string;
   const [recipientsPage, setRecipientsPage] = useState(0);
   const [recipientsPerPage, setRecipientsPerPage] = useState(10);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   const { postData: fetchDetailPost, loading, data: detailResp } = CustomerNotificationsDetailStore();
 
   useEffect(() => {
     if (!id) return;
-    const payload = { id, limit: recipientsPerPage, offset: recipientsPage + 1 };
-    fetchDetailPost(CustomerNotificationsDetailPath, payload);
+
+    const fetchData = async () => {
+      const payload = { id, limit: recipientsPerPage, offset: recipientsPage + 1 };
+      await fetchDetailPost(CustomerNotificationsDetailPath, payload);
+      setIsFirstLoad(false);
+    };
+
+    fetchData();
   }, [id, recipientsPage, recipientsPerPage]);
 
   const detail = detailResp?.data;
@@ -33,7 +41,7 @@ export default function NotificationDetailPage() {
       minWidth: 120,
       selector: (r) => (
         <span
-          style={{ color: "#1976d2", cursor: "pointer", textDecoration: "underline" }}
+          className="ID-List"
           onClick={(e) => {
             e.stopPropagation();
             if (r._id) {
@@ -57,13 +65,14 @@ export default function NotificationDetailPage() {
       minWidth: 220,
       selector: (r) => r.email || "-",
     },
-
   ];
+
+  const showSkeleton = loading || (isFirstLoad && !detail);
 
   return (
     <div className="containerStyle scrollbar-hide">
       <HeaderWithAction
-        title={detail?.title || "Notification Detail"}
+        title={detail?.title}
         subtitle={
           detail
             ? `Sent: ${new Date(detail.createdAt).toLocaleString()}`
@@ -74,12 +83,14 @@ export default function NotificationDetailPage() {
         onBack={() => router.back()}
       />
 
-      {loading && !detail ? (
+      {showSkeleton ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-          <CircularProgress />
+          <NotificationDetailSkeleton />
         </Box>
       ) : !detail ? (
-        <Typography>No details found.</Typography>
+        <Box sx={{ py: 6, textAlign: "center" }}>
+          <Typography>No details found.</Typography>
+        </Box>
       ) : (
         <>
           <Paper sx={{ p: 2, mb: 2 }}>
@@ -90,7 +101,6 @@ export default function NotificationDetailPage() {
               {detail.message}
             </Typography>
           </Paper>
-
 
           <CustomTable
             columns={recipientColumns}
@@ -103,7 +113,6 @@ export default function NotificationDetailPage() {
             loading={loading}
             NoDataMessage={"No recipients listed."}
           />
-
         </>
       )}
     </div>

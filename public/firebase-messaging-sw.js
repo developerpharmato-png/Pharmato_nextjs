@@ -6,7 +6,7 @@ importScripts(
   "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"
 );
 
-firebase.initializeApp({ 
+firebase.initializeApp({
   apiKey: "AIzaSyARk63eYnht9p5VD4cad-_S_4VeILqpcqM",
   authDomain: "pharmato-842d3.firebaseapp.com",
   projectId: "pharmato-842d3",
@@ -26,11 +26,23 @@ messaging.onBackgroundMessage((payload) => {
   );
 
   // Determine a URL to open when the notification is clicked.
-  // Prefer explicit data.url, then fallback to an orderId -> partial-cancel route, else root.
-  const dataUrl = (payload && payload.data && payload.data.url) ||
-    (payload && payload.data && payload.data.orderId
-      ? `/dashboard/orders/detail/${payload.data.orderId}/partial-cancel`
-      : "/");
+  const BASE_URL = self.location.origin;
+  let dataPath = "/";
+
+  if (payload && payload.data) {
+    if (payload.data.url) {
+      dataPath = payload.data.url;
+    } else if (payload.data.targetScreen === "orders/detail") {
+      const id = payload.data.targetId || payload.data.orderId;
+      dataPath = `/dashboard/orders/detail/${id}/partial-cancel`;
+    } else if (payload.data.targetScreen === "wallet") {
+      dataPath = `/dashboard/admin/customers/${payload.data.targetId}`;
+    } else if (payload.data.orderId) {
+      dataPath = `/dashboard/orders/detail/${payload.data.orderId}/partial-cancel`;
+    }
+  }
+
+  const dataUrl = dataPath.startsWith("http") ? dataPath : BASE_URL + dataPath;
 
   self.registration.showNotification(payload.notification.title, {
     body: payload.notification.body,
