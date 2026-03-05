@@ -365,13 +365,13 @@ ${footer}
       <tr>
         <td style="padding:8px;border:1px solid #eee;">Mobile Number</td>
         <td style="padding:8px;border:1px solid #eee;">
-          ${order.deliveredAddress?.mobileNumber}
+           ${order.deliveredAddress?.phone}
         </td>
       </tr>
       <tr>
         <td style="padding:8px;border:1px solid #eee;">Email ID</td>
         <td style="padding:8px;border:1px solid #eee;">
-          ${order.userEmail}
+         ${order.deliveredAddress?.email}
         </td>
       </tr>
       <tr>
@@ -579,13 +579,13 @@ ${footer}
       <tr>
         <td style="padding:8px;border:1px solid #eee;">Mobile Number</td>
         <td style="padding:8px;border:1px solid #eee;">
-          ${order.deliveredAddress?.mobileNumber}
+           ${order.deliveredAddress?.phone}
         </td>
       </tr>
       <tr>
         <td style="padding:8px;border:1px solid #eee;">Email ID</td>
         <td style="padding:8px;border:1px solid #eee;">
-          ${order.userEmail}
+          ${order.deliveredAddress?.email}
         </td>
       </tr>
       <tr>
