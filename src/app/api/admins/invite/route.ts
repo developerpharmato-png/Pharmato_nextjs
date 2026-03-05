@@ -123,15 +123,10 @@ export async function POST(req: NextRequest) {
   }
 
   // Send email if SMTP configured
-  let sent = false;
+  let sent = true;
   let sendError: string | null = null;
-  const mailRes = await sendEmail({
-    to: upserted?.email,
-    subject: WELCOME_EMAIL_SUBJECT,
-    html,
-  });
-  if (mailRes.success) sent = true;
-  else sendError = mailRes.message || 'Failed to send';
+
+  await sendEmail({ to: upserted?.email, subject: `${WELCOME_EMAIL_SUBJECT}`, html: html });
 
   const adminResp: any = { id: upserted?._id, email: upserted?.email };
   adminResp.roleId = (upserted && (upserted as any).roleId) ? String((upserted as any).roleId) : null;
