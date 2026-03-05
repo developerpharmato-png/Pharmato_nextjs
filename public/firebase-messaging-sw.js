@@ -6,7 +6,7 @@ importScripts(
   "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"
 );
 
-firebase.initializeApp({
+firebase.initializeApp({ 
   apiKey: "AIzaSyARk63eYnht9p5VD4cad-_S_4VeILqpcqM",
   authDomain: "pharmato-842d3.firebaseapp.com",
   projectId: "pharmato-842d3",

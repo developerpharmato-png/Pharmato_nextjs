@@ -195,7 +195,7 @@ export default function CategoriesPage() {
         isShowOTC={true}
       />
 
-      <CategoriesTable
+      <CategoriesTable 
         data={categories}
         page={page}
         rowsPerPage={rowsPerPage}
