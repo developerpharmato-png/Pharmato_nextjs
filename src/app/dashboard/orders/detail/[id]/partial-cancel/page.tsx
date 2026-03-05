@@ -505,20 +505,20 @@ export default function PartialCancelPage() {
                 </div>
               )}
           </div>
-
           {/* Document Grid */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {order?.prescription_url?.map((url: string, idx: number) => {
               if (!url) return null;
 
               const lowerUrl = url.toLowerCase();
-              const isPdf =
-                lowerUrl.endsWith(".pdf") || lowerUrl.includes("/raw/");
+              const isPdf = lowerUrl.endsWith(".pdf") || lowerUrl.includes("/raw/");
 
               return (
                 <div
                   key={idx}
-                  className="group relative aspect-[6/5] rounded-xl border border-gray-200 overflow-hidden bg-gray-50 hover:shadow-md transition-all h-[200px] w-[200px]"
+                  /* REMOVED: h-[200px] w-[200px] */
+                  /* ADDED: w-full (to ensure it fills the grid column) */
+                  className="group relative aspect-[6/5] w-full rounded-xl border border-gray-200 overflow-hidden bg-gray-50 hover:shadow-md transition-all"
                 >
                   {/* Overlay Download Button */}
                   <button

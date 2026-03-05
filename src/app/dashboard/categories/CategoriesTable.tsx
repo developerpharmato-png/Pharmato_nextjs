@@ -227,5 +227,5 @@ const CategoriesTable: React.FC<CategoriesTableProps> = (props) => {
     />
   );
 };
-
+ 
 export default CategoriesTable;
