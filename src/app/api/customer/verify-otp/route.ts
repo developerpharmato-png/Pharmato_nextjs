@@ -200,11 +200,11 @@ export async function POST(request: NextRequest) {
         try {
             const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
             if (superAdminRole && superAdminRole._id) {
-                const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+                const superAdmins : any = await Admin.find({ roleId: superAdminRole._id }).lean();
                 for (const superAdmin of superAdmins) {
 
                     await Notification.create({
-                        userId: user._id.toString(),
+                        userId: superAdmin._id.toString(),
                         role: 'admin',
                         title: 'New User Registered',
                         message: `${user.name || 'Customer'} has joined Pharmato using ${user.mobile}.`,
