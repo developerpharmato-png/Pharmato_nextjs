@@ -88,7 +88,11 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
 
     if (cancelledForRefund.length > 0) {
 
-        refundAmount = cancelledForRefund.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+        refundAmount = Number(cancelledForRefund.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0));
+
+        if (unCancelledItems.length == 0) {
+            refundAmount += Number(order.calculationData.deliveryFee || 0); // Add delivery fee back to refund if entire order is cancelled
+        }
 
         if (order.payment_mode === 'Wallet') {
 
