@@ -146,7 +146,10 @@ export default function NotificationList({
             fontSize: "12px",
             fontWeight: 600,
             border: "1px solid #3b82f6",
+            cursor:"pointer "
           }}
+          onClick={() => router.push(`/dashboard/notifications/${row._id}`)}
+
         >
           {`${row.sentCount} User` || 0}
         </Box>
