@@ -1027,7 +1027,7 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                     <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">MRP
                     </th>
                     <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">
-                        Selling Price</th>
+                        Discounted Price</th>
                     <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Amount
                     </th>
                 </tr>
