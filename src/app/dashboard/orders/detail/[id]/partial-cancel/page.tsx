@@ -344,11 +344,11 @@ export default function PartialCancelPage() {
           </CustomButton>
         )}
 
-        {/* {(order?.invoice_url && order?.order_status !== "Confirmed") && (
+        {(order?.invoice_url && order?.order_status !== "Confirmed") && (
           <CustomButton onClick={() => downloadInvoicePDF(order?.invoice_url)}>
             Download Invoice
           </CustomButton>
-        )} */}
+        )}
       </div>
 
       {/* Order ID and Status block below header */}
