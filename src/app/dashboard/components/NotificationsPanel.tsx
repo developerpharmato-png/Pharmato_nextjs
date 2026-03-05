@@ -87,8 +87,10 @@ export default function NotificationsPanel({
   const onItemClick = async (item: NotificationItem) => {
     if (!item.isRead) await markAsRead(item._id);
     onClose();
-    if (item.targetScreen) {
+    if (item.targetScreen === "orders/detail") {
       router.push(`/dashboard/orders/detail/${item.targetId}/partial-cancel`);
+    } else if (item.targetScreen === "wallet") {
+      router.push(`/dashboard/admin/customers/${item.targetId}`);
     }
   };
 
