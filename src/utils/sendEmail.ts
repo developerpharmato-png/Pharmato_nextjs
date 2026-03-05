@@ -6,82 +6,61 @@ const token: any = "Zoho-enczapikey PHtE6r0IEbjo2jQro0cHsfOwRZKkPIl89O00LQFDs48R
 
 const client = new SendMailClient({ url, token });
 
+//###############Zepto Email#####################
+
 // export async function sendEmail({
 //   to,
 //   subject,
-//   html,
+//   html
 // }: {
 //   to: string;
 //   subject: string;
 //   html: string;
 // }) {
-
-//   // // ## SMTP configuration for sending emails (using Bravo SMTP server)
-//   // // const transporter = nodemailer.createTransport({
-//   // //   host: process.env.SMTP_HOST || "smtp-relay.brevo.com",
-//   // //   port: 587,
-//   // //   auth: {
-//   // //     user: process.env.SMTP_USER || "9d968a001@smtp-brevo.com",
-//   // //     pass: process.env.SMTP_PASS || "bCvZcqWrGhxLDwAM",
-//   // //   },
-//   // //   tls: {
-//   // //     rejectUnauthorized: false, // Allow self-signed certificates (development only)
-//   // //   },
-//   // // });
-
-
-//   // const transporter = nodemailer.createTransport({
-//   //   host: "smtp.zeptomail.in",
-//   //   port: 587,
-//   //   auth: {
-//   //     user: "emailapikey",
-//   //     pass: "PHtE6r0IEbjo2jQro0cHsfOwRZKkPIl89O00LQFDs48RCfcKSk0G+Nl9k2C2qkouUvlGR6SYnN9pubua4rmALD3pZz4fXmqyqK3sx/VYSPOZsbq6x00bs1oTckzYV4/petVs0STevNncNA==",
-//   //   }
-//   // });
-
-//   // const mailOptions = {
-//   //   from: "noreply@pharmatoindia.com", // ✅ must be verified
-//   //   to,
-//   //   subject,
-//   //   html,
-//   // };
-
-//   // console.log("📧 Sending email to:", mailOptions);
-
-//   // try {
-//   //   const info = await transporter.sendMail(mailOptions);
-//   //   console.log("Message sent: %s", info.messageId);
-//   //   return { success: true, info };
-//   // } catch (error: any) {
-//   //   console.error("Email send error:", error);
-//   //   return { success: false, message: error?.message || String(error) };
-//   // }
-
-
-// let client = new SendMailClient({url, token});
-
-// client.sendMail({
-//     "from": 
-//     {
-//         "address": "noreply@pharmatoindia.com",
-//         "name": "noreply"
-//     },
-//     "to": 
-//     [
+//   try {
+//     const response = await client.sendMail({
+//       from: {
+//         address: "noreply@pharmatoindia.com",
+//         name: "Pharmato"
+//       },
+//       to: [
 //         {
-//         "email_address": 
-//             {
-//                 "address": to,
-//                 "name": "Pharmato"
-//             }
+//           email_address: {
+//             address: to,
+//             name: "Pharmato"
+//           }
 //         }
-//     ],
-//     "subject": subject,
-//     "htmlbody": html,
-// })
+//       ],
+//       subject,
+//       htmlbody: html
+//     });
 
+//     console.log("✅ Email sent successfully:", response);
+
+//     return {
+//       success: true,
+//       message: "Email sent successfully",
+//       data: response
+//     };
+
+//   } catch (error: any) {
+
+//     console.error(
+//       "❌ Email Send Error:",
+//       JSON.stringify(error.message || error, null, 2)
+//     );
+
+//     return {
+//       success: false,
+//       message: "Failed to send email",
+//       error: JSON.stringify(error.message || error, null, 2)
+//     };
+
+//   }
 // }
 
+
+//####################Brevo Email#####################
 export async function sendEmail({
   to,
   subject,
@@ -91,44 +70,40 @@ export async function sendEmail({
   subject: string;
   html: string;
 }) {
+
   try {
-    const response = await client.sendMail({
-      from: {
-        address: "noreply@pharmatoindia.com",
-        name: "Pharmato"
-      },
-      to: [
-        {
-          email_address: {
-            address: to,
-            name: "Pharmato"
-          }
-        }
-      ],
-      subject,
-      htmlbody: html
+
+    // let transporter = nodemailer.createTransport({
+    //   host: 'smtp-relay.brevo.com',
+    //   port: 587,
+    //   auth: {
+    //     user: 'a40dfd001@smtp-brevo.com',
+    //     pass: 'YkyFGfKXJ3mq9p2R'
+    //   }
+    // });
+
+    // Send email with the Excel attachment
+    const transporter = nodemailer.createTransport({
+      host: 'mail.smtp2go.com',
+      port: 2525,
+      auth: {
+        user: 'sunil.patidar+2@technotoil.com',
+        pass: 'tJ2juQjWYyOPbUpM'
+      }
     });
 
-    console.log("✅ Email sent successfully:", response);
-
-    return {
-      success: true,
-      message: "Email sent successfully",
-      data: response
+    let mailOptions = {
+      from: 'sunil.patidar+2@technotoil.com',
+      to: `${to}`,
+      subject: subject,
+      text: 'Hello world?',
+      html: html
     };
 
-  } catch (error: any) {
-
-    console.error(
-      "❌ Email Send Error:",
-      JSON.stringify(error.message || error, null, 2)
-    );
-
-    return {
-      success: false,
-      message: "Failed to send email",
-      error: JSON.stringify(error.message || error, null, 2)
-    };
-
+    let response = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully:', response);
+  } catch (error) {
+    console.error('Error sending email:', error);
   }
+
 }

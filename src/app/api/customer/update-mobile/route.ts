@@ -117,11 +117,11 @@ export async function POST(req: NextRequest) {
     try {
         const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
         if (superAdminRole && superAdminRole._id) {
-            const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+            const superAdmins : any = await Admin.find({ roleId: superAdminRole._id }).lean();
             for (const superAdmin of superAdmins) {
 
                 await Notification.create({
-                    userId: user._id.toString(),
+                    userId: superAdmin._id.toString(),
                     role: 'admin',
                     title: 'User Mobile Number Updated',
                     message: `User Update: ${user.name || 'Customer'} has updated their Mobile Number.`,

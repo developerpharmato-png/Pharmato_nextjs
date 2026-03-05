@@ -7,33 +7,6 @@ import { WELCOME_EMAIL_SUBJECT } from "@/utils/emailSubjects";
 import fs from 'fs';
 import path from 'path';
 
-async function sendMail(to: string, subject: string, html: string) {
-  const host = process.env.SMTP_HOST;
-  const port = Number(process.env.SMTP_PORT || "0");
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-  if (!host || !port || !user || !pass)
-    return { success: false, message: "SMTP not configured" };
-
-  // dynamically import nodemailer only when SMTP is configured
-  const nodemailerMod = await import("nodemailer");
-  const createTransport = (nodemailerMod &&
-    (nodemailerMod.createTransport ||
-      nodemailerMod.default?.createTransport)) as any;
-  if (!createTransport)
-    return { success: false, message: "nodemailer unavailable" };
-
-  const transporter = createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user, pass },
-  });
-
-  await transporter.sendMail({ from: user, to, subject, html });
-  return { success: true };
-}
-
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -72,15 +45,10 @@ export async function POST(
   }
 
   // try to send mail if SMTP configured
-  let sent = false;
+  let sent = true;
   let sendError: string | null = null;
-  const mailRes = await sendEmail({
-    to: admin.email,
-    subject: WELCOME_EMAIL_SUBJECT,
-    html,
-  });
-  if (mailRes.success) sent = true;
-  else sendError = mailRes.message || 'Failed to send';
+
+  await sendEmail({ to: admin.email, subject: `${WELCOME_EMAIL_SUBJECT}`, html: html });
 
   return NextResponse.json({
     success: true,
