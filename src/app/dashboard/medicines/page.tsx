@@ -7,6 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { MedicinesExportPath } from "../storeAPICall/API/BaseApi";
 import { CustomButton } from "../components/miniComponents";
+import ExportMedicineDialog from "./ExportMedicineDialog";
+import Swal from "sweetalert2";
 
 function MedicinesPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,29 +20,47 @@ function MedicinesPageContent() {
   const searchParams = useSearchParams();
 
   const [exportLoading, setExportLoading] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
   // No date fields needed for export
 
-  const handleExport = async () => {
+  const handleExport = async (email: string) => {
     setExportLoading(true);
     try {
       const res = await fetch(MedicinesExportPath, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ email }),
       });
-      if (!res.ok) throw new Error("Failed to export medicines");
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const filename = "medicines_export.xlsx";
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      const data = await res.json();
+      if (data.success || data.status) {
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: data.message || "Export initiated. The medicine list will be sent to your email shortly.",
+          showConfirmButton: false,
+          timer: 3000,
+        });
+        setShowExportDialog(false);
+      } else {
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "error",
+          title: data.message || "Export failed",
+          showConfirmButton: false,
+          timer: 3000,
+        });
+      }
     } catch (e) {
-      // alert("Export failed");
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "error",
+        title: "Export failed",
+        showConfirmButton: false,
+        timer: 3000,
+      });
     } finally {
       setExportLoading(false);
     }
@@ -97,13 +117,18 @@ function MedicinesPageContent() {
           <>
             <div className="flex items-center ">
               <CustomButton
-                onClick={handleExport}
+                onClick={() => setShowExportDialog(true)}
                 width="200px"
-                disabled={exportLoading}
               >
-                {exportLoading ? "Exporting..." : "Export Medicines "}
+                Export Medicines
               </CustomButton>
             </div>
+            <ExportMedicineDialog
+              open={showExportDialog}
+              onClose={() => setShowExportDialog(false)}
+              onSubmit={handleExport}
+              loading={exportLoading}
+            />
           </>
         }
       />
