@@ -473,13 +473,13 @@ ${footer}
       <tr>
         <td style="padding:8px;border:1px solid #eee;">Mobile Number</td>
         <td style="padding:8px;border:1px solid #eee;">
-          ${checkOrder.deliveredAddress?.mobileNumber}
+          ${checkOrder.deliveredAddress?.phone}
         </td>
       </tr>
       <tr>
         <td style="padding:8px;border:1px solid #eee;">Email ID</td>
         <td style="padding:8px;border:1px solid #eee;">
-          ${checkOrder.userEmail}
+          ${checkOrder.deliveredAddress?.email}
         </td>
       </tr>
       <tr>
