@@ -1,12 +1,10 @@
 import nodemailer from "nodemailer";
 import { SendMailClient } from "zeptomail";
- 
-const url : any = "https://api.zeptomail.in/v1.1/email";
-const token : any = "Zoho-enczapikey PHtE6r0IEbjo2jQro0cHsfOwRZKkPIl89O00LQFDs48RCfcKSk0G+Nl9k2C2qkouUvlGR6SYnN9pubua4rmALD3pZz4fXmqyqK3sx/VYSPOZsbq6x00bs1oTckzYV4/petVs0STevNncNA==";
- 
+
+const url: any = "https://api.zeptomail.in/v1.1/email";
+const token: any = "Zoho-enczapikey PHtE6r0IEbjo2jQro0cHsfOwRZKkPIl89O00LQFDs48RCfcKSk0G+Nl9k2C2qkouUvlGR6SYnN9pubua4rmALD3pZz4fXmqyqK3sx/VYSPOZsbq6x00bs1oTckzYV4/petVs0STevNncNA==";
 
 const client = new SendMailClient({ url, token });
-
 
 // export async function sendEmail({
 //   to,
@@ -59,7 +57,7 @@ const client = new SendMailClient({ url, token });
 //   //   return { success: false, message: error?.message || String(error) };
 //   // }
 
-  
+
 // let client = new SendMailClient({url, token});
 
 // client.sendMail({
@@ -121,20 +119,16 @@ export async function sendEmail({
 
   } catch (error: any) {
 
-    // 🔴 ZeptoMail specific error details
-    if (error?.response) {
-      console.error("❌ ZeptoMail API Error:", {
-        status: error.response.status,
-        data: error.response.data
-      });
-    } else {
-      console.error("❌ Email Send Error:", error.message || error);
-    }
+    console.error(
+      "❌ Email Send Error:",
+      JSON.stringify(error.message || error, null, 2)
+    );
 
     return {
       success: false,
       message: "Failed to send email",
-      error: error?.response?.data || error?.message || "Unknown error"
+      error: JSON.stringify(error.message || error, null, 2)
     };
+
   }
 }

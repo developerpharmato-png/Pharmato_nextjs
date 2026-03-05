@@ -475,13 +475,13 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
       <tr>
         <td style="padding:8px;border:1px solid #eee;">Mobile Number</td>
         <td style="padding:8px;border:1px solid #eee;">
-          ${order.deliveredAddress?.mobileNumber}
+           ${order.deliveredAddress?.phone}
         </td>
       </tr>
       <tr>
         <td style="padding:8px;border:1px solid #eee;">Email ID</td>
         <td style="padding:8px;border:1px solid #eee;">
-          ${order.userEmail}
+          ${order.deliveredAddress?.email}
         </td>
       </tr>
       <tr>
@@ -681,13 +681,13 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
       <tr>
         <td style="padding:8px;border:1px solid #eee;">Mobile Number</td>
         <td style="padding:8px;border:1px solid #eee;">
-          ${order.deliveredAddress?.mobileNumber}
+          ${order.deliveredAddress?.phone}
         </td>
       </tr>
       <tr>
         <td style="padding:8px;border:1px solid #eee;">Email ID</td>
         <td style="padding:8px;border:1px solid #eee;">
-          ${order.userEmail}
+          ${order.deliveredAddress?.email}
         </td>
       </tr>
       <tr>
@@ -1027,8 +1027,8 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                     <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">MRP
                     </th>
                     <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">
-                        Selling Price</th>
-                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Total
+                        Discounted Price</th>
+                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Amount
                     </th>
                 </tr>
             </thead>
