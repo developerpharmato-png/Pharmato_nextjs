@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
-
 import AdminCustomerNotification from '@/models/AdminCustomerNotification';
 
 export async function POST(request: NextRequest) {
@@ -12,6 +11,7 @@ export async function POST(request: NextRequest) {
         let { limit, offset, search } = body;
 
         limit = Number(limit) || 10;
+
         // Ensure offset doesn't result in a negative number
         const page = Math.max(1, Number(offset) || 1);
         const skip = (page - 1) * limit;

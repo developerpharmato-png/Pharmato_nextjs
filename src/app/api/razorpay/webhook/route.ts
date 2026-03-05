@@ -15,186 +15,199 @@ import Medicine from '@/models/Medicine';
 import moment from 'moment-timezone';
 
 const razorpayInstance = new Razorpay({
-    key_id: process.env.razorPay_Key_Id || '',
-    key_secret: process.env.razorPay_Secret_Key || ''
+  key_id: process.env.razorPay_Key_Id || '',
+  key_secret: process.env.razorPay_Secret_Key || ''
 });
 
 async function runBackground(body: any) {
 
-    if (body?.payload?.payment?.entity) {
-        let paymentHistory: any = {};
-        let refundHistory: any = [];
-        const entity = body.payload.payment.entity;
-        // console.log(entity);
-        const orderId = entity.notes?.razorpay_order_id;
+  if (body?.payload?.payment?.entity) {
+    let paymentHistory: any = {};
+    let refundHistory: any = [];
+    const entity = body.payload.payment.entity;
+    // console.log(entity);
+    const orderId = entity.notes?.razorpay_order_id;
 
-        paymentHistory.orderId = orderId;
-        paymentHistory.entity = entity;
+    paymentHistory.orderId = orderId;
+    paymentHistory.entity = entity;
 
-        const refundId = body?.payload?.refund?.entity?.id || '';
+    const refundId = body?.payload?.refund?.entity?.id || '';
 
-        // Find the order in DB
-        const checkOrder: any = await Order.findOne({ order_id: orderId });
+    // Find the order in DB
+    const checkOrder: any = await Order.findOne({ order_id: orderId });
 
-        if (checkOrder) {
+    if (checkOrder) {
 
-            refundHistory = checkOrder?.refundHistory || [];
+      refundHistory = checkOrder?.refundHistory || [];
 
-            const checkRefundHistory = refundHistory.find((obj: any) => obj.refundId == refundId)
+      const checkRefundHistory = refundHistory.find((obj: any) => obj.refundId == refundId)
 
-            if (checkRefundHistory) {
+      if (checkRefundHistory) {
 
-                for (const element of refundHistory) {
+        for (const element of refundHistory) {
 
-                    if (element.refundId == refundId) {
-                        element.status = body?.payload?.refund?.entity?.status || '';
-                        element.payload.push(body?.payload)
-                    }
+          if (element.refundId == refundId) {
+            element.status = body?.payload?.refund?.entity?.status || '';
+            element.payload.push(body?.payload)
+          }
 
-                }
+        }
 
-            } else {
+      } else {
 
-                const data = {
-                    orderId: orderId,
-                    refundId: refundId,
-                    status: body?.payload?.refund?.entity?.status || '',
-                    amount: body?.payload?.refund?.entity?.amount || 0,
-                    currency: body?.payload?.refund?.entity?.currency || '',
-                    reason: body?.payload?.refund?.entity?.reason || '',
-                    created_at: body?.payload?.refund?.entity?.created_at || 0,
-                    payload: body?.payload
-                }
+        const data = {
+          orderId: orderId,
+          refundId: refundId,
+          status: body?.payload?.refund?.entity?.status || '',
+          amount: body?.payload?.refund?.entity?.amount || 0,
+          currency: body?.payload?.refund?.entity?.currency || '',
+          reason: body?.payload?.refund?.entity?.reason || '',
+          created_at: body?.payload?.refund?.entity?.created_at || 0,
+          payload: body?.payload
+        }
 
-                refundHistory.push(data);
+        refundHistory.push(data);
 
+      }
+
+      if (body.event === 'payment.authorized') {
+        const amount = entity.amount;
+        const currency = entity.currency;
+
+        await Order.updateOne(
+          { _id: checkOrder._id },
+          {
+            $push: { paymentHistory: paymentHistory },
+            $set: {
+              payment_mode: entity.method || '',
+              payment_id: entity.id || '',
             }
+          }
+        );
 
-            if (body.event === 'payment.authorized') {
-                const amount = entity.amount;
-                const currency = entity.currency;
+        // Update paymentStatus in Firebase Realtime Database
+        if (checkOrder?.order_id && entity?.status) {
+          const db = getDb();
+          await db
+            .ref(`orders/${checkOrder.order_id}`)
+            .update({
+              paymentStatus: entity.status
+            });
+        }
 
-                await Order.updateOne(
-                    { _id: checkOrder._id },
-                    {
-                        $push: { paymentHistory: paymentHistory },
-                        $set: {
-                            payment_mode: entity.method || '',
-                            payment_id: entity.id || '',
-                        }
-                    }
-                );
+        try {
+          const captureResponse = await razorpayInstance.payments.capture(entity.id, amount, currency);
+        } catch (error) { }
+      }
 
-                // Update paymentStatus in Firebase Realtime Database
-                if (checkOrder?.order_id && entity?.status) {
-                    const db = getDb();
-                    await db
-                        .ref(`orders/${checkOrder.order_id}`)
-                        .update({
-                            paymentStatus: entity.status
-                        });
-                }
+      if (body.event === 'payment.captured') {
 
-                try {
-                    const captureResponse = await razorpayInstance.payments.capture(entity.id, amount, currency);
-                } catch (error) { }
+        await Order.updateOne(
+          { _id: checkOrder._id },
+          {
+            $push: { paymentHistory: paymentHistory },
+            $set: {
+              payment_mode: entity.method || '',
+              payment_id: entity.id || '',
+              payment_status: entity.status || '',
+              order_status: 'Order Placed'
             }
+          }
+        );
 
-            if (body.event === 'payment.captured') {
+        // Update paymentStatus in Firebase Realtime Database
+        if (checkOrder?.order_id && entity?.status) {
+          const db = getDb();
+          //Firebase realtime data update
+          const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
+          const snapshot = await firebaseRef.once('value');
+          const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+          await firebaseRef.update({
+            isOrderStatusChanged: isOrderStatusChanged,
+            paymentStatus: entity.status
+          });
+        }
 
-                await Order.updateOne(
-                    { _id: checkOrder._id },
-                    {
-                        $push: { paymentHistory: paymentHistory },
-                        $set: {
-                            payment_mode: entity.method || '',
-                            payment_id: entity.id || '',
-                            payment_status: entity.status || '',
-                            order_status: 'Order Placed'
-                        }
-                    }
-                );
+        // Choose template based on create or update
+        const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+        const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+        const header = fs.readFileSync(headerPath, 'utf8');
+        const footer = fs.readFileSync(footerPath, 'utf8');
 
-                // Update paymentStatus in Firebase Realtime Database
-                if (checkOrder?.order_id && entity?.status) {
-                    const db = getDb();
-                    //Firebase realtime data update
-                    const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
-                    const snapshot = await firebaseRef.once('value');
-                    const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
-                    await firebaseRef.update({
-                        isOrderStatusChanged: isOrderStatusChanged,
-                        paymentStatus: entity.status
-                    });
-                }
+        try {
+          const updatedOrder = await Order.findOne({ order_id: orderId });
+          const user = await User.findOne({ _id: checkOrder.userId })
+          // console.log("$$$updatedOrder$$$$$$$$$$$$$$user$$", updatedOrder, user);
+          const amountValue = typeof entity.amount === 'number' ? entity.amount / 100 : 0;
+          const subject = `Order Placed Successfully`;
+          let userName = 'Customer';
+          let userEmail = '';
+          let userPhone = '';
+          const orderData: any = updatedOrder || checkOrder;
+          const deliveredAddr: any = orderData.deliveredAddress || null;
 
-                // Choose template based on create or update
-                const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
-                const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
-                const header = fs.readFileSync(headerPath, 'utf8');
-                const footer = fs.readFileSync(footerPath, 'utf8');
+          const orderDateTime = orderData.createdAt ? moment(orderData.createdAt).tz('Asia/Kolkata').format('MMM D, YYYY HH:mm z') : orderData.createdAt;
 
-                try {
-                    const updatedOrder = await Order.findOne({ order_id: orderId });
-                    const user = await User.findOne({ _id: checkOrder.userId })
-                    // console.log("$$$updatedOrder$$$$$$$$$$$$$$user$$", updatedOrder, user);
-                    const amountValue = typeof entity.amount === 'number' ? entity.amount / 100 : 0;
-                    const subject = `Order Placed Successfully`;
-                    let userName = 'Customer';
-                    let userEmail = '';
-                    let userPhone = '';
-                    const orderData: any = updatedOrder || checkOrder;
-                    const deliveredAddr: any = orderData.deliveredAddress || null;
+          if (deliveredAddr) {
+            userName = deliveredAddr?.name || 'Customer';
+            userEmail = deliveredAddr?.email || '';
+            userPhone = deliveredAddr?.phone || '';
+          }
 
-                    const orderDateTime =  orderData.createdAt ? moment(orderData.createdAt).tz('Asia/Kolkata').format('MMM D, YYYY HH:mm z') : orderData.createdAt;
+          let deliveryAddressText = ''
 
-                    if (deliveredAddr) {
-                        userName = deliveredAddr?.name || 'Customer';
-                        userEmail = deliveredAddr?.email || '';
-                        userPhone = deliveredAddr?.phone || '';
-                    }
+          // if (deliveredAddr) {
+          //   deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
+          // }
 
-                    let deliveryAddressText = ''
+          if (deliveredAddr) {
+            deliveryAddressText = [
+              deliveredAddr.address?.houseNumber,
+              deliveredAddr.address?.locality,
+              deliveredAddr.address?.landmark,
+              deliveredAddr.address?.city,
+              deliveredAddr.address?.state,
+              deliveredAddr.address?.pinCode ? `- ${deliveredAddr.address.pinCode}` : null
+            ]
+              .filter(Boolean)
+              .join(', ');
+          }
 
-                    if (deliveredAddr) {
-                        deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
-                    }
+          console.log('##########checkOrder.medicineQuantity#############', checkOrder.medicineQuantity);
 
-                    console.log('##########checkOrder.medicineQuantity#############', checkOrder.medicineQuantity);
+          const [checkMedicineId] = await Promise.all([
+            Medicine.find({ _id: { $in: checkOrder.medicineId.map((i: any) => i) } }).select('_id name coverImage images'),
+          ]);
 
-                    const [checkMedicineId] = await Promise.all([
-                        Medicine.find({ _id: { $in: checkOrder.medicineId.map((i: any) => i) } }).select('_id name coverImage images'),
-                    ]);
+          console.log('##########checkMedicineId#############', checkMedicineId);
 
-                    console.log('##########checkMedicineId#############', checkMedicineId);
+          const acceptedNames = checkMedicineId.map((m: any) => {
+            const item = checkOrder.medicineQuantity.find((i: any) => i.medicineId.toString() === m._id.toString());
+            return {
+              ...m._doc,
+              quantity: item ? item.quantity : 0,
+              price: item ? item.price : 0,
+            };
+          });
 
-                    const acceptedNames = checkMedicineId.map((m: any) => {
-                        const item = checkOrder.medicineQuantity.find((i: any) => i.medicineId.toString() === m._id.toString());
-                        return {
-                            ...m._doc,
-                            quantity: item ? item.quantity : 0,
-                            price: item ? item.price : 0,
-                        };
-                    });
+          console.log('##########acceptedNames#############', acceptedNames);
 
-                    console.log('##########acceptedNames#############', acceptedNames);
+          let itemsHtml = '';
 
-                    let itemsHtml = '';
+          if (acceptedNames.length > 0) {
+            const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
 
-                    if (acceptedNames.length > 0) {
-                        const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
-
-                        itemsHtml += `
+            itemsHtml += `
         <ul style="list-style:none;padding:0;">
     `;
 
-                        acceptedNames.forEach((m: any) => {
-                            const imgSrc =
-                                m.coverImage && m.coverImage.trim() !== ''
-                                    ? m.coverImage
-                                    : defaultImg;
+            acceptedNames.forEach((m: any) => {
+              const imgSrc =
+                m.coverImage && m.coverImage.trim() !== ''
+                  ? m.coverImage
+                  : defaultImg;
 
-                            itemsHtml += `
+              itemsHtml += `
             <li style="margin-bottom:10px;display:flex;align-items:center;">
                 <img src="${imgSrc}" 
                      alt="${m.name}" 
@@ -208,12 +221,12 @@ async function runBackground(body: any) {
                 </div>
             </li>
         `;
-                        });
+            });
 
-                        itemsHtml += `</ul>`;
-                    }
+            itemsHtml += `</ul>`;
+          }
 
-                    const html = `
+          const html = `
 ${header}
 
 <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
@@ -321,103 +334,103 @@ ${header}
 ${footer}
 `;
 
-                    if (userEmail) {
-                        await sendEmail({ to: userEmail, subject, html });
+          if (userEmail) {
+            await sendEmail({ to: userEmail, subject, html });
+          }
+
+          let notificationUserId = '';
+          if (updatedOrder && typeof updatedOrder === 'object' && !Array.isArray(updatedOrder) && 'userId' in updatedOrder) {
+            notificationUserId = (updatedOrder as any).userId?.toString() || '';
+          }
+          await Notification.create({
+            userId: notificationUserId,
+            role: 'customer',
+            title: 'Order Placed',
+            message: checkOrder.isPrescriptionRequired !== true ? `Your Order has been placed successfully. Waiting for confirmation.` : `Your Order has been placed successfully. We will Notify you when your prescription is approved.`,
+            type: 'payment',
+            targetScreen: 'orders/detail',
+            targetId: checkOrder._id.toString(),
+            meta: {
+              paymentId: entity.id,
+              amount: `${amountValue}`,
+              currency: entity.currency,
+              method: entity.method,
+              status: entity.status
+            }
+          });
+
+          // Send push notification to customer if deviceToken exists
+          if (user && (user as any).deviceToken) {
+            try {
+              await sendPushNotificationWithData({
+                token: (user as any).deviceToken,
+                title: 'Order Placed',
+                body: `Your Order has been placed successfully.`,
+                data: {
+                  targetId: checkOrder._id.toString(),
+                  orderId: checkOrder._id.toString(),
+                  type: 'order_placed',
+                  targetScreen: 'orders/detail',
+                  paymentId: entity.id,
+                  amount: `${amountValue}`,
+                  currency: entity.currency,
+                  method: entity.method,
+                  status: entity.status
+                }
+              });
+            } catch (err) {
+              console.error('Failed to send push notification:', err);
+            }
+          }
+
+          // Notify admin (store manager) and superadmins with detailed message
+          let storeName = '';
+          let adminName = '';
+          let adminEmail = '';
+          let adminRoleName = '';
+          let customerName = userName;
+          if (updatedOrder && typeof updatedOrder === 'object' && !Array.isArray(updatedOrder) && 'storeId' in updatedOrder) {
+            const storeId = (updatedOrder as any).storeId;
+            if (storeId) {
+              const store = await Store.findById(storeId).lean();
+              if (store && typeof store === 'object' && !Array.isArray(store)) {
+                storeName = (store as any).name || '';
+                if ('adminManagerId' in store && store.adminManagerId) {
+                  const admin = await Admin.findById((store as any).adminManagerId).lean();
+                  if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+                    adminName = (admin as any).name || '';
+                    adminEmail = (admin as any).email || '';
+                    // Try to get admin's role name
+                    if ('roleId' in admin && admin.roleId) {
+                      const roleDoc = await (await import('@/models/Role')).default.findById(admin.roleId).lean();
+                      if (roleDoc && typeof roleDoc === 'object' && !Array.isArray(roleDoc)) {
+                        adminRoleName = (roleDoc as any).name || '';
+                      }
                     }
 
-                    let notificationUserId = '';
-                    if (updatedOrder && typeof updatedOrder === 'object' && !Array.isArray(updatedOrder) && 'userId' in updatedOrder) {
-                        notificationUserId = (updatedOrder as any).userId?.toString() || '';
-                    }
+                    const notificationMessage = checkOrder.isPrescriptionRequired == true ? `Order #${checkOrder.order_id} has been placed by ${customerName}. Please review and approve/reject the prescription.` : `Order Received: Order #${checkOrder.order_id} has been placed by ${customerName}. Please review and confirm the order.`;
+
+                    // Notify store admin
                     await Notification.create({
-                        userId: notificationUserId,
-                        role: 'customer',
-                        title: 'Order Placed',
-                        message: checkOrder.isPrescriptionRequired !== true ? `Your Order has been placed successfully. Waiting for confirmation.` : `Your Order has been placed successfully. We will Notify you when your prescription is approved.`,
-                        type: 'payment',
-                        targetScreen: 'orders/detail',
-                        targetId: checkOrder._id.toString(),
-                        meta: {
-                            paymentId: entity.id,
-                            amount: `${amountValue}`,
-                            currency: entity.currency,
-                            method: entity.method,
-                            status: entity.status
-                        }
+                      userId: (store as any).adminManagerId.toString(),
+                      role: 'admin',
+                      title: 'Order Received',
+                      message: notificationMessage,
+                      type: 'order',
+                      targetScreen: 'orders/detail',
+                      targetId: checkOrder._id.toString(),
+                      meta: {
+                        paymentId: entity.id,
+                        amount: amountValue,
+                        currency: entity.currency,
+                        method: entity.method,
+                        status: entity.status
+                      }
                     });
 
-                    // Send push notification to customer if deviceToken exists
-                    if (user && (user as any).deviceToken) {
-                        try {
-                            await sendPushNotificationWithData({
-                                token: (user as any).deviceToken,
-                                title: 'Order Placed',
-                                body: `Your Order has been placed successfully.`,
-                                data: {
-                                    targetId: checkOrder._id.toString(),
-                                    orderId: checkOrder._id.toString(),
-                                    type: 'order_placed',
-                                    targetScreen: 'orders/detail',
-                                    paymentId: entity.id,
-                                    amount: `${amountValue}`,
-                                    currency: entity.currency,
-                                    method: entity.method,
-                                    status: entity.status
-                                }
-                            });
-                        } catch (err) {
-                            console.error('Failed to send push notification:', err);
-                        }
-                    }
-
-                    // Notify admin (store manager) and superadmins with detailed message
-                    let storeName = '';
-                    let adminName = '';
-                    let adminEmail = '';
-                    let adminRoleName = '';
-                    let customerName = userName;
-                    if (updatedOrder && typeof updatedOrder === 'object' && !Array.isArray(updatedOrder) && 'storeId' in updatedOrder) {
-                        const storeId = (updatedOrder as any).storeId;
-                        if (storeId) {
-                            const store = await Store.findById(storeId).lean();
-                            if (store && typeof store === 'object' && !Array.isArray(store)) {
-                                storeName = (store as any).name || '';
-                                if ('adminManagerId' in store && store.adminManagerId) {
-                                    const admin = await Admin.findById((store as any).adminManagerId).lean();
-                                    if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
-                                        adminName = (admin as any).name || '';
-                                        adminEmail = (admin as any).email || '';
-                                        // Try to get admin's role name
-                                        if ('roleId' in admin && admin.roleId) {
-                                            const roleDoc = await (await import('@/models/Role')).default.findById(admin.roleId).lean();
-                                            if (roleDoc && typeof roleDoc === 'object' && !Array.isArray(roleDoc)) {
-                                                adminRoleName = (roleDoc as any).name || '';
-                                            }
-                                        }
-
-                                        const notificationMessage = checkOrder.isPrescriptionRequired == true ? `Order #${checkOrder.order_id} has been placed by ${customerName}. Please review and approve/reject the prescription.` : `Order Received: Order #${checkOrder.order_id} has been placed by ${customerName}. Please review and confirm the order.`;
-
-                                        // Notify store admin
-                                        await Notification.create({
-                                            userId: (store as any).adminManagerId.toString(),
-                                            role: 'admin',
-                                            title: 'Order Received',
-                                            message: notificationMessage,
-                                            type: 'order',
-                                            targetScreen: 'orders/detail',
-                                            targetId: checkOrder._id.toString(),
-                                            meta: {
-                                                paymentId: entity.id,
-                                                amount: amountValue,
-                                                currency: entity.currency,
-                                                method: entity.method,
-                                                status: entity.status
-                                            }
-                                        });
-
-                                        // Send email to adminEmail
-                                        if (adminEmail) {
-                                            const adminHtml = `
+                    // Send email to adminEmail
+                    if (adminEmail) {
+                      const adminHtml = `
                                             ${header}
 
                                             <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
@@ -548,70 +561,70 @@ ${footer}
                                                    
                                                 ${footer}
                                             `;
-                                            await sendEmail({ to: adminEmail, subject: `New Order Received – Review & Process`, html: adminHtml });
-                                        }
-
-                                        try {
-                                            const adminToken = (admin as any).deviceToken;
-                                            if (adminToken) {
-                                                await sendPushNotificationWithData({
-                                                    token: adminToken,
-                                                    title: 'Order Received',
-                                                    body: notificationMessage,
-                                                    data: {
-                                                        targetId: checkOrder._id.toString(),
-                                                        orderId: checkOrder._id.toString(),
-                                                        type: 'order_placed',
-                                                        targetScreen: 'orders/detail',
-                                                        paymentId: entity.id,
-                                                        amount: `${amountValue}`,
-                                                        currency: entity.currency,
-                                                        method: entity.method,
-                                                        status: entity.status
-                                                    }
-                                                });
-                                            }
-                                        } catch (err) {
-                                            console.error('Failed to send push notification to admin:', err);
-                                        }
-
-                                    }
-                                }
-                            }
-                        }
+                      await sendEmail({ to: adminEmail, subject: `New Order Received – Review & Process`, html: adminHtml });
                     }
 
-                    // Notify all superadmins
                     try {
-                        const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
-                        if (superAdminRole && superAdminRole._id) {
-                            const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
-                            for (const superAdmin of superAdmins) {
+                      const adminToken = (admin as any).deviceToken;
+                      if (adminToken) {
+                        await sendPushNotificationWithData({
+                          token: adminToken,
+                          title: 'Order Received',
+                          body: notificationMessage,
+                          data: {
+                            targetId: checkOrder._id.toString(),
+                            orderId: checkOrder._id.toString(),
+                            type: 'order_placed',
+                            targetScreen: 'orders/detail',
+                            paymentId: entity.id,
+                            amount: `${amountValue}`,
+                            currency: entity.currency,
+                            method: entity.method,
+                            status: entity.status
+                          }
+                        });
+                      }
+                    } catch (err) {
+                      console.error('Failed to send push notification to admin:', err);
+                    }
 
-                                const notificationMessage = checkOrder.isPrescriptionRequired == true ? `${customerName} has placed order #${checkOrder.order_id} with prescription uploaded at ${storeName}. Awaiting prescription review.` : `${customerName} has placed order #${checkOrder.order_id} at ${storeName}. Awaiting store confirmation.`;
+                  }
+                }
+              }
+            }
+          }
 
-                                // User {User Name} has placed order #{OrderID} at store {Store Name}. Waiting for store Manager to accept order.
-                                await Notification.create({
-                                    userId: (superAdmin as any)._id.toString(),
-                                    role: 'admin',
-                                    title: 'Order Received',
-                                    message: notificationMessage,
-                                    type: 'order',
-                                    targetScreen: 'orders/detail',
-                                    targetId: checkOrder._id.toString(),
-                                    meta: {
-                                        paymentId: entity.id,
-                                        amount: amountValue,
-                                        currency: entity.currency,
-                                        method: entity.method,
-                                        status: entity.status
-                                    }
-                                });
+          // Notify all superadmins
+          try {
+            const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
+            if (superAdminRole && superAdminRole._id) {
+              const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+              for (const superAdmin of superAdmins) {
 
-                                // Send email to super admin
-                                const superAdminEmail = (superAdmin as any).email;
-                                if (superAdminEmail) {
-                                    const superAdminHtml = `${header}
+                const notificationMessage = checkOrder.isPrescriptionRequired == true ? `${customerName} has placed order #${checkOrder.order_id} with prescription uploaded at ${storeName}. Awaiting prescription review.` : `${customerName} has placed order #${checkOrder.order_id} at ${storeName}. Awaiting store confirmation.`;
+
+                // User {User Name} has placed order #{OrderID} at store {Store Name}. Waiting for store Manager to accept order.
+                await Notification.create({
+                  userId: (superAdmin as any)._id.toString(),
+                  role: 'admin',
+                  title: 'Order Received',
+                  message: notificationMessage,
+                  type: 'order',
+                  targetScreen: 'orders/detail',
+                  targetId: checkOrder._id.toString(),
+                  meta: {
+                    paymentId: entity.id,
+                    amount: amountValue,
+                    currency: entity.currency,
+                    method: entity.method,
+                    status: entity.status
+                  }
+                });
+
+                // Send email to super admin
+                const superAdminEmail = (superAdmin as any).email;
+                if (superAdminEmail) {
+                  const superAdminHtml = `${header}
 
                                     <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
   <div style="max-width:700px;margin:0 auto;background:#ffffff;padding:25px;border:1px solid #e6e6e6;border-radius:8px;">
@@ -746,312 +759,312 @@ ${footer}
         
                                         ${footer}
                                     `;
-                                    await sendEmail({ to: superAdminEmail, subject: `New Order Received at ${storeName}`, html: superAdminHtml });
-                                }
-
-                                try {
-                                    const superToken = (superAdmin as any).deviceToken;
-                                    if (superToken) {
-                                        await sendPushNotificationWithData({
-                                            token: superToken,
-                                            title: 'Order Received',
-                                            body: notificationMessage,
-                                            data: {
-                                                targetId: checkOrder._id.toString(),
-                                                orderId: checkOrder._id.toString(),
-                                                type: 'order_placed',
-                                                targetScreen: 'orders/detail',
-                                                paymentId: entity.id,
-                                                amount: `${amountValue}`,
-                                                currency: entity.currency,
-                                                method: entity.method,
-                                                status: entity.status
-                                            }
-                                        });
-                                    }
-                                } catch (err) {
-                                    console.error('Failed to send push notification to superadmin:', err);
-                                }
-
-                            }
-                        }
-                    } catch (err) {
-                        console.error('Superadmin notification error:', err);
-                    }
-
-                } catch (notifyErr) {
-                    console.error('Notify/email error on payment captured:', notifyErr);
-                }
-            }
-
-            if (body.event === 'payment.failed') {
-                await Order.updateOne(
-                    { _id: checkOrder._id },
-                    {
-                        $push: { paymentHistory: paymentHistory },
-                        $set: {
-                            payment_status: 'Failed',
-                            order_status: 'Cancelled'
-                        }
-                    }
-                );
-
-                // Update paymentStatus in Firebase Realtime Database
-                if (checkOrder?.order_id && entity?.status) {
-                    const db = getDb();
-                    //Firebase realtime data update
-                    const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
-                    const snapshot = await firebaseRef.once('value');
-                    const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
-                    await firebaseRef.update({
-                        isOrderStatusChanged: isOrderStatusChanged,
-                        paymentStatus: entity.status
-                    });
+                  await sendEmail({ to: superAdminEmail, subject: `New Order Received at ${storeName}`, html: superAdminHtml });
                 }
 
-            }
-
-            if (body.event == 'refund.created') {
-
-                await Order.updateOne(
-                    { _id: checkOrder._id },
-                    {
-                        $set: { refundHistory: refundHistory }
-                    }
-                );
-
-                // Update paymentStatus in Firebase Realtime Database
-                if (checkOrder?.order_id && entity?.status) {
-                    const db = getDb();
-                    //Firebase realtime data update
-                    const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
-                    const snapshot = await firebaseRef.once('value');
-                    const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
-                    await firebaseRef.update({
-                        isOrderStatusChanged: isOrderStatusChanged,
-                        paymentStatus: entity.status
-                    });
-                }
-
-            }
-
-            if (body.event == 'refund.processed') {
-
-                await Order.updateOne(
-                    { _id: checkOrder._id },
-                    {
-                        $set: { refundHistory: refundHistory }
-                    }
-                );
-
-                // Update paymentStatus in Firebase Realtime Database
-                if (checkOrder?.order_id && entity?.status) {
-                    const db = getDb();
-                    //Firebase realtime data update
-                    const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
-                    const snapshot = await firebaseRef.once('value');
-                    const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
-                    await firebaseRef.update({
-                        isOrderStatusChanged: isOrderStatusChanged,
-                        paymentStatus: entity.status
-                    });
-                }
-
-                let userName = 'Customer';
-
-                const updatedOrder = await Order.findOne({ order_id: orderId });
-                const user = await User.findOne({ _id: checkOrder.userId })
-                const amountValue = (body?.payload?.refund?.entity?.amount_refunded || 0) / 100;
-
-                userName = updatedOrder?.deliveredAddress?.name || userName;
-
-                let notificationUserId = '';
-                if (updatedOrder && typeof updatedOrder === 'object' && !Array.isArray(updatedOrder) && 'userId' in updatedOrder) {
-                    notificationUserId = (updatedOrder as any).userId?.toString() || '';
-                }
-
-                await Notification.create({
-                    userId: notificationUserId,
-                    role: 'customer',
-                    title: 'Refund Successful',
-                    message: `Refund of ₹${amountValue} has been credited to your original Payment Method.`,
-                    type: 'refund_processed',
-                    targetScreen: 'orders/detail',
-                    targetId: checkOrder._id.toString(),
-                    meta: {
-                        amount: `${amountValue}`,
-                    }
-                });
-
-                // Send push notification to customer if deviceToken exists
-                if (user && (user as any).deviceToken) {
-                    try {
-                        await sendPushNotificationWithData({
-                            token: (user as any).deviceToken,
-                            title: 'Refund Successful',
-                            body: `Refund credited Successfully.`,
-                            data: {
-                                targetId: checkOrder._id.toString(),
-                                orderId: checkOrder._id.toString(),
-                                type: 'refund_processed',
-                                targetScreen: 'orders/detail',
-                                amount: `${amountValue}`
-                            }
-                        });
-                    } catch (err) {
-                        console.error('Failed to send push notification:', err);
-                    }
-                }
-
-                // Notify admin (store manager) and superadmins with detailed message
-                if (updatedOrder.storeId) {
-                    const storeId = (updatedOrder as any).storeId;
-                    if (storeId) {
-                        const store = await Store.findById(storeId).lean();
-                        if (store && typeof store === 'object' && !Array.isArray(store)) {
-                            // storeName = (store as any).name || '';
-                            if ('adminManagerId' in store && store.adminManagerId) {
-                                const admin = await Admin.findById((store as any).adminManagerId).lean();
-                                if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
-
-                                    let storeNotMsg: any = `Refund Processed: Refund of ₹${amountValue} for Order #${updatedOrder.order_id} has been processed successfully.`;
-
-                                    // Notify store admin
-                                    await Notification.create({
-                                        userId: (store as any).adminManagerId.toString(),
-                                        role: 'admin',
-                                        title: 'Refund Successful',
-                                        message: storeNotMsg,
-                                        type: 'order',
-                                        targetScreen: 'orders/detail',
-                                        targetId: updatedOrder._id.toString(),
-                                        meta: {}
-                                    });
-
-                                    try {
-                                        const adminToken = (admin as any).deviceToken;
-                                        if (adminToken) {
-                                            await sendPushNotificationWithData({
-                                                token: adminToken,
-                                                title: 'Refund Successful',
-                                                body: storeNotMsg,
-                                                data: {
-                                                    targetId: updatedOrder._id.toString(),
-                                                    orderId: updatedOrder._id.toString(),
-                                                    type: 'order_update',
-                                                    targetScreen: 'orders/detail'
-                                                }
-                                            });
-                                        }
-                                    } catch (err) {
-                                        console.error('Failed to send push notification to admin:', err);
-                                    }
-
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Notify all superadmins
                 try {
-                    const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
-                    if (superAdminRole && superAdminRole._id) {
-                        const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
-                        for (const superAdmin of superAdmins) {
-
-                            // Order #{OrderID} placed by {User Name} at store {Store Name} has been successfully delivered.
-
-                            await Notification.create({
-                                userId: (superAdmin as any)._id.toString(),
-                                role: 'admin',
-                                title: 'Refund Successful',
-                                message: `Refund of ₹${amountValue || 0} for order #${updatedOrder.order_id || updatedOrder._id} has been successfully processed for ${userName}.`,
-                                type: 'order',
-                                targetScreen: 'orders/detail',
-                                targetId: updatedOrder._id.toString(),
-                                meta: {
-                                    orderId: updatedOrder._id.toString(),
-                                }
-                            });
-
-                            try {
-                                const superToken = (superAdmin as any).deviceToken;
-                                if (superToken) {
-                                    await sendPushNotificationWithData({
-                                        token: superToken,
-                                        title: 'Refund Successful',
-                                        body: `Refund of ₹${amountValue || 0} for order #${updatedOrder.order_id || updatedOrder._id} has been successfully processed for ${userName}.`,
-                                        data: {
-                                            targetId: updatedOrder._id.toString(),
-                                            orderId: updatedOrder._id.toString(),
-                                            type: 'order_refunded',
-                                            targetScreen: 'orders/detail',
-                                        }
-                                    });
-                                }
-                            } catch (err) {
-                                console.error('Failed to send push notification to superadmin:', err);
-                            }
-
-                        }
-                    }
+                  const superToken = (superAdmin as any).deviceToken;
+                  if (superToken) {
+                    await sendPushNotificationWithData({
+                      token: superToken,
+                      title: 'Order Received',
+                      body: notificationMessage,
+                      data: {
+                        targetId: checkOrder._id.toString(),
+                        orderId: checkOrder._id.toString(),
+                        type: 'order_placed',
+                        targetScreen: 'orders/detail',
+                        paymentId: entity.id,
+                        amount: `${amountValue}`,
+                        currency: entity.currency,
+                        method: entity.method,
+                        status: entity.status
+                      }
+                    });
+                  }
                 } catch (err) {
-                    console.error('Superadmin notification error:', err);
+                  console.error('Failed to send push notification to superadmin:', err);
                 }
 
+              }
             }
+          } catch (err) {
+            console.error('Superadmin notification error:', err);
+          }
 
-            if (body.event == 'refund.failed') {
-
-                await Order.updateOne(
-                    { _id: checkOrder._id },
-                    {
-                        $set: { refundHistory: refundHistory }
-                    }
-                );
-
-                // Update paymentStatus in Firebase Realtime Database
-                if (checkOrder?.order_id && entity?.status) {
-                    const db = getDb();
-                    //Firebase realtime data update
-                    const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
-                    const snapshot = await firebaseRef.once('value');
-                    const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
-                    await firebaseRef.update({
-                        isOrderStatusChanged: isOrderStatusChanged,
-                        paymentStatus: entity.status
-                    });
-                }
-
-            }
-
-            if (body.event == 'refund.speed_changed') {
-
-                await Order.updateOne(
-                    { _id: checkOrder._id },
-                    {
-                        $set: { refundHistory: refundHistory }
-                    }
-                );
-
-                // Update paymentStatus in Firebase Realtime Database
-                if (checkOrder?.order_id && entity?.status) {
-                    const db = getDb();
-                    //Firebase realtime data update
-                    const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
-                    const snapshot = await firebaseRef.once('value');
-                    const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
-                    await firebaseRef.update({
-                        isOrderStatusChanged: isOrderStatusChanged,
-                        paymentStatus: entity.status
-                    });
-                }
-
-            }
-
+        } catch (notifyErr) {
+          console.error('Notify/email error on payment captured:', notifyErr);
         }
+      }
+
+      if (body.event === 'payment.failed') {
+        await Order.updateOne(
+          { _id: checkOrder._id },
+          {
+            $push: { paymentHistory: paymentHistory },
+            $set: {
+              payment_status: 'Failed',
+              order_status: 'Cancelled'
+            }
+          }
+        );
+
+        // Update paymentStatus in Firebase Realtime Database
+        if (checkOrder?.order_id && entity?.status) {
+          const db = getDb();
+          //Firebase realtime data update
+          const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
+          const snapshot = await firebaseRef.once('value');
+          const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+          await firebaseRef.update({
+            isOrderStatusChanged: isOrderStatusChanged,
+            paymentStatus: entity.status
+          });
+        }
+
+      }
+
+      if (body.event == 'refund.created') {
+
+        await Order.updateOne(
+          { _id: checkOrder._id },
+          {
+            $set: { refundHistory: refundHistory }
+          }
+        );
+
+        // Update paymentStatus in Firebase Realtime Database
+        if (checkOrder?.order_id && entity?.status) {
+          const db = getDb();
+          //Firebase realtime data update
+          const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
+          const snapshot = await firebaseRef.once('value');
+          const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+          await firebaseRef.update({
+            isOrderStatusChanged: isOrderStatusChanged,
+            paymentStatus: entity.status
+          });
+        }
+
+      }
+
+      if (body.event == 'refund.processed') {
+
+        await Order.updateOne(
+          { _id: checkOrder._id },
+          {
+            $set: { refundHistory: refundHistory }
+          }
+        );
+
+        // Update paymentStatus in Firebase Realtime Database
+        if (checkOrder?.order_id && entity?.status) {
+          const db = getDb();
+          //Firebase realtime data update
+          const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
+          const snapshot = await firebaseRef.once('value');
+          const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+          await firebaseRef.update({
+            isOrderStatusChanged: isOrderStatusChanged,
+            paymentStatus: entity.status
+          });
+        }
+
+        let userName = 'Customer';
+
+        const updatedOrder = await Order.findOne({ order_id: orderId });
+        const user = await User.findOne({ _id: checkOrder.userId })
+        const amountValue = (body?.payload?.refund?.entity?.amount_refunded || 0) / 100;
+
+        userName = updatedOrder?.deliveredAddress?.name || userName;
+
+        let notificationUserId = '';
+        if (updatedOrder && typeof updatedOrder === 'object' && !Array.isArray(updatedOrder) && 'userId' in updatedOrder) {
+          notificationUserId = (updatedOrder as any).userId?.toString() || '';
+        }
+
+        await Notification.create({
+          userId: notificationUserId,
+          role: 'customer',
+          title: 'Refund Successful',
+          message: `Refund of ₹${amountValue} has been credited to your original Payment Method.`,
+          type: 'refund_processed',
+          targetScreen: 'orders/detail',
+          targetId: checkOrder._id.toString(),
+          meta: {
+            amount: `${amountValue}`,
+          }
+        });
+
+        // Send push notification to customer if deviceToken exists
+        if (user && (user as any).deviceToken) {
+          try {
+            await sendPushNotificationWithData({
+              token: (user as any).deviceToken,
+              title: 'Refund Successful',
+              body: `Refund credited Successfully.`,
+              data: {
+                targetId: checkOrder._id.toString(),
+                orderId: checkOrder._id.toString(),
+                type: 'refund_processed',
+                targetScreen: 'orders/detail',
+                amount: `${amountValue}`
+              }
+            });
+          } catch (err) {
+            console.error('Failed to send push notification:', err);
+          }
+        }
+
+        // Notify admin (store manager) and superadmins with detailed message
+        if (updatedOrder.storeId) {
+          const storeId = (updatedOrder as any).storeId;
+          if (storeId) {
+            const store = await Store.findById(storeId).lean();
+            if (store && typeof store === 'object' && !Array.isArray(store)) {
+              // storeName = (store as any).name || '';
+              if ('adminManagerId' in store && store.adminManagerId) {
+                const admin = await Admin.findById((store as any).adminManagerId).lean();
+                if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+
+                  let storeNotMsg: any = `Refund Processed: Refund of ₹${amountValue} for Order #${updatedOrder.order_id} has been processed successfully.`;
+
+                  // Notify store admin
+                  await Notification.create({
+                    userId: (store as any).adminManagerId.toString(),
+                    role: 'admin',
+                    title: 'Refund Successful',
+                    message: storeNotMsg,
+                    type: 'order',
+                    targetScreen: 'orders/detail',
+                    targetId: updatedOrder._id.toString(),
+                    meta: {}
+                  });
+
+                  try {
+                    const adminToken = (admin as any).deviceToken;
+                    if (adminToken) {
+                      await sendPushNotificationWithData({
+                        token: adminToken,
+                        title: 'Refund Successful',
+                        body: storeNotMsg,
+                        data: {
+                          targetId: updatedOrder._id.toString(),
+                          orderId: updatedOrder._id.toString(),
+                          type: 'order_update',
+                          targetScreen: 'orders/detail'
+                        }
+                      });
+                    }
+                  } catch (err) {
+                    console.error('Failed to send push notification to admin:', err);
+                  }
+
+                }
+              }
+            }
+          }
+        }
+
+        // Notify all superadmins
+        try {
+          const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
+          if (superAdminRole && superAdminRole._id) {
+            const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+            for (const superAdmin of superAdmins) {
+
+              // Order #{OrderID} placed by {User Name} at store {Store Name} has been successfully delivered.
+
+              await Notification.create({
+                userId: (superAdmin as any)._id.toString(),
+                role: 'admin',
+                title: 'Refund Successful',
+                message: `Refund of ₹${amountValue || 0} for order #${updatedOrder.order_id || updatedOrder._id} has been successfully processed for ${userName}.`,
+                type: 'order',
+                targetScreen: 'orders/detail',
+                targetId: updatedOrder._id.toString(),
+                meta: {
+                  orderId: updatedOrder._id.toString(),
+                }
+              });
+
+              try {
+                const superToken = (superAdmin as any).deviceToken;
+                if (superToken) {
+                  await sendPushNotificationWithData({
+                    token: superToken,
+                    title: 'Refund Successful',
+                    body: `Refund of ₹${amountValue || 0} for order #${updatedOrder.order_id || updatedOrder._id} has been successfully processed for ${userName}.`,
+                    data: {
+                      targetId: updatedOrder._id.toString(),
+                      orderId: updatedOrder._id.toString(),
+                      type: 'order_refunded',
+                      targetScreen: 'orders/detail',
+                    }
+                  });
+                }
+              } catch (err) {
+                console.error('Failed to send push notification to superadmin:', err);
+              }
+
+            }
+          }
+        } catch (err) {
+          console.error('Superadmin notification error:', err);
+        }
+
+      }
+
+      if (body.event == 'refund.failed') {
+
+        await Order.updateOne(
+          { _id: checkOrder._id },
+          {
+            $set: { refundHistory: refundHistory }
+          }
+        );
+
+        // Update paymentStatus in Firebase Realtime Database
+        if (checkOrder?.order_id && entity?.status) {
+          const db = getDb();
+          //Firebase realtime data update
+          const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
+          const snapshot = await firebaseRef.once('value');
+          const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+          await firebaseRef.update({
+            isOrderStatusChanged: isOrderStatusChanged,
+            paymentStatus: entity.status
+          });
+        }
+
+      }
+
+      if (body.event == 'refund.speed_changed') {
+
+        await Order.updateOne(
+          { _id: checkOrder._id },
+          {
+            $set: { refundHistory: refundHistory }
+          }
+        );
+
+        // Update paymentStatus in Firebase Realtime Database
+        if (checkOrder?.order_id && entity?.status) {
+          const db = getDb();
+          //Firebase realtime data update
+          const firebaseRef = db.ref(`orders/${checkOrder.order_id}`);
+          const snapshot = await firebaseRef.once('value');
+          const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+          await firebaseRef.update({
+            isOrderStatusChanged: isOrderStatusChanged,
+            paymentStatus: entity.status
+          });
+        }
+
+      }
+
     }
+  }
 
 }
 
@@ -1075,18 +1088,18 @@ ${footer}
  */
 
 export async function POST(req: NextRequest) {
-    await dbConnect();
-    const body = await req.json();
+  await dbConnect();
+  const body = await req.json();
 
-    // 👇 Razorpay ko turant bharosa do
-    const response = NextResponse.json({
-        status: true,
-        message: 'Webhook received'
-    });
+  // 👇 Razorpay ko turant bharosa do
+  const response = NextResponse.json({
+    status: true,
+    message: 'Webhook received'
+  });
 
-    setImmediate(() => {
-        runBackground(body);
-    });
+  setImmediate(() => {
+    runBackground(body);
+  });
 
-    return response;
+  return response;
 }
