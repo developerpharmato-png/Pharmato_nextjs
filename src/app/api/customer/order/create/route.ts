@@ -388,7 +388,7 @@ export async function POST(req: NextRequest) {
     if (Array.isArray(cartData)) {
         const inactiveMed = cartData.find((item) => item.medicine && item.medicine.isActive === false);
         if (inactiveMed) {
-            return NextResponse.json({ success: false, message: `Order cannot be placed. Inactive medicine in cart: ${inactiveMed.medicine.name}` }, { status: 400 });
+            return NextResponse.json({ success: false, message: `One or more items in your cart are no longer available.` }, { status: 400 });
         }
     }
 

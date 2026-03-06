@@ -1,9 +1,9 @@
-import { Image } from 'lucide-react';
+import { Image, ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useState } from 'react';
 
 interface ProductImageSliderProps {
-  images: string[]; // Define images as an array of strings
-  productName: string; // Define productName as a string
+    images: string[]; // Define images as an array of strings
+    productName: string; // Define productName as a string
 }
 
 const ProductImageSlider: React.FC<ProductImageSliderProps> = ({ images, productName }) => {
@@ -27,37 +27,60 @@ const ProductImageSlider: React.FC<ProductImageSliderProps> = ({ images, product
     }
 
     return (
-        <div className="lg:col-span-1">
-            <div className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 shadow-inner">
-                <button
-                    type="button"
-                    className="w-full block transition-opacity hover:opacity-90"
-                >
-                    <img
-                        src={currentImageSrc}
-                        alt={currentAltText}
-                        className="w-full h-72 lg:h-96 object-cover"
-                    />
-                </button>
+        <div className="lg:col-span-1 flex flex-col items-center">
+            <div className="relative w-full flex items-center justify-center rounded-xl bg-white shadow-sm" style={{ minHeight: '18rem', maxHeight: '28rem' }}>
+                {/* Left Arrow */}
+                {images.length > 1 && (
+                    <button
+                        type="button"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-green-100 border border-gray-200 rounded-full p-1 shadow transition"
+                        onClick={() => setActiveIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
+                        aria-label="Previous image"
+                    >
+                        <ChevronLeft className="w-6 h-6 text-green-600" />
+                    </button>
+                )}
+
+                {/* Main Image */}
+                <img
+                    src={currentImageSrc}
+                    alt={currentAltText}
+                    className="max-w-full max-h-96 object-contain bg-white rounded-xl"
+                    style={{ margin: '0 auto', display: 'block' }}
+                />
+
+                {/* Right Arrow */}
+                {images.length > 1 && (
+                    <button
+                        type="button"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-green-100 border border-gray-200 rounded-full p-1 shadow transition"
+                        onClick={() => setActiveIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
+                        aria-label="Next image"
+                    >
+                        <ChevronRight className="w-6 h-6 text-green-600" />
+                    </button>
+                )}
             </div>
 
-            <div className="mt-4 overflow-x-auto">
-                <div className="flex gap-3 items-center">
+            {/* Thumbnails */}
+            <div className="mt-4 overflow-x-auto w-full">
+                <div className="flex gap-2 items-center justify-center">
                     {images.map((img, idx) => (
                         <button
                             key={idx}
                             onClick={() => setActiveIndex(idx)}
-                            className={`w-20 h-20 rounded-md overflow-hidden border-2 transition-all duration-200 ease-in-out shrink-0 
+                            className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ease-in-out shrink-0 focus:outline-none
                                 ${idx === activeIndex
-                                    ? 'border-green-600 ring-2 ring-green-500' 
-                                    : 'border-gray-200 hover:border-green-500'
+                                    ? 'border-green-600 ring-2 ring-green-400'
+                                    : 'border-gray-200 hover:border-green-400'
                                 }`
                             }
+                            aria-label={`Show image ${idx + 1}`}
                         >
                             <img
                                 src={img}
                                 alt={`${currentAltText} thumbnail ${idx + 1}`}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-contain bg-white"
                             />
                         </button>
                     ))}
