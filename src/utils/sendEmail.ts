@@ -6,7 +6,7 @@ const token: any = "Zoho-enczapikey PHtE6r0IEbjo2jQro0cHsfOwRZKkPIl89O00LQFDs48R
 
 const client = new SendMailClient({ url, token });
 
-//###############Zepto Email#####################
+// //###############Zepto Email#####################
 
 // export async function sendEmail({
 //   to,
