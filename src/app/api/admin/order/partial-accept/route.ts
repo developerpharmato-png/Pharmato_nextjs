@@ -283,7 +283,6 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
         await sendEmail({ to: userEmail, subject: emailSubject, html });
     }
 
-
     try {
         if (!order?.order_id) return;
 
