@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Order from '@/models/Order';
+import moment from 'moment-timezone';
 // Ensure referenced models are registered for populate
 import '@/models/User';
 import '@/models/Medicine';
@@ -43,10 +44,10 @@ import '@/models/Medicine';
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    
+
     try {
         const { orderId } = await req.json();
-        
+
         if (!orderId || typeof orderId !== 'string') {
             return NextResponse.json(
                 { success: false, message: 'orderId is required' },
@@ -76,8 +77,8 @@ export async function POST(req: NextRequest) {
         const medicineIdWithQuantity = Array.isArray(order.medicineId)
             ? order.medicineId.map((med: any) => {
                 const q = medicineQuantities.find((qty: any) => {
-                    return (qty.medicineId?.toString && med._id?.toString && 
-                            qty.medicineId.toString() === med._id.toString());
+                    return (qty.medicineId?.toString && med._id?.toString &&
+                        qty.medicineId.toString() === med._id.toString());
                 });
                 return {
                     ...med.toObject(),
@@ -93,14 +94,24 @@ export async function POST(req: NextRequest) {
         // Return order with updated medicineId array
         const orderObj = order.toObject();
         orderObj.medicineId = medicineIdWithQuantity;
-        
+
+        orderObj.deliveredDate = order.deliveredDate;
+
+        if (orderObj.deliveredDate) {
+            orderObj.deliveredDate = moment(orderObj.deliveredDate)
+                .tz('Asia/Kolkata')
+                .format('MMM D, YYYY HH:mm z');
+        } else {
+            orderObj.deliveredDate = "";
+        }
+
         return NextResponse.json({ success: true, data: orderObj });
 
     } catch (error) {
         console.error('Error fetching order detail:', error);
         return NextResponse.json(
-            { 
-                success: false, 
+            {
+                success: false,
                 message: 'Failed to fetch order detail',
                 error: error instanceof Error ? error.message : 'Unknown error'
             },

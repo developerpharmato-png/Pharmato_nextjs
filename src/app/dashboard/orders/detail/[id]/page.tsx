@@ -234,6 +234,7 @@ export default function OrderDetailPage() {
                         : "N/A"}
                     </p>
                   </div>
+
                   <div>
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
                       Payment Status
@@ -246,7 +247,8 @@ export default function OrderDetailPage() {
                       {order?.payment_status || "Pending"}
                     </span>
                   </div>
-                </div>
+                  
+                </div>                
               </div>
 
               {/* Right: Price Calculation Card */}

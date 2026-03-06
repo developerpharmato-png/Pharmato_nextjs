@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
         order.order_status = status;
+        order.deliveredDate = status.toLowerCase().includes('deliv') ? new Date() : order.deliveredDate;
         await order.save();
 
         // Update orderStatus in Firebase Realtime Database
