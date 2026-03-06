@@ -874,7 +874,7 @@ ${footer}
 
         const updatedOrder = await Order.findOne({ order_id: orderId });
         const user = await User.findOne({ _id: checkOrder.userId })
-        const amountValue = (body?.payload?.refund?.entity?.amount_refunded || 0) / 100;
+        const amountValue = (body?.payload?.refund?.entity?.amount || 0) / 100;
 
         userName = updatedOrder?.deliveredAddress?.name || userName;
 
@@ -927,7 +927,7 @@ ${footer}
                 const admin = await Admin.findById((store as any).adminManagerId).lean();
                 if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
 
-                  let storeNotMsg: any = `Refund Processed: Refund of ₹${amountValue} for Order #${updatedOrder.order_id} has been processed successfully.`;
+                  let storeNotMsg: any = `Refund of ₹${amountValue} for Order #${updatedOrder.order_id} has been processed successfully.`;
 
                   // Notify store admin
                   await Notification.create({

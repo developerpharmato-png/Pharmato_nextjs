@@ -325,10 +325,10 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                     title: title,
                     body: messagePush,
                     data: {
-                        targetId: order._id?.toString?.(),
-                        orderId: order._id?.toString?.(),
-                        orderStatus: order.order_status,
-                        screen: 'order'
+                        targetId: order._id.toString(),
+                        orderId: order._id.toString(),
+                        type: 'order_update',
+                        targetScreen: 'orders/detail'
                     }
                 });
             } catch (err) {
