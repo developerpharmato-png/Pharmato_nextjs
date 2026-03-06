@@ -41,7 +41,6 @@ export async function decryptMargData(data: string) {
     return JSON.parse(cleaned);
 }
 
-
 const razorpayInstance = new Razorpay({
     key_id: process.env.razorPay_Key_Id || '',
     key_secret: process.env.razorPay_Secret_Key || ''
@@ -94,6 +93,8 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
             refundAmount += Number(order.calculationData.deliveryFee || 0); // Add delivery fee back to refund if entire order is cancelled
         }
 
+        refundAmount = Number(refundAmount.toFixed(2)); // Round to 2 decimal places
+
         if (order.payment_mode === 'Wallet') {
 
             await User.updateOne(
@@ -116,8 +117,137 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                 paymentHistory: [],
             });
 
-        } else {
+            await Notification.create({
+                userId: user._id.toString(),
+                role: 'customer',
+                title: 'Refund Successful',
+                message: `Refund of ₹${refundAmount} has been credited to your original Payment Method.`,
+                type: 'refund_processed',
+                targetScreen: 'orders/detail',
+                targetId: order._id.toString(),
+                meta: {
+                    amount: `${refundAmount}`,
+                }
+            });
 
+            // Send push notification to customer if deviceToken exists
+            if (user && (user as any).deviceToken) {
+                try {
+                    await sendPushNotificationWithData({
+                        token: (user as any).deviceToken,
+                        title: 'Refund Successful',
+                        body: `Refund credited Successfully.`,
+                        data: {
+                            targetId: order._id.toString(),
+                            orderId: order._id.toString(),
+                            type: 'refund_processed',
+                            targetScreen: 'orders/detail',
+                            amount: `${refundAmount}`
+                        }
+                    });
+                } catch (err) {
+                    console.error('Failed to send push notification:', err);
+                }
+            }
+
+            // Notify admin (store manager) and superadmins with detailed message
+            if (order.storeId) {
+                const storeId = (order as any).storeId;
+                if (storeId) {
+                    const store = await Store.findById(storeId).lean();
+                    if (store && typeof store === 'object' && !Array.isArray(store)) {
+                        // storeName = (store as any).name || '';
+                        if ('adminManagerId' in store && store.adminManagerId) {
+                            const admin = await Admin.findById((store as any).adminManagerId).lean();
+                            if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+
+                                let storeNotMsg: any = `Refund of ₹${refundAmount} for Order #${order.order_id} has been processed successfully.`;
+
+                                // Notify store admin
+                                await Notification.create({
+                                    userId: (store as any).adminManagerId.toString(),
+                                    role: 'admin',
+                                    title: 'Refund Successful',
+                                    message: storeNotMsg,
+                                    type: 'order',
+                                    targetScreen: 'orders/detail',
+                                    targetId: order._id.toString(),
+                                    meta: {}
+                                });
+
+                                try {
+                                    const adminToken = (admin as any).deviceToken;
+                                    if (adminToken) {
+                                        await sendPushNotificationWithData({
+                                            token: adminToken,
+                                            title: 'Refund Successful',
+                                            body: storeNotMsg,
+                                            data: {
+                                                targetId: order._id.toString(),
+                                                orderId: order._id.toString(),
+                                                type: 'order_update',
+                                                targetScreen: 'orders/detail'
+                                            }
+                                        });
+                                    }
+                                } catch (err) {
+                                    console.error('Failed to send push notification to admin:', err);
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Notify all superadmins
+            try {
+                const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
+                if (superAdminRole && superAdminRole._id) {
+                    const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+                    for (const superAdmin of superAdmins) {
+
+                        // Order #{OrderID} placed by {User Name} at store {Store Name} has been successfully delivered.
+
+                        await Notification.create({
+                            userId: (superAdmin as any)._id.toString(),
+                            role: 'admin',
+                            title: 'Refund Successful',
+                            message: `Refund of ₹${refundAmount || 0} for order #${order.order_id || order._id} has been successfully processed for ${userName}.`,
+                            type: 'order',
+                            targetScreen: 'orders/detail',
+                            targetId: order._id.toString(),
+                            meta: {
+                                orderId: order._id.toString(),
+                            }
+                        });
+
+                        try {
+                            const superToken = (superAdmin as any).deviceToken;
+                            if (superToken) {
+                                await sendPushNotificationWithData({
+                                    token: superToken,
+                                    title: 'Refund Successful',
+                                    body: `Refund of ₹${refundAmount || 0} for order #${order.order_id || order._id} has been successfully processed for ${userName}.`,
+                                    data: {
+                                        targetId: order._id.toString(),
+                                        orderId: order._id.toString(),
+                                        type: 'order_refunded',
+                                        targetScreen: 'orders/detail',
+                                    }
+                                });
+                            }
+                        } catch (err) {
+                            console.error('Failed to send push notification to superadmin:', err);
+                        }
+
+                    }
+                }
+            } catch (err) {
+                console.error('Superadmin notification error:', err);
+            }
+
+        } else {
 
             try {
                 const refundResponse = await razorpayInstance.payments.refund(order.payment_id, {

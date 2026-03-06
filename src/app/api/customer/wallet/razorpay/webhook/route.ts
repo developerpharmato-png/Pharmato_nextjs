@@ -139,7 +139,7 @@ async function runBackground(body: any) {
                                 title: 'Wallet Recharged',
                                 message: `${customerName} has recharged their wallet with ₹${checkWallet.amount}.`,
                                 type: 'wallet_recharged',
-                                targetScreen: 'wallet',
+                                targetScreen: 'customer/detail',
                                 targetId: checkWallet.userId.toString(),
                                 meta: {}
                             });
@@ -154,7 +154,7 @@ async function runBackground(body: any) {
                                         data: {
                                             targetId: checkWallet.userId.toString(),
                                             type: 'wallet_recharged',
-                                            targetScreen: 'wallet',
+                                            targetScreen: 'customer/detail',
                                         }
                                     });
                                 }
