@@ -1235,6 +1235,7 @@ export default function PartialCancelPage() {
                         : "N/A"}
                     </p>
                   </div>
+
                   <div>
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
                       Payment Status
@@ -1247,6 +1248,29 @@ export default function PartialCancelPage() {
                       {order?.payment_status || "Pending"}
                     </span>
                   </div>
+
+                  {order?.order_status == "Delivered" ? <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                      Delivered On
+                    </p>
+                    <p className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <svg
+                        className="w-4 h-4 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      {order?.deliveredDate}
+                    </p>
+                  </div> : ""}
+
                 </div>
               </div>
 
