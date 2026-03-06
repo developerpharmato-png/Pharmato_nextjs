@@ -16,6 +16,8 @@ import {
   TextField,
   InputAdornment,
   Button,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 
 interface Category {
@@ -221,27 +223,39 @@ export default function FilterSearch({
 
   // --- UI STYLING ---
   const controlStyle = {
-    minWidth: 200,
-    maxWidth: 200,
-    flex: "0 0 300px",
+    flex: 1,
+    minWidth: 0, // Critical for flex-shrink to work
     "& .MuiOutlinedInput-root": {
       borderRadius: "8px",
+      fontSize: { xs: "0.7rem", sm: "0.8rem", md: "0.875rem" },
       "&.Mui-focused fieldset": { borderColor: "green" },
     },
+    "& .MuiInputLabel-root": {
+      fontSize: { xs: "0.7rem", sm: "0.8rem", md: "0.875rem" },
+    },
     "& .MuiInputLabel-root.Mui-focused": { color: "green" },
+    "& .MuiSelect-select": {
+      py: 1,
+    },
   };
 
-  const searchWidth = showOrderFilters ? 200 : 300;
+  const searchWidth = showOrderFilters ? "18%" : "25%";
 
   return (
     <Box
       className={className}
       sx={{
         display: "flex",
-        flexWrap: "wrap",
+        flexWrap: "nowrap", 
         alignItems: "center",
-        gap: 2,
+        gap: { xs: 0.5, sm: 1, md: 2 },
         mb: 2,
+        pt: 1, 
+        width: "100%",
+        overflowX: "auto", 
+        "&::-webkit-scrollbar": { display: "none" }, 
+        msOverflowStyle: "none",
+        scrollbarWidth: "none",
       }}
     >
       {/* Search Input */}
@@ -253,14 +267,13 @@ export default function FilterSearch({
           onChange={(e) => setSearch(e.target.value)}
           sx={{
             ...controlStyle,
-            flex: `0 0 ${searchWidth}px`,
+            flex: `0 0 ${searchWidth}`,
             maxWidth: searchWidth,
-            minWidth: searchWidth,
           }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <Search size={20} style={{ color: "green" }} />
+                <Search size={18} style={{ color: "green" }} />
               </InputAdornment>
             ),
           }}
@@ -430,25 +443,27 @@ export default function FilterSearch({
 
       {/* Clear Button */}
       {showclearAll && (
-        <Button
-          variant="outlined"
-          onClick={handleReset}
-          startIcon={<X size={16} />}
-          sx={{
-            height: "40px",
-            borderRadius: "8px",
-            color: "gray",
-            borderColor: "#d1d5db",
-            textTransform: "none",
-            "&:hover": {
-              borderColor: "green",
-              color: "green",
-              bgcolor: "#f0fff4",
-            },
-          }}
-        >
-          Clear
-        </Button>
+        <Tooltip title="Clear Filters">
+          <IconButton
+            onClick={handleReset}
+            size="small"
+            sx={{
+              color: "gray",
+              border: "1px solid #d1d5db",
+              borderRadius: "8px",
+              height: { xs: "32px", sm: "40px" },
+              width: { xs: "32px", sm: "40px" },
+              flexShrink: 0,
+              "&:hover": {
+                borderColor: "green",
+                color: "green",
+                bgcolor: "#f0fff4",
+              },
+            }}
+          >
+            <X size={18} />
+          </IconButton>
+        </Tooltip>
       )}
     </Box>
   );

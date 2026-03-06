@@ -169,7 +169,7 @@ export default function CategoriesPage() {
 
   const canEditCategories = adminPermissions?.Categories?.edit ?? true;
   return (
-    <div className="containerStyle scrollbar-hide">
+    <div className="containerStyleTable scrollbar-hide">
       <HeaderWithAction
         title="Categories"
         subtitle="Manage medicine categories and OTC classification"

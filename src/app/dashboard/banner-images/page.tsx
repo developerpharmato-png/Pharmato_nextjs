@@ -76,7 +76,7 @@ export default function BannerImagesDashboard() {
 
 
   return (
-    <div className="containerStyle scrollbar-hide">
+    <div className="containerStyleTable scrollbar-hide">
       <HeaderWithAction
         showBack={false}
         title="Banner Management"

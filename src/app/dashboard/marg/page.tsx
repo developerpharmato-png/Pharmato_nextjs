@@ -75,7 +75,7 @@ const MargPage = () => {
   console.log(lastSyncDateTime, "margList")
 
   return (
-    <div className="containerStyle scrollbar-hide">
+    <div className="containerStyleTable scrollbar-hide">
       <HeaderWithAction
         title="Sync Management  "
         subtitle="Sync data from Marg ERP"

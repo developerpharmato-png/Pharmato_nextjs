@@ -150,16 +150,16 @@ export default function HeaderWithAction({
   );
 
   return (
-    <div className="relative mb-6 w-full">
+    <div className="relative w-full">
       {backButton}
 
-      {/* Main Flex Wrapper: Stacks on mobile, row on desktop */}
+    
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 
         {/* Title and Subtitle Area */}
-        <div className={`flex flex-col gap-1 ${showBack ? "pl-12 sm:pl-14" : ""}`}>
-          <h1
-            className="text-xl sm:text-3xl md:text-4xl font-bold leading-tight"
+        <div className={`flex flex-col gap-1 ${showBack ? "pl-10 sm:pl-12" : ""}`}>
+          <p
+            className="text-xl sm:text-1xl md:text-2xl font-bold leading-tight"
             style={{
               backgroundImage: `linear-gradient(90deg, var(--secondary), var(--secondary))`,
               WebkitBackgroundClip: "text",
@@ -168,17 +168,17 @@ export default function HeaderWithAction({
             }}
           >
             {title}
-          </h1>
+          </p>
 
           {subtitle && (
             <div className="flex flex-col">
               {/* Subtitle: Visible on small screens but smaller font, full detail on desktop */}
-              <p className="text-gray-500 text-xs sm:text-sm md:text-base line-clamp-1 sm:line-clamp-none">
+              <p className="text-gray-500 text-[15px] line-clamp-1 sm:line-clamp-none">
                 {subtitle}
               </p>
 
               <div
-                className="mt-1 h-0.5 w-8 sm:w-12 rounded-full"
+                className=" h-0.5 w-8 sm:w-12 rounded-full"
                 style={{
                   backgroundImage: `linear-gradient(90deg, #059669, #10B981, #A7F3D0)`,
                 }}

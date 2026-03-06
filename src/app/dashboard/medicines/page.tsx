@@ -102,7 +102,7 @@ function MedicinesPageContent() {
   }, [searchParams]);
 
   return (
-    <div className="containerStyle scrollbar-hide">
+    <div className="containerStyleTable scrollbar-hide">
       <HeaderWithAction
         title="Medicines"
         subtitle="Manage medicines, pricing, and availability
@@ -134,7 +134,7 @@ function MedicinesPageContent() {
       />
       {/* Export Section */}
 
-      <div className="mt-4">
+      <div className="">
         <FilterSearch
           initial={{ search: searchParams.get("search") || "" }}
           onChange={(f) => {
@@ -152,7 +152,7 @@ function MedicinesPageContent() {
         />
       </div>
 
-      <div className="mt-4">
+      <div className="">
         <MedicinesTable
           searchValue={searchTerm}
           onSearchChange={setSearchTerm}

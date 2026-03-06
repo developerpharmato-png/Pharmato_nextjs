@@ -46,7 +46,7 @@ messaging.onBackgroundMessage((payload) => {
 
   self.registration.showNotification(payload.notification.title, {
     body: payload.notification.body,
-    icon: "/firebase-logo.png",
+    icon: "/firebase-logo.png", 
     data: {
       url: dataUrl,
       // keep original payload for debugging if needed

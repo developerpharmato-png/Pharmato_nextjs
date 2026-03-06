@@ -276,7 +276,7 @@ export default function StoreDashboard() {
   }
 
   return (
-    <div className="containerStyle scrollbar-hide">
+    <div className="containerStyleTable scrollbar-hide">
       <HeaderWithAction
         title="Stores"
         subtitle="Manage stores, managers, and serviceable areas"

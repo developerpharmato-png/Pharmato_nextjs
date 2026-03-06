@@ -30,7 +30,7 @@ export const BulkUploadPincodePath = `/api/admin/store/bulk-upload-pincode`;
 // Analytics API paths
 export const ProductAnalyticsPath = `/api/admin/data-analytics/products`;
 
-// Medicines 
+// Medicines  
 
 export const MedicinesListPath = `/api/admin/medicines`;
 export const MedicinesStatusPath = `/api/admin/medicines/status`;
@@ -48,6 +48,7 @@ export const CustomerNotificationsListPath = `/api/admin/customers/notifications
 export const CustomerNotificationsDetailPath = `/api/admin/customers/notifications/detail`;
 
 export const markreadNotificationsPath = `/api/notifications/mark-read`;
+export const markReadAllNotificationsPath = `/api/admin/customers/notifications/mark-read-all`;
 export const NotificationsListPath = `/api/notifications`;
 export const unreadNotificationPath = `/api/notifications/unread-count`;
 
