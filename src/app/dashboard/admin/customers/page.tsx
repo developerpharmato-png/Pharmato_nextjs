@@ -213,7 +213,7 @@ export default function AdminCustomerListPage() {
   ];
 
   return (
-    <div className="containerStyle scrollbar-hide">
+    <div className="containerStyleTable scrollbar-hide">
       <HeaderWithAction
         title=" Customers"
         subtitle="Manage your customer records"

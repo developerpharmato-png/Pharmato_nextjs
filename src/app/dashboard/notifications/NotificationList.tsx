@@ -105,7 +105,12 @@ export default function NotificationList({
       minWidth: 100,
       selector: (row) => (
         <CustomTooltip title={row.title || "-"}>
-          <Typography variant="body2" fontWeight="medium" noWrap>
+          <Typography sx={{
+            maxWidth: "200px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}>
             {row.title || "-"}
           </Typography>
         </CustomTooltip>
@@ -120,7 +125,7 @@ export default function NotificationList({
           <Typography
             variant="body2"
             sx={{
-              maxWidth: "100px",
+              maxWidth: "200px",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",

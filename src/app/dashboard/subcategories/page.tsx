@@ -32,7 +32,7 @@ export default function SubCategoriesPage() {
   const canEditSubcategories = adminPermissions?.Subcategories?.edit ?? true;
 
   return (
-    <div className="containerStyle scrollbar-hide">
+    <div className="containerStyleTable scrollbar-hide">
       <HeaderWithAction
         title="Subcategories"
         subtitle="Manage medicine subcategories and OTC classification"

@@ -409,7 +409,7 @@ export default function DashboardLayout({
           </button>
         )}
         <DashboardTopHeader />
-        <main className="p-1 sm:p-6 flex-1 overflow-y-auto w-full">
+        <main className="p-1 sm:p-3 flex-1 overflow-y-auto w-full">
           {!isOnline ? (
             <div className="flex items-center justify-center h-full">
               <div className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">

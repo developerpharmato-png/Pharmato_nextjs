@@ -110,7 +110,7 @@ export function CustomTable<T>({
 
       <TableContainer sx={{ height: { xs: '53vh', sm: '53vh', md: '54vh', lg: '50vh', xl: '60vh' } }}>
         <Table stickyHeader>
-          <TableHead>
+          <TableHead sx={{ padding: "10px" }}>
             <TableRow>
               {columns.map((col) => (
                 <TableCell

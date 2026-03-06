@@ -751,7 +751,7 @@ export default function PartialCancelPage() {
 
                 <Box sx={modalStyles.refundBox}>
                   {(() => {
-                    const refundAmount = previewUnselectedMeds.reduce(
+                    let refundAmount = previewUnselectedMeds.reduce(
                       (sum, m) => {
                         const q = order?.medicineQuantity?.find(
                           (x: any) =>
@@ -764,6 +764,14 @@ export default function PartialCancelPage() {
                       },
                       0,
                     );
+
+                    if (
+                      previewSelectedMeds.length === 0 &&
+                      order?.calculationData?.deliveryFee
+                    ) {
+                      refundAmount += order.calculationData.deliveryFee;
+                    }
+
                     return (
                       <Typography variant="body2" fontWeight="600">
                         Refund Amount:{" "}

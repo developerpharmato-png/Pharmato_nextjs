@@ -20,11 +20,11 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="containerStyle scrollbar-hide">
+    <div className="containerStyleTable scrollbar-hide">
       <HeaderWithAction
         title="Customer Notifications"
         subtitle="Send and manage customer notifications."
-        showBack={true}
+        showBack={false}
         showSearch={false}
         addShow={true}
         addLabel="Send Notification"

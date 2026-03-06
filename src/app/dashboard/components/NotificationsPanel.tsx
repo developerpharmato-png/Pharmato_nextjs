@@ -6,15 +6,17 @@ import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNone
 import Switch from "@mui/material/Switch";
 
 import {
-  markreadNotificationsPath,
-  NotificationsListPath,
-  unreadNotificationPath,
-} from "@/app/dashboard/storeAPICall/API/BaseApi";
-import {
   NotificationsListStore,
   unreadNotificationStore,
   markreadNotificationsStore,
+  markReadAllNotificationsStore,
 } from "@/app/dashboard/storeAPICall/useUserStore";
+import {
+  markreadNotificationsPath,
+  markReadAllNotificationsPath,
+  NotificationsListPath,
+  unreadNotificationPath,
+} from "@/app/dashboard/storeAPICall/API/BaseApi";
 
 type NotificationItem = any;
 
@@ -34,6 +36,7 @@ export default function NotificationsPanel({
   const notifStore = NotificationsListStore();
   const unreadStore = unreadNotificationStore();
   const markReadStore = markreadNotificationsStore();
+  const markReadAllStore = markReadAllNotificationsStore();
 
   const fetchNotifications = async () => {
     try {
@@ -84,12 +87,31 @@ export default function NotificationsPanel({
     } catch { }
   };
 
+  const markAllAsRead = async () => {
+    try {
+      const adminId = typeof window !== "undefined" ? localStorage.getItem("adminId") : null;
+      if (!adminId) return;
+
+      const res = await markReadAllStore.postData(markReadAllNotificationsPath, { userId: adminId });
+      if (res?.success ?? true) {
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+        setUnreadCount(0);
+      }
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+    }
+  };
+
   const onItemClick = async (item: NotificationItem) => {
     if (!item.isRead) await markAsRead(item._id);
     onClose();
     if (item.targetScreen === "orders/detail") {
       router.push(`/dashboard/orders/detail/${item.targetId}/partial-cancel`);
-    } else if (item.targetScreen === "wallet") {
+    }
+    if (item.targetScreen === "customer/detail") {
+      router.push(`/dashboard/admin/customers/${item.targetId}`);
+    }
+    else if (item.targetScreen === "wallet") {
       router.push(`/dashboard/admin/customers/${item.targetId}`);
     }
   };
@@ -139,13 +161,24 @@ export default function NotificationsPanel({
                 </h3>
               </div>
 
-              <button
-                onClick={onClose}
-                className="p-2 -mr-2 text-sm font-semibold text-green-600
-                hover:bg-green-50 rounded-lg transition"
-              >
-                Close
-              </button>
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="px-3 py-1.5 text-xs font-semibold text-white bg-blue-600
+                    hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
+                  >
+                    Mark all read
+                  </button>
+                )}
+                <button
+                  onClick={onClose}
+                  className="p-2 -mr-2 text-sm font-semibold text-green-600
+                  hover:bg-green-50 rounded-lg transition"
+                >
+                  Close
+                </button>
+              </div>
             </div>
 
             {/* Counters + Switch */}

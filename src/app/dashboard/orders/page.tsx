@@ -167,7 +167,7 @@ function OrdersPageContent() {
   }, [OrderListData]);
 
   return (
-    <div className="containerStyle scrollbar-hide">
+    <div className="containerStyleTable scrollbar-hide">
       {/* ...existing code... */}
       <HeaderWithAction
         title="Orders"

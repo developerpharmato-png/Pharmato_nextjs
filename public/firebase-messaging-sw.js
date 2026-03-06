@@ -37,7 +37,11 @@ messaging.onBackgroundMessage((payload) => {
       dataPath = `/dashboard/orders/detail/${id}/partial-cancel`;
     } else if (payload.data.targetScreen === "wallet") {
       dataPath = `/dashboard/admin/customers/${payload.data.targetId}`;
-    } else if (payload.data.orderId) {
+    }
+    else if (payload.data.targetScreen === "customer/detail") {
+      dataPath = `/dashboard/admin/customers/${payload.data.targetId}`;
+    } 
+    else if (payload.data.orderId) {
       dataPath = `/dashboard/orders/detail/${payload.data.orderId}/partial-cancel`;
     }
   }
@@ -46,7 +50,7 @@ messaging.onBackgroundMessage((payload) => {
 
   self.registration.showNotification(payload.notification.title, {
     body: payload.notification.body,
-    icon: "/firebase-logo.png",
+    icon: "/firebase-logo.png", 
     data: {
       url: dataUrl,
       // keep original payload for debugging if needed
