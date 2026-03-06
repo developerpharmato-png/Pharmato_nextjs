@@ -107,7 +107,11 @@ export default function NotificationsPanel({
     onClose();
     if (item.targetScreen === "orders/detail") {
       router.push(`/dashboard/orders/detail/${item.targetId}/partial-cancel`);
-    } else if (item.targetScreen === "wallet") {
+    }
+    if (item.targetScreen === "customer/detail") {
+      router.push(`/dashboard/admin/customers/${item.targetId}`);
+    }
+    else if (item.targetScreen === "wallet") {
       router.push(`/dashboard/admin/customers/${item.targetId}`);
     }
   };
