@@ -78,7 +78,7 @@ export default function CategoriesPage() {
       const body: any = {
         limit: rowsPerPage,
         offset: page * rowsPerPage,
-        sortBy:"desc",
+        sortBy: "desc",
       };
       if (searchTerm) body.name = searchTerm;
       if (filterOTC !== "all") body.isOTC = filterOTC;
@@ -134,8 +134,8 @@ export default function CategoriesPage() {
           toast: true,
           position: "top-end",
           icon: "error",
-          title: ToastMessages.CATEGORY_STATUS_UPDATE_FAILED,
-          text: data.error || "Unknown error",
+          title: data.message,
+
           showConfirmButton: false,
           timer: 2000,
         });
@@ -177,7 +177,7 @@ export default function CategoriesPage() {
         showSearch={false}
         onSearchChange={setSearchTerm}
         addLabel="Add "
-        
+
         addShow={canEditCategories}
         handleAdd={handleAdd}
       />
@@ -195,7 +195,7 @@ export default function CategoriesPage() {
         isShowOTC={true}
       />
 
-      <CategoriesTable 
+      <CategoriesTable
         data={categories}
         page={page}
         rowsPerPage={rowsPerPage}
@@ -208,4 +208,3 @@ export default function CategoriesPage() {
     </div>
   );
 }
- 
