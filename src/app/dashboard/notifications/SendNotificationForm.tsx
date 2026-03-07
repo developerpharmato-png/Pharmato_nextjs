@@ -399,7 +399,7 @@ export default function SendNotificationForm({
       {formik.touched.message && formik.errors.message && (
         <ErrorMessageCom error={formik.errors.message} />
       )}
-      <Box className="ButtonOuter" sx={{ mt: 0.5, display: "flex", justifyContent: "flex-end" }}>
+      <Box className="ButtonOuter" sx={{ mt: 0.5, mb: "10px", display: "flex", justifyContent: "flex-end" }}>
         <Box className="buttoninner">
           <CustomButton type="submit" disabled={loading}>
             {formik.isSubmitting ? (
