@@ -224,7 +224,8 @@ export default function FilterSearch({
   // --- UI STYLING ---
   const controlStyle = {
     flex: 1,
-    minWidth: 0, // Critical for flex-shrink to work
+    minWidth: "120px", // Ensure a reasonable minimum width
+    maxWidth: showOrderFilters ? "none" : "280px", // Prevent selects from being too wide
     "& .MuiOutlinedInput-root": {
       borderRadius: "8px",
       fontSize: { xs: "0.7rem", sm: "0.8rem", md: "0.875rem" },
@@ -239,21 +240,21 @@ export default function FilterSearch({
     },
   };
 
-  const searchWidth = showOrderFilters ? "18%" : "25%";
+  const searchWidth = showOrderFilters ? "18%" : "320px";
 
   return (
     <Box
       className={className}
       sx={{
         display: "flex",
-        flexWrap: "nowrap", 
+        flexWrap: "nowrap",
         alignItems: "center",
         gap: { xs: 0.5, sm: 1, md: 2 },
         mb: 2,
-        pt: 1, 
+        pt: 1,
         width: "100%",
-        overflowX: "auto", 
-        "&::-webkit-scrollbar": { display: "none" }, 
+        overflowX: "auto",
+        "&::-webkit-scrollbar": { display: "none" },
         msOverflowStyle: "none",
         scrollbarWidth: "none",
       }}
@@ -267,7 +268,7 @@ export default function FilterSearch({
           onChange={(e) => setSearch(e.target.value)}
           sx={{
             ...controlStyle,
-            flex: `0 0 ${searchWidth}`,
+            flex: showOrderFilters ? `0 0 ${searchWidth}` : `0 0 ${searchWidth}`,
             maxWidth: searchWidth,
           }}
           InputProps={{

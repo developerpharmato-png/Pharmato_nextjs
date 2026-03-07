@@ -32,25 +32,52 @@ export default function NotificationsPanel({
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const [offset, setOffset] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [fetchingMore, setFetchingMore] = useState(false);
 
   const notifStore = NotificationsListStore();
   const unreadStore = unreadNotificationStore();
   const markReadStore = markreadNotificationsStore();
   const markReadAllStore = markReadAllNotificationsStore();
 
-  const fetchNotifications = async () => {
-    try {
+  const fetchNotifications = async (isInitial = false) => {
+    if (isInitial) {
       setLoading(true);
-      const userId =
-        typeof window !== "undefined" ? localStorage.getItem("adminId") : null;
-      const body = { userId: userId || "", role: "admin" };
+      setOffset(1);
+      setHasMore(true);
+    } else {
+      if (!hasMore || fetchingMore || loading) return;
+      setFetchingMore(true);
+    }
+
+    try {
+      const userId = typeof window !== "undefined" ? localStorage.getItem("adminId") : null;
+      const currentOffset = isInitial ? 1 : offset + 1;
+      const body = {
+        userId: userId || "",
+        role: "admin",
+        limit: 10,
+        offset: currentOffset,
+      };
+
       const res = await notifStore.postData(NotificationsListPath, body);
-      const list = res?.data || res || notifStore.data || [];
-      setNotifications(list || []);
+      const rawData = res?.data ?? res ?? notifStore.data;
+      const list = Array.isArray(rawData) ? rawData : (rawData?.notifications || rawData?.data || []);
+
+      if (Array.isArray(list)) {
+        setNotifications((prev) => (isInitial ? list : [...prev, ...list]));
+        setHasMore(list.length === 10);
+        setOffset(currentOffset);
+      } else {
+        if (isInitial) setNotifications([]);
+        setHasMore(false);
+      }
     } catch {
-      setNotifications([]);
+      if (isInitial) setNotifications([]);
     } finally {
       setLoading(false);
+      setFetchingMore(false);
     }
   };
 
@@ -69,9 +96,16 @@ export default function NotificationsPanel({
 
   useEffect(() => {
     if (!open) return;
-    fetchNotifications();
+    fetchNotifications(true);
     fetchUnreadCount();
   }, [open]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop <= clientHeight + 50) {
+      fetchNotifications();
+    }
+  };
 
   const markAsRead = async (id: string) => {
     try {
@@ -182,7 +216,7 @@ export default function NotificationsPanel({
             </div>
 
             {/* Counters + Switch */}
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            {/* <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-[10px] sm:text-xs">
                 <span className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
                   Total {notifications.length}
@@ -193,7 +227,7 @@ export default function NotificationsPanel({
                 </span>
               </div>
 
-              {/* 🔹 Unread Toggle */}
+            
               <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
                 <span>Unread only</span>
                 <Switch
@@ -203,11 +237,14 @@ export default function NotificationsPanel({
                   color="primary"
                 />
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 space-y-3 bg-gray-50/30">
+          <div
+            className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 space-y-3 bg-gray-50/30"
+            onScroll={handleScroll}
+          >
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin mb-3"></div>
@@ -261,6 +298,12 @@ export default function NotificationsPanel({
                   </div>
                 </div>
               ))
+            )}
+
+            {fetchingMore && (
+              <div className="flex justify-center py-4">
+                <div className="w-6 h-6 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+              </div>
             )}
           </div>
         </div>

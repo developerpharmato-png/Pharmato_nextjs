@@ -326,8 +326,10 @@ export default function SendNotificationForm({
       <Box>
         <TextField
           label="Notification Title *"
-          size="medium"
+
           fullWidth
+          size="small"
+
           margin="dense"
           InputLabelProps={{ shrink: true }}
           value={formik.values.title}
@@ -345,22 +347,23 @@ export default function SendNotificationForm({
         <Box
           sx={{
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent: "flex-end",
             alignItems: "center",
             mt: 0.25,
           }}
         >
-          <Box>
-            {formik.touched.title && formik.errors.title && (
-              <ErrorMessageCom error={formik.errors.title} />
-            )}
-          </Box>
+
           <Typography
             variant="caption"
             sx={{ color: "#999", fontSize: "12px" }}
           >
             {formik.values.title.length}/{MAX_TITLE_LENGTH}
           </Typography>
+        </Box>
+        <Box>
+          {formik.touched.title && formik.errors.title && (
+            <ErrorMessageCom error={formik.errors.title} />
+          )}
         </Box>
       </Box>
 
@@ -380,6 +383,7 @@ export default function SendNotificationForm({
           id="targetScreen"
           name="alt"
           label="Message"
+
           value={formik.values.message}
           onChange={(e) => {
             formik.setFieldValue("message", e.target.value);
@@ -389,6 +393,7 @@ export default function SendNotificationForm({
           rows={4}
           showCount={true}
           className=""
+
         />
       </Box>
       {formik.touched.message && formik.errors.message && (

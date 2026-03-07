@@ -38,7 +38,7 @@ export default function NotificationsPage() {
       <Modal open={open} onClose={handleClose}>
         <Box sx={{ ...modalStyle, width: "50vw" }} className="scrollbar-hide">
           <ModalHeader title="Send Notification" onClose={handleClose} />
-          <div className="mt-4 p-10">
+          <div className="mt-4 pt-0 pl-10 pr-10">
             <SendNotificationForm 
             handleClose={handleSuccess}
             />
