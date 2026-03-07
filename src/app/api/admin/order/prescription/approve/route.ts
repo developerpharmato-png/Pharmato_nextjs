@@ -43,50 +43,8 @@ import Medicine from '@/models/Medicine';
  *         description: Order not found
  */
 
-export async function POST(req: NextRequest) {
-  await dbConnect();
 
-  try {
-    const { orderId, adminId, approvalNotes } = await req.json();
-
-    if (!orderId || !adminId) {
-      return NextResponse.json(
-        { success: false, message: 'orderId and adminId are required' },
-        { status: 400 }
-      );
-    }
-
-    // const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id order_id name email mobile phone' });
-
-    const order = await Order.findOne({ _id: orderId });
-
-    if (!order) {
-      return NextResponse.json(
-        { success: false, message: 'Order not found' },
-        { status: 404 }
-      );
-    }
-
-    // Update prescription status
-    order.prescription_status = 'Approved';
-    order.prescription_approved_by = adminId;
-    order.prescription_approved_at = new Date();
-    order.prescription_approval_notes = approvalNotes || '';
-    order.prescription_rejection_reason = '';
-
-    await order.save();
-
-    // Update orderStatus in Firebase Realtime Database
-    if (order?.order_id) {
-      const db = getDb();
-      //Firebase realtime data update
-      const firebaseRef = db.ref(`orders/${order.order_id}`);
-      const snapshot = await firebaseRef.once('value');
-      const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
-      await firebaseRef.update({
-        isOrderStatusChanged: isOrderStatusChanged
-      });
-    }
+async function runBackground(order: any) {  
 
     let userName = 'Customer';
     let userMobile = '';
@@ -566,12 +524,60 @@ export async function POST(req: NextRequest) {
       }
     }
 
+ }
+
+export async function POST(req: NextRequest) {
+  await dbConnect();
+
+  try {
+    const { orderId, adminId, approvalNotes } = await req.json();
+
+    if (!orderId || !adminId) {
+      return NextResponse.json(
+        { success: false, message: 'orderId and adminId are required' },
+        { status: 400 }
+      );
+    }
+
+    // const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id order_id name email mobile phone' });
+
+    const order = await Order.findOne({ _id: orderId });
+
+    if (!order) {
+      return NextResponse.json(
+        { success: false, message: 'Order not found' },
+        { status: 404 }
+      );
+    }
+
+    // Update prescription status
+    order.prescription_status = 'Approved';
+    order.prescription_approved_by = adminId;
+    order.prescription_approved_at = new Date();
+    order.prescription_approval_notes = approvalNotes || '';
+    order.prescription_rejection_reason = '';
+
+    await order.save();
+
+    // Update orderStatus in Firebase Realtime Database
+    if (order?.order_id) {
+      const db = getDb();
+      //Firebase realtime data update
+      const firebaseRef = db.ref(`orders/${order.order_id}`);
+      const snapshot = await firebaseRef.once('value');
+      const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+      await firebaseRef.update({
+        isOrderStatusChanged: isOrderStatusChanged
+      });
+    }
+
+    setImmediate(() => {
+      runBackground(order,);
+    });
+
     return NextResponse.json({
       success: true,
-      message: 'Prescription approved successfully',
-      data: order,
-      mail: mailRes,
-      notification: notifRes
+      message: 'Prescription approved successfully'
     });
 
   } catch (error) {

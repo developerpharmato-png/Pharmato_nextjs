@@ -48,65 +48,8 @@ import moment from "moment-timezone";
  *         description: Order not found
  */
 
-export async function POST(req: NextRequest) {
-  await dbConnect();
 
-  try {
-    const { orderId, adminId, rejectionReason, prescription_url } = await req.json();
-
-    if (!orderId || !adminId || !rejectionReason) {
-      return NextResponse.json(
-        { success: false, message: 'orderId, adminId, and rejectionReason are required' },
-        { status: 400 }
-      );
-    }
-
-    // const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id order_id name email mobile phone' });
-    const order = await Order.findOne({ _id: orderId });
-
-    if (!order) {
-      return NextResponse.json(
-        { success: false, message: 'Order not found' },
-        { status: 404 }
-      );
-    }
-
-    // Update prescription status. Do NOT overwrite existing prescription_url
-    // unless the request explicitly provides a value for it.
-
-    const rejectUrls = [...(Array.isArray(order.prescription_url) ? order.prescription_url : [])];
-    const updatedRejectUrls: any = [];
-    if (rejectUrls.length > 0) {
-      updatedRejectUrls.push({
-        urls: rejectUrls,
-        rejectedAt: moment()
-          .tz("Asia/Kolkata")
-          .format("MMM D, YYYY HH:mm [IST]"),
-        rejectionReason: rejectionReason
-      });
-    }
-    const finalRejectUrls = [...(Array.isArray(updatedRejectUrls) ? updatedRejectUrls : []),...(Array.isArray(order.reject_prescription_url) ? order.reject_prescription_url : [])];
-
-    order.prescription_status = 'Rejected';
-    order.prescription_rejected_by = adminId;
-    order.prescription_rejected_at = new Date();
-    order.prescription_rejection_reason = rejectionReason;
-    order.reject_prescription_url = finalRejectUrls; // Preserve existing URLs in reject_prescription_url
-    order.prescription_url = []; // Clear prescription_url since it's rejected
-
-    await order.save();
-
-    // Update orderStatus in Firebase Realtime Database
-    if (order?.order_id) {
-      const db = getDb();
-      //Firebase realtime data update
-      const firebaseRef = db.ref(`orders/${order.order_id}`);
-      const snapshot = await firebaseRef.once('value');
-      const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
-      await firebaseRef.update({
-        isOrderStatusChanged: isOrderStatusChanged
-      });
-    }
+async function runBackground(order: any) {
 
     let userName = 'Customer';
     let userMobile = '';
@@ -561,10 +504,76 @@ export async function POST(req: NextRequest) {
       }
     }
 
+}
+
+
+export async function POST(req: NextRequest) {
+  await dbConnect();
+
+  try {
+    const { orderId, adminId, rejectionReason, prescription_url } = await req.json();
+
+    if (!orderId || !adminId || !rejectionReason) {
+      return NextResponse.json(
+        { success: false, message: 'orderId, adminId, and rejectionReason are required' },
+        { status: 400 }
+      );
+    }
+
+    // const order = await Order.findById(orderId).populate({ path: 'userId', select: '_id order_id name email mobile phone' });
+    const order = await Order.findOne({ _id: orderId });
+
+    if (!order) {
+      return NextResponse.json(
+        { success: false, message: 'Order not found' },
+        { status: 404 }
+      );
+    }
+
+    // Update prescription status. Do NOT overwrite existing prescription_url
+    // unless the request explicitly provides a value for it.
+
+    const rejectUrls = [...(Array.isArray(order.prescription_url) ? order.prescription_url : [])];
+    const updatedRejectUrls: any = [];
+    if (rejectUrls.length > 0) {
+      updatedRejectUrls.push({
+        urls: rejectUrls,
+        rejectedAt: moment()
+          .tz("Asia/Kolkata")
+          .format("MMM D, YYYY HH:mm [IST]"),
+        rejectionReason: rejectionReason
+      });
+    }
+    const finalRejectUrls = [...(Array.isArray(updatedRejectUrls) ? updatedRejectUrls : []), ...(Array.isArray(order.reject_prescription_url) ? order.reject_prescription_url : [])];
+
+    order.prescription_status = 'Rejected';
+    order.prescription_rejected_by = adminId;
+    order.prescription_rejected_at = new Date();
+    order.prescription_rejection_reason = rejectionReason;
+    order.reject_prescription_url = finalRejectUrls; // Preserve existing URLs in reject_prescription_url
+    order.prescription_url = []; // Clear prescription_url since it's rejected
+
+    await order.save();
+
+    // Update orderStatus in Firebase Realtime Database
+    if (order?.order_id) {
+      const db = getDb();
+      //Firebase realtime data update
+      const firebaseRef = db.ref(`orders/${order.order_id}`);
+      const snapshot = await firebaseRef.once('value');
+      const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+      await firebaseRef.update({
+        isOrderStatusChanged: isOrderStatusChanged
+      });
+    }
+
+    setImmediate(() => {
+      runBackground(order);
+    });
+
     return NextResponse.json({
       success: true,
-      message: 'Prescription rejected successfully',
-      data: order
+      message: 'Prescription rejected successfully'
     });
 
   } catch (error) {
