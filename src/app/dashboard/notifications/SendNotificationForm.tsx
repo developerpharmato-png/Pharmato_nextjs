@@ -29,8 +29,8 @@ import {
 } from "@/app/dashboard/storeAPICall/API/BaseApi";
 import TextareaField from "../components/skeleton/FieldCom";
 
-const MAX_TITLE_LENGTH = 50;
-const MAX_MESSAGE_LENGTH = 500;
+const MAX_TITLE_LENGTH = 40;
+const MAX_MESSAGE_LENGTH = 160;
 
 interface NotificationForm {
   userIds: string[];

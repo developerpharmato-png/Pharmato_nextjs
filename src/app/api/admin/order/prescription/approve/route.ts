@@ -88,7 +88,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-
     let userName = 'Customer';
     let userMobile = '';
     let userEmail = '';
