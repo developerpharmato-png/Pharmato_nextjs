@@ -253,7 +253,9 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                 const refundResponse = await razorpayInstance.payments.refund(order.payment_id, {
                     amount: refundAmount * 100
                 });
-            } catch (error) { }
+            } catch (error) {
+                console.log("$$$$$$$$error$$$$$$$$",error);
+             }
             // console.log("$$$$$refundAmount$$$$$$", refundAmount);
 
         }
