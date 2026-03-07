@@ -1363,6 +1363,99 @@ export default function PartialCancelPage() {
           </div>
         </div>
 
+        {/* --- Refund History --- */}
+        {order?.refundHistory?.length > 0 ? order?.refundHistory.map((refund: any) => (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-3">
+                <div className="w-5 h-5 text-green-600">
+                  <svg
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 10h16M4 14h16M4 18h16"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-lg font-bold text-gray-800 tracking-tight">
+                  Refund History
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left & Middle: Core Details */}
+                <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-5">
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                        Refund ID
+                      </p>
+                      <p className="font-bold text-sm text-green-600">
+                        {refund?.refundId}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                        Refund Amount
+                      </p>
+                      <div className="flex flex-col">
+                        <p className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                          {(refund?.amount || 0)/100 }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-5">
+
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                        Refund Status
+                      </p>
+                      <span
+                        className={`inline-flex px-3 py-1 rounded text-[10px] font-bold uppercase tracking-tighter ${getStatusColor(
+                          refund?.status,
+                        )}`}
+                      >
+                        {refund?.status}
+                      </span>
+                    </div>
+
+                    {order?.order_status == "Delivered" ? <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                        Delivered On
+                      </p>
+                      <p className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <svg
+                          className="w-4 h-4 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        {order?.deliveredDate}
+                      </p>
+                    </div> : ""}
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )) : ""}
+
         {/* --- MARG ORDER DETAILS CARD --- */}
         {order?.margOrderNo && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
