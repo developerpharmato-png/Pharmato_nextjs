@@ -184,7 +184,7 @@ export async function POST(req: NextRequest) {
             }
         },
         columnName ?
-        { $sort: { [sortField]: sortOrder,stock: -1 } } : { $sort: { stock: -1, [sortField]: sortOrder } } ,
+        { $sort: { [sortField]: sortOrder} } : { $sort: { stock: -1} } ,
         { $skip: skip }
     ];
     if (lim > 0) {
