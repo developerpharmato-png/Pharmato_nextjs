@@ -49,7 +49,7 @@ import moment from "moment-timezone";
  */
 
 
-async function runBackground(order: any) {
+async function runBackground(order: any,rejectionReason: string) {
 
     let userName = 'Customer';
     let userMobile = '';
@@ -568,7 +568,7 @@ export async function POST(req: NextRequest) {
     }
 
     setImmediate(() => {
-      runBackground(order);
+      runBackground(order, rejectionReason);
     });
 
     return NextResponse.json({
