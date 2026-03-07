@@ -377,7 +377,7 @@ export default function SettingsPage() {
                           type="button"
                           disabled={loading}
                           onClick={() => handleSectionSubmit("logistics")}
-                          className="flex items-center gap-2 px-8 py-2.5 bg-[var(--secondary)] hover:opacity-90 text-white font-bold rounded-xl shadow-md transition-all text-sm"
+                          // className="flex items-center gap-2 px-8 py-2.5 bg-[var(--secondary)] hover:opacity-90 text-white font-bold rounded-xl shadow-md transition-all text-sm"
                         >
                           {loading ? "Processing..." : (
                             <>
@@ -651,7 +651,7 @@ export default function SettingsPage() {
                             type="button"
                             disabled={loading}
                             onClick={() => handleSectionSubmit("surge")}
-                            className="flex items-center gap-2 px-8 py-2.5 bg-[var(--secondary)] hover:opacity-90 text-white font-bold rounded-xl shadow-md transition-all text-sm"
+                            // className="flex items-center gap-2 px-8 py-2.5 bg-[var(--primary)] hover:opacity-90 text-white font-bold rounded-xl shadow-md transition-all text-sm"
                           >
                             {loading ? "Processing..." : (
                               <>
