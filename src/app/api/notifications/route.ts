@@ -24,6 +24,12 @@ import Notification from '@/models/Notification';
  *                 type: string
  *                 enum: [admin, customer]
  *                 description: The user's role
+ *               limit:
+ *                 type: integer
+ *                 description: Number of notifications to return (default 20)
+ *               offset:
+ *                 type: integer
+ *                 description: Number of notifications to skip (default 0)
  *     responses:
  *       200:
  *         description: List of notifications
@@ -47,10 +53,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const userId = body.userId;
     const role = body.role;
+    const limit = typeof body.limit === 'number' && body.limit > 0 ? body.limit : 10;
+    const offset = typeof body.offset === 'number' && body.offset > 0 ? (body.offset - 1) * limit : 0;
     if (!userId || !role) {
         return NextResponse.json({ success: false, error: 'userId and role required' }, { status: 400 });
     }
     const query: any = { userId, role };
-    const notifications = await Notification.find(query).sort({ createdAt: -1 });
+    const notifications = await Notification.find(query)
+        .sort({ createdAt: -1 })
+        .skip(offset)
+        .limit(limit);
     return NextResponse.json({ success: true, data: notifications });
 }
