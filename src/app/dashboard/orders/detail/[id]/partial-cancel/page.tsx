@@ -63,6 +63,7 @@ export default function PartialCancelPage() {
   // Order status update dialog
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [statusToUpdate, setStatusToUpdate] = useState("");
+  const [updateStatusLoading, setUpdateStatusLoading] = useState(false);
   const [showCancelReasonDialog, setShowCancelReasonDialog] = useState(false);
   const [previewSelectedMeds, setPreviewSelectedMeds] = useState<any[]>([]);
   const [previewUnselectedMeds, setPreviewUnselectedMeds] = useState<any[]>([]);
@@ -431,29 +432,43 @@ export default function PartialCancelPage() {
           <Button
             variant="contained"
             color="success"
-            disabled={!statusToUpdate}
+            disabled={!statusToUpdate || updateStatusLoading}
             onClick={async () => {
-              const res = await fetch("/api/admin/order/update-status", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ orderId, status: statusToUpdate }),
-              });
-              const data = await res.json();
-              if (data.success) {
-                Swal.fire("Success", "Order status updated", "success");
-                setShowStatusDialog(false);
-                setStatusToUpdate("");
-                fetchOrder();
-              } else {
-                Swal.fire(
-                  "Error",
-                  data.message || "Failed to update status",
-                  "error",
-                );
+              setUpdateStatusLoading(true);
+              try {
+                const res = await fetch("/api/admin/order/update-status", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ orderId, status: statusToUpdate }),
+                });
+                const data = await res.json();
+                if (data.success) {
+                  Swal.fire("Success", "Order status updated", "success");
+                  setShowStatusDialog(false);
+                  setStatusToUpdate("");
+                  fetchOrder();
+                } else {
+                  Swal.fire(
+                    "Error",
+                    data.message || "Failed to update status",
+                    "error",
+                  );
+                }
+              } catch (error) {
+                Swal.fire("Error", "Something went wrong", "error");
+              } finally {
+                setUpdateStatusLoading(false);
               }
             }}
           >
-            Confirm
+            {updateStatusLoading ? (
+              <>
+                <CircularProgress size={18} color="inherit" sx={{ mr: 1 }} />
+                Updating...
+              </>
+            ) : (
+              "Confirm"
+            )}
           </Button>
         </DialogActions>
       </Dialog>
@@ -490,14 +505,14 @@ export default function PartialCancelPage() {
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <button
                     onClick={handleApprovePrescription}
-                    disabled={approveLoading}
+                    disabled={approveLoading || rejectLoading}
                     className="flex-1 sm:flex-none flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold uppercase transition-all disabled:opacity-50 shadow-sm"
                   >
                     {approveLoading ? "..." : "✓"} Approve
                   </button>
                   <button
                     onClick={() => setShowRejectModalPresc(true)}
-                    disabled={rejectLoading}
+                    disabled={rejectLoading || approveLoading}
                     className="flex-1 sm:flex-none flex items-center gap-2 px-4 py-2 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs font-bold uppercase transition-all disabled:opacity-50"
                   >
                     {rejectLoading ? "..." : "✕"} Reject
