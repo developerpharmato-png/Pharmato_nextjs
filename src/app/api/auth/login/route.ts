@@ -68,6 +68,14 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Verify password
+        const isPasswordValid = await bcrypt.compare(password, admin.password);
+        if (!isPasswordValid) {
+            return NextResponse.json(
+                { success: false, message: 'Invalid email or password' }
+            );
+        }
+
         if (deviceToken) {
 
             const checkDeviceToken = await Admin.find({ deviceToken: deviceToken });
@@ -81,14 +89,6 @@ export async function POST(request: NextRequest) {
                 }
             }
 
-        }
-
-        // Verify password
-        const isPasswordValid = await bcrypt.compare(password, admin.password);
-        if (!isPasswordValid) {
-            return NextResponse.json(
-                { success: false, message: 'Invalid email or password' }
-            );
         }
 
         // Check if admin account is active
