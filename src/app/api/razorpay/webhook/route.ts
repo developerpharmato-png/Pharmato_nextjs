@@ -408,7 +408,7 @@ ${footer}
                       }
                     }
 
-                    const notificationMessage = checkOrder.isPrescriptionRequired == true ? `Order #${checkOrder.order_id} has been placed by ${customerName}. Please review and approve/reject the prescription.` : `Order Received: Order #${checkOrder.order_id} has been placed by ${customerName}. Please review and confirm the order.`;
+                    const notificationMessage = checkOrder.isPrescriptionRequired == true ? `Order #${checkOrder.order_id} has been placed by ${customerName}. Please review and approve/reject the prescription.` : `Order #${checkOrder.order_id} has been placed by ${customerName}. Please review and confirm the order.`;
 
                     // Notify store admin
                     await Notification.create({
@@ -795,7 +795,7 @@ ${footer}
         } catch (notifyErr) {
           console.error('Notify/email error on payment captured:', notifyErr);
         }
-        
+
       }
 
       if (body.event === 'payment.failed') {

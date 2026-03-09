@@ -9,6 +9,7 @@ import moment from "moment-timezone";
 import CryptoJS from "crypto-js";
 import zlib from "zlib";
 import Marg from '@/models/Marg';
+import { sendPushNotificationWithData } from '@/utils/firebase.helper';
 
 const MARG_KEY = "48TPI07W1R2S";
 
@@ -116,17 +117,30 @@ export async function POST(request: NextRequest) {
 
 
     // latest 3 records ki id lo
-const keepDocs = await Marg.find({})
-  .sort({ _id: -1 })
-  .limit(3)
-  .select("_id");
 
-const keepIds = keepDocs.map(d => d._id);
 
-// baaki sab delete
-await Marg.deleteMany({
-  _id: { $nin: keepIds }
-});
+    const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
+    if (superAdminRole && superAdminRole._id) {
+        const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+        for (const superAdmin of superAdmins) {
+
+            try {
+                const superToken = (superAdmin as any).deviceToken;
+                if (superToken) {
+                    await sendPushNotificationWithData({
+                        token: superToken,
+                        title: 'Order Received',
+                        body: "dummy notification aya kya",
+                        data: {}
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to send push notification to superadmin:', err);
+            }
+
+        }
+    }
+
 
     return NextResponse.json({
         success: true,

@@ -417,7 +417,7 @@ async function runBackground(orderId: any,) {
                                 }
                             }
 
-                            const notificationMessage = orderData.isPrescriptionRequired == true ? `Order #${orderData.order_id} has been placed by ${customerName}. Please review and approve/reject the prescription.` : `Order Received: Order #${orderData.order_id} has been placed by ${customerName}. Please review and confirm the order.`;
+                            const notificationMessage = orderData.isPrescriptionRequired == true ? `Order #${orderData.order_id} has been placed by ${customerName}. Please review and approve/reject the prescription.` : `Order #${orderData.order_id} has been placed by ${customerName}. Please review and confirm the order.`;
 
                             // Notify store admin
                             await Notification.create({
