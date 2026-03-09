@@ -72,28 +72,28 @@ export async function sendEmail({
 
   try {
 
-    let transporter = nodemailer.createTransport({
-      host: 'smtp-relay.brevo.com',
-      port: 587,
-      auth: {
-        user: 'a40dfd001@smtp-brevo.com',
-        pass: 'YkyFGfKXJ3mq9p2R'
-      }
-    });
-
-    // // Send email with the Excel attachment
-    // const transporter = nodemailer.createTransport({
-    //   host: 'mail.smtp2go.com',
-    //   port: 2525,
+    // let transporter = nodemailer.createTransport({
+    //   host: 'smtp-relay.brevo.com',
+    //   port: 587,
     //   auth: {
-    //     user: 'sunil.patidar+2@technotoil.com',
-    //     pass: 'tJ2juQjWYyOPbUpM'
+    //     user: 'a40dfd001@smtp-brevo.com',
+    //     pass: 'YkyFGfKXJ3mq9p2R'
     //   }
     // });
 
+    // Send email with the Excel attachment
+    const transporter = nodemailer.createTransport({
+      host: 'mail.smtp2go.com',
+      port: 2525,
+      auth: {
+        user: 'sunil.patidar+2@technotoil.com',
+        pass: 'tJ2juQjWYyOPbUpM'
+      }
+    });
+
     let mailOptions = {
-      from: 'sunil.patidar+5@technotoil.com',
-      // from: 'sunil.patidar+2@technotoil.com',
+      // from: 'sunil.patidar+5@technotoil.com',
+      from: 'sunil.patidar+2@technotoil.com',
       to: `${to}`,
       subject: subject,
       text: 'Hello world?',

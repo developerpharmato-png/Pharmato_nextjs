@@ -376,7 +376,6 @@ export async function POST(req: NextRequest) {
 
     }
 
-
     // Calculate expectedDeliveryDate (only date, no time)
     let expectedDeliveryDate = new Date(now);
     if (now.getHours() >= 22) {
