@@ -1037,8 +1037,8 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
             .tz('Asia/Kolkata')
             .format('MMM D, YYYY HH:mm z');
         ;
-        let grandTotal = 0;
-        let subTotal = 0;
+        let grandTotal : any = 0;
+        let subTotal  : any = 0;
         const deliveryFee = order.calculationData.deliveryFee || 0;
         const discount = order.calculationData.discount || 0;
         const platformFee = order.calculationData.platformFee || 0;
@@ -1048,8 +1048,8 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
 
         grandTotal = order.calculationData.totalOrderAmount || 0;
         subTotal = order.calculationData.priceTotalSumAfterDiscount || 0;
-        grandTotal = grandTotal - refundAmount
-        subTotal = subTotal - refundAmount
+        grandTotal = Number(grandTotal - refundAmount).toFixed(2);
+        subTotal = Number(subTotal - refundAmount).toFixed(2);
 
         acceptedNames.forEach((m: any) => {
             invoiceMedicinesHtml += `<!-- LOOP START -->
