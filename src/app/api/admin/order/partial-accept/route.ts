@@ -254,8 +254,8 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                     amount: refundAmount * 100
                 });
             } catch (error) {
-                console.log("$$$$$$$$error$$$$$$$$",error);
-             }
+                console.log("$$$$$$$$error$$$$$$$$", error);
+            }
             // console.log("$$$$$refundAmount$$$$$$", refundAmount);
 
         }

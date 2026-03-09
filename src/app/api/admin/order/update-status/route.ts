@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
             await Notification.create({
                 userId: user._id,
                 role: 'customer',
-                title: 'Order Status Updated',
+                title: 'Delievery Successful',
                 message: messageInApp,
                 type: 'order',
                 targetScreen: 'orders/detail',
