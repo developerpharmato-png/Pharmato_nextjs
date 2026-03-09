@@ -7,9 +7,16 @@ import Store from '@/models/Store';
 import Medicine from '@/models/Medicine';
 import mongoose from 'mongoose';
 import Wallet from '@/models/Wallet';
-import { getDb } from '@/utils/firebase.helper';
+import { getDb, sendPushNotificationWithData } from '@/utils/firebase.helper';
 import Cart from '@/models/Cart';
 import Setting from '@/models/Setting';
+import { sendEmail } from '@/utils/sendEmail';
+import Admin from '@/models/Admin';
+import Razorpay from 'razorpay';
+import fs from 'fs';
+import path from 'path';
+import moment from 'moment-timezone';
+import Notification from '@/models/Notification';
 
 function calculateDeliveryFee(
     orderAmount: number,
@@ -142,6 +149,644 @@ function getActiveSurge(surgePricing: any[]) {
  *                 message:
  *                   type: string
  */
+
+
+async function runBackground(orderId: any,) {
+
+    // Choose template based on create or update
+    const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+    const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+    const header = fs.readFileSync(headerPath, 'utf8');
+    const footer = fs.readFileSync(footerPath, 'utf8');
+
+    try {
+        const orderData: any = await Order.findOne({ order_id: orderId });
+        const user = await User.findOne({ _id: orderData.userId })
+        // console.log("$$$updatedOrder$$$$$$$$$$$$$$user$$", updatedOrder, user);
+        const amountValue = orderData.total_order_amount
+        const subject = `Order Placed Successfully`;
+        let userName = 'Customer';
+        let userEmail = '';
+        let userPhone = '';
+        const deliveredAddr: any = orderData.deliveredAddress || null;
+
+        const orderDateTime = orderData.createdAt ? moment(orderData.createdAt).tz('Asia/Kolkata').format('MMM D, YYYY HH:mm z') : orderData.createdAt;
+
+        if (deliveredAddr) {
+            userName = deliveredAddr?.name || 'Customer';
+            userEmail = deliveredAddr?.email || '';
+            userPhone = deliveredAddr?.phone || '';
+        }
+
+        let deliveryAddressText = ''
+
+        if (deliveredAddr) {
+            deliveryAddressText = [
+                deliveredAddr.address?.houseNumber,
+                deliveredAddr.address?.locality,
+                deliveredAddr.address?.landmark,
+                deliveredAddr.address?.city,
+                deliveredAddr.address?.state,
+                deliveredAddr.address?.pinCode ? `- ${deliveredAddr.address.pinCode}` : null
+            ]
+                .filter(Boolean)
+                .join(', ');
+        }
+
+        console.log('##########orderData.medicineQuantity#############', orderData.medicineQuantity);
+
+        const [checkMedicineId] = await Promise.all([
+            Medicine.find({ _id: { $in: orderData.medicineId.map((i: any) => i) } }).select('_id name coverImage images'),
+        ]);
+
+        console.log('##########checkMedicineId#############', checkMedicineId);
+
+        const acceptedNames = checkMedicineId.map((m: any) => {
+            const item = orderData.medicineQuantity.find((i: any) => i.medicineId.toString() === m._id.toString());
+            return {
+                ...m._doc,
+                quantity: item ? item.quantity : 0,
+                price: item ? item.price : 0,
+            };
+        });
+
+        console.log('##########acceptedNames#############', acceptedNames);
+
+        let itemsHtml = '';
+
+        if (acceptedNames.length > 0) {
+            const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
+
+            itemsHtml += `
+            <ul style="list-style:none;padding:0;">
+        `;
+
+            acceptedNames.forEach((m: any) => {
+                const imgSrc =
+                    m.coverImage && m.coverImage.trim() !== ''
+                        ? m.coverImage
+                        : defaultImg;
+
+                itemsHtml += `
+                <li style="margin-bottom:10px;display:flex;align-items:center;">
+                    <img src="${imgSrc}" 
+                         alt="${m.name}" 
+                         style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:10px;border:1px solid #eee;" />
+                    <div>
+                        <div style="font-weight:500;">${m.name}</div>
+                        <div style="font-size:14px;color:#555;">
+                            Quantity: ${m.quantity}, 
+                            Price: ₹${Number(m.price).toFixed(2)}
+                        </div>
+                    </div>
+                </li>
+            `;
+            });
+
+            itemsHtml += `</ul>`;
+        }
+
+        const html = `
+    ${header}
+    
+    <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
+      <div style="max-width:700px;margin:0 auto;background:#ffffff;padding:25px;border:1px solid #e6e6e6;border-radius:8px;">
+    
+        <p>Hello ${orderData.deliveredAddress?.name || 'Customer'},</p>
+    
+        <p>
+          Thank you for your order!<br/>
+          Your order has been placed successfully and is being processed. ✅
+        </p>
+    
+        <p>
+          Our pharmacy team is reviewing your order. Once confirmed, your medicines
+          will be packed and delivered soon.
+        </p>
+    
+        <!-- Order Summary -->
+        <h3 style="margin-top:25px;">Order Summary</h3>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+            <td style="padding:8px;border:1px solid #eee;">#${orderData.order_id}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+            <td style="padding:8px;border:1px solid #eee;">Order Placed</td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">Expected Delivery</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ${new Date(orderData.expectedDeliveryDate).toDateString()}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">Delivery Address</td>
+            <td style="padding:8px;border:1px solid #eee;">${deliveryAddressText}</td>
+          </tr>
+        </table>
+    
+        <!-- Items -->
+        <h3 style="margin-top:25px;">Items in Your Order</h3>
+        ${itemsHtml}
+    
+        <!-- Payment Details -->
+        <h3 style="margin-top:25px;">Payment Details</h3>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;">Subtotal</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ₹${orderData.calculationData.priceTotalSumBeforeDiscount}
+            </td>
+          </tr>
+          
+          ${orderData.calculationData.deliveryFee > 0 ? `       <tr>
+            <td style="padding:8px;border:1px solid #eee;">Delivery Charges</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ₹${orderData.calculationData.deliveryFee}
+            </td>
+          </tr>` : ``}
+    
+          
+          ${orderData.discount > 0 ? ` <tr>
+            <td style="padding:8px;border:1px solid #eee;">Discount</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ₹${orderData.discount}
+            </td>
+          </tr>` : ``}
+    
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+              Total Amount Paid
+            </td>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+              ₹${orderData.total_order_amount}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;">Payment Method</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ${orderData.payment_mode.toUpperCase()}
+            </td>
+          </tr>
+        </table>
+    
+        <p style="margin-top:25px;">
+          You can track your order anytime from the <strong>My Orders</strong>
+          section in the Pharmato app or website.
+        </p>
+    
+        <p>
+          Thank you for choosing Pharmato. We’re committed to delivering your
+          medicines safely and on time.
+        </p>
+    
+        <p>
+          Stay Healthy,<br/>
+          <strong>Team Pharmato</strong><br/>
+          Your trusted pharmacy partner
+        </p>
+    
+      </div>
+    </div>
+    
+    ${footer}
+    `;
+
+        if (userEmail) {
+            await sendEmail({ to: userEmail, subject, html });
+        }
+
+        let notificationUserId = '';
+        if (orderData && typeof orderData === 'object' && !Array.isArray(orderData) && 'userId' in orderData) {
+            notificationUserId = (orderData as any).userId?.toString() || '';
+        }
+        await Notification.create({
+            userId: notificationUserId,
+            role: 'customer',
+            title: 'Order Placed',
+            message: orderData.isPrescriptionRequired !== true ? `Your Order has been placed successfully. Waiting for confirmation.` : `Your Order has been placed successfully. We will Notify you when your prescription is approved.`,
+            type: 'payment',
+            targetScreen: 'orders/detail',
+            targetId: orderData._id.toString(),
+            meta: {}
+        });
+
+        // Send push notification to customer if deviceToken exists
+        if (user && (user as any).deviceToken) {
+            try {
+                await sendPushNotificationWithData({
+                    token: (user as any).deviceToken,
+                    title: 'Order Placed',
+                    body: `Your Order has been placed successfully.`,
+                    data: {
+                        targetId: orderData._id.toString(),
+                        orderId: orderData._id.toString(),
+                        type: 'order_placed',
+                        targetScreen: 'orders/detail',
+                    }
+                });
+            } catch (err) {
+                console.error('Failed to send push notification:', err);
+            }
+        }
+
+        // Notify admin (store manager) and superadmins with detailed message
+        let storeName = '';
+        let adminName = '';
+        let adminEmail = '';
+        let adminRoleName = '';
+        let customerName = userName;
+        if (orderData && typeof orderData === 'object' && !Array.isArray(orderData) && 'storeId' in orderData) {
+            const storeId = (orderData as any).storeId;
+            if (storeId) {
+                const store = await Store.findById(storeId).lean();
+                if (store && typeof store === 'object' && !Array.isArray(store)) {
+                    storeName = (store as any).name || '';
+                    if ('adminManagerId' in store && store.adminManagerId) {
+                        const admin = await Admin.findById((store as any).adminManagerId).lean();
+                        if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+                            adminName = (admin as any).name || '';
+                            adminEmail = (admin as any).email || '';
+                            // Try to get admin's role name
+                            if ('roleId' in admin && admin.roleId) {
+                                const roleDoc = await (await import('@/models/Role')).default.findById(admin.roleId).lean();
+                                if (roleDoc && typeof roleDoc === 'object' && !Array.isArray(roleDoc)) {
+                                    adminRoleName = (roleDoc as any).name || '';
+                                }
+                            }
+
+                            const notificationMessage = orderData.isPrescriptionRequired == true ? `Order #${orderData.order_id} has been placed by ${customerName}. Please review and approve/reject the prescription.` : `Order Received: Order #${orderData.order_id} has been placed by ${customerName}. Please review and confirm the order.`;
+
+                            // Notify store admin
+                            await Notification.create({
+                                userId: (store as any).adminManagerId.toString(),
+                                role: 'admin',
+                                title: 'Order Received',
+                                message: notificationMessage,
+                                type: 'order',
+                                targetScreen: 'orders/detail',
+                                targetId: orderData._id.toString(),
+                                meta: {}
+                            });
+
+                            // Send email to adminEmail
+                            if (adminEmail) {
+                                const adminHtml = `
+                                                ${header}
+    
+                                                <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
+      <div style="max-width:700px;margin:0 auto;background:#ffffff;padding:25px;border:1px solid #e6e6e6;border-radius:8px;">
+    
+        <p>Hello ${adminName || 'Store Manager'},</p>
+    
+        <p>
+          A new order has been placed and requires your review. 📦
+        </p>
+    
+        <!-- Order Details -->
+        <h3 style="margin-top:25px;">Order Details</h3>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+            <td style="padding:8px;border:1px solid #eee;">#${orderData.order_id}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+            <td style="padding:8px;border:1px solid #eee;">Order Placed</td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Date & Time</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ${new Date(orderData.createdAt).toLocaleString()}
+            </td>
+          </tr>
+        </table>
+    
+        <!-- Customer Details -->
+        <h3 style="margin-top:25px;">Customer Details</h3>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;">Customer Name</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ${orderData.deliveredAddress?.name}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;">Mobile Number</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ${orderData.deliveredAddress?.phone}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;">Email ID</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ${orderData.deliveredAddress?.email}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;">Delivery Address</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ${deliveryAddressText}
+            </td>
+          </tr>
+        </table>
+    
+        <!-- Items -->
+        <h3 style="margin-top:25px;">Items in Order</h3>
+        ${itemsHtml}
+    
+        <!-- Payment Details -->
+        <h3 style="margin-top:25px;">Payment Details</h3>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;">Subtotal</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ₹${orderData.calculationData.priceTotalSumBeforeDiscount}
+            </td>
+          </tr>
+          
+          ${orderData.calculationData.deliveryFee > 0 ? `       <tr>
+            <td style="padding:8px;border:1px solid #eee;">Delivery Charges</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ₹${orderData.calculationData.deliveryFee}
+            </td>
+          </tr>` : ``}
+    
+          
+          ${orderData.discount > 0 ? ` <tr>
+            <td style="padding:8px;border:1px solid #eee;">Discount</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ₹${orderData.discount}
+            </td>
+          </tr>` : ``}
+    
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+              Total Paid
+            </td>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+              ₹${orderData.total_order_amount}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;">Payment Method</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ${orderData.payment_mode.toUpperCase()}
+            </td>
+          </tr>
+        </table>
+    
+        <!-- Action Required -->
+        <h3 style="margin-top:25px;color:#d9534f;">Action Required</h3>
+        <ul style="padding-left:18px;">
+          <li>Verify prescription uploaded by customer (If applicable)</li>
+          <li>Validate medicine availability</li>
+          <li>Proceed to confirm order</li>
+        </ul>
+    
+        <p style="margin-top:20px;">
+          You can review and process this order from the <strong>Admin Portal</strong>.
+        </p>
+    
+        <p>
+          Timely validation ensures faster delivery and better patient care.
+        </p>
+    
+        <p style="margin-top:25px;">
+          Regards,<br/>
+          <strong>Team Pharmato</strong>
+        </p>
+    
+      </div>
+    </div>
+                                                       
+                                                    ${footer}
+                                                `;
+                                await sendEmail({ to: adminEmail, subject: `New Order Received – Review & Process`, html: adminHtml });
+                            }
+
+                            try {
+                                const adminToken = (admin as any).deviceToken;
+                                if (adminToken) {
+                                    await sendPushNotificationWithData({
+                                        token: adminToken,
+                                        title: 'Order Received',
+                                        body: notificationMessage,
+                                        data: {
+                                            targetId: orderData._id.toString(),
+                                            orderId: orderData._id.toString(),
+                                            type: 'order_placed',
+                                            targetScreen: 'orders/detail',
+                                            amount: `${amountValue}`
+                                        }
+                                    });
+                                }
+                            } catch (err) {
+                                console.error('Failed to send push notification to admin:', err);
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+
+        // Notify all superadmins
+        try {
+            const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
+            if (superAdminRole && superAdminRole._id) {
+                const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+                for (const superAdmin of superAdmins) {
+
+                    const notificationMessage = orderData.isPrescriptionRequired == true ? `${customerName} has placed order #${orderData.order_id} with prescription uploaded at ${storeName}. Awaiting prescription review.` : `${customerName} has placed order #${orderData.order_id} at ${storeName}. Awaiting store confirmation.`;
+
+                    // User {User Name} has placed order #{OrderID} at store {Store Name}. Waiting for store Manager to accept order.
+                    await Notification.create({
+                        userId: (superAdmin as any)._id.toString(),
+                        role: 'admin',
+                        title: 'Order Received',
+                        message: notificationMessage,
+                        type: 'order',
+                        targetScreen: 'orders/detail',
+                        targetId: orderData._id.toString(),
+                        meta: {}
+                    });
+
+                    // Send email to super admin
+                    const superAdminEmail = (superAdmin as any).email;
+                    if (superAdminEmail) {
+                        const superAdminHtml = `${header}
+    
+                                        <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
+      <div style="max-width:700px;margin:0 auto;background:#ffffff;padding:25px;border:1px solid #e6e6e6;border-radius:8px;">
+    
+        <p>Hello Super Admin,</p>
+    
+        <p>
+          A new order has been received at the following store. 📦
+        </p>
+    
+        <!-- Store Details -->
+        <h3 style="margin-top:25px;">Store Details</h3>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">Store Name</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ${storeName}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">Store Manager</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ${adminName}
+            </td>
+          </tr>
+        </table>
+    
+        <!-- Order Details -->
+        <h3 style="margin-top:25px;">Order Details</h3>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order ID</td>
+            <td style="padding:8px;border:1px solid #eee;">#${orderData.order_id}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Date & Time</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ${new Date(orderData.createdAt).toLocaleString()}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
+            <td style="padding:8px;border:1px solid #eee;">Order Placed</td>
+          </tr>
+        </table>
+    
+        <!-- Customer Details -->
+        <h3 style="margin-top:25px;">Customer Details</h3>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;">Customer Name</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ${orderData.deliveredAddress?.name}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;">Mobile Number</td>
+            <td style="padding:8px;border:1px solid #eee;">
+               ${orderData.deliveredAddress?.phone}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;">Email ID</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ${orderData.deliveredAddress?.email}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;">Delivery Address</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ${deliveryAddressText}
+            </td>
+          </tr>
+        </table>
+    
+        <!-- Items Ordered -->
+        <h3 style="margin-top:25px;">Items Ordered</h3>
+        ${itemsHtml}
+    
+        <!-- Payment Details -->
+        <h3 style="margin-top:25px;">Payment Details</h3>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;">Subtotal</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ₹${orderData.calculationData.priceTotalSumBeforeDiscount}
+            </td>
+          </tr>
+          
+          ${orderData.calculationData.deliveryFee > 0 ? `       <tr>
+            <td style="padding:8px;border:1px solid #eee;">Delivery Charges</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ₹${orderData.calculationData.deliveryFee}
+            </td>
+          </tr>` : ``}
+    
+          
+          ${orderData.discount > 0 ? ` <tr>
+            <td style="padding:8px;border:1px solid #eee;">Discount</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ₹${orderData.discount}
+            </td>
+          </tr>` : ``}
+          
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+              Total Paid
+            </td>
+            <td style="padding:8px;border:1px solid #eee;font-weight:600;">
+              ₹${orderData.total_order_amount}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border:1px solid #eee;">Payment Method</td>
+            <td style="padding:8px;border:1px solid #eee;">
+              ${orderData.payment_mode.toUpperCase()}
+            </td>
+          </tr>
+        </table>
+    
+        <p style="margin-top:25px;">
+          This email is shared for centralized order tracking.
+        </p>
+    
+        <p style="margin-top:20px;">
+          Regards,<br/>
+          <strong>Team Pharmato</strong>
+        </p>
+    
+      </div>
+    </div>
+            
+                                            ${footer}
+                                        `;
+                        await sendEmail({ to: superAdminEmail, subject: `New Order Received at ${storeName}`, html: superAdminHtml });
+                    }
+
+                    try {
+                        const superToken = (superAdmin as any).deviceToken;
+                        if (superToken) {
+                            await sendPushNotificationWithData({
+                                token: superToken,
+                                title: 'Order Received',
+                                body: notificationMessage,
+                                data: {
+                                    targetId: orderData._id.toString(),
+                                    orderId: orderData._id.toString(),
+                                    type: 'order_placed',
+                                    targetScreen: 'orders/detail',
+                                    amount: `${amountValue}`
+                                }
+                            });
+                        }
+                    } catch (err) {
+                        console.error('Failed to send push notification to superadmin:', err);
+                    }
+
+                }
+            }
+        } catch (err) {
+            console.error('Superadmin notification error:', err);
+        }
+
+    } catch (notifyErr) {
+        console.error('Notify/email error on payment captured:', notifyErr);
+    }
+
+}
+
 
 export async function POST(req: NextRequest) {
     await dbConnect();
@@ -475,6 +1120,10 @@ export async function POST(req: NextRequest) {
                 paymentStatus: createOrder.payment_status
             });
         }
+
+        setImmediate(() => {
+            runBackground(createOrder?._id.toString());
+        });
 
     }
 

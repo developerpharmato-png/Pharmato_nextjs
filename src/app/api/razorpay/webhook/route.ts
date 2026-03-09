@@ -795,6 +795,7 @@ ${footer}
         } catch (notifyErr) {
           console.error('Notify/email error on payment captured:', notifyErr);
         }
+        
       }
 
       if (body.event === 'payment.failed') {
