@@ -482,7 +482,7 @@ ${footer}
                         userId: (superAdmin as any)._id.toString(),
                         role: 'admin',
                         title: 'Order Delivered',
-                        message: `Order Delivered: Order #${order.order_id} placed by ${userName} has been successfully delivered by ${storeName}.`,
+                        message: `Order #${order.order_id} placed by ${userName} has been successfully delivered by ${storeName}.`,
                         type: 'order',
                         targetScreen: 'orders/detail',
                         targetId: order._id.toString(),
