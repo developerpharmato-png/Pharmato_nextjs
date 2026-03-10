@@ -81,19 +81,29 @@ export async function sendEmail({
     //   }
     // });
 
+    // // Send email with the Excel attachment
+    // const transporter = nodemailer.createTransport({
+    //   host: 'mail.smtp2go.com',
+    //   port: 2525,
+    //   auth: {
+    //     user: 'sunil.patidar+2@technotoil.com',
+    //     pass: 'tJ2juQjWYyOPbUpM'
+    //   }
+    // });
+
     // Send email with the Excel attachment
     const transporter = nodemailer.createTransport({
       host: 'mail.smtp2go.com',
       port: 2525,
       auth: {
-        user: 'sunil.patidar+2@technotoil.com',
-        pass: 'tJ2juQjWYyOPbUpM'
+        user: 'mayank.pawar+55@technotoil.com',
+        pass: 'e1nAdYQNgg3wQ9O7'
       }
     });
 
     let mailOptions = {
       // from: 'sunil.patidar+5@technotoil.com',
-      from: 'sunil.patidar+2@technotoil.com',
+      from: 'mayank.pawar+55@technotoil.com',
       to: `${to}`,
       subject: subject,
       text: 'Hello world?',
