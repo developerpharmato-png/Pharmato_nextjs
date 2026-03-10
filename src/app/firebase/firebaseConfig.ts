@@ -34,7 +34,7 @@ export const requestPermissionAndGetToken = async () => {
     const messaging = getMessaging(app);
 
     const token = await getToken(messaging, {
-      vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+      vapidKey: "BO4XRFHc6eWZPZt4UvMwwhEX0VE3lvL1MuwUEViEVwshlUKam9LZo-W4tdKu6QDcOlbSaa5sSXvbt0mTBz9skGY",
     });
 
     console.log("FCM Token:", token);
