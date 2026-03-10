@@ -403,12 +403,16 @@ export default function PartialCancelPage() {
 
       <Dialog
         open={showStatusDialog}
-        onClose={() => setShowStatusDialog(false)}
+        onClose={(event, reason) => {
+          if (updateStatusLoading) return;
+          setShowStatusDialog(false);
+        }}
+        disableEscapeKeyDown={updateStatusLoading}
         maxWidth="xs"
         fullWidth
       >
         <DialogTitle>Update Order Status</DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ overflow: updateStatusLoading ? "hidden" : "auto" }}>
           <FormControl fullWidth sx={{ mt: 2 }}>
             <InputLabel id="order-status-label">Select Status</InputLabel>
             <Select
@@ -416,6 +420,7 @@ export default function PartialCancelPage() {
               value={statusToUpdate}
               label="Select Status"
               onChange={(e) => setStatusToUpdate(e.target.value)}
+              disabled={updateStatusLoading}
             >
               {statusOptions.map((opt) => (
                 <MenuItem key={opt.value} value={opt.value}>
@@ -426,7 +431,11 @@ export default function PartialCancelPage() {
           </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowStatusDialog(false)} color="inherit">
+          <Button
+            onClick={() => setShowStatusDialog(false)}
+            color="inherit"
+            disabled={updateStatusLoading}
+          >
             Cancel
           </Button>
           <Button
@@ -1406,7 +1415,7 @@ export default function PartialCancelPage() {
                       </p>
                       <div className="flex flex-col">
                         <p className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                          {(refund?.amount || 0)/100 }
+                          {(refund?.amount || 0) / 100}
                         </p>
                       </div>
                     </div>
