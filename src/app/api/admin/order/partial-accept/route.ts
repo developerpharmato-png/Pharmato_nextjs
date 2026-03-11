@@ -142,6 +142,14 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
 
     }
 
+    refundAmount = Number(cancelledForRefund.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0));
+
+    if (unCancelledItems.length == 0) {
+        refundAmount += Number(order.calculationData.deliveryFee || 0); // Add delivery fee back to refund if entire order is cancelled
+    }
+
+    refundAmount = Number(refundAmount.toFixed(2)); // Round to 2 decimal places
+
     html += `<h3 style="margin-top:25px;">Order Summary</h3>`
 
     if (acceptedNames.length > 0) {
@@ -741,17 +749,9 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
         }
     } catch (err) {
         console.error('Superadmin notification error:', err);
-    }    
+    }
 
     if (cancelledForRefund.length > 0) {
-
-        refundAmount = Number(cancelledForRefund.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0));
-
-        if (unCancelledItems.length == 0) {
-            refundAmount += Number(order.calculationData.deliveryFee || 0); // Add delivery fee back to refund if entire order is cancelled
-        }
-
-        refundAmount = Number(refundAmount.toFixed(2)); // Round to 2 decimal places
 
         if (order.payment_mode === 'Wallet') {
 
@@ -1037,8 +1037,8 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
             .tz('Asia/Kolkata')
             .format('MMM D, YYYY HH:mm z');
         ;
-        let grandTotal : any = 0;
-        let subTotal  : any = 0;
+        let grandTotal: any = 0;
+        let subTotal: any = 0;
         const deliveryFee = order.calculationData.deliveryFee || 0;
         const discount = order.calculationData.discount || 0;
         const platformFee = order.calculationData.platformFee || 0;

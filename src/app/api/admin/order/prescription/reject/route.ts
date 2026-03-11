@@ -161,7 +161,7 @@ async function runBackground(order: any,rejectionReason: string) {
     // Send email to customer if email available using template
     if (userEmail) {
       const base = process.env.NEXT_PUBLIC_BASE_URL || '';
-      const orderUrl = `${base}/customer/orders/${order._id}`;
+      const orderUrl = `https://pharmatoindia.com/orderDetails/${order._id}`;
       const subject = `Action Required: Prescription Re-Upload Required`;
       const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
       const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
@@ -173,7 +173,7 @@ async function runBackground(order: any,rejectionReason: string) {
         const baseForEmail = base || (process.env.NEXT_PUBLIC_BASE_URL || '');
         header = header.replace(/{{baseUrl}}/g, baseForEmail);
         const content = fs.readFileSync(contentPath, 'utf8')
-          .replace(/{{UserName}}/g, (order.userId && order.userId.name) || '')
+          .replace(/{{UserName}}/g, (userName) || '')
           .replace(/{{OrderID}}/g, order.order_id || '')
           .replace(/{{RejectionReason}}/g, rejectionReason || '')
           .replace(/{{ReuploadLink}}/g, orderUrl);

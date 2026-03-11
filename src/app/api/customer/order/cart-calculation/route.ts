@@ -261,6 +261,16 @@ export async function POST(req: NextRequest) {
     calculationData.medicineId = medicineId;
     calculationData.medicineQuantity = medicineQuantity;
 
+    // if(calculationData.deliveryFee > 0){
+
+
+
+    // }else{
+
+
+
+    // }
+
     return NextResponse.json({
         success: true,
         message: 'Get calculation data successfully',

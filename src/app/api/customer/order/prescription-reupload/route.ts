@@ -483,7 +483,7 @@ export async function POST(req: NextRequest) {
                 }
             }
 
-            // If order is delivered, send delivered email to customer
+              // send email to user reupload prescription
             try {
                 const statusLower = String(status || '').toLowerCase();
                 if (statusLower.includes('deliv')) {
