@@ -267,13 +267,16 @@ export async function POST(req: NextRequest) {
 
         if (surge) {
             calculationData.showSurgeFee = Number(surge.surgeFee)
+            calculationData.activeSurgeDetail = surge
         } else {
             calculationData.showSurgeFee = 0
+            calculationData.activeSurgeDetail = null
         }
 
     } else {
         calculationData.showDeliveryFee = 0
         calculationData.showSurgeFee = 0
+        calculationData.activeSurgeDetail = null
 
     }
 
