@@ -150,7 +150,7 @@ export default function HeaderWithAction({
   );
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full mb-3">
       {backButton}
 
     

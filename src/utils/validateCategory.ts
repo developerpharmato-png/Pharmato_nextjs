@@ -125,89 +125,103 @@ export const medicineFormValidationSchema = Yup.object().shape({
 });
 
 
-export const CouponsvalidationSchema = Yup.object().shape({
+export const getCouponsValidationSchema = (isEdit: boolean = false) => Yup.object().shape({
   code: Yup.string()
-    .required("Code is mandatory")
-    .min(2, "Code must be at least 2 characters")
-    .max(50, "Code must not exceed 50 characters"),
+    .required("Coupon code is required")
+    .min(2, "Min. 2 characters required")
+    .max(50, "Max. 50 characters allowed"),
   title: Yup.string()
-    .required("Title is mandatory")
-    .min(3, "Title must be at least 3 characters")
-    .max(100, "Title must not exceed 100 characters"),
+    .required("Title is required")
+    .min(3, "Min. 3 characters required")
+    .max(100, "Max. 100 characters allowed"),
   description: Yup.string()
-    .required("Description is mandatory")
-    .min(10, "Description must be at least 10 characters"),
+    .required("Description is required")
+    .min(10, "Min. 10 characters required"),
   type: Yup.string()
-    .required("Discount Type is mandatory")
+    .required("Select a discount type")
     .oneOf(["fixed", "percentage"]),
   value: Yup.number()
-    .required("Value is mandatory")
+    .required("Discount value is required")
     .test("value-validation", function (value) {
       const { type } = this.parent;
       if (type === "fixed") {
-        return value > 0 ? true : this.createError({ message: "Amount must be greater than 0" });
+        return value > 0 ? true : this.createError({ message: "Amount must be > ₹0" });
       } else if (type === "percentage") {
         return value > 0 && value <= 100
           ? true
-          : this.createError({ message: "Percentage must be between 1 and 100" });
+          : this.createError({ message: "Must be between 1% and 100%" });
       }
       return true;
     }),
   maxDiscountAmount: Yup.number()
-    .typeError("Max Discount must be a number")
+    .typeError("Enter a valid number")
     .test("discount-validation", function (value) {
       const { type } = this.parent;
       if (type === "fixed") {
-        return true; // Not applicable for fixed
+        return true;
       }
       if (value !== undefined && value !== null) {
         return value > 0
           ? true
-          : this.createError({ message: "Max Rs Discount must be greater than 0 if provided" });
+          : this.createError({ message: "Max discount must be > ₹0" });
       }
       return true;
     }),
   minOrderValue: Yup.number()
-    .required("Min Order Value is mandatory")
-    .min(0, "Min Order Value cannot be negative"),
+    .required("Min. order value is required")
+    .min(0, "Cannot be negative"),
   scope: Yup.string()
-    .required("Scope is mandatory")
-    .oneOf(["global", "category", "product"], "Scope must be global, category, or product"),
+    .required("Select a scope")
+    .oneOf(["global", "category", "product"], "Invalid scope"),
   startAt: Yup.string()
-    .required("Start Date is mandatory")
-    .test("start-date-validation", "Start Date must be today or in the future", function (value) {
+    .required("Start date is required")
+    .test("start-date-validation", "Start date can't be in the past", function (value) {
       if (!value) return false;
+      if (isEdit) return true;
       const startDate = new Date(value);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       return startDate >= today;
     }),
   endAt: Yup.string()
-    .required("End Date is mandatory")
-    .test("end-date-validation", "End Date must be on or after Start Date", function (value) {
+    .required("End date is required")
+    .test("end-date-validation", "Invalid end date", function (value) {
       const { startAt } = this.parent;
       if (!value || !startAt) return false;
+
       const endDate = new Date(value);
       const start = new Date(startAt);
-      return endDate >= start;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (endDate < today) {
+        return this.createError({ message: "End date can't be in the past" });
+      }
+
+      if (endDate < start) {
+        return this.createError({ message: "End date must be after start date" });
+      }
+
+      return true;
     }),
   totalUses: Yup.number()
-    .required("Max Coupons is mandatory")
-    .min(1, "Max Coupons must be at least 1")
+    .required("Total uses is required")
+    .min(1, "Must be at least 1")
     .test("total-gte-perUser", function (value) {
       const { perUserLimit } = this.parent as any;
       if (typeof value === 'number' && typeof perUserLimit === 'number') {
-        return value >= perUserLimit || this.createError({ message: "Total uses must be >= per-user limit" });
+        return value >= perUserLimit || this.createError({ message: "Total uses can't be less than per-user limit" });
       }
       return true;
     }),
   perUserLimit: Yup.number()
-    .required("Max Coupons Per User is mandatory")
-    .min(1, "Max Per User must be at least 1")
+    .required("Per-user limit is required")
+    .min(1, "Must be at least 1")
     .test("perUser-le-total", function (value) {
       const { totalUses } = this.parent as any;
       if (typeof value === 'number' && typeof totalUses === 'number') {
-        return value <= totalUses || this.createError({ message: "Per-user limit cannot exceed total uses" });
+        return value <= totalUses || this.createError({ message: "Per-user limit can't exceed total uses" });
       }
       return true;
     }),
