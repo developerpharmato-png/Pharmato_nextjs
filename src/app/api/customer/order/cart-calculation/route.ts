@@ -211,6 +211,8 @@ export async function POST(req: NextRequest) {
         if (setting.type === 'surgePricing') surgePricing = setting?.extraData || [];
     }
 
+    calculationData.showDeliveryFee = deliveryFee
+
     const surge = getActiveSurge(surgePricing);
 
     //     Surge Active: {
@@ -261,15 +263,19 @@ export async function POST(req: NextRequest) {
     calculationData.medicineId = medicineId;
     calculationData.medicineQuantity = medicineQuantity;
 
-    // if(calculationData.deliveryFee > 0){
+    if (calculationData.deliveryFee > 0) {
 
+        if (surge) {
+            calculationData.showSurgeFee = Number(surge.surgeFee)
+        } else {
+            calculationData.showSurgeFee = 0
+        }
 
+    } else {
+        calculationData.showDeliveryFee = 0
+        calculationData.showSurgeFee = 0
 
-    // }else{
-
-
-
-    // }
+    }
 
     return NextResponse.json({
         success: true,
