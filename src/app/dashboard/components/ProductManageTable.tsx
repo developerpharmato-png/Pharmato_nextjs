@@ -9,6 +9,8 @@ type Props = {
   medicineQuantity?: any[];
   selected: string[];
   setSelected: (s: string[]) => void;
+  acceptedQuantities?: Record<string, number>;
+  setAcceptedQuantities?: (s: Record<string, number>) => void;
   medidetails: (id: string) => void;
   gridCols?: string;
   tableMode?: boolean;
@@ -19,6 +21,8 @@ const ProductManageTable: React.FC<Props> = ({
   medicineQuantity = [],
   selected,
   setSelected,
+  acceptedQuantities = {},
+  setAcceptedQuantities,
   medidetails,
   gridCols = "grid-cols-1 lg:grid-cols-2",
   tableMode = false,
@@ -141,7 +145,30 @@ const ProductManageTable: React.FC<Props> = ({
                       </div>
                     </td>
                     <td className="px-4 py-4 text-center">
-                      <div className="inline-block px-3 py-1.5 bg-gray-50 border border-gray-100 rounded text-[11px] font-bold text-gray-600">Qty: {qty}</div>
+                      {theme === 'blue' && selected.includes(item._id) ? (
+                        <select
+                          value={acceptedQuantities[item._id] || qty}
+                          onChange={(e) => {
+                            if (setAcceptedQuantities) {
+                              setAcceptedQuantities({
+                                ...acceptedQuantities,
+                                [item._id]: Number(e.target.value)
+                              });
+                            }
+                          }}
+                          className="bg-white border border-gray-300 text-gray-900 text-[11px] font-bold rounded focus:ring-blue-500 focus:border-blue-500 block p-1.5 w-full max-w-[70px] mx-auto"
+                        >
+                          {Array.from({ length: qty }, (_, i) => i + 1).map((num) => (
+                            <option key={num} value={num}>
+                              {num}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <div className="inline-block px-3 py-1.5 bg-gray-50 border border-gray-100 rounded text-[11px] font-bold text-gray-600">
+                          {item.status === 'accepted' || item.status === 'delivered' ? `Qty: ${item.q?.accept_qu || qty}` : `Qty: ${qty}`}
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-4 text-right">
                       <div className="flex flex-col items-end">
