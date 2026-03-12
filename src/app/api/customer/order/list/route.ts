@@ -71,21 +71,18 @@ export async function POST(req: NextRequest) {
     const skip = (Number(page) - 1) * limit;
     const lim = Number(limit);
 
-    // Ensure limit and offset are numbers and safe
-    const safeLimit = Math.max(1, Math.min(Number(limit), 100));
-    const safeOffset = Math.max(0, Number(offset));
-
     const orders = await Order.aggregate([
         // 1️⃣ Match user
         { $match: matchStage },
-        // Pagination: skip and limit
-        { $skip: skip },
-        { $limit: lim },
 
         // 2️⃣ Latest orders first
         {
             $sort: { createdAt: -1 }
         },
+        
+        // Pagination: skip and limit
+        { $skip: skip },
+        { $limit: lim },
 
         // 3️⃣ Lookup medicines
         {
