@@ -274,17 +274,34 @@ export default function PartialCancelPage() {
       }
     }
 
-    const selectedMedsArr = order.medicineId.filter((med: any) =>
-      selected.includes(med._id),
-    );
+    const confirmItems: any[] = [];
+    const cancelItems: any[] = [];
 
-    const unselectedMedsArr = order.medicineId.filter(
-      (med: any) => !selected.includes(med._id),
-    );
+    (order?.medicineQuantity || []).forEach((q: any) => {
+      const id = q.medicineId?.toString() || q.medicineId;
+      const med = order.medicineId.find(
+        (m: any) => (m._id?.toString() || m._id) === id
+      );
+      if (!med) return;
+
+      if (selected.includes(id)) {
+        const acceptedQty = acceptedQuantities[id] ?? q.quantity;
+        const cancelledQty = q.quantity - acceptedQty;
+
+        if (acceptedQty > 0) {
+          confirmItems.push({ ...med, displayQty: acceptedQty });
+        }
+        if (cancelledQty > 0) {
+          cancelItems.push({ ...med, displayQty: cancelledQty });
+        }
+      } else if (q.status === "pending") {
+        cancelItems.push({ ...med, displayQty: q.quantity });
+      }
+    });
 
     // 🔥 ALWAYS open preview dialog
-    setPreviewSelectedMeds(selectedMedsArr);
-    setPreviewUnselectedMeds(unselectedMedsArr);
+    setPreviewSelectedMeds(confirmItems);
+    setPreviewUnselectedMeds(cancelItems);
     setShowCancelReasonDialog(true);
   };
 
@@ -721,7 +738,7 @@ export default function PartialCancelPage() {
       >
         <ModalHeader
           title={
-            allPendingSelected
+            previewUnselectedMeds.length === 0
               ? "Confirm Selected"
               : "Reason for cancelling remaining items"
           }
@@ -750,10 +767,10 @@ export default function PartialCancelPage() {
               </Typography>
               <Box sx={modalStyles.chipContainer}>
                 {previewSelectedMeds.length ? (
-                  previewSelectedMeds.map((m) => (
+                  previewSelectedMeds.map((m, idx) => (
                     <Chip
-                      key={m._id}
-                      label={m.name}
+                      key={`${m._id}-${idx}`}
+                      label={`${m.name} (Qty: ${m.displayQty})`}
                       size="small"
                       sx={modalStyles.confirmChip}
                     />
@@ -773,10 +790,10 @@ export default function PartialCancelPage() {
                   Cancel Items
                 </Typography>
                 <Box sx={modalStyles.chipContainer}>
-                  {previewUnselectedMeds.map((m) => (
+                  {previewUnselectedMeds.map((m, idx) => (
                     <Chip
-                      key={m._id}
-                      label={m.name}
+                      key={`${m._id}-${idx}`}
+                      label={`${m.name} (Qty: ${m.displayQty})`}
                       size="small"
                       sx={modalStyles.cancelChip}
                     />
@@ -787,12 +804,7 @@ export default function PartialCancelPage() {
                   {(() => {
                     let refundAmount = previewUnselectedMeds.reduce(
                       (sum, m) => {
-                        const q = order?.medicineQuantity?.find(
-                          (x: any) =>
-                            x.medicineId === m._id ||
-                            x.medicineId?.toString?.() === m._id?.toString?.(),
-                        );
-                        const qty = q?.quantity || m.quantity || 1;
+                        const qty = m.displayQty || 1;
                         const price = Number(m.price) || 0;
                         return sum + price * qty;
                       },
