@@ -256,54 +256,13 @@ export async function POST(req: NextRequest) {
             .lean();
         log.info('AdminOrderList: fetched orders count', Array.isArray(orders) ? orders.length : 0);
 
-        // Attach quantity to each medicine in medicineId for every order
-        const ordersWithQuantities = (Array.isArray(orders) ? orders : []).map(order => {
-            const medicineQuantities = Array.isArray(order.medicineQuantity) ? order.medicineQuantity : [];
-            const medicineIdWithQuantity = Array.isArray(order.medicineId)
-                ? order.medicineId.map((med: any) => {
-                    const q = medicineQuantities.find((qty: any) => {
-                        return (qty.medicineId?.toString && med._id?.toString &&
-                            qty.medicineId.toString() === med._id.toString());
-                    });
-                    return {
-                        ...med,
-                        quantity: q?.quantity || 1
-                    };
-                })
-                : [];
-
-
-            const dummyQuantity = []
-
-            for (const element of order.medicineQuantity) {
-
-                const checkMedicine = order.medicineId.find((obj: any) => obj._id.toString() === element.medicineId.toString());
-
-                const object = {
-                    ...checkMedicine,
-                    quantity: element.quantity,
-                    price: element.price,
-                    isPrescription: element.isPrescription,
-                    status: element.status,
-                    cancelReason: element.cancelReason,
-                }
-                dummyQuantity.push(object);
-            }
-
-            return {
-                ...order,
-                medicineId: medicineIdWithQuantity,
-                dummyQuantity
-            };
-        });
-
         // Also include a human-friendly createdAt string in DD-MM-YYYY
-        const ordersWithFormattedDates = ordersWithQuantities.map(o => ({
+        const ordersWithFormattedDates = orders.map(o => ({
             ...o,
             createdAtFormatted: (o as any).createdAt ? format(new Date((o as any).createdAt), 'dd-MM-yyyy') : ''
         }));
 
-        log.success('AdminOrderList: success', { count: ordersWithQuantities.length, total });
+        log.success('AdminOrderList: success', { count: orders.length, total });
         return NextResponse.json({
             success: true,
             data: ordersWithFormattedDates,

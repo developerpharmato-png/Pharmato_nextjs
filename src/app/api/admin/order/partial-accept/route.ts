@@ -1320,30 +1320,60 @@ export async function POST(req: NextRequest) {
         if (!order) {
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
+
+        // order.medicineQuantity = order.medicineQuantity.map((item: any) => {
+        //     // Only update pending medicines
+        //     if (item.status !== 'pending') return item;
+        //     if (medicineIds.includes(item.medicineId.toString())) {
+        //         const cancelDetail = {
+        //             is_cancelled: false,
+        //             quantity: 0,
+        //             reason: "",
+        //             cancelled_at: new Date()
+        //         };
+        //         return { ...item, status: 'accepted', cancelReason: '', cancelDetail };
+        //     } else {
+        //         const cancelDetail = {
+        //             is_cancelled: true,
+        //             quantity: item.quantity,
+        //             reason: cancelReason || 'Cancelled by admin (not selected for acceptance)',
+        //             cancelled_at: new Date()
+        //         };
+        //         return { ...item, status: 'cancelled', cancelReason: cancelReason || 'Cancelled by admin (not selected for acceptance)', cancelDetail };
+        //     }
+        // });
+
+        const medicineStatusSet: any = []
+
+        for (const element of medicineIds) {
+
+            medicineStatusSet.push({
+                medicineId: element._id.toString(),
+                quantity: element.quantity,
+                price: element.price,
+                isPrescription: element.isPrescription,
+                status: element.status,
+                cancelReason: element.status === 'cancelled' ? (cancelReason || 'Cancelled by admin') : '',
+                cancelDetail: element.status === 'cancelled' ? {
+                    is_cancelled: true,
+                    quantity: element.quantity,
+                    reason: cancelReason || 'Cancelled by admin (not selected for acceptance)',
+                    cancelled_at: new Date()
+                } : {
+                    is_cancelled: false,
+                    quantity: 0,
+                    reason: "",
+                    cancelled_at: new Date()
+                }
+            })
+
+        }
+
+        order.medicineQuantity = medicineStatusSet;
+
         // Get user info
         const user = await User.findOne({ _id: new mongoose.Types.ObjectId(order.userId) });
 
-                order.medicineQuantity = order.medicineQuantity.map((item: any) => {
-                    // Only update pending medicines
-                    if (item.status !== 'pending') return item;
-            if (medicineIds.includes(item.medicineId.toString())) {
-                        const cancelDetail = {
-                            is_cancelled: false,
-                            quantity: 0,
-                            reason: "",
-                            cancelled_at: new Date()
-                        };
-                        return { ...item, status: 'accepted', cancelReason: '', cancelDetail };
-                    } else {
-                        const cancelDetail = {
-                            is_cancelled: true,
-                            quantity: item.quantity,
-                            reason: cancelReason || 'Cancelled by admin (not selected for acceptance)',
-                            cancelled_at: new Date()
-                        };
-                        return { ...item, status: 'cancelled', cancelReason: cancelReason || 'Cancelled by admin (not selected for acceptance)', cancelDetail };
-                    }
-                });
         const unCancelledItems = order.medicineQuantity.filter((item: any) => item.status !== 'cancelled');
         if (unCancelledItems.length === 0) {
             order.order_status = 'Cancelled';

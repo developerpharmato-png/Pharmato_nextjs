@@ -72,26 +72,26 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Attach medicineQuantity to each medicine in medicineId
-        const medicineQuantities = Array.isArray(order.medicineQuantity) ? order.medicineQuantity : [];
-        const medicineIdWithQuantity = Array.isArray(order.medicineId)
-            ? order.medicineId.map((med: any) => {
-                const q = medicineQuantities.find((qty: any) => {
-                    return (qty.medicineId?.toString && med._id?.toString &&
-                        qty.medicineId.toString() === med._id.toString());
-                });
-                return {
-                    ...med.toObject(),
-                    quantity: q?.quantity || 1,
-                    price: q?.price || med.price,
-                    isPrescription: q?.isPrescription || false,
-                    status: q?.status || 'pending',
-                    cancelReason: q?.cancelReason || '',
-                };
-            })
-            : [];
+        // // Attach medicineQuantity to each medicine in medicineId
+        // const medicineQuantities = Array.isArray(order.medicineQuantity) ? order.medicineQuantity : [];
+        // const medicineIdWithQuantity = Array.isArray(order.medicineId)
+        //     ? order.medicineId.map((med: any) => {
+        //         const q = medicineQuantities.find((qty: any) => {
+        //             return (qty.medicineId?.toString && med._id?.toString &&
+        //                 qty.medicineId.toString() === med._id.toString());
+        //         });
+        //         return {
+        //             ...med.toObject(),
+        //             quantity: q?.quantity || 1,
+        //             price: q?.price || med.price,
+        //             isPrescription: q?.isPrescription || false,
+        //             status: q?.status || 'pending',
+        //             cancelReason: q?.cancelReason || '',
+        //         };
+        //     })
+        //     : [];
 
-        const dummyQuantity = []
+        const medicineIdWithQuantity = []
 
         for (const element of order.medicineQuantity) {
 
@@ -105,9 +105,8 @@ export async function POST(req: NextRequest) {
                 status: element.status,
                 cancelReason: element.cancelReason,
             }
-            dummyQuantity.push(object);
+            medicineIdWithQuantity.push(object);
         }
-
 
         // Return order with updated medicineId array
         const orderObj = order.toObject();
@@ -123,7 +122,7 @@ export async function POST(req: NextRequest) {
             orderObj.deliveredDate = "";
         }
 
-        return NextResponse.json({ success: true, data: orderObj, dummyQuantity }, { status: 200 });
+        return NextResponse.json({ success: true, data: orderObj }, { status: 200 });
 
     } catch (error) {
         console.error('Error fetching order detail:', error);

@@ -43,112 +43,87 @@ import Medicine from '@/models/Medicine';
  *       404:
  *         description: Order not found
  */
-export async function POST(req: NextRequest) {
-    await dbConnect();
-    try {
-        const { orderId, url } = await req.json();
 
-        if (!orderId || !url) {
-            return NextResponse.json({ success: false, message: 'orderId and url are required' }, { status: 400 });
-        }
 
-        if (!mongoose.Types.ObjectId.isValid(orderId)) {
-            return NextResponse.json({ success: false, message: 'Invalid orderId' }, { status: 400 });
-        }
+async function runBackground(orderDoc: any, prescriptionUrlArr: any) {
 
-        const orderDoc: any = await Order.findById(orderId).lean();
-        if (!orderDoc) {
-            return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
-        }
+  // Notification logic for store manager and superadmin
+  try {
+    const Store = (await import('@/models/Store')).default;
+    const Admin = (await import('@/models/Admin')).default;
+    const Notification = (await import('@/models/Notification')).default;
+    const Role = (await import('@/models/Role')).default;
+    const User = (await import('@/models/User')).default;
 
-        // Normalize url to array of strings
-        let prescriptionUrlArr: string[] = [];
-        if (Array.isArray(url)) {
-            prescriptionUrlArr = url.filter((u) => typeof u === 'string');
-        } else if (typeof url === 'string' && url) {
-            prescriptionUrlArr = [url];
-        }
+    // Choose template based on create or update
+    const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+    const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+    const header = fs.readFileSync(headerPath, 'utf8');
+    const footer = fs.readFileSync(footerPath, 'utf8');
 
-        // Update order fields
-        const OrderModel = (await import('@/models/Order')).default;
-        await OrderModel.updateOne(
-            { _id: orderId },
-            {
-                $set: {
-                    prescription_url: prescriptionUrlArr,
-                    prescription_status: 'Pending',
-                    prescription_rejection_reason: '',
-                    prescription_rejected_by: null,
-                    prescription_rejected_at: undefined
-                }
-            }
-        );
+    // Get store and admin manager
+    let storeName = '';
+    let adminName = '';
+    let adminEmail = '';
+    let adminRoleName = '';
+    let customerName = 'Customer';
+    let userEmail = '';
+    let storeId = (orderDoc as any).storeId;
+    let deliveryAddressText = ''
+    let previousRejectionReason = orderDoc?.prescription_rejection_reason || 'N/A';
 
-        // Notification logic for store manager and superadmin
-        try {
-            const Store = (await import('@/models/Store')).default;
-            const Admin = (await import('@/models/Admin')).default;
-            const Notification = (await import('@/models/Notification')).default;
-            const Role = (await import('@/models/Role')).default;
-            const User = (await import('@/models/User')).default;
+    const deliveredAddr: any = orderDoc.deliveredAddress || null;
+    if (deliveredAddr) {
+      customerName = deliveredAddr?.name || 'Customer';
+      userEmail = deliveredAddr?.email || '';
+      deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
+    }
 
-            // Choose template based on create or update
-            const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
-            const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
-            const header = fs.readFileSync(headerPath, 'utf8');
-            const footer = fs.readFileSync(footerPath, 'utf8');
+    const [checkMedicineId] = await Promise.all([
+      Medicine.find({ _id: { $in: orderDoc.medicineId.map((i: any) => i) } }).select('_id name coverImage images'),
+    ]);
 
-            // Get store and admin manager
-            let storeName = '';
-            let adminName = '';
-            let adminEmail = '';
-            let adminRoleName = '';
-            let customerName = 'Customer';
-            let userEmail = '';
-            let storeId = (orderDoc as any).storeId;
-            let deliveryAddressText = ''
-            let previousRejectionReason = orderDoc?.prescription_rejection_reason || 'N/A';
+    orderDoc.medicineId = checkMedicineId;
+    // console.log('##########checkMedicineId#############', checkMedicineId);
 
-            const deliveredAddr: any = orderDoc.deliveredAddress || null;
-            if (deliveredAddr) {
-                customerName = deliveredAddr?.name || 'Customer';
-                userEmail = deliveredAddr?.email || '';
-                deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
-            }
+    const dummyQuantity = []
 
-            const [checkMedicineId] = await Promise.all([
-                Medicine.find({ _id: { $in: orderDoc.medicineId.map((i: any) => i) } }).select('_id name coverImage images'),
-            ]);
+    for (const element of orderDoc.medicineQuantity) {
 
-            console.log('##########checkMedicineId#############', checkMedicineId);
+      const checkMedicine = orderDoc.medicineId.find((obj: any) => obj._id.toString() === element.medicineId.toString());
 
-            const acceptedNames = checkMedicineId.map((m: any) => {
-                const item = orderDoc.medicineQuantity.find((i: any) => i.medicineId.toString() === m._id.toString());
-                return {
-                    ...m._doc,
-                    quantity: item ? item.quantity : 0,
-                    price: item ? item.price : 0,
-                };
-            });
+      const object = {
+        ...checkMedicine._doc,
+        quantity: element.quantity,
+        price: element.price,
+        isPrescription: element.isPrescription,
+        status: element.status,
+      }
+      dummyQuantity.push(object);
+    }
 
-            console.log('##########acceptedNames#############', acceptedNames);
+    orderDoc.medicineId = dummyQuantity;
+    // console.log('##########dummyQuantity#############', dummyQuantity);
 
-            let itemsHtml = '';
+    const acceptedNames = orderDoc.medicineId
+    // console.log('##########acceptedNames#############', acceptedNames);
 
-            if (acceptedNames.length > 0) {
-                const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
+    let itemsHtml = '';
 
-                itemsHtml += `
+    if (acceptedNames.length > 0) {
+      const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
+
+      itemsHtml += `
                                     <ul style="list-style:none;padding:0;">
                                 `;
 
-                acceptedNames.forEach((m: any) => {
-                    const imgSrc =
-                        m.coverImage && m.coverImage.trim() !== ''
-                            ? m.coverImage
-                            : defaultImg;
+      acceptedNames.forEach((m: any) => {
+        const imgSrc =
+          m.coverImage && m.coverImage.trim() !== ''
+            ? m.coverImage
+            : defaultImg;
 
-                    itemsHtml += `
+        itemsHtml += `
                                         <li style="margin-bottom:10px;display:flex;align-items:center;">
                                             <img src="${imgSrc}" 
                                                  alt="${m.name}" 
@@ -162,49 +137,49 @@ export async function POST(req: NextRequest) {
                                             </div>
                                         </li>
                                     `;
-                });
+      });
 
-                itemsHtml += `</ul>`;
+      itemsHtml += `</ul>`;
+    }
+
+
+    if (storeId) {
+      const store = await Store.findById(storeId).lean();
+      if (store && typeof store === 'object' && !Array.isArray(store)) {
+        storeName = store.name || '';
+        if ('adminManagerId' in store && store.adminManagerId) {
+          const admin = await Admin.findById(store.adminManagerId).lean();
+          if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+            adminName = admin.name || '';
+            adminEmail = admin.email || '';
+            // Try to get admin's role name
+            if ('roleId' in admin && admin.roleId) {
+              const roleDoc = await Role.findById(admin.roleId).lean();
+              if (roleDoc && typeof roleDoc === 'object' && !Array.isArray(roleDoc)) {
+                adminRoleName = roleDoc.name || '';
+              }
             }
+            // Notify store admin (manager)
+            await Notification.create({
+              userId: store.adminManagerId.toString(),
+              role: 'admin',
+              title: 'Prescription Re-uploaded',
+              message: `Prescription Re-uploaded: ${customerName} has re-uploaded prescription for Order #${orderDoc.order_id}. Please review and take action.`,
+              type: 'prescription',
+              targetScreen: 'orders/detail',
+              targetId: (orderDoc as any)._id.toString(),
+              meta: {
+                prescriptionUrlArr,
+                customerName,
+                storeName,
+                orderId: (orderDoc as any)._id.toString(),
+                order_id: (orderDoc as any).order_id
+              }
+            });
 
-
-            if (storeId) {
-                const store = await Store.findById(storeId).lean();
-                if (store && typeof store === 'object' && !Array.isArray(store)) {
-                    storeName = store.name || '';
-                    if ('adminManagerId' in store && store.adminManagerId) {
-                        const admin = await Admin.findById(store.adminManagerId).lean();
-                        if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
-                            adminName = admin.name || '';
-                            adminEmail = admin.email || '';
-                            // Try to get admin's role name
-                            if ('roleId' in admin && admin.roleId) {
-                                const roleDoc = await Role.findById(admin.roleId).lean();
-                                if (roleDoc && typeof roleDoc === 'object' && !Array.isArray(roleDoc)) {
-                                    adminRoleName = roleDoc.name || '';
-                                }
-                            }
-                            // Notify store admin (manager)
-                            await Notification.create({
-                                userId: store.adminManagerId.toString(),
-                                role: 'admin',
-                                title: 'Prescription Re-uploaded',
-                                message: `Prescription Re-uploaded: ${customerName} has re-uploaded prescription for Order #${orderDoc.order_id}. Please review and take action.`,
-                                type: 'prescription',
-                                targetScreen: 'orders/detail',
-                                targetId: (orderDoc as any)._id.toString(),
-                                meta: {
-                                    prescriptionUrlArr,
-                                    customerName,
-                                    storeName,
-                                    orderId: (orderDoc as any)._id.toString(),
-                                    order_id: (orderDoc as any).order_id
-                                }
-                            });
-
-                            // Send email to adminEmail
-                            if (adminEmail) {
-                                const adminHtml = `
+            // Send email to adminEmail
+            if (adminEmail) {
+              const adminHtml = `
                                 ${header}
 
                                 <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
@@ -302,79 +277,79 @@ export async function POST(req: NextRequest) {
       
                                     ${footer}
                                 `;
-                                await sendEmail({ to: adminEmail, subject: `Prescription Re-uploaded – Verification Required`, html: adminHtml });
-                            }
-
-                            try {
-                                const adminToken = (admin as any).deviceToken;
-                                if (adminToken) {
-                                    await sendPushNotificationWithData({
-                                        token: adminToken,
-                                        title: 'Prescription Re-uploaded',
-                                        body: `${customerName} has re-uploaded prescription for Order #${orderDoc.order_id}. Please review and take action.`,
-                                        data: {
-                                            targetId: orderDoc._id.toString(),
-                                            orderId: orderDoc._id.toString(),
-                                            type: 'prescription_reuploaded',
-                                            targetScreen: 'orders/detail',
-                                        }
-                                    });
-                                }
-                            } catch (err) {
-                                console.error('Failed to send push notification to admin:', err);
-                            }
-
-                        }
-                    }
-                }
+              await sendEmail({ to: adminEmail, subject: `Prescription Re-uploaded – Verification Required`, html: adminHtml });
             }
 
-            // Notify all superadmins
-            const superAdminRole = await Role.findOne({ name: /superadmin/i });
-            if (superAdminRole && superAdminRole._id) {
-                const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
-                for (const superAdmin of superAdmins) {
-                    if (superAdmin && typeof superAdmin === 'object' && !Array.isArray(superAdmin) && '_id' in superAdmin) {
-                        await Notification.create({
-                            userId: (superAdmin as any)._id.toString(),
-                            role: 'admin',
-                            title: 'Prescription Re-uploaded',
-                            message: `Prescription Re-uploaded: Prescription for order #${orderDoc.order_id} has been re-uploaded by ${customerName}. Awaiting verification from ${storeName || 'N/A'}.`,
-                            type: 'prescription_reuploaded',
-                            targetScreen: 'orders/detail',
-                            targetId: (orderDoc as any)._id.toString(),
-                            meta: {
-                                prescriptionUrlArr,
-                                customerName,
-                                storeName,
-                                orderId: (orderDoc as any)._id.toString(),
-                                order_id: (orderDoc as any).order_id
-                            }
-                        });
+            try {
+              const adminToken = (admin as any).deviceToken;
+              if (adminToken) {
+                await sendPushNotificationWithData({
+                  token: adminToken,
+                  title: 'Prescription Re-uploaded',
+                  body: `${customerName} has re-uploaded prescription for Order #${orderDoc.order_id}. Please review and take action.`,
+                  data: {
+                    targetId: orderDoc._id.toString(),
+                    orderId: orderDoc._id.toString(),
+                    type: 'prescription_reuploaded',
+                    targetScreen: 'orders/detail',
+                  }
+                });
+              }
+            } catch (err) {
+              console.error('Failed to send push notification to admin:', err);
+            }
 
-                        try {
-                            const superToken = (superAdmin as any).deviceToken;
-                            if (superToken) {
-                                await sendPushNotificationWithData({
-                                    token: superToken,
-                                    title: 'Prescription Re-uploaded',
-                                    body: `${customerName} has re-uploaded prescription for Order #${orderDoc.order_id}. Please review and take action.`,
-                                    data: {
-                                        targetId: orderDoc._id.toString(),
-                                        orderId: orderDoc._id.toString(),
-                                        type: 'prescription_reuploaded',
-                                        targetScreen: 'orders/detail',
-                                    }
-                                });
-                            }
-                        } catch (err) {
-                            console.error('Failed to send push notification to superadmin:', err);
-                        }
+          }
+        }
+      }
+    }
 
-                        // Send email to super admin
-                        const superAdminEmail = (superAdmin as any).email;
-                        if (superAdminEmail) {
-                            const superAdminHtml = `
+    // Notify all superadmins
+    const superAdminRole = await Role.findOne({ name: /superadmin/i });
+    if (superAdminRole && superAdminRole._id) {
+      const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+      for (const superAdmin of superAdmins) {
+        if (superAdmin && typeof superAdmin === 'object' && !Array.isArray(superAdmin) && '_id' in superAdmin) {
+          await Notification.create({
+            userId: (superAdmin as any)._id.toString(),
+            role: 'admin',
+            title: 'Prescription Re-uploaded',
+            message: `Prescription Re-uploaded: Prescription for order #${orderDoc.order_id} has been re-uploaded by ${customerName}. Awaiting verification from ${storeName || 'N/A'}.`,
+            type: 'prescription_reuploaded',
+            targetScreen: 'orders/detail',
+            targetId: (orderDoc as any)._id.toString(),
+            meta: {
+              prescriptionUrlArr,
+              customerName,
+              storeName,
+              orderId: (orderDoc as any)._id.toString(),
+              order_id: (orderDoc as any).order_id
+            }
+          });
+
+          try {
+            const superToken = (superAdmin as any).deviceToken;
+            if (superToken) {
+              await sendPushNotificationWithData({
+                token: superToken,
+                title: 'Prescription Re-uploaded',
+                body: `${customerName} has re-uploaded prescription for Order #${orderDoc.order_id}. Please review and take action.`,
+                data: {
+                  targetId: orderDoc._id.toString(),
+                  orderId: orderDoc._id.toString(),
+                  type: 'prescription_reuploaded',
+                  targetScreen: 'orders/detail',
+                }
+              });
+            }
+          } catch (err) {
+            console.error('Failed to send push notification to superadmin:', err);
+          }
+
+          // Send email to super admin
+          const superAdminEmail = (superAdmin as any).email;
+          if (superAdminEmail) {
+            const superAdminHtml = `
                             ${header}
 
                             <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
@@ -477,25 +452,25 @@ export async function POST(req: NextRequest) {
 
                                 ${footer}
                             `;
-                            await sendEmail({ to: superAdminEmail, subject: `Prescription Re-uploaded – Awaiting Review`, html: superAdminHtml });
-                        }
-                    }
-                }
-            }
+            await sendEmail({ to: superAdminEmail, subject: `Prescription Re-uploaded – Awaiting Review`, html: superAdminHtml });
+          }
+        }
+      }
+    }
 
-              // send email to user reupload prescription
-            try {
-                const statusLower = String(status || '').toLowerCase();
-                if (statusLower.includes('deliv')) {
+    // send email to user reupload prescription
+    try {
+      const statusLower = String(status || '').toLowerCase();
+      if (statusLower.includes('deliv')) {
 
-                    let deliveryAddressText = ''
+        let deliveryAddressText = ''
 
-                    if (deliveredAddr) {
-                        deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
-                    }
+        if (deliveredAddr) {
+          deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
+        }
 
-                    const subject = `Prescription Re-uploaded – Action Required for Order #${orderDoc.order_id}`;
-                    const html = `${header}
+        const subject = `Prescription Re-uploaded – Action Required for Order #${orderDoc.order_id}`;
+        const html = `${header}
                     <div style="font-family: Arial, sans-serif; color:#333; line-height:1.4;">
                         <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
                             <p>Hello ${storeName},</p>
@@ -515,23 +490,73 @@ export async function POST(req: NextRequest) {
                 ${footer}
                 `;
 
-                    if (userEmail) {
-                        await sendEmail({ to: userEmail, subject, html });
-                    }
-                }
-            } catch (emailErr) {
-                console.error('Error sending delivered email:', emailErr);
-            }
-
-        } catch (notifyErr) {
-            console.error('Notification error on prescription re-upload:', notifyErr);
+        if (userEmail) {
+          await sendEmail({ to: userEmail, subject, html });
         }
-
-        // Return updated order
-        const updatedOrder = await OrderModel.findById(orderId).lean();
-        return NextResponse.json({ success: true, message: 'Prescription re-uploaded', data: updatedOrder });
-    } catch (err: any) {
-        console.error('Prescription reupload error:', err);
-        return NextResponse.json({ success: false, message: 'Failed to re-upload prescription', error: err?.message || String(err) }, { status: 500 });
+      }
+    } catch (emailErr) {
+      console.error('Error sending delivered email:', emailErr);
     }
+
+  } catch (notifyErr) {
+    console.error('Notification error on prescription re-upload:', notifyErr);
+  }
+
+
+
+}
+
+export async function POST(req: NextRequest) {
+  await dbConnect();
+  try {
+    const { orderId, url } = await req.json();
+
+    if (!orderId || !url) {
+      return NextResponse.json({ success: false, message: 'orderId and url are required' }, { status: 400 });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return NextResponse.json({ success: false, message: 'Invalid orderId' }, { status: 400 });
+    }
+
+    const orderDoc: any = await Order.findById(orderId).lean();
+    if (!orderDoc) {
+      return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
+    }
+
+    // Normalize url to array of strings
+    let prescriptionUrlArr: string[] = [];
+    if (Array.isArray(url)) {
+      prescriptionUrlArr = url.filter((u) => typeof u === 'string');
+    } else if (typeof url === 'string' && url) {
+      prescriptionUrlArr = [url];
+    }
+
+    // Update order fields
+    const OrderModel = (await import('@/models/Order')).default;
+    await OrderModel.updateOne(
+      { _id: orderId },
+      {
+        $set: {
+          prescription_url: prescriptionUrlArr,
+          prescription_status: 'Pending',
+          prescription_rejection_reason: '',
+          prescription_rejected_by: null,
+          prescription_rejected_at: undefined
+        }
+      }
+    );
+
+    // Return updated order
+    const updatedOrder = await OrderModel.findById(orderId).lean();
+
+    setImmediate(() => {
+      runBackground(updatedOrder, prescriptionUrlArr);
+    });
+
+    return NextResponse.json({ success: true, message: 'Prescription re-uploaded' }, { status: 200 });
+  } catch (err: any) {
+    console.error('Prescription reupload error:', err);
+    return NextResponse.json({ success: false, message: 'Failed to re-upload prescription', error: err?.message || String(err) }, { status: 500 });
+  }
 }
