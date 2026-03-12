@@ -21,7 +21,7 @@ export default function OrderDetailPage() {
   if (typeof window !== 'undefined') {
     const urlParams = new URLSearchParams(window.location.search);
     isCustomer = urlParams.get('isCustomer') === '1';
-  }
+  } 
   const orderId = params?.id as string;
 
   const [order, setOrder] = useState<any>(null);

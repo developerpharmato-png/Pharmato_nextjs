@@ -178,7 +178,7 @@ function OrdersPageContent() {
             <LocalizationProvider
               dateAdapter={AdapterDateFns}
               adapterLocale={enGB}
-            >
+            > 
               <DatePicker
                 label="Start date"
                 format="dd/MM/yyyy"

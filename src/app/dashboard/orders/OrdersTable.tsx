@@ -150,7 +150,7 @@ const OrdersTable: React.FC<OrdersTableProps> = (props) => {
         <CustomTooltip title={row.payment_id || "Not Available"}>
           <span className="customTooltip">{row.payment_id || "-"}</span>
         </CustomTooltip>
-      ),
+      ), 
     },
     {
       id: "total_amount",

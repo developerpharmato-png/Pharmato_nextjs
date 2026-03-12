@@ -52,7 +52,7 @@ export default function PartialCancelPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string[]>([]);
   const [cancelReason, setCancelReason] = useState("");
-  const [showDialog, setShowDialog] = useState(false); 
+  const [showDialog, setShowDialog] = useState(false);
   // Prescription management states
   const [showRejectModalPresc, setShowRejectModalPresc] = useState(false);
   const [rejectionReasonPresc, setRejectionReasonPresc] = useState("");
@@ -705,7 +705,7 @@ export default function PartialCancelPage() {
             <div>
               <ProductManageTable
                 medicines={order?.medicineId || []}
-                medicineQuantity={order?.medicineQuantity || []}
+                medicineQuantity={order?.medicineId || []}
                 selected={selected}
                 setSelected={(s: string[]) => setSelected(s)}
                 acceptedQuantities={acceptedQuantities}
