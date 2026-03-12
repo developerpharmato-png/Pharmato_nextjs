@@ -447,7 +447,7 @@ export default function MedicineDetailPage() {
                           <div
                             key={i}
                             className="px-3 py-1 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded text-sm font-medium"
-                          >
+                          > 
                             {h}
                           </div>
                         ))

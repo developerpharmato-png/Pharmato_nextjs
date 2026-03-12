@@ -158,6 +158,12 @@ const MedicineImageUploader: React.FC<MedicineImageUploaderProps> = ({
   const [sliderOpen, setSliderOpen] = React.useState(false);
   const [sliderIndex, setSliderIndex] = React.useState(0);
 
+  React.useEffect(() => {
+    if (form.images && form.images.length > 0 && !form.coverImage) {
+      setPrimaryImage(form.images[0]);
+    }
+  }, [form.images, form.coverImage, setPrimaryImage]);
+
   const handleOpenSlider = (index: number) => {
     setSliderIndex(index);
     setSliderOpen(true);

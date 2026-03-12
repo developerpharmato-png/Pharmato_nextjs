@@ -23,7 +23,7 @@ import { CouponCreatePath, CouponUpdatePath } from "@/app/dashboard/storeAPICall
 import Toast from "@/utils/Toast";
 import { MdSave } from "react-icons/md";
 import { TextareaField } from "@/app/dashboard/components/skeleton/FieldCom";
-import { CouponsvalidationSchema } from "@/utils/validateCategory";
+import { getCouponsValidationSchema } from "@/utils/validateCategory";
 import CoponSkeleton from "@/app/dashboard/components/skeleton/CoponSkeleton";
 
 interface CouponFormValues {
@@ -146,7 +146,7 @@ export default function CouponAddEditPage() {
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: fetchedInitialValues,
-        validationSchema: CouponsvalidationSchema,
+        validationSchema: getCouponsValidationSchema(isEdit),
         onSubmit: async (values) => {
             setLoading(true);
             try {
@@ -246,7 +246,7 @@ export default function CouponAddEditPage() {
                             onBlur={formik.handleBlur}
                             placeholder="e.g., DAILYNEEDS"
                             inputProps={{ style: { textTransform: "uppercase" } }}
-
+                            disabled={isEdit}
                         />
                         {formik.touched.code && formik.errors.code && (
                             <ErrorMessageCom error={formik.errors.code} />
@@ -303,7 +303,12 @@ export default function CouponAddEditPage() {
                             name="type"
                             select
                             value={formik.values.type}
-                            onChange={formik.handleChange}
+                            onChange={(e) => {
+                                formik.handleChange(e);
+                                if (e.target.value === "fixed") {
+                                    formik.setFieldValue("maxDiscountAmount", "");
+                                }
+                            }}
                             onBlur={formik.handleBlur}
                         >
                             <MenuItem value="fixed">Fixed Amount (₹)</MenuItem>
@@ -320,12 +325,16 @@ export default function CouponAddEditPage() {
                             fullWidth
                             label={formik.values.type === "fixed" ? "Discount Amount (₹) *" : "Discount Percentage (1-100) *"}
                             name="value"
-                            type="number"
                             value={formik.values.value}
-                            onChange={formik.handleChange}
+                            onChange={(e) => {
+                                let val = e.target.value.replace(/[^0-9]/g, "");
+                                if (formik.values.type === "percentage" && Number(val) > 100) {
+                                    return;
+                                }
+                                formik.setFieldValue("value", val);
+                            }}
                             onBlur={formik.handleBlur}
                             inputProps={{
-                                step: formik.values.type === "fixed" ? "0.01" : "1",
                                 min: "0",
                                 max: formik.values.type === "percentage" ? "100" : undefined,
                             }}
@@ -347,11 +356,12 @@ export default function CouponAddEditPage() {
                             fullWidth
                             label="Min Order Value (₹) *"
                             name="minOrderValue"
-                            type="number"
                             value={formik.values.minOrderValue}
-                            onChange={formik.handleChange}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9]/g, "");
+                                formik.setFieldValue("minOrderValue", val);
+                            }}
                             onBlur={formik.handleBlur}
-
                         />
                         {formik.touched.minOrderValue && formik.errors.minOrderValue && (
                             <ErrorMessageCom error={formik.errors.minOrderValue} />
@@ -364,12 +374,14 @@ export default function CouponAddEditPage() {
                                 fullWidth
                                 label="Max Rs Discount (Optional)"
                                 name="maxDiscountAmount"
-                                type="number"
                                 value={formik.values.maxDiscountAmount || ""}
-                                onChange={formik.handleChange}
+                                onChange={(e) => {
+                                    const val = e.target.value.replace(/[^0-9]/g, "");
+                                    formik.setFieldValue("maxDiscountAmount", val);
+                                }}
                                 onBlur={formik.handleBlur}
                                 placeholder="e.g., 500"
-                                inputProps={{ step: "0.01", min: "0" }}
+                                inputProps={{ min: "0" }}
                             />
                             {formik.touched.maxDiscountAmount && formik.errors.maxDiscountAmount && (
                                 <ErrorMessageCom error={formik.errors.maxDiscountAmount} />
@@ -464,12 +476,13 @@ export default function CouponAddEditPage() {
                             fullWidth
                             label="Max Coupons Per User *"
                             name="perUserLimit"
-                            type="number"
                             value={formik.values.perUserLimit}
-                            onChange={formik.handleChange}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9]/g, "");
+                                formik.setFieldValue("perUserLimit", val);
+                            }}
                             onBlur={formik.handleBlur}
                             helperText="How many times one user can use this coupon"
-
                         />
                         {formik.touched.perUserLimit && formik.errors.perUserLimit && (
                             <ErrorMessageCom error={formik.errors.perUserLimit} />
@@ -478,23 +491,24 @@ export default function CouponAddEditPage() {
 
                     {/* Max Coupons */}
                     <div>
-                        <TextField 
+                        <TextField
                             fullWidth
                             label="Max No. of Coupons (Global) *"
                             name="totalUses"
-                            type="number"
                             value={formik.values.totalUses}
-                            onChange={formik.handleChange}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9]/g, "");
+                                formik.setFieldValue("totalUses", val);
+                            }}
                             onBlur={formik.handleBlur}
                             helperText="Total number of times this coupon can be used"
-
                         />
                         {formik.touched.totalUses && formik.errors.totalUses && (
                             <ErrorMessageCom error={formik.errors.totalUses} />
                         )}
                     </div>
                 </div>
-                
+
                 {/* Toggles */}
                 <Box className="border-t pt-6">
                     <div className="space-y-4">
@@ -528,6 +542,21 @@ export default function CouponAddEditPage() {
                                     <p className="text-xs text-gray-600">
                                         Won't appear in customer-facing lists. Customers must apply manually.
                                     </p>
+                                </div>
+                            }
+                        />
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    name="isActive"
+                                    checked={formik.values.isActive}
+                                    onChange={formik.handleChange}
+                                />
+                            }
+                            label={
+                                <div>
+                                    <p className="font-medium">Active Status</p>
+                                    <p className="text-xs text-gray-600">Turn OFF to manually deactivate this coupon</p>
                                 </div>
                             }
                         />

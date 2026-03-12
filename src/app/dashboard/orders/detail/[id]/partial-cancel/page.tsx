@@ -52,7 +52,7 @@ export default function PartialCancelPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string[]>([]);
   const [cancelReason, setCancelReason] = useState("");
-  const [showDialog, setShowDialog] = useState(false);
+  const [showDialog, setShowDialog] = useState(false); 
   // Prescription management states
   const [showRejectModalPresc, setShowRejectModalPresc] = useState(false);
   const [rejectionReasonPresc, setRejectionReasonPresc] = useState("");
@@ -72,6 +72,7 @@ export default function PartialCancelPage() {
   const [showPrescriptionViewer, setShowPrescriptionViewer] = useState(false);
   const [prescriptionViewerIndex, setPrescriptionViewerIndex] = useState(0);
   const [prescriptionZoom, setPrescriptionZoom] = useState(1);
+  const [acceptedQuantities, setAcceptedQuantities] = useState<Record<string, number>>({});
   const statusOptions = [{ value: "Delivered", label: "Delivered" }];
 
   const medidetails = (_id: String) => {
@@ -95,13 +96,20 @@ export default function PartialCancelPage() {
       const data = await res.json();
       if (data.success) {
         setOrder(data.data);
-        // Auto-select all pending medicines
         const pendingIds = (data.data?.medicineQuantity || [])
           .filter((q: any) => q?.status === "pending")
           .map((q: any) =>
             q.medicineId?.toString ? q.medicineId.toString() : q.medicineId,
           );
         setSelected(pendingIds);
+
+        // Initialize acceptedQuantities
+        const initialQuantities: Record<string, number> = {};
+        (data.data?.medicineQuantity || []).forEach((q: any) => {
+          const id = q.medicineId?.toString() || q.medicineId;
+          initialQuantities[id] = q.quantity;
+        });
+        setAcceptedQuantities(initialQuantities);
       } else {
         Swal.fire("Error", data.message || "Order not found", "error");
         router.push("/dashboard/orders");
@@ -683,6 +691,8 @@ export default function PartialCancelPage() {
                 medicineQuantity={order?.medicineQuantity || []}
                 selected={selected}
                 setSelected={(s: string[]) => setSelected(s)}
+                acceptedQuantities={acceptedQuantities}
+                setAcceptedQuantities={setAcceptedQuantities}
                 medidetails={(id: string) => medidetails(id)}
                 gridCols="grid-cols-1 lg:grid-cols-2"
                 tableMode={true}
@@ -874,16 +884,73 @@ export default function PartialCancelPage() {
               }
               setAcceptLoading(true);
               try {
+                const processedMedicines: any[] = [];
+                (order?.medicineQuantity || []).forEach((item: any) => {
+                  const id = item.medicineId?.toString() || item.medicineId;
+                  const medInfo = order.medicineId.find((m: any) => m._id?.toString() === id);
+
+                  // Extract common fields strictly following the requested format
+                  const baseMed = {
+                    _id: medInfo?._id || id,
+                    name: medInfo?.name || item.name,
+                    manufacturer: medInfo?.manufacturer || item.manufacturer,
+                    price: medInfo?.price || item.price,
+                    mrp: medInfo?.mrp || item.mrp,
+                    images: medInfo?.images || item.images || [],
+                    coverImage: medInfo?.coverImage || item.coverImage,
+                    discount: medInfo?.discount || item.discount,
+                    isPrescription: medInfo?.isPrescription || item.isPrescription || false,
+                  };
+
+                  if (item.status !== "pending") {
+                    processedMedicines.push({
+                      ...baseMed,
+                      quantity: item.quantity,
+                      status: item.status,
+                      cancelReason: item.cancelReason || ""
+                    });
+                    return;
+                  }
+
+                  if (selected.includes(id)) {
+                    const acceptQty = acceptedQuantities[id] || item.quantity;
+                    const cancelQty = item.quantity - acceptQty;
+
+                    // Entry for accepted part
+                    processedMedicines.push({
+                      ...baseMed,
+                      quantity: acceptQty,
+                      status: "accepted",
+                      cancelReason: ""
+                    });
+
+                    // Entry for cancelled part (if any)
+                    if (cancelQty > 0) {
+                      processedMedicines.push({
+                        ...baseMed,
+                        quantity: cancelQty,
+                        status: "cancelled",
+                        cancelReason: cancelReason || ""
+                      });
+                    }
+                  } else {
+                    // Fully cancelled
+                    processedMedicines.push({
+                      ...baseMed,
+                      quantity: item.quantity,
+                      status: "cancelled",
+                      cancelReason: cancelReason || ""
+                    });
+                  }
+                });
+
                 const res = await fetch("/api/admin/order/partial-accept", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                     orderId,
-                    medicineIds: selected,
-                    cancelReason:
-                      previewUnselectedMeds.length > 0
-                        ? cancelReason
-                        : undefined,
+                    medicineId: processedMedicines,
+                    cancelReason
                   }),
                 });
                 const data = await res.json();
