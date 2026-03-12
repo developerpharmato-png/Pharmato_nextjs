@@ -961,7 +961,7 @@ export default function PartialCancelPage() {
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                     orderId,
-                    medicineId: processedMedicines,
+                    medicineIds: processedMedicines,
                     cancelReason
                   }),
                 });
