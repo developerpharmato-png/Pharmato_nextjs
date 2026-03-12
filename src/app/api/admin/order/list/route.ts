@@ -272,9 +272,28 @@ export async function POST(req: NextRequest) {
                 })
                 : [];
 
+
+            const dummyQuantity = []
+
+            for (const element of order.medicineQuantity) {
+
+                const checkMedicine = order.medicineId.find((obj: any) => obj._id.toString() === element.medicineId.toString());
+
+                const object = {
+                    ...checkMedicine,
+                    quantity: element.quantity,
+                    price: element.price,
+                    isPrescription: element.isPrescription,
+                    status: element.status,
+                    cancelReason: element.cancelReason,
+                }
+                dummyQuantity.push(object);
+            }
+
             return {
                 ...order,
-                medicineId: medicineIdWithQuantity
+                medicineId: medicineIdWithQuantity,
+                dummyQuantity
             };
         });
 

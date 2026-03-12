@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const order = await Order.findOne({ _id: orderId })
+        const order: any = await Order.findOne({ _id: orderId })
             .populate({
                 path: 'userId',
                 select: '_id name email phone mobile'
@@ -91,6 +91,24 @@ export async function POST(req: NextRequest) {
             })
             : [];
 
+        const dummyQuantity = []
+
+        for (const element of order.medicineQuantity) {
+
+            const checkMedicine = order.medicineId.find((obj: any) => obj._id.toString() === element.medicineId.toString());
+
+            const object = {
+                ...checkMedicine.toObject(),
+                quantity: element.quantity,
+                price: element.price,
+                isPrescription: element.isPrescription,
+                status: element.status,
+                cancelReason: element.cancelReason,
+            }
+            dummyQuantity.push(object);
+        }
+
+
         // Return order with updated medicineId array
         const orderObj = order.toObject();
         orderObj.medicineId = medicineIdWithQuantity;
@@ -105,7 +123,7 @@ export async function POST(req: NextRequest) {
             orderObj.deliveredDate = "";
         }
 
-        return NextResponse.json({ success: true, data: orderObj });
+        return NextResponse.json({ success: true, data: orderObj, dummyQuantity }, { status: 200 });
 
     } catch (error) {
         console.error('Error fetching order detail:', error);

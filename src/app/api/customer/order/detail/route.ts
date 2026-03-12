@@ -61,8 +61,87 @@ export async function POST(req: NextRequest) {
   const orderObjectId = new mongoose.Types.ObjectId(orderId);
   const userObjectId = new mongoose.Types.ObjectId(userId);
 
+  // const orders = await Order.aggregate([
+  //   // 1️⃣ Match order (findOne equivalent)
+  //   {
+  //     $match: {
+  //       _id: orderObjectId,
+  //       userId: userObjectId
+  //     }
+  //   },
+
+  //   // 2️⃣ Lookup medicines
+  //   {
+  //     $lookup: {
+  //       from: 'medicines',
+  //       localField: 'medicineId',
+  //       foreignField: '_id',
+  //       as: 'medicineDetails'
+  //     }
+  //   },
+
+  //   // 3️⃣ Merge medicineQuantity into medicineDetails
+  //   {
+  //     $addFields: {
+  //       medicineDetails: {
+  //         $map: {
+  //           input: '$medicineDetails',
+  //           as: 'med',
+  //           in: {
+  //             $let: {
+  //               vars: {
+  //                 mq: {
+  //                   $arrayElemAt: [
+  //                     {
+  //                       $filter: {
+  //                         input: '$medicineQuantity',
+  //                         as: 'item',
+  //                         cond: {
+  //                           $eq: [
+  //                             { $toString: '$$item.medicineId' },
+  //                             { $toString: '$$med._id' }
+  //                           ]
+  //                         }
+  //                       }
+  //                     },
+  //                     0
+  //                   ]
+  //                 }
+  //               },
+  //               in: {
+  //                 _id: '$$med._id',
+  //                 name: '$$med.name',
+  //                 manufacturer: '$$med.manufacturer',
+  //                 mrp: '$$med.mrp',
+  //                 // price: '$$med.price',
+  //                 discount: '$$med.discount',
+  //                 images: '$$med.images',
+  //                 coverImage: '$$med.coverImage',
+
+  //                 // ✅ ACTUAL VALUES (fallback only if not present)
+  //                 quantity: { $ifNull: ['$$mq.quantity', 1] },
+  //                 price: { $ifNull: ['$$mq.price', '$$med.price'] },
+  //                 isPrescription: { $ifNull: ['$$mq.isPrescription', '$$med.isPrescription'] },
+  //                 status: { $ifNull: ['$$mq.status', 'pending'] },
+  //                 cancelReason: { $ifNull: ['$$mq.cancelReason', ''] }
+  //               }
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   },
+
+  //   // 4️⃣ Cleanup unwanted fields
+  //   {
+  //     $project: {
+  //       medicineId: 0,
+  //       medicineQuantity: 0
+  //     }
+  //   }
+  // ]);
+
   const orders = await Order.aggregate([
-    // 1️⃣ Match order (findOne equivalent)
     {
       $match: {
         _id: orderObjectId,
@@ -70,36 +149,53 @@ export async function POST(req: NextRequest) {
       }
     },
 
-    // 2️⃣ Lookup medicines
+    // 1️⃣ Lookup medicines using medicineQuantity.medicineId
     {
       $lookup: {
-        from: 'medicines',
-        localField: 'medicineId',
-        foreignField: '_id',
-        as: 'medicineDetails'
+        from: "medicines",
+        let: { medicineIds: "$medicineQuantity.medicineId" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $in: [
+                  "$_id",
+                  {
+                    $map: {
+                      input: "$$medicineIds",
+                      as: "id",
+                      in: { $toObjectId: "$$id" }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        as: "medicineData"
       }
     },
 
-    // 3️⃣ Merge medicineQuantity into medicineDetails
+    // 2️⃣ Map medicineQuantity → medicineDetails
     {
       $addFields: {
         medicineDetails: {
           $map: {
-            input: '$medicineDetails',
-            as: 'med',
+            input: "$medicineQuantity",
+            as: "mq",
             in: {
               $let: {
                 vars: {
-                  mq: {
+                  med: {
                     $arrayElemAt: [
                       {
                         $filter: {
-                          input: '$medicineQuantity',
-                          as: 'item',
+                          input: "$medicineData",
+                          as: "m",
                           cond: {
                             $eq: [
-                              { $toString: '$$item.medicineId' },
-                              { $toString: '$$med._id' }
+                              { $toString: "$$m._id" },
+                              "$$mq.medicineId"
                             ]
                           }
                         }
@@ -109,21 +205,21 @@ export async function POST(req: NextRequest) {
                   }
                 },
                 in: {
-                  _id: '$$med._id',
-                  name: '$$med.name',
-                  manufacturer: '$$med.manufacturer',
-                  mrp: '$$med.mrp',
-                  // price: '$$med.price',
-                  discount: '$$med.discount',
-                  images: '$$med.images',
-                  coverImage: '$$med.coverImage',
+                  _id: "$$med._id",
+                  name: "$$med.name",
+                  manufacturer: "$$med.manufacturer",
+                  mrp: "$$med.mrp",
+                  discount: "$$med.discount",
+                  images: "$$med.images",
+                  coverImage: "$$med.coverImage",
 
-                  // ✅ ACTUAL VALUES (fallback only if not present)
-                  quantity: { $ifNull: ['$$mq.quantity', 1] },
-                  price: { $ifNull: ['$$mq.price', '$$med.price'] },
-                  isPrescription: { $ifNull: ['$$mq.isPrescription', '$$med.isPrescription'] },
-                  status: { $ifNull: ['$$mq.status', 'pending'] },
-                  cancelReason: { $ifNull: ['$$mq.cancelReason', ''] }
+                  quantity: "$$mq.quantity",
+                  price: "$$mq.price",
+                  isPrescription: "$$mq.isPrescription",
+                  status: "$$mq.status",
+                  cancelReason: {
+                    $ifNull: ["$$mq.cancelReason", ""]
+                  }
                 }
               }
             }
@@ -132,11 +228,12 @@ export async function POST(req: NextRequest) {
       }
     },
 
-    // 4️⃣ Cleanup unwanted fields
+    // 3️⃣ Cleanup unwanted fields
     {
       $project: {
         medicineId: 0,
-        medicineQuantity: 0
+        medicineQuantity: 0,
+        medicineData: 0
       }
     }
   ]);
@@ -174,11 +271,11 @@ export async function POST(req: NextRequest) {
   }
 
   // Fetch store details
-  let storeDetails : any = null;
+  let storeDetails: any = null;
   if (orderData.storeId) {
     storeDetails = await Store.findById(orderData.storeId).lean();
     if (storeDetails && storeDetails.adminManagerId) {
-      const admin : any = await Admin.findById(storeDetails.adminManagerId).lean();
+      const admin: any = await Admin.findById(storeDetails.adminManagerId).lean();
       if (admin) {
         storeDetails.name = admin.name || '';
         storeDetails.email = admin.email || '';

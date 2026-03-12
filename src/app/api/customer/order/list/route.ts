@@ -19,6 +19,14 @@ import moment from 'moment-timezone';
  *               userId:
  *                 type: string
  *                 description: User's ObjectId
+ *               limit:
+ *                 type: integer
+ *                 default: 10
+ *               offset:
+ *                 type: integer
+ *                 default: 0
+ *               search:
+ *                 type: string
  *     responses:
  *       200:
  *         description: List of orders
@@ -40,7 +48,7 @@ import moment from 'moment-timezone';
 export async function POST(req: NextRequest) {
     await dbConnect();
 
-    const { userId } = await req.json();
+    const { userId, limit = 10, offset = 1, search = "" } = await req.json();
 
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
         return NextResponse.json(
@@ -51,13 +59,28 @@ export async function POST(req: NextRequest) {
 
     const userObjectId = new mongoose.Types.ObjectId(userId);
 
+    const matchStage: any = {
+       userId: userObjectId
+    };
+
+    if (search && search.trim() !== '') {
+        matchStage.order_id = { $regex: search, $options: 'i' };
+    }
+
+    const page: number = Number(offset) || 1;
+    const skip = (Number(page) - 1) * limit;
+    const lim = Number(limit);
+
+    // Ensure limit and offset are numbers and safe
+    const safeLimit = Math.max(1, Math.min(Number(limit), 100));
+    const safeOffset = Math.max(0, Number(offset));
+
     const orders = await Order.aggregate([
         // 1️⃣ Match user
-        {
-            $match: {
-                userId: userObjectId
-            }
-        },
+        { $match: matchStage },
+        // Pagination: skip and limit
+        { $skip: skip },
+        { $limit: lim },
 
         // 2️⃣ Latest orders first
         {
@@ -124,15 +147,23 @@ export async function POST(req: NextRequest) {
                     }
                 }
             }
+        },
+
+        // 3️⃣ Cleanup unwanted fields
+        {
+            $project: {
+                medicineId: 0,
+                medicineQuantity: 0,
+                calculationData: 0,
+                paymentHistory: 0,
+                deliveredAddress: 0,
+                refunds: 0,
+                privacyPolicy: 0,
+                termAndCondition: 0,
+            }
         }
 
-        // ❌ medicineId intentionally kept
-        // frontend ke kaam aa sakta hai
     ]);
-
-
-
-
 
     // Format createdAt, deliveredDate, and expectedDeliveryDate for each order with Asia/Kolkata timezone
     const formattedOrders = orders.map(order => ({
