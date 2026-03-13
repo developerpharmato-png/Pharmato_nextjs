@@ -232,7 +232,7 @@ export async function POST(req: NextRequest) {
     {
       $project: {
         medicineId: 0,
-        medicineQuantity: 0,
+        // medicineQuantity: 0,
         medicineData: 0
       }
     }
