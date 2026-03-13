@@ -1349,8 +1349,14 @@ export async function POST(req: NextRequest) {
 
             medicineStatusSet.push({
                 medicineId: element._id.toString(),
+                name: element.name,
+                manufacturer: element.manufacturer,
                 quantity: element.quantity,
                 price: element.price,
+                mrp: element.mrp,
+                discount: element.discount,
+                images: element?.images || [],
+                coverImage: element?.coverImage || "",
                 isPrescription: element.isPrescription,
                 status: element.status,
                 cancelReason: element.status === 'cancelled' ? (cancelReason || 'Cancelled by admin') : '',

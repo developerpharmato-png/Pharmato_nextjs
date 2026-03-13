@@ -234,7 +234,19 @@ export async function POST(req: NextRequest) {
 
     for (const element of cartData) {
         medicineId.push(new mongoose.Types.ObjectId(element.medicine._id));
-        medicineQuantity.push({ medicineId: `${element.medicine._id}`, quantity: Number(element.quantity), price: Number(element.medicine.price), isPrescription: element.medicine.isPrescription, status: 'pending' });
+        medicineQuantity.push({
+            medicineId: `${element.medicine._id}`,
+            name: element.medicine.name,
+            manufacturer: element.medicine.manufacturer,
+            coverImage: element.medicine.coverImage,
+            images: element.medicine.images,
+            quantity: Number(element.quantity),
+            price: Number(element.medicine.price),
+            mrp: Number(element.medicine.mrp),
+            discount: Number(element.medicine.discount),
+            isPrescription: element.medicine.isPrescription,
+            status: 'pending'
+        });
     }
 
     const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
