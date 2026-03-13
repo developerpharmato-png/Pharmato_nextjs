@@ -942,94 +942,94 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
 
         console.log("###productCode######productQuantity####freeItems##", productCode, productQuantity, freeItems);
 
-        // //Firebase realtime data update
-        // const firebaseRef = db.ref(`marg/order/count`);
-        // const snapshot = await firebaseRef.once('value');
-        // const totalOrderCount: any = Number(snapshot.val()?.totalOrderCount || 0) + 1
-        // await firebaseRef.update({
-        //     totalOrderCount: totalOrderCount
-        // });
+        //Firebase realtime data update
+        const firebaseRef = db.ref(`marg/order/count`);
+        const snapshot = await firebaseRef.once('value');
+        const totalOrderCount: any = Number(snapshot.val()?.totalOrderCount || 0) + 1
+        await firebaseRef.update({
+            totalOrderCount: totalOrderCount
+        });
 
-        // const payload = {
-        //     OrderID: "",
-        //     OrderNo: `${totalOrderCount}`,
-        //     // Partycode: "STACjn", //Online order
-        //     // CustomerID: "11906405",//12324265
-        //     Partycode: "APP   ", //Online order
-        //     CustomerID: "12324265",//12324265
-        //     MargID: "486257",
-        //     Type: "C",
-        //     Sid: "306832",
+        const payload = {
+            OrderID: "",
+            OrderNo: `${totalOrderCount}`,
+            // Partycode: "STACjn", //Online order
+            // CustomerID: "11906405",//12324265
+            Partycode: "APP   ", //Online order
+            CustomerID: "12324265",//12324265
+            MargID: "486257",
+            Type: "C",
+            Sid: "306832",
 
-        //     // ProductCode: "1061746",   // ✅ EXACT as Marg sample
-        //     ProductCode: `${productCode}`,   // ✅ EXACT as Marg sample
-        //     Quantity: `${productQuantity}`,
-        //     Free: `${freeItems}`,
+            // ProductCode: "1061746",   // ✅ EXACT as Marg sample
+            ProductCode: `${productCode}`,   // ✅ EXACT as Marg sample
+            Quantity: `${productQuantity}`,
+            Free: `${freeItems}`,
 
-        //     Lat: "",
-        //     Lng: "",
-        //     Address: "",
-        //     GpsID: "0",
-        //     UserType: "1",
-        //     Points: "0.00",
+            Lat: "",
+            Lng: "",
+            Address: "",
+            GpsID: "0",
+            UserType: "1",
+            Points: "0.00",
 
-        //     Discounts: "1",
-        //     Transport: "",
-        //     Delivery: "",
+            Discounts: "1",
+            Transport: "",
+            Delivery: "",
 
-        //     Bankname: "",
-        //     BankAdd1: "",
-        //     BankAdd2: "",
+            Bankname: "",
+            BankAdd1: "",
+            BankAdd2: "",
 
-        //     shipname: "",
-        //     shipAdd1: "",
-        //     shipAdd2: "",
-        //     shipAdd3: "",
+            shipname: "",
+            shipAdd1: "",
+            shipAdd2: "",
+            shipAdd3: "",
 
-        //     paymentmode: "1",
-        //     paymentmodeAmount: "0",
-        //     payment_remarks: "",
-        //     order_remarks: "order place",
+            paymentmode: "1",
+            paymentmodeAmount: "0",
+            payment_remarks: "",
+            order_remarks: "order place",
 
-        //     CustName: "Sunil",
-        //     CustMobile: "7470376772",
+            CustName: "Sunil",
+            CustMobile: "7470376772",
 
-        //     DoctorName: "",
-        //     DoctorMobile: "",
+            DoctorName: "",
+            DoctorMobile: "",
 
-        //     CompanyCode: "PharmatoInd2",
-        //     OrderFrom: "PharmatoInd2"
-        // };
+            CompanyCode: "PharmatoInd2",
+            OrderFrom: "PharmatoInd2"
+        };
 
-        // console.log("#############payload##############", payload);
+        console.log("#############payload##############", payload);
 
-        // const response = await axios.post(
-        //     "https://corporate.margerp.com/api/eOnlineData/InsertOrderDetailB2C",
-        //     payload,
-        //     { headers: { "Content-Type": "application/json" } }
-        // );
+        const response = await axios.post(
+            "https://corporate.margerp.com/api/eOnlineData/InsertOrderDetailB2C",
+            payload,
+            { headers: { "Content-Type": "application/json" } }
+        );
 
-        // console.log("📥 RAW:", response.data);
+        console.log("📥 RAW:", response.data);
 
-        // const result = await decryptMargData(response.data);
+        const result = await decryptMargData(response.data);
 
-        // console.log("$$$$$$$$$$$result$$$$$$$$$$$$$$", result);
+        console.log("$$$$$$$$$$$result$$$$$$$$$$$$$$", result);
 
-        // if (result?.Details) {
+        if (result?.Details) {
 
-        //     await Order.updateOne(
-        //         { _id: order._id },
-        //         {
-        //             $set: {
-        //                 margOrderNo: result?.Details?.OrderDetails[0].OrderNo || '',
-        //                 margOrderInsertData: result || {}
-        //             }
-        //         }
-        //     );
+            await Order.updateOne(
+                { _id: order._id },
+                {
+                    $set: {
+                        margOrderNo: result?.Details?.OrderDetails[0].OrderNo || '',
+                        margOrderInsertData: result || {}
+                    }
+                }
+            );
 
-        // } else {
-        //     console.log("##########result####Kuch to gadbad hain baba#######", result);
-        // }
+        } else {
+            console.log("##########result####Kuch to gadbad hain baba#######", result);
+        }
 
         let invoiceMedicinesHtml = ``
         let invoiceNumber = '';
