@@ -39,15 +39,20 @@ import moment from 'moment-timezone';
 export async function POST(req: NextRequest) {
     await dbConnect();
     try {
+
         const { userId, storeId } = await req.json();
+
         if (!userId) {
             return NextResponse.json({ success: false, message: 'userId is required' }, { status: 400 });
         }
+        
         if (!storeId) {
             return NextResponse.json({ success: false, message: 'storeId is required' }, { status: 400 });
         }
+
         const query: any = { userId, storeId }
         const order = await Order.findOne(query).sort({ createdAt: -1 });
+
         if (!order) {
             return NextResponse.json({ success: false, message: 'No order found for this user' }, { status: 404 });
         }
@@ -68,6 +73,7 @@ export async function POST(req: NextRequest) {
                 .lean();
 
         }
+
         // Get user's cart or guest cart
         let cartItems: any[] = [];
         if (userId && typeof userId === 'string' && userId.trim() !== "") {
@@ -131,6 +137,7 @@ export async function POST(req: NextRequest) {
                 status: 200,
             }
         );
+
     } catch (error) {
         return NextResponse.json({ success: false, message: 'Failed to fetch recent order', error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
     }
