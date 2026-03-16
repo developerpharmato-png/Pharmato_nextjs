@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
         {
             $project: {
                 medicineId: 0,
-                medicineQuantity: 0,
+                // medicineQuantity: 0,
                 calculationData: 0,
                 paymentHistory: 0,
                 deliveredAddress: 0,
