@@ -11,132 +11,107 @@ import Admin from '@/models/Admin';
 import Store from '@/models/Store';
 import Medicine from '@/models/Medicine';
 
-export async function POST(req: NextRequest) {
-  await dbConnect();
-  try {
-    const { orderId, status } = await req.json();
-    if (!orderId || !status) {
-      return NextResponse.json({ success: false, message: 'orderId and status are required' }, { status: 400 });
-    }
-    const order = await Order.findOne({ _id: orderId });
-    if (!order) {
-      return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
-    }
-    order.order_status = status;
-    order.deliveredDate = status.toLowerCase().includes('deliv') ? new Date() : order.deliveredDate;
-    await order.save();
+async function runBackground(order: any) {
 
-    // Update orderStatus in Firebase Realtime Database
-    if (order?.order_id) {
-      const db = getDb();
-      //Firebase realtime data update
-      const firebaseRef = db.ref(`orders/${order.order_id}`);
-      const snapshot = await firebaseRef.once('value');
-      const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
-      await firebaseRef.update({
-        isOrderStatusChanged: isOrderStatusChanged
-      });
-    }
+  // Choose template based on create or update
+  const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
+  const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
+  const header = fs.readFileSync(headerPath, 'utf8');
+  const footer = fs.readFileSync(footerPath, 'utf8');
 
-    // Choose template based on create or update
-    const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
-    const footerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailFooter.html');
-    const header = fs.readFileSync(headerPath, 'utf8');
-    const footer = fs.readFileSync(footerPath, 'utf8');
+  // Send notification to user
+  const user = await User.findById(order.userId);
+  const messageInApp = status == 'Delivered' ? `Your medicines have been delivered successfully at your doorstep.` : `Your order (Order ID: ${order.order_id || order._id}) status is now: ${status}`;
+  const messagePush = status == 'Delivered' ? `Your Order has been delivered successfully.` : `Your order (Order ID: ${order.order_id || order._id}) status is now: ${status}`;
 
-    // Send notification to user
-    const user = await User.findById(order.userId);
-    const messageInApp = status == 'Delivered' ? `Your medicines have been delivered successfully at your doorstep.` : `Your order (Order ID: ${order.order_id || order._id}) status is now: ${status}`;
-    const messagePush = status == 'Delivered' ? `Your Order has been delivered successfully.` : `Your order (Order ID: ${order.order_id || order._id}) status is now: ${status}`;
-
-    if (user && user.deviceToken) {
-      await sendPushNotificationWithData({
-        token: user.deviceToken,
-        title: 'Delievery Successful',
-        body: messagePush,
-        data: {
-          orderId: order._id.toString(),
-          targetId: order._id.toString(),
-          type: 'order_status_update',
-          targetScreen: 'orders/detail',
-          status: status
-        }
-      });
-    }
-
-    // Send in-app notification to user
-    if (user) {
-      await Notification.create({
-        userId: user._id,
-        role: 'customer',
-        title: 'Delievery Successful',
-        message: messageInApp,
-        type: 'order',
-        targetScreen: 'orders/detail',
+  if (user && user.deviceToken) {
+    await sendPushNotificationWithData({
+      token: user.deviceToken,
+      title: 'Delievery Successful',
+      body: messagePush,
+      data: {
+        orderId: order._id.toString(),
         targetId: order._id.toString(),
-        meta: {
-          status: status
-        }
-      });
-    }
-
-    let userName = 'Customer';
-    let userEmail = '';
-    let invoiceUrl = '';
-    const deliveredAddr: any = order.deliveredAddress || null;
-    if (deliveredAddr) {
-      userName = deliveredAddr?.name || 'Customer';
-      userEmail = deliveredAddr?.email || '';
-    }
-
-    let deliveryAddressText = ''
-    if (deliveredAddr) {
-      deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
-    }
-
-    invoiceUrl = order.invoice_url || '';
-
-    const [checkMedicineId] = await Promise.all([
-      Medicine.find({ _id: { $in: order.medicineId.map((i: any) => i) } }).select('_id name coverImage images'),
-    ]);
-
-    const checkMedicineQuantity : any = []
-
-    for (const element of order.medicineQuantity) {
-
-      const checkMedicine = checkMedicineId.find((obj: any) => obj._id.toString() === element.medicineId.toString());
-
-      const object = {
-        ...checkMedicine._doc,
-        quantity: element.quantity,
-        price: element.price,
-        isPrescription: element.isPrescription,
-        status: element.status,
+        type: 'order_status_update',
+        targetScreen: 'orders/detail',
+        status: status
       }
-      checkMedicineQuantity.push(object);
+    });
+  }
+
+  // Send in-app notification to user
+  if (user) {
+    await Notification.create({
+      userId: user._id,
+      role: 'customer',
+      title: 'Delievery Successful',
+      message: messageInApp,
+      type: 'order',
+      targetScreen: 'orders/detail',
+      targetId: order._id.toString(),
+      meta: {
+        status: status
+      }
+    });
+  }
+
+  let userName = 'Customer';
+  let userEmail = '';
+  let invoiceUrl = '';
+  const deliveredAddr: any = order.deliveredAddress || null;
+  if (deliveredAddr) {
+    userName = deliveredAddr?.name || 'Customer';
+    userEmail = deliveredAddr?.email || '';
+  }
+
+  let deliveryAddressText = ''
+  if (deliveredAddr) {
+    deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
+  }
+
+  invoiceUrl = order.invoice_url || '';
+
+  const [checkMedicineId] = await Promise.all([
+    Medicine.find({ _id: { $in: order.medicineId.map((i: any) => i) } }).select('_id name coverImage images'),
+  ]);
+
+  const checkMedicineQuantity: any = []
+
+  for (const element of order.medicineQuantity) {
+
+    const checkMedicine = checkMedicineId.find((obj: any) => obj._id.toString() === element.medicineId.toString());
+
+    const object = {
+      ...checkMedicine._doc,
+      quantity: element.quantity,
+      price: element.price,
+      isPrescription: element.isPrescription,
+      status: element.status,
     }
+    checkMedicineQuantity.push(object);
+  }
 
-    const acceptedNames = checkMedicineQuantity.filter((m: any) => m.status == 'accepted');
-    const cancelledNames = checkMedicineQuantity.filter((m: any) => m.status == 'cancelled');
+  const acceptedNames = checkMedicineQuantity.filter((m: any) => m.status == 'accepted');
+  const cancelledNames = checkMedicineQuantity.filter((m: any) => m.status == 'cancelled');
 
-    const refundAmount = cancelledNames.reduce((sum: number, m: any) => sum + (Number(m.price) * Number(m.quantity)), 0);
+  const refundAmount = cancelledNames.reduce((sum: number, m: any) => sum + (Number(m.price) * Number(m.quantity)), 0);
 
-    let itemsHtml = '';
+  let itemsHtml = '';
 
-    if (acceptedNames.length > 0) {
-      const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
+  if (acceptedNames.length > 0) {
+    const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
 
-      itemsHtml += `
+    itemsHtml += `
                         <ul style="list-style:none;padding:0;">
                     `;
 
-      acceptedNames.forEach((m: any) => {
-        const imgSrc =
-          m.coverImage && m.coverImage.trim() !== ''
-            ? m.coverImage
-            : defaultImg;
+    acceptedNames.forEach((m: any) => {
+      const imgSrc =
+        m.coverImage && m.coverImage.trim() !== ''
+          ? m.coverImage
+          : defaultImg;
 
-        itemsHtml += `
+      itemsHtml += `
                             <li style="margin-bottom:10px;display:flex;align-items:center;">
                                 <img src="${imgSrc}" 
                                      alt="${m.name}" 
@@ -150,19 +125,19 @@ export async function POST(req: NextRequest) {
                                 </div>
                             </li>
                         `;
-      });
+    });
 
-      itemsHtml += `</ul>`;
-    }
+    itemsHtml += `</ul>`;
+  }
 
-    // If order is delivered, send delivered email to customer
-    try {
-      const statusLower = String(status || '').toLowerCase();
-      if (statusLower.includes('deliv')) {
+  // If order is delivered, send delivered email to customer
+  try {
+    const statusLower = String(status || '').toLowerCase();
+    if (statusLower.includes('deliv')) {
 
-        const subject = `Order Delivered Successfully`;
+      const subject = `Order Delivered Successfully`;
 
-        const html = `
+      const html = `
 ${header}
 
 <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
@@ -282,49 +257,49 @@ ${header}
 ${footer}
 `;
 
-        if (userEmail) {
-          await sendEmail({ to: userEmail, subject, html });
-        }
-
+      if (userEmail) {
+        await sendEmail({ to: userEmail, subject, html });
       }
-    } catch (emailErr) {
-      console.error('Error sending delivered email:', emailErr);
+
     }
+  } catch (emailErr) {
+    console.error('Error sending delivered email:', emailErr);
+  }
 
-    // const store: any = await Store.findById(order.storeId).lean();
-    let storeName = ``;
-    let adminName = '';
-    let adminEmail = '';
+  // const store: any = await Store.findById(order.storeId).lean();
+  let storeName = ``;
+  let adminName = '';
+  let adminEmail = '';
 
-    // Notify admin (store manager) and superadmins with detailed message
-    if (order.storeId) {
-      const storeId = (order as any).storeId;
-      if (storeId) {
-        const store = await Store.findById(storeId).lean();
-        if (store && typeof store === 'object' && !Array.isArray(store)) {
-          storeName = (store as any).name || '';
-          if ('adminManagerId' in store && store.adminManagerId) {
-            const admin = await Admin.findById((store as any).adminManagerId).lean();
-            if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
-              adminName = (admin as any).name || '';
-              adminEmail = (admin as any).email || '';
+  // Notify admin (store manager) and superadmins with detailed message
+  if (order.storeId) {
+    const storeId = (order as any).storeId;
+    if (storeId) {
+      const store = await Store.findById(storeId).lean();
+      if (store && typeof store === 'object' && !Array.isArray(store)) {
+        storeName = (store as any).name || '';
+        if ('adminManagerId' in store && store.adminManagerId) {
+          const admin = await Admin.findById((store as any).adminManagerId).lean();
+          if (admin && typeof admin === 'object' && !Array.isArray(admin)) {
+            adminName = (admin as any).name || '';
+            adminEmail = (admin as any).email || '';
 
-              let storeNotMsg: any = `Order #${order.order_id} has been delivered.`;
+            let storeNotMsg: any = `Order #${order.order_id} has been delivered.`;
 
-              // Notify store admin
-              await Notification.create({
-                userId: (store as any).adminManagerId.toString(),
-                role: 'admin',
-                title: 'Order Delivered Successfully',
-                message: storeNotMsg,
-                type: 'order',
-                targetScreen: 'orders/detail',
-                targetId: order._id.toString(),
-                meta: {}
-              });
-              // Send email to adminEmail
-              if (adminEmail) {
-                const adminHtml = `
+            // Notify store admin
+            await Notification.create({
+              userId: (store as any).adminManagerId.toString(),
+              role: 'admin',
+              title: 'Order Delivered Successfully',
+              message: storeNotMsg,
+              type: 'order',
+              targetScreen: 'orders/detail',
+              targetId: order._id.toString(),
+              meta: {}
+            });
+            // Send email to adminEmail
+            if (adminEmail) {
+              const adminHtml = `
                                                                         ${header}
 
                                                                      <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
@@ -447,82 +422,82 @@ ${footer}
                                                                                
                                                                             ${footer}
                                                                         `;
-                await sendEmail({ to: adminEmail, subject: `Order Delivered Successfully`, html: adminHtml });
-              }
-
-              try {
-                const adminToken = (admin as any).deviceToken;
-                if (adminToken) {
-                  await sendPushNotificationWithData({
-                    token: adminToken,
-                    title: 'Order Delivered Successfully',
-                    body: storeNotMsg,
-                    data: {
-                      targetId: order._id.toString(),
-                      orderId: order._id.toString(),
-                      type: 'order_update',
-                      targetScreen: 'orders/detail'
-                    }
-                  });
-                }
-              } catch (err) {
-                console.error('Failed to send push notification to admin:', err);
-              }
-
+              await sendEmail({ to: adminEmail, subject: `Order Delivered Successfully`, html: adminHtml });
             }
+
+            try {
+              const adminToken = (admin as any).deviceToken;
+              if (adminToken) {
+                await sendPushNotificationWithData({
+                  token: adminToken,
+                  title: 'Order Delivered Successfully',
+                  body: storeNotMsg,
+                  data: {
+                    targetId: order._id.toString(),
+                    orderId: order._id.toString(),
+                    type: 'order_update',
+                    targetScreen: 'orders/detail'
+                  }
+                });
+              }
+            } catch (err) {
+              console.error('Failed to send push notification to admin:', err);
+            }
+
           }
         }
       }
     }
+  }
 
-    // Notify all superadmins
-    try {
-      const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
-      if (superAdminRole && superAdminRole._id) {
-        const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
-        for (const superAdmin of superAdmins) {
+  // Notify all superadmins
+  try {
+    const superAdminRole = await (await import('@/models/Role')).default.findOne({ name: /superadmin/i });
+    if (superAdminRole && superAdminRole._id) {
+      const superAdmins = await Admin.find({ roleId: superAdminRole._id }).lean();
+      for (const superAdmin of superAdmins) {
 
-          // Order #{OrderID} placed by {User Name} at store {Store Name} has been successfully delivered.
+        // Order #{OrderID} placed by {User Name} at store {Store Name} has been successfully delivered.
 
-          await Notification.create({
-            userId: (superAdmin as any)._id.toString(),
-            role: 'admin',
-            title: 'Order Delivered',
-            message: `Order #${order.order_id} placed by ${userName} has been successfully delivered by ${storeName}.`,
-            type: 'order',
-            targetScreen: 'orders/detail',
-            targetId: order._id.toString(),
-            meta: {
-              orderId: order._id.toString(),
-            }
-          });
-
-          try {
-            const superToken = (superAdmin as any).deviceToken;
-            if (superToken) {
-              await sendPushNotificationWithData({
-                token: superToken,
-                title: 'Order Delivered',
-                body: `Order #${order.order_id} placed by ${userName} has been successfully delivered by ${storeName}.`,
-                data: {
-                  targetId: order._id.toString(),
-                  orderId: order._id.toString(),
-                  type: 'order_delivered',
-                  targetScreen: 'orders/detail',
-                }
-              });
-            }
-          } catch (err) {
-            console.error('Failed to send push notification to superadmin:', err);
+        await Notification.create({
+          userId: (superAdmin as any)._id.toString(),
+          role: 'admin',
+          title: 'Order Delivered',
+          message: `Order #${order.order_id} placed by ${userName} has been successfully delivered by ${storeName}.`,
+          type: 'order',
+          targetScreen: 'orders/detail',
+          targetId: order._id.toString(),
+          meta: {
+            orderId: order._id.toString(),
           }
+        });
 
-          // If order is delivered, send delivered email to customer
-          try {
-            const statusLower = String(status || '').toLowerCase();
-            if (statusLower.includes('deliv')) {
+        try {
+          const superToken = (superAdmin as any).deviceToken;
+          if (superToken) {
+            await sendPushNotificationWithData({
+              token: superToken,
+              title: 'Order Delivered',
+              body: `Order #${order.order_id} placed by ${userName} has been successfully delivered by ${storeName}.`,
+              data: {
+                targetId: order._id.toString(),
+                orderId: order._id.toString(),
+                type: 'order_delivered',
+                targetScreen: 'orders/detail',
+              }
+            });
+          }
+        } catch (err) {
+          console.error('Failed to send push notification to superadmin:', err);
+        }
 
-              const subject = `Order Delivered Successfully`;
-              const html = `${header}
+        // If order is delivered, send delivered email to customer
+        try {
+          const statusLower = String(status || '').toLowerCase();
+          if (statusLower.includes('deliv')) {
+
+            const subject = `Order Delivered Successfully`;
+            const html = `${header}
 
                             <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:20px 0;">
   <div
@@ -660,21 +635,54 @@ ${footer}
                 ${footer}
                 `;
 
-              if (superAdmin.email) {
-                await sendEmail({ to: superAdmin.email, subject, html });
-              }
+            if (superAdmin.email) {
+              await sendEmail({ to: superAdmin.email, subject, html });
             }
-          } catch (emailErr) {
-            console.error('Error sending delivered email:', emailErr);
           }
-
+        } catch (emailErr) {
+          console.error('Error sending delivered email:', emailErr);
         }
+
       }
-    } catch (err) {
-      console.error('Superadmin notification error:', err);
+    }
+  } catch (err) {
+    console.error('Superadmin notification error:', err);
+  }
+
+}
+
+export async function POST(req: NextRequest) {
+  await dbConnect();
+  try {
+    const { orderId, status } = await req.json();
+    if (!orderId || !status) {
+      return NextResponse.json({ success: false, message: 'orderId and status are required' }, { status: 400 });
+    }
+    const order = await Order.findOne({ _id: orderId });
+    if (!order) {
+      return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
+    }
+    order.order_status = status;
+    order.deliveredDate = status.toLowerCase().includes('deliv') ? new Date() : order.deliveredDate;
+    await order.save();
+
+    // Update orderStatus in Firebase Realtime Database
+    if (order?.order_id) {
+      const db = getDb();
+      //Firebase realtime data update
+      const firebaseRef = db.ref(`orders/${order.order_id}`);
+      const snapshot = await firebaseRef.once('value');
+      const isOrderStatusChanged: any = Number(snapshot.val()?.isOrderStatusChanged || 0) + 1
+      await firebaseRef.update({
+        isOrderStatusChanged: isOrderStatusChanged
+      });
     }
 
-    return NextResponse.json({ success: true, message: 'Order status updated', data: order });
+    setImmediate(() => {
+      runBackground(order);
+    });
+
+    return NextResponse.json({ success: true, message: 'Order status updated' });
   } catch (error) {
     return NextResponse.json({ success: false, message: 'Failed to update order status', error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
   }
