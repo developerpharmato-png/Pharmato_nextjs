@@ -302,8 +302,6 @@ async function importMedicinesFromMarg(){
 
     insertCount  = bulkInsertArray.length;
 
-    bulkInsertArray.length = 0; // Clear the array to free memory
-
     for (const p of products_pro_U) {
 
       // const unitPackFactor = extractPackSize(p.name);
@@ -349,41 +347,9 @@ async function importMedicinesFromMarg(){
           }
         });
 
-      } else {
-        medCount++;
-        const uniqueCode = `MED-${medCount}`;
-
-        bulkInsertArray.push({
-          uniqueIdentity: p.rid,
-          name: p.name,
-          manufacturer: p.company,
-
-          price,
-          mrp,
-          discount: calculateDiscount(mrp, price), // ✅ REQUIRED
-
-          purchasePrice: Number(p.PRate) || 0,
-          stock: stock,
-          unitPackFactor: unitPackFactor,
-          batchNumber: p.code,
-          isDeleted: p.Is_Deleted === "1",
-          expiryDate: expiry instanceof Date && !isNaN(expiry.getTime()) ? expiry : null,
-          margData: p,
-          previousMargData: {},
-          categoryId: new mongoose.Types.ObjectId(categoryId),
-          subCategoryId: new mongoose.Types.ObjectId(subCategoryId),
-          uniqueCode
-        });
       }
 
     }    
-
-    // 🚀 Bulk Insert — MUCH faster than .create()
-    if (bulkInsertArray.length > 0) {
-
-      data = await Medicine.insertMany(bulkInsertArray, { ordered: false });
-
-    }
 
     for (const p of products_pro_S) {
 
@@ -452,8 +418,6 @@ async function importMedicinesFromMarg(){
       await Medicine.bulkWrite(bulkOps, { ordered: false });
     }
 
-    // Update Marg document with counts
-    insertCount += bulkInsertArray.length;
     const updateCount = bulkOps.length;
     await Marg.findByIdAndUpdate(createMarg._id, {
       margInsertDataCount: insertCount,
