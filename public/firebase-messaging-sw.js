@@ -42,7 +42,7 @@ messaging.onBackgroundMessage((payload) => {
       dataPath = `/dashboard/admin/customers/${payload.data.targetId}`;
     }
     else if (payload.data.orderId) {
-      dataPath = `/dashboard/orders/detail/${payload.data.orderId}/partial-cancel`;
+      dataPath = `/dashboard/orders/detail/${payload.data.orderId}/`;
     }
   }
 
@@ -67,12 +67,12 @@ self.addEventListener('notificationclick', function (event) {
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
-        // If a window is already open to the target URL, reload it using navigate
+        // If a window is already open to the target URL, always reload it using navigate
         if (client.url === clickUrl && 'navigate' in client) {
           return client.navigate(clickUrl);
         }
       }
-      // Otherwise open a new window/tab to the URL
+      // If a client is already at a different route, but you want to always refresh to the target route, open a new tab
       if (clients.openWindow) {
         return clients.openWindow(clickUrl);
       }

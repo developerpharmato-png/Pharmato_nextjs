@@ -75,6 +75,16 @@ export default function PartialCancelPage() {
   const [acceptedQuantities, setAcceptedQuantities] = useState<Record<string, number>>({});
   const statusOptions = [{ value: "Delivered", label: "Delivered" }];
 
+  // Listen for refresh param
+  const { useSearchParams } = require("next/navigation");
+  const searchParams = useSearchParams();
+  const refresh = searchParams.get("refresh");
+
+  useEffect(() => {
+    setLoading(true);
+    if (orderId) fetchOrder();
+  }, [orderId, refresh]);
+
   const medidetails = (_id: String) => {
     router.push(`/dashboard/medicines/${_id}`);
   };

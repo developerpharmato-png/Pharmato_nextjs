@@ -136,19 +136,38 @@ export default function NotificationsPanel({
     }
   };
 
+  // const onItemClick = async (item: NotificationItem) => {
+  //   if (!item.isRead) await markAsRead(item._id);
+  //   onClose();
+  //   if (item.targetScreen === "orders/detail") {
+  //     router.push(`/dashboard/orders/detail/${item.targetId}/partial-cancel`);
+  //   }
+  //   if (item.targetScreen === "customer/detail") {
+  //     router.push(`/dashboard/admin/customers/${item.targetId}`);
+  //   }
+  //   else if (item.targetScreen === "wallet") {
+  //     router.push(`/dashboard/admin/customers/${item.targetId}`);
+  //   }
+  // };
+
+
   const onItemClick = async (item: NotificationItem) => {
     if (!item.isRead) await markAsRead(item._id);
     onClose();
+
+    let targetUrl: string | null = null;
     if (item.targetScreen === "orders/detail") {
-      router.push(`/dashboard/orders/detail/${item.targetId}/partial-cancel`);
+      targetUrl = `/dashboard/orders/detail/${item.targetId}/partial-cancel`;
+    } else if (item.targetScreen === "customer/detail" || item.targetScreen === "wallet") {
+      targetUrl = `/dashboard/admin/customers/${item.targetId}`;
     }
-    if (item.targetScreen === "customer/detail") {
-      router.push(`/dashboard/admin/customers/${item.targetId}`);
-    }
-    else if (item.targetScreen === "wallet") {
-      router.push(`/dashboard/admin/customers/${item.targetId}`);
-    }
+
+    if (!targetUrl) return;
+  router.push(`${targetUrl}?refresh=${Date.now()}`);
+
   };
+  // Always add a refresh param to force navigation and re-render
+
 
   /* 🔹 Filtered notifications */
   const filteredNotifications = useMemo(() => {
