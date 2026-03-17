@@ -72,25 +72,6 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // // Attach medicineQuantity to each medicine in medicineId
-        // const medicineQuantities = Array.isArray(order.medicineQuantity) ? order.medicineQuantity : [];
-        // const medicineIdWithQuantity = Array.isArray(order.medicineId)
-        //     ? order.medicineId.map((med: any) => {
-        //         const q = medicineQuantities.find((qty: any) => {
-        //             return (qty.medicineId?.toString && med._id?.toString &&
-        //                 qty.medicineId.toString() === med._id.toString());
-        //         });
-        //         return {
-        //             ...med.toObject(),
-        //             quantity: q?.quantity || 1,
-        //             price: q?.price || med.price,
-        //             isPrescription: q?.isPrescription || false,
-        //             status: q?.status || 'pending',
-        //             cancelReason: q?.cancelReason || '',
-        //         };
-        //     })
-        //     : [];
-
         const medicineIdWithQuantity = []
 
         for (const element of order.medicineQuantity) {
@@ -120,6 +101,14 @@ export async function POST(req: NextRequest) {
                 .format('MMM D, YYYY HH:mm z');
         } else {
             orderObj.deliveredDate = "";
+        }
+
+        for (const element of orderObj?.refundHistory || []) {
+
+            if (element?.created_at) {
+                element.created_at = moment.unix(element.created_at).tz('Asia/Kolkata').format('MMM D, YYYY HH:mm z');
+            }
+
         }
 
         return NextResponse.json({ success: true, data: orderObj }, { status: 200 });

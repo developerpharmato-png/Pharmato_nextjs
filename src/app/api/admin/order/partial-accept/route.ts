@@ -763,6 +763,23 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
 
         if (order.payment_mode === 'Wallet') {
 
+            const refundHistory = [];
+
+            const refundId = `rfnd_wallet_${order.order_id.split('-')[1]}`;
+
+            refundHistory.push({
+                "orderId": `${order.order_id}`,
+                "refundId": refundId,
+                "status": "processed",
+                "amount": refundAmount * 100,
+                "currency": "INR",
+                "reason": "",
+                "created_at": moment().tz('Asia/Kolkata').unix(),
+                "payload": {}
+            });
+
+            console.log("#########refundHistory########", refundHistory);
+
             await User.updateOne(
                 { _id: new mongoose.Types.ObjectId(user._id) },
                 { $inc: { walletAmount: Number(refundAmount || 0) } }
@@ -782,6 +799,15 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                 transaction_to: `Wallet`,
                 paymentHistory: [],
             });
+
+            await Order.updateOne(
+                { _id: order._id },
+                {
+                    $set: {
+                        refundHistory: refundHistory
+                    }
+                }
+            );
 
             await Notification.create({
                 userId: user._id.toString(),

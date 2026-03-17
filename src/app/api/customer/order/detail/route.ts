@@ -270,6 +270,14 @@ export async function POST(req: NextRequest) {
     orderData.expectedDeliveryDate = "";
   }
 
+  for (const element of orderData?.refundHistory || []) {
+
+    if (element?.created_at) {
+      element.created_at = moment.unix(element.created_at).tz('Asia/Kolkata').format('MMM D, YYYY HH:mm z');
+    }
+
+  }
+
   // Fetch store details
   let storeDetails: any = null;
   if (orderData.storeId) {
