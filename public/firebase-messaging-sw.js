@@ -40,7 +40,7 @@ messaging.onBackgroundMessage((payload) => {
     }
     else if (payload.data.targetScreen === "customer/detail") {
       dataPath = `/dashboard/admin/customers/${payload.data.targetId}`;
-    } 
+    }
     else if (payload.data.orderId) {
       dataPath = `/dashboard/orders/detail/${payload.data.orderId}/partial-cancel`;
     }
@@ -50,7 +50,7 @@ messaging.onBackgroundMessage((payload) => {
 
   self.registration.showNotification(payload.notification.title, {
     body: payload.notification.body,
-    icon: "/firebase-logo.png", 
+    icon: "/firebase-logo.png",
     data: {
       url: dataUrl,
       // keep original payload for debugging if needed
@@ -67,9 +67,9 @@ self.addEventListener('notificationclick', function (event) {
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
-        // If a window is already open to the target URL, focus it
-        if (client.url === clickUrl && 'focus' in client) {
-          return client.focus();
+        // If a window is already open to the target URL, reload it using navigate
+        if (client.url === clickUrl && 'navigate' in client) {
+          return client.navigate(clickUrl);
         }
       }
       // Otherwise open a new window/tab to the URL
