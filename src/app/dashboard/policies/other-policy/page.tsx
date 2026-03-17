@@ -6,8 +6,8 @@ import PolicyEditor from "@/app/dashboard/components/PolicyEditor";
 export default function OtherPage() {
   return (
     <div className="containerStyle scrollbar-hide">
-      <HeaderWithAction title="Other Policy" subtitle="Edit other policy" showBack={false} />
-      <PolicyEditor type="otherPolicy"  title="Other Policy" />
+      <HeaderWithAction title="Other Policies" subtitle="Edit other Policies" showBack={false} />
+      <PolicyEditor type="otherPolicy"  title="Other Policies" />
     </div>
   );
 }

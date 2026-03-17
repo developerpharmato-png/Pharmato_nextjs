@@ -169,10 +169,10 @@ export default function DashboardLayout({
       isActive: true,
       children: [
         { name: "Setting", path: "/dashboard/settings", icon: "settings", isActive: true },
-        { name: "Privacy Policies", path: "/dashboard/policies/policy", icon: "fileText", isActive: true },
+        { name: "Privacy Policy", path: "/dashboard/policies/policy", icon: "fileText", isActive: true },
         { name: "Term & Condition", path: "/dashboard/policies/termcondition", icon: "fileText", isActive: true },
         { name: "Return & Refund Policy", path: "/dashboard/policies/return-refund-policy", icon: "fileText", isActive: true },
-        { name: "Other Policy", path: "/dashboard/policies/other-policy", icon: "fileText", isActive: true },
+        { name: "Other Policies", path: "/dashboard/policies/other-policy", icon: "fileText", isActive: true },
       ],
     },
     {
