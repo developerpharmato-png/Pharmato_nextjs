@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
                 title: 'Welcome to Pharmato!',
                 message: '“Your health essentials are just a tap away!”',
                 type: 'welcome',
-                targetScreen: 'account',
+                targetScreen: 'home',
                 targetId: user._id.toString(),
                 isRead: false,
                 createdAt: new Date(),
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
                     data: {
                         targetId: user._id.toString(),
                         type: 'welcome',
-                        targetScreen: 'account',
+                        targetScreen: 'home',
                     }
                 });
             } catch (err) {

@@ -107,18 +107,42 @@ async function runBackground(email: string) {
   // Write workbook to buffer
   const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
+  // // Send email with the Excel attachment
+  // const transporter = nodemailer.createTransport({
+  //   host: 'mail.smtp2go.com',
+  //   port: 2525,
+  //   auth: {
+  //     user: 'sunil.patidar+2@technotoil.com',
+  //     pass: 'tJ2juQjWYyOPbUpM'
+  //   }
+  // });
+
+  // let mailOptions = {
+  //   from: 'sunil.patidar+2@technotoil.com',
+  //   to: email, // Use provided recipient email
+  //   subject: "Medicines Export",
+  //   text: 'Please find the attached Excel file.',
+  //   attachments: [
+  //     {
+  //       filename: `medicines_export.xlsx`,
+  //       content: buffer,
+  //     }
+  //   ]
+  // };
+
   // Send email with the Excel attachment
   const transporter = nodemailer.createTransport({
     host: 'mail.smtp2go.com',
     port: 2525,
     auth: {
-      user: 'sunil.patidar+2@technotoil.com',
-      pass: 'tJ2juQjWYyOPbUpM'
+      user: 'mayank.pawar+55@technotoil.com',
+      pass: 'e1nAdYQNgg3wQ9O7'
     }
   });
 
   let mailOptions = {
-    from: 'sunil.patidar+2@technotoil.com',
+    // from: 'sunil.patidar+5@technotoil.com',
+    from: 'mayank.pawar+55@technotoil.com',
     to: email, // Use provided recipient email
     subject: "Medicines Export",
     text: 'Please find the attached Excel file.',

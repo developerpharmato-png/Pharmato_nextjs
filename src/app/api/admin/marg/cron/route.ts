@@ -174,7 +174,7 @@ async function importMedicinesFromMarg(){
       CompanyCode: 'PharmatoInd2',
       MargID: 486257,
       Datetime: `${lastSyncDateTime}`,
-      // Datetime: `2026-03-12 19:30:17`, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
+      // Datetime: `2026-02-05 19:30:17`, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
       // Datetime: ``, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
       index: 0
     };
@@ -199,15 +199,15 @@ async function importMedicinesFromMarg(){
     const products_Stype = jsonData?.Details?.Stype || [];
     const products_Party = jsonData?.Details?.Party || [];
     const products_Users = jsonData?.Details?.Users || [];
-    const products = [...products_pro_N, ...products_pro_U];
     const bulkInsertArray: any[] = [];
     const bulkOps: any[] = [];
     let data: any[] = [];
+    let insertCount = 0
 
     // console.log("$$$$$$$$$jsonData$$$$$$$$$$$$", jsonData);
 
     const createMarg = await Marg.create({
-      margGetDataCount: products.length + products_pro_S.length + products_pro_R.length,
+      margGetDataCount: products_pro_N.length + products_pro_U.length + products_pro_S.length + products_pro_R.length,
       margInsertDataCount: 0,
       margUpdateDataCount: 0,
       status: 'Sync Started',
@@ -300,6 +300,10 @@ async function importMedicinesFromMarg(){
 
     }
 
+    insertCount  = bulkInsertArray.length;
+
+    bulkInsertArray.length = 0; // Clear the array to free memory
+
     for (const p of products_pro_U) {
 
       // const unitPackFactor = extractPackSize(p.name);
@@ -372,6 +376,13 @@ async function importMedicinesFromMarg(){
         });
       }
 
+    }    
+
+    // 🚀 Bulk Insert — MUCH faster than .create()
+    if (bulkInsertArray.length > 0) {
+
+      data = await Medicine.insertMany(bulkInsertArray, { ordered: false });
+
     }
 
     for (const p of products_pro_S) {
@@ -442,7 +453,7 @@ async function importMedicinesFromMarg(){
     }
 
     // Update Marg document with counts
-    const insertCount = bulkInsertArray.length;
+    insertCount += bulkInsertArray.length;
     const updateCount = bulkOps.length;
     await Marg.findByIdAndUpdate(createMarg._id, {
       margInsertDataCount: insertCount,
