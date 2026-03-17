@@ -11,7 +11,7 @@ import Admin from '@/models/Admin';
 import Store from '@/models/Store';
 import Medicine from '@/models/Medicine';
 
-async function runBackground(order: any) {
+async function runBackground(order: any , status: string) {
 
   // Choose template based on create or update
   const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
@@ -679,7 +679,7 @@ export async function POST(req: NextRequest) {
     }
 
     setImmediate(() => {
-      runBackground(order);
+      runBackground(order , status);
     });
 
     return NextResponse.json({ success: true, message: 'Order status updated' });
