@@ -2,7 +2,7 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getMessaging, getToken } from "firebase/messaging";
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: "AIzaSyARk63eYnht9p5VD4cad-_S_4VeILqpcqM",
@@ -43,4 +43,26 @@ export const requestPermissionAndGetToken = async () => {
     console.error("Error getting FCM token", error);
   }
 };
- 
+
+// Foreground notification handler
+const messaging = getMessaging(app);
+
+if (typeof window !== "undefined") {
+  onMessage(messaging, (payload) => {
+    if (
+      Notification.permission === "granted" &&
+      payload.notification &&
+      typeof payload.notification.title === "string" &&
+      typeof payload.notification.body === "string"
+    ) {
+      new Notification(
+        payload.notification.title || "Notification",
+        {
+          body: payload.notification.body || "",
+          icon: "/firebase-logo.png",
+        }
+      );
+    }
+    // Optionally, show a toast/snackbar here instead
+  });
+}
