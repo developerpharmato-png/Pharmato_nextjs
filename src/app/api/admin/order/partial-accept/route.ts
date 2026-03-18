@@ -54,6 +54,8 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
     let userMobile = '';
     let userEmail = '';
     let deliveryAddressText = ''
+    let userLat = ''
+    let userLong = ''
 
     const deliveredAddr: any = order.deliveredAddress || null;
     if (deliveredAddr) {
@@ -61,6 +63,18 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
         userMobile = deliveredAddr?.phone || '';
         userEmail = deliveredAddr?.email || '';
         deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
+
+    }
+
+    if (deliveredAddr?.address?.gps) {
+
+        const gps = deliveredAddr?.address?.gps.split(",")
+
+        if (gps.length === 2) {
+            userLat = gps[0].trim();
+            userLong = gps[1].trim();
+        }
+
     }
 
     if (unCancelledItems.length == 0) {
@@ -1008,8 +1022,8 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
         //     Quantity: `${productQuantity}`,
         //     Free: `${freeItems}`,
 
-        //     Lat: "",
-        //     Lng: "",
+        //     Lat: `${userLat || ''}`,
+        //     Lng: `${userLong || ''}`,
         //     Address: "",
         //     GpsID: "0",
         //     UserType: "1",
