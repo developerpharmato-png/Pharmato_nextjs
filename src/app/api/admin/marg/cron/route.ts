@@ -39,6 +39,7 @@ function computePriceFromMrp(mrp: number | string): number {
   if (!isFinite(mrpNum) || isNaN(mrpNum)) return 0;
   return Math.round(mrpNum * 0.85 * 100) / 100;
 }
+
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import crypto from 'crypto';
@@ -147,7 +148,7 @@ function extractPackSizeFromRemarks(remarks: string): number {
 
 
 // 👇👇 YAHI BANAO (API ke upar ya niche, dono chalega)
-async function importMedicinesFromMarg(){
+async function importMedicinesFromMarg() {
   try {
 
     // const latestMarg = await Marg.findOne({ status: "Completed" })
@@ -156,9 +157,9 @@ async function importMedicinesFromMarg(){
 
     const latestMarg = await Marg.findOne({
       status: "Completed",
-      // margGetDataCount: { $gt: 0 }
     })
       .sort({ createdAt: -1 })
+      .skip(1)
       .lean();
 
     const lastSyncDateTime = latestMarg ? moment(latestMarg.createdAt)
@@ -174,7 +175,7 @@ async function importMedicinesFromMarg(){
       CompanyCode: 'PharmatoInd2',
       MargID: 486257,
       Datetime: `${lastSyncDateTime}`,
-      // Datetime: `2026-02-05 19:30:17`, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
+      // Datetime: `2026-03-17 19:30:17`, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
       // Datetime: ``, // ✅ HARDCODE for testing (1st Feb 2026, 12:00:00 AM IST)
       index: 0
     };
@@ -232,7 +233,7 @@ async function importMedicinesFromMarg(){
 
 
       const purchasePrice = Number(((Number(p.PRate) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye  
-      const mrp = Number(((Number(p.MRP) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
+      const mrp = Number(((Number(p.MRP) || 0) * Number(unitPackFactor))); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
       const price = Number(computePriceFromMrp(mrp).toFixed(2)); // Price calculate karna using MRP, discount ko consider karte hue
       // const purchasePrice = ((Number(p.PRate) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
       // const mrp = ((Number(p.MRP) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
@@ -244,8 +245,8 @@ async function importMedicinesFromMarg(){
 
         const medObj = {
           price,
-          mrp,
-          discount: calculateDiscount(mrp, price), // ✅ MANUAL
+          mrp: mrp.toFixed(2),
+          discount: mrp > 0 ? 15 : 0,
           purchasePrice: purchasePrice,
           stock: stock,
           unitPackFactor: unitPackFactor,
@@ -274,8 +275,8 @@ async function importMedicinesFromMarg(){
           manufacturer: p.company,
 
           price,
-          mrp,
-          discount: calculateDiscount(mrp, price), // ✅ REQUIRED
+          mrp: mrp.toFixed(2),
+          discount: mrp > 0 ? 15 : 0,
 
           purchasePrice: purchasePrice,
           stock: stock,
@@ -300,7 +301,7 @@ async function importMedicinesFromMarg(){
 
     }
 
-    insertCount  = bulkInsertArray.length;
+    insertCount = bulkInsertArray.length;
 
     for (const p of products_pro_U) {
 
@@ -317,7 +318,7 @@ async function importMedicinesFromMarg(){
       // const mrp = Number(p.MRP) || 0;
 
       const purchasePrice = Number(((Number(p.PRate) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye  
-      const mrp = Number(((Number(p.MRP) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
+      const mrp = Number(((Number(p.MRP) || 0) * Number(unitPackFactor))); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
       const price = Number(computePriceFromMrp(mrp).toFixed(2)); // Price calculate karna using MRP, discount ko consider karte hue
       const stock = Math.floor((Number(p.stock) || 0) / Number(unitPackFactor)); // Stock ko unit pack factor se divide karna, taki correct stock aaye
 
@@ -327,8 +328,8 @@ async function importMedicinesFromMarg(){
           name: p.name,
           manufacturer: p.company,
           price,
-          mrp,
-          discount: calculateDiscount(mrp, price), // ✅ MANUAL
+          mrp: mrp.toFixed(2),
+          discount: mrp > 0 ? 15 : 0,
           purchasePrice: purchasePrice,
           stock: stock,
           unitPackFactor: unitPackFactor,
@@ -349,7 +350,7 @@ async function importMedicinesFromMarg(){
 
       }
 
-    }    
+    }
 
     for (const p of products_pro_S) {
 
@@ -384,7 +385,7 @@ async function importMedicinesFromMarg(){
 
         const unitPackFactor = checkMedicine.unitPackFactor || 1;
         const purchasePrice = Number(((Number(p.PRate) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye  
-        const mrp = Number(((Number(p.MRP) || 0) * Number(unitPackFactor)).toFixed(2)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
+        const mrp = Number(((Number(p.MRP) || 0) * Number(unitPackFactor))); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
         const price = Number(computePriceFromMrp(mrp).toFixed(2)); // Price calculate karna using MRP, discount ko consider karte hue
         // const purchasePrice = ((Number(p.PRate) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye  
         // const mrp = ((Number(p.MRP) || 0) * Number(unitPackFactor)); // MRP ko unit pack factor se multiply karna, taki correct price aaye      
@@ -393,8 +394,8 @@ async function importMedicinesFromMarg(){
 
         const medObj = {
           price,
-          mrp,
-          discount: calculateDiscount(mrp, price), // ✅ REQUIRED
+          mrp: mrp.toFixed(2),
+          discount: mrp > 0 ? 15 : 0,
           purchasePrice: purchasePrice,
           stock: stock,
           unitPackFactor: unitPackFactor,
