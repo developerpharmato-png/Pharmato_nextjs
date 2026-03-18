@@ -2,7 +2,7 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import { onMessage, getMessaging, getToken } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: "AIzaSyARk63eYnht9p5VD4cad-_S_4VeILqpcqM",
@@ -19,35 +19,14 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-export const requestPermissionAndGetToken = async () => {
-  if (typeof window === "undefined") return;
+// Only run messaging code in the browser
+declare const window: any;
 
-  try {
-    const permission = await Notification.requestPermission();
-    console.log(permission, "permission");
-
-    if (permission !== "granted") {
-      console.log("Notification permission denied");
-      return;
-    }
-
-    const messaging = getMessaging(app);
-
-    const token = await getToken(messaging, {
-      vapidKey: "BO4XRFHc6eWZPZt4UvMwwhEX0VE3lvL1MuwUEViEVwshlUKam9LZo-W4tdKu6QDcOlbSaa5sSXvbt0mTBz9skGY",
-    });
-
-    console.log("FCM Token:", token);
-    return token;
-  } catch (error) {
-    console.error("Error getting FCM token", error);
-  }
-};
-
-// Foreground notification handler
-const messaging = getMessaging(app);
+let requestPermissionAndGetToken: (() => Promise<string | undefined>) | undefined = undefined;
 
 if (typeof window !== "undefined") {
+  const messaging = getMessaging(app);
+
   onMessage(messaging, (payload) => {
     if (
       Notification.permission === "granted" &&
@@ -63,6 +42,24 @@ if (typeof window !== "undefined") {
         }
       );
     }
-    // Optionally, show a toast/snackbar here instead
   });
+
+  requestPermissionAndGetToken = async () => {
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        console.log("Notification permission denied");
+        return;
+      }
+      const token = await getToken(messaging, {
+        vapidKey: "BO4XRFHc6eWZPZt4UvMwwhEX0VE3lvL1MuwUEViEVwshlUKam9LZo-W4tdKu6QDcOlbSaa5sSXvbt0mTBz9skGY",
+      });
+      console.log("FCM Token:", token);
+      return token;
+    } catch (error) {
+      console.error("Error getting FCM token", error);
+    }
+  };
 }
+
+export { requestPermissionAndGetToken };

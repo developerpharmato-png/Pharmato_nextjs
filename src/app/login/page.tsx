@@ -148,7 +148,10 @@ export default function LoginPage() {
                 onSubmit={async (values, { setSubmitting }) => {
                   try {
                     // attempt to get FCM device token (may return undefined)
-                    const deviceToken = await requestPermissionAndGetToken();
+                    let deviceToken: string | undefined = undefined;
+                    if (typeof window !== "undefined" && typeof requestPermissionAndGetToken === "function") {
+                      deviceToken = await requestPermissionAndGetToken();
+                    }
                     const res = await fetch("/api/auth/login", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
@@ -169,7 +172,7 @@ export default function LoginPage() {
                     } else {
                       // Store all admin data
                       localStorage.setItem("admin", JSON.stringify(data.data));
-                      
+
                       // Store individual fields for quick access
                       localStorage.setItem("adminId", data.data._id);
                       localStorage.setItem("adminEmail", data.data.email);
@@ -181,7 +184,7 @@ export default function LoginPage() {
                         localStorage.setItem("deviceToken", data.data.deviceToken);
                       }
                       localStorage.setItem("managedStores", JSON.stringify(data.data.managedStores || []));
-                      
+
                       // fetch role permissions and store them locally for the UI
                       try {
                         const roleId = data.data?.roleId;
@@ -279,7 +282,7 @@ export default function LoginPage() {
                         className="text-red-600 text-xs mt-2 font-medium"
                       />
 
-                    
+
                     </div>
 
                     {/* Submit Button */}
@@ -316,7 +319,7 @@ export default function LoginPage() {
                       )}
                     </button>
 
-                 
+
                   </Form>
                 )}
               </Formik>
