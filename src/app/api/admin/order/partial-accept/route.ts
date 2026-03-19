@@ -1103,6 +1103,9 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                         ₹${m.mrp}
                     </td>
                     <td style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#555;">
+                        ${m.discount}%
+                    </td>
+                    <td style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#555;">
                         ₹${m.price}
                     </td>
                     <td style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#555;">
@@ -1199,6 +1202,8 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                     <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">
                         Quantity</th>
                     <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">MRP
+                    </th>
+                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Discount
                     </th>
                     <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">
                         Discounted Price</th>
