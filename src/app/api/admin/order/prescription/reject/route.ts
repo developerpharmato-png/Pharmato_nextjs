@@ -158,7 +158,7 @@ async function runBackground(order: any, rejectionReason: string) {
     try {
       await sendPushNotificationWithData({
         token: user.deviceToken,
-        title: 'Order Update',
+        title: 'orders Update',
         body: `Your prescription has been rejected. Re-upload Required.`,
         data: {
           targetId: order._id.toString(),

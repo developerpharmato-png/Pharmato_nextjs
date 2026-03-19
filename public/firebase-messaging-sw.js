@@ -18,85 +18,61 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Optional: background notification handler
 messaging.onBackgroundMessage((payload) => {
-  console.log("[firebase-messaging-sw.js] Background message:", payload);
+  console.log(
+    "[firebase-messaging-sw.js] Received background message",
+    payload
+  );
 
-  // Duplicate notification prevent
-  if (payload.notification) {
-    console.log("FCM auto notification already handled");
-    return;
-  }
-
+  // Determine a URL to open when the notification is clicked.
   const BASE_URL = self.location.origin;
-
-  const title = payload?.data?.title || "Notification";
-  const body = payload?.data?.body || "";
-
   let dataPath = "/";
 
   if (payload && payload.data) {
     if (payload.data.url) {
       dataPath = payload.data.url;
-    } 
-    else if (payload.data.targetScreen === "orders/detail") {
+    } else if (payload.data.targetScreen === "orders/detail") {
       const id = payload.data.targetId || payload.data.orderId;
       dataPath = `/dashboard/orders/detail/${id}/partial-cancel`;
-    } 
-    else if (payload.data.targetScreen === "wallet") {
+    } else if (payload.data.targetScreen === "wallet") {
       dataPath = `/dashboard/admin/customers/${payload.data.targetId}`;
-    } 
+    }
     else if (payload.data.targetScreen === "customer/detail") {
       dataPath = `/dashboard/admin/customers/${payload.data.targetId}`;
-    } 
+    }
     else if (payload.data.orderId) {
       dataPath = `/dashboard/orders/detail/${payload.data.orderId}/`;
     }
   }
 
-  const dataUrl = dataPath.startsWith("http")
-    ? dataPath
-    : BASE_URL + dataPath;
+  const dataUrl = dataPath.startsWith("http") ? dataPath : BASE_URL + dataPath;
 
-  self.registration.showNotification(title, {
-    body: body,
+  self.registration.showNotification(payload.notification.title, {
+    body: payload.notification.body,
     icon: "/firebase-logo.png",
-
-    // same notification replace karega
-    tag: "pharmato-notification",
-    renotify: true,
-
     data: {
       url: dataUrl,
+      // keep original payload for debugging if needed
       payload: payload,
     },
   });
 });
 
-
-// Notification click handler
-self.addEventListener("notificationclick", function (event) {
+// Handle notification click: focus existing tab or open a new one to the provided URL
+self.addEventListener('notificationclick', function (event) {
   event.notification.close();
-
-  const clickUrl =
-    event.notification &&
-    event.notification.data &&
-    event.notification.data.url
-      ? event.notification.data.url
-      : self.location.origin;
-
+  const clickUrl = event.notification && event.notification.data && event.notification.data.url ? event.notification.data.url : '/';
   event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (clientList) {
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
-
-        // Agar same tab open hai to usko focus + navigate
-        if (client.url === clickUrl && "focus" in client) {
-          client.focus();
+        // If a window is already open to the target URL, always reload it using navigate
+        if (client.url === clickUrl && 'navigate' in client) {
           return client.navigate(clickUrl);
         }
       }
-
-      // Agar tab open nahi hai to new tab open karo
+      // If a client is already at a different route, but you want to always refresh to the target route, open a new tab
       if (clients.openWindow) {
         return clients.openWindow(clickUrl);
       }

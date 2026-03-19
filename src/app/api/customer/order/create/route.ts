@@ -829,8 +829,6 @@ export async function POST(req: NextRequest) {
     let deliveryFeeThreshold: any = "";
     let privacyPolicy: any = "";
     let termAndCondition: any = "";
-    let returnAndRefundPolicy: any = "";
-    let otherPolicy: any = "";
     let surgePricing: any = [];
 
     for (const setting of settings) {
@@ -838,9 +836,6 @@ export async function POST(req: NextRequest) {
         if (setting.type === 'deliveryFeeThreshold') deliveryFeeThreshold = setting.data;
         if (setting.type === 'userPrivacyPolicy') privacyPolicy = setting.data;
         if (setting.type === 'userTerm&Condition') termAndCondition = setting.data;
-        if (setting.type === 'return&RefundPolicy') returnAndRefundPolicy = setting.data;
-        if (setting.type === 'otherPolicy') otherPolicy = setting.data;
-
         if (setting.type === 'surgePricing') surgePricing = setting?.extraData || [];
     }
 
@@ -1083,9 +1078,7 @@ export async function POST(req: NextRequest) {
         deliveredAddress: addressDoc.toObject(),
         expectedDeliveryDate,
         privacyPolicy,
-        termAndCondition,
-        returnAndRefundPolicy,
-        otherPolicy
+        termAndCondition
     });
 
     if (isPaymentByWallet) {

@@ -54,8 +54,6 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
     let userMobile = '';
     let userEmail = '';
     let deliveryAddressText = ''
-    let userLat = ''
-    let userLong = ''
 
     const deliveredAddr: any = order.deliveredAddress || null;
     if (deliveredAddr) {
@@ -63,18 +61,6 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
         userMobile = deliveredAddr?.phone || '';
         userEmail = deliveredAddr?.email || '';
         deliveryAddressText = `${deliveredAddr.address.houseNumber}, ${deliveredAddr.address.locality}, ${deliveredAddr.address.landmark}, ${deliveredAddr.address.city}, ${deliveredAddr.address.state} - ${deliveredAddr.address.pinCode}`;
-
-    }
-
-    if (deliveredAddr?.address?.gps) {
-
-        const gps = deliveredAddr?.address?.gps.split(",")
-
-        if (gps.length === 2) {
-            userLat = gps[0].trim();
-            userLong = gps[1].trim();
-        }
-
     }
 
     if (unCancelledItems.length == 0) {
@@ -987,15 +973,11 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
 
         const zeroArray = new Array(batchNumbersArray.length).fill(0);
 
-        const discountArray = acceptedNames
-            .map(item => item.discount ? ((item.mrp - item.price) * item.quantity).toFixed(2) : '0')
-            .filter(Boolean); // remove null/undefined
-
         // 3️⃣ Convert to comma separated string
         const productCode = batchNumbersArray.join(',');
         const productQuantity = quantitiesArray.join(',');
         const freeItems = zeroArray.join(',');
-        const discounts = discountArray.join(',');
+
         console.log("###productCode######productQuantity####freeItems##", productCode, productQuantity, freeItems);
 
         // //Firebase realtime data update
@@ -1022,15 +1004,15 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
         //     Quantity: `${productQuantity}`,
         //     Free: `${freeItems}`,
 
-        //     Lat: `${userLat || ''}`,
-        //     Lng: `${userLong || ''}`,
+        //     Lat: "",
+        //     Lng: "",
         //     Address: "",
         //     GpsID: "0",
         //     UserType: "1",
         //     Points: "0.00",
 
         //     // Discounts: `${totalDiscount.toFixed(2)}`,
-        //     Discounts: `${discounts}`,
+        //     Discounts: `20`,
         //     Transport: "",
         //     Delivery: "",
 

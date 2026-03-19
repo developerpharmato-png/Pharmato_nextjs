@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
     if (!user) {
         return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
-    user.refreshToken = "";
-    user.deviceToken = "";
+    user.refreshToken = undefined;
+    user.deviceToken = undefined;
     await user.save();
     return NextResponse.json({ success: true, message: 'Logout successful' });
 }

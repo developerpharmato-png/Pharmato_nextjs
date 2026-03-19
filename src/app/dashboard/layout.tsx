@@ -90,9 +90,7 @@ export default function DashboardLayout({
   > | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && typeof requestPermissionAndGetToken === "function") {
-      requestPermissionAndGetToken();
-    }
+    requestPermissionAndGetToken();
   }, []);
 
   useEffect(() => {
