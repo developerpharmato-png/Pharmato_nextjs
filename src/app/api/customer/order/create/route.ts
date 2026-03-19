@@ -830,12 +830,16 @@ export async function POST(req: NextRequest) {
     let privacyPolicy: any = "";
     let termAndCondition: any = "";
     let surgePricing: any = [];
+        let returnAndRefundPolicy: any = "";
+            let otherPolicy: any = "";
 
     for (const setting of settings) {
         if (setting.type === 'deliveryFee') deliveryFee = Number(setting.data);
         if (setting.type === 'deliveryFeeThreshold') deliveryFeeThreshold = setting.data;
         if (setting.type === 'userPrivacyPolicy') privacyPolicy = setting.data;
         if (setting.type === 'userTerm&Condition') termAndCondition = setting.data;
+        if (setting.type === 'return&RefundPolicy') returnAndRefundPolicy = setting.data;
+        if (setting.type === 'otherPolicy') otherPolicy = setting.data;
         if (setting.type === 'surgePricing') surgePricing = setting?.extraData || [];
     }
 
@@ -1078,7 +1082,9 @@ export async function POST(req: NextRequest) {
         deliveredAddress: addressDoc.toObject(),
         expectedDeliveryDate,
         privacyPolicy,
-        termAndCondition
+        termAndCondition,
+        returnAndRefundPolicy,
+        otherPolicy
     });
 
     if (isPaymentByWallet) {

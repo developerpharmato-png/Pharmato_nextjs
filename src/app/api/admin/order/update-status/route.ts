@@ -156,7 +156,7 @@ ${header}
       </tr>
       <tr>
         <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
-        <td style="padding:8px;border:1px solid #eee;">Delivered</td>
+        <td style="padding:8px;border:1px solid #eee;">${status}</td>
       </tr>
       <tr>
         <td style="padding:8px;border:1px solid #eee;font-weight:600;">Delivery Address</td>
@@ -324,7 +324,7 @@ ${footer}
       <tr>
         <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
         <td style="padding:8px;border:1px solid #eee;color:#28a745;font-weight:600;">
-          Confirmed
+          ${status}
         </td>
       </tr>
       <tr>
@@ -538,7 +538,7 @@ ${footer}
       <tr>
         <td style="padding:8px;border:1px solid #eee;font-weight:600;">Order Status</td>
         <td style="padding:8px;border:1px solid #eee;color:#28a745;font-weight:600;">
-          Confirmed
+          ${status}
         </td>
       </tr>
       <tr>

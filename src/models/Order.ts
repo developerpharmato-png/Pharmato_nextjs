@@ -42,6 +42,8 @@ export interface IOrder extends Document {
     margOrderDispatchData: Record<string, any>;
     privacyPolicy: string;
     termAndCondition: string;
+    returnAndRefundPolicy: string;
+    otherPolicy: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -90,6 +92,8 @@ const OrderSchema = new Schema<IOrder>({
     margOrderDispatchData: { type: Object, default: {} },
     privacyPolicy: { type: String, default: '' },
     termAndCondition: { type: String, default: '' },
+    returnAndRefundPolicy: { type: String, default: '' },
+    otherPolicy: { type: String, default: '' },
 }, { timestamps: true });
 
 
