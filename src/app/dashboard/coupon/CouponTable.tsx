@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { CouponStatusPath } from "../storeAPICall/API/BaseApi";
 import Swal from "sweetalert2";
 import axios from "axios";
+import moment from 'moment-timezone';
 import { Edit3Icon, EditIcon } from "lucide-react";
 import { CouponUpdateStore } from "../storeAPICall/useUserStore";
 
@@ -35,7 +36,7 @@ interface Coupon {
     updatedAt: string;
     uniqueCode: string;
     totalUses?: number;
-    
+
 }
 
 interface CouponTableProps {
@@ -119,22 +120,20 @@ const CouponTable: React.FC<CouponTableProps> = ({
 
     const formatToIndianDate = (dateString: string) => {
         if (!dateString) return "N/A";
-        const date = new Date(dateString);
-        return date.toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-        });
+
+        const date = moment(dateString)
+            .tz('Asia/Kolkata')
+            .format('MMM D, YYYY');
+        return date
     };
 
     const formatToIndianTime = (dateString: string) => {
         if (!dateString) return "";
-        const date = new Date(dateString);
-        return date.toLocaleTimeString("en-IN", {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-        });
+
+        const date = moment(dateString)
+            .tz('Asia/Kolkata')
+            .format('HH:mm z');
+        return date
     };
 
 

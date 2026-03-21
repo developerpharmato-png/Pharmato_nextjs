@@ -16,7 +16,7 @@ interface Cart {
 interface CouponResult {
     discount: number;
     eligibleAmount: number;
-    reason?: string;
+    message?: string;
     coupon?: ICoupon;
 }
 
@@ -44,17 +44,17 @@ export async function validateAndApplyCoupon(
 
     // 1. Check if coupon exists
     const coupon = await Coupon.findOne({ code: couponCode.trim().toUpperCase() });
-    if (!coupon) return { discount: 0, eligibleAmount: 0, reason: 'Coupon not found' };
+    if (!coupon) return { discount: 0, eligibleAmount: 0, message: 'Coupon not found' };
 
     // 2. Check active, startAt, endAt
     const now = new Date();
-    if (!coupon.isActive) return { discount: 0, eligibleAmount: 0, reason: 'Coupon is not active' };
-    if (now < coupon.startAt) return { discount: 0, eligibleAmount: 0, reason: 'Coupon not started yet' };
-    if (now > coupon.endAt) return { discount: 0, eligibleAmount: 0, reason: 'Coupon expired' };
+    if (!coupon.isActive) return { discount: 0, eligibleAmount: 0, message: 'Coupon is not active' };
+    if (now < coupon.startAt) return { discount: 0, eligibleAmount: 0, message: 'Coupon not started yet' };
+    if (now > coupon.endAt) return { discount: 0, eligibleAmount: 0, message: 'Coupon expired' };
 
     // 3. Check totalUses and perUserLimit
     if (coupon.totalUses !== null && coupon.usedCount >= coupon.totalUses) {
-        return { discount: 0, eligibleAmount: 0, reason: 'Coupon usage limit reached' };
+        return { discount: 0, eligibleAmount: 0, message: 'Coupon usage limit reached' };
     }
     // Find usage for either user or guest
     const userOrGuestUsage = (coupon.usersOrGuestsUsed || []).find((u: { userId?: any; guestId?: string; uses: number }) =>
@@ -62,12 +62,12 @@ export async function validateAndApplyCoupon(
         (guestId && u.guestId === guestId)
     );
     if (coupon.perUserLimit != null && userOrGuestUsage && userOrGuestUsage.uses >= coupon.perUserLimit) {
-        return { discount: 0, eligibleAmount: 0, reason: 'You have used this coupon maximum allowed times' };
+        return { discount: 0, eligibleAmount: 0, message: 'You have used this coupon maximum allowed times' };
     }
 
     // 4. Check minOrderValue
     if (cart.total < coupon.minOrderValue) {
-        return { discount: 0, eligibleAmount: 0, reason: `Minimum order value is ${coupon.minOrderValue}` };
+        return { discount: 0, eligibleAmount: 0, message: `Minimum order value is ${coupon.minOrderValue}` };
     }
 
     // 5. Scope-based filtering
@@ -95,7 +95,7 @@ export async function validateAndApplyCoupon(
         0
     );
     if (eligibleAmount === 0) {
-        return { discount: 0, eligibleAmount: 0, reason: 'No eligible items for coupon' };
+        return { discount: 0, eligibleAmount: 0, message: 'No eligible items for coupon' };
     }
 
     // 8. Calculate discount
@@ -110,5 +110,5 @@ export async function validateAndApplyCoupon(
         if (discount > eligibleAmount) discount = eligibleAmount;
     }
 
-    return { discount, eligibleAmount, coupon , reason: 'Coupon applied successfully' };
+    return { discount, eligibleAmount, coupon, message: 'Coupon applied successfully' };
 }

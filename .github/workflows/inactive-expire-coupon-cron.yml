@@ -1,0 +1,17 @@
+name: Call Cancel Payment Cron
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # Har 15 minute
+
+  workflow_dispatch:
+
+jobs:
+  call-cancel-payment-cron:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Call Cancel Payment Cron API
+        run: |
+          echo "Calling Cancel Payment cron API..."
+          curl -X POST https://dev.api.pharmatoindia.com/api/customer/coupon/inactive-expire-cron

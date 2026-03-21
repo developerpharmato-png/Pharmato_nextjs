@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
         success: result.discount > 0,
         discount: result.discount,
         eligibleAmount: result.eligibleAmount,
-        reason: result.reason || '',
+        message: result.message || '',
         coupon: result.coupon || null
     });
 }
