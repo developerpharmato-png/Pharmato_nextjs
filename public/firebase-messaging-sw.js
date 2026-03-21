@@ -5,9 +5,16 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Take control of all un-controlled open tabs immediately when the service worker activates
+// Take control of all open tabs immediately when the service worker activates
 self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim());
+});
+
+// 🔥 CRITICAL HACK: Service Workers CANNOT control a browser tab (and cannot `navigate` it) 
+// unless they have a `fetch` event listener. This empty listener forces the browser 
+// to let this service worker formally "control" your Next.js tabs.
+self.addEventListener('fetch', (event) => {
+  // Pass through all network requests normally
 });
 
 // Handle notification click BEFORE Firebase messaging imports!
@@ -17,7 +24,7 @@ self.addEventListener('notificationclick', function (event) {
   // 🔥 CRITICAL: Prevent Firebase's default handler from firing!
   event.stopImmediatePropagation();
   event.notification.close();
-  
+
   const BASE_URL = self.location.origin;
   let clickUrl = '/';
 
@@ -59,25 +66,25 @@ self.addEventListener('notificationclick', function (event) {
       // Look for any uniquely 'controlled' client matching our origin
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
-        
+
         // If the client is from our domain
         if (client.url && client.url.startsWith(BASE_URL) && 'focus' in client) {
-          
-          return client.focus().then(function(focusedClient) {
+
+          return client.focus().then(function (focusedClient) {
             // Because we only queried for strictly controlled clients, navigate WILL always work
             if (focusedClient && focusedClient.url === clickUrl) {
-               return focusedClient;
+              return focusedClient;
             }
 
             if (focusedClient && 'navigate' in focusedClient) {
               return focusedClient.navigate(clickUrl);
             }
-            
+
             return focusedClient;
           });
         }
       }
-      
+
       // If no open controlled client found for our app, strictly rely on a new window
       if (clients.openWindow) {
         return clients.openWindow(clickUrl);
