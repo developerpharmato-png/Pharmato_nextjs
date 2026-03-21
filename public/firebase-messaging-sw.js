@@ -1,4 +1,91 @@
 "use client";
+
+// Force the newly updated service worker to become the active service worker immediately
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+// Take control of all un-controlled open tabs immediately when the service worker activates
+self.addEventListener('activate', (event) => {
+  event.waitUntil(clients.claim());
+});
+
+// Handle notification click BEFORE Firebase messaging imports!
+// This is critical because Firebase Web SDK automatically registers its own notificationclick listener
+// which will aggressively open a new tab to your homepage if we don't intercept it first.
+self.addEventListener('notificationclick', function (event) {
+  // 🔥 CRITICAL: Prevent Firebase's default handler from firing!
+  event.stopImmediatePropagation();
+  event.notification.close();
+  
+  const BASE_URL = self.location.origin;
+  let clickUrl = '/';
+
+  // Extract the original data payload from either our manual showNotification data or Firebase's automatic FCM_MSG
+  let payloadData = null;
+  if (event.notification.data) {
+    if (event.notification.data.url) {
+      // Manually set in showNotification
+      clickUrl = event.notification.data.url;
+    } else if (event.notification.data.payload && event.notification.data.payload.data) {
+      payloadData = event.notification.data.payload.data;
+    } else if (event.notification.data.FCM_MSG && event.notification.data.FCM_MSG.data) {
+      payloadData = event.notification.data.FCM_MSG.data;
+    }
+  }
+
+  // If a data payload is found but `url` wasn't explicitly set in event.notification.data.url, apply custom routing map
+  if (payloadData && clickUrl === '/') {
+    let dataPath = '/';
+    if (payloadData.url) {
+      dataPath = payloadData.url;
+    } else if (payloadData.targetScreen === "orders/detail") {
+      const id = payloadData.targetId || payloadData.orderId;
+      dataPath = `/dashboard/orders/detail/${id}/partial-cancel`;
+    } else if (payloadData.targetScreen === "wallet") {
+      dataPath = `/dashboard/admin/customers/${payloadData.targetId}`;
+    }
+    else if (payloadData.targetScreen === "customer/detail") {
+      dataPath = `/dashboard/admin/customers/${payloadData.targetId}`;
+    }
+    else if (payloadData.orderId) {
+      dataPath = `/dashboard/orders/detail/${payloadData.orderId}/`;
+    }
+    clickUrl = dataPath.startsWith("http") ? dataPath : BASE_URL + (dataPath.startsWith("/") ? "" : "/") + dataPath;
+  }
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then(function (clientList) {
+      // Look for any uniquely 'controlled' client matching our origin
+      for (let i = 0; i < clientList.length; i++) {
+        const client = clientList[i];
+        
+        // If the client is from our domain
+        if (client.url && client.url.startsWith(BASE_URL) && 'focus' in client) {
+          
+          return client.focus().then(function(focusedClient) {
+            // Because we only queried for strictly controlled clients, navigate WILL always work
+            if (focusedClient && focusedClient.url === clickUrl) {
+               return focusedClient;
+            }
+
+            if (focusedClient && 'navigate' in focusedClient) {
+              return focusedClient.navigate(clickUrl);
+            }
+            
+            return focusedClient;
+          });
+        }
+      }
+      
+      // If no open controlled client found for our app, strictly rely on a new window
+      if (clients.openWindow) {
+        return clients.openWindow(clickUrl);
+      }
+    })
+  );
+});
+
 importScripts(
   "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"
 );
@@ -24,58 +111,5 @@ messaging.onBackgroundMessage((payload) => {
     "[firebase-messaging-sw.js] Received background message",
     payload
   );
-
-  // Determine a URL to open when the notification is clicked.
-  const BASE_URL = self.location.origin;
-  let dataPath = "/";
-
-  if (payload && payload.data) {
-    if (payload.data.url) {
-      dataPath = payload.data.url;
-    } else if (payload.data.targetScreen === "orders/detail") {
-      const id = payload.data.targetId || payload.data.orderId;
-      dataPath = `/dashboard/orders/detail/${id}/partial-cancel`;
-    } else if (payload.data.targetScreen === "wallet") {
-      dataPath = `/dashboard/admin/customers/${payload.data.targetId}`;
-    }
-    else if (payload.data.targetScreen === "customer/detail") {
-      dataPath = `/dashboard/admin/customers/${payload.data.targetId}`;
-    }
-    else if (payload.data.orderId) {
-      dataPath = `/dashboard/orders/detail/${payload.data.orderId}/`;
-    }
-  }
-
-  const dataUrl = dataPath.startsWith("http") ? dataPath : BASE_URL + dataPath;
-
-  self.registration.showNotification(payload.notification.title, {
-    body: payload.notification.body,
-    icon: "/firebase-logo.png",
-    data: {
-      url: dataUrl,
-      // keep original payload for debugging if needed
-      payload: payload,
-    },
-  });
-});
-
-// Handle notification click: focus existing tab or open a new one to the provided URL
-self.addEventListener('notificationclick', function (event) {
-  event.notification.close();
-  const clickUrl = event.notification && event.notification.data && event.notification.data.url ? event.notification.data.url : '/';
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
-      for (let i = 0; i < clientList.length; i++) {
-        const client = clientList[i];
-        // If a window is already open to the target URL, always reload it using navigate
-        if (client.url === clickUrl && 'navigate' in client) {
-          return client.navigate(clickUrl);
-        }
-      }
-      // If a client is already at a different route, but you want to always refresh to the target route, open a new tab
-      if (clients.openWindow) {
-        return clients.openWindow(clickUrl);
-      }
-    })
-  );
+  // We don't manually call showNotification here to avoid generating duplicates!
 });
