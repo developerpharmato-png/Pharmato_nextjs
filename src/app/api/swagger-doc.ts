@@ -44,6 +44,34 @@ export async function GET() {
  *               success: true
  *               message: Notification sent to customer (dummy)
  */
+
+/**
+ * @swagger
+ * /api/customer/coupon/inactive-expire-cron:
+ *   post:
+ *     summary: Inactivate all expired coupons
+ *     tags:
+ *       - Coupon
+ *     description: Sets isActive=false for all coupons whose endAt is in the past and are currently active.
+ *     responses:
+ *       200:
+ *         description: Expired coupons inactivated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 count:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *             example:
+ *               success: true
+ *               count: 5
+ *               message: 5 expired coupons inactivated
+ */
 /**
  * @swagger
  * /api/settings/get-by-type:
