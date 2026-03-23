@@ -25,8 +25,40 @@ const MargPage = () => {
   const handleImport = async () => {
     setSyncLoading(true);
     try {
-      await postData(MargImportPath, {});
+      const res = await fetch(MargImportPath, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const resData = await res.json();
+      if (res.ok) {
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: resData.message || "Sync Medicines successful.",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      } else {
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "error",
+          title: resData.message || "Sync Medicines failed.",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      }
       fetchData({ url: MargListPath, data: { limit: rowsPerPage, offset: page + 1 } });
+    } catch (error) {
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "error",
+        title: "Something went wrong",
+        showConfirmButton: false,
+        timer: 2000,
+      });
     } finally {
       setSyncLoading(false);
     }

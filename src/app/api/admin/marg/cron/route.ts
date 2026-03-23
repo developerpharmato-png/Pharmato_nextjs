@@ -436,14 +436,42 @@ async function importMedicinesFromMarg() {
 // 👇👇 API HANDLER
 export async function POST(request: NextRequest) {
 
-  // background me chala do
-  setImmediate(() => {
-    importMedicinesFromMarg();
-  });
+  const latestMarg = await Marg.findOne({
+    status: "Completed",
+  })
+    .sort({ createdAt: -1 })
+    .skip(1)
+    .lean();
 
-  return NextResponse.json({
-    success: true,
-    message: 'Marg data import started'
-  });
+  const lastSyncDateTime = latestMarg
+    ? moment(latestMarg.createdAt).tz("Asia/Kolkata")
+    : null;
+
+  // current time
+  const currentTime = moment().tz("Asia/Kolkata");
+
+  // difference in minutes
+  const diffMinutes = lastSyncDateTime
+    ? currentTime.diff(lastSyncDateTime, "minutes")
+    : null;
+
+  if (diffMinutes !== null && diffMinutes < 20) {
+    return NextResponse.json({
+      success: false,
+      message: `Last sync ${diffMinutes} minutes ago. Please wait 20 minutes.`,
+    });
+  } else {
+
+    // background me chala do
+    setImmediate(() => {
+      importMedicinesFromMarg();
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Marg data import started'
+    });
+
+  }
 
 }
