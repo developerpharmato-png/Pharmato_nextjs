@@ -101,23 +101,42 @@ const MargDetailPage = () => {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [search, setSearch] = useState("");
+    const [totalCount, setTotalCount] = useState(0);
 
     useEffect(() => {
-        try {
-            const stored = sessionStorage.getItem("margDetail");
-            if (stored) {
-                setDetail(JSON.parse(stored));
+        const fetchDetail = async () => {
+            setLoading(true);
+            try {
+                const id = sessionStorage.getItem("margDetailId");
+                if (!id) return setDetail(null);
+
+                const res = await fetch("/api/admin/marg/detail", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id, limit: rowsPerPage, offset: page + 1, search }),
+                });
+                const data = await res.json();
+                if (data && data.status) {
+                    setDetail(data.data);
+                    setTotalCount(data.totalCount || 0);
+                } else {
+                    setDetail(null);
+                    setTotalCount(0);
+                }
+            } catch (e) {
+                setDetail(null);
+                setTotalCount(0);
+            } finally {
+                setLoading(false);
             }
-        } catch (e) {
-            setDetail(null);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+        };
+        fetchDetail();
+    }, [page, rowsPerPage, search]);
 
     const products = useMemo(() => {
-        if (!detail || detail.margInsertDataCount === 0) return [] as MargInsertedProduct[];
-        return Array.isArray(detail.margInsertData) ? detail.margInsertData : [];
+        if (!detail || !Array.isArray(detail.margInsertData)) return [] as MargInsertedProduct[];
+        return detail.margInsertData;
     }, [detail]);
 
     const subtitle = detail
@@ -127,10 +146,23 @@ const MargDetailPage = () => {
     return (
         <div className="containerStyle scrollbar-hide">
             <HeaderWithAction title="Marg Inserted Product"
-            isunsaved={false}
-            subtitle={subtitle}
-             showBack={true} 
-            showSearch={false} />
+                isunsaved={false}
+                subtitle={subtitle}
+                showBack={true}
+                showSearch={false} />
+
+            <div className="mb-4 flex justify-end">
+                <input
+                    type="text"
+                    placeholder="Search..."
+                    value={search}
+                    onChange={e => {
+                        setPage(0);
+                        setSearch(e.target.value);
+                    }}
+                    className="border px-3 py-2 rounded w-64"
+                />
+            </div>
 
             <div className="mt-6">
                 <CustomTable
@@ -138,12 +170,11 @@ const MargDetailPage = () => {
                     data={products}
                     page={page}
                     rowsPerPage={rowsPerPage}
-                    totalCount={products.length}
+                    totalCount={totalCount}
                     onPageChange={setPage}
                     onRowsPerPageChange={setRowsPerPage}
                     loading={loading}
                 />
-
             </div>
         </div>
     );

@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     // Pagination
     const start = (offset - 1) * limit;
     const paginated = data.slice(start, start + limit);
-    marg.margInsertData = paginated
+    marg.margInsertData = paginated;
     return NextResponse.json({
         status: true,
         data: marg,

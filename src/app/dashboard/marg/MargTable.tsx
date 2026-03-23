@@ -32,9 +32,8 @@ const MargTable: React.FC<MargTableProps> = ({ data, page, rowsPerPage, totalCou
   const router = useRouter();
 
   const handleOpenDetail = (row: MargItem) => {
-
     try {
-      sessionStorage.setItem("margDetail", JSON.stringify(row));
+      sessionStorage.setItem("margDetailId", row._id);
     } catch (e) {
       // ignore storage failures
     }
