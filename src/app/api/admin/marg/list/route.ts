@@ -53,12 +53,6 @@ export async function POST(req: NextRequest) {
     const offsetData = typeof body.offset === 'number' && body.offset >= 0 ? body.offset : 0;
     const offset = (Number(offsetData) - 1) * limit;
 
-    // const margList: any[] = await Marg.find({})
-    //     .sort({ createdAt: -1 })
-    //     .skip(offset)
-    //     .limit(limit)
-    //     .lean();
-
     const margList : any[] = await Marg.find({})
         .select({
             _id: 1,
@@ -68,7 +62,6 @@ export async function POST(req: NextRequest) {
             margUpdateDataCount: 1,
             status: 1,
             type: 1,
-            margInsertData: 1,
             createdAt: 1,
             updatedAt: 1
         })
