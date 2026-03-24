@@ -129,7 +129,8 @@ export const getCouponsValidationSchema = (isEdit: boolean = false) => Yup.objec
   code: Yup.string()
     .required("Coupon code is required")
     .min(2, "Min. 2 characters required")
-    .max(50, "Max. 50 characters allowed"),
+    .max(8, "Max. 8 characters allowed")
+    .matches(/^[A-Z0-9]+$/, "Coupon code can only contain uppercase letters and numbers"),
   title: Yup.string()
     .required("Title is required")
     .min(3, "Min. 3 characters required")

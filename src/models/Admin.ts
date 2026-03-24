@@ -19,7 +19,7 @@ export interface IAdmin extends Document {
     }[];
     createdAt: Date;
     updatedAt: Date;
-}
+} 
 
 const AdminSchema = new Schema<IAdmin>({
     name: {

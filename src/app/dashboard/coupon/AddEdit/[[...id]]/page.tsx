@@ -242,10 +242,18 @@ export default function CouponAddEditPage() {
                             label="Coupon Code *"
                             name="code"
                             value={formik.values.code}
-                            onChange={formik.handleChange}
+                            onChange={(e) => {
+                                const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+                                if (val.length <= 8) {
+                                    formik.setFieldValue("code", val);
+                                }
+                            }}
                             onBlur={formik.handleBlur}
-                            placeholder="e.g., DAILYNEEDS"
-                            inputProps={{ style: { textTransform: "uppercase" } }}
+                            placeholder="e.g., DAILY8"
+                            inputProps={{ 
+                                style: { textTransform: "uppercase" },
+                                maxLength: 8
+                            }}
                             disabled={isEdit}
                         />
                         {formik.touched.code && formik.errors.code && (

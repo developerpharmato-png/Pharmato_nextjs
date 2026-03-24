@@ -36,7 +36,14 @@ const CouponSchema = new Schema<ICoupon>({
     uniqueCode: {
         type: String
     },
-    code: { type: String, required: true },
+    code: { 
+        type: String, 
+        required: true, 
+        uppercase: true, 
+        trim: true, 
+        maxlength: 8, 
+        match: [/^[A-Z0-9]+$/, 'Coupon code can only contain uppercase letters and numbers']
+    },
     title: { type: String, default: '' },
     description: { type: String, default: '' },
     type: { type: String, enum: ['percentage', 'fixed'], required: true },
