@@ -121,19 +121,19 @@ const CouponTable: React.FC<CouponTableProps> = ({
     const formatToIndianDate = (dateString: string) => {
         if (!dateString) return "N/A";
 
-        const date = moment(dateString)
-            .tz('Asia/Kolkata')
+        const m = moment(dateString, "DD:MM:YY HH:mm", true);
+        const date = (m.isValid() ? m : moment(dateString))
             .format('DD MMM YYYY');
-        return date
+        return date;
     };
 
     const formatToIndianTime = (dateString: string) => {
         if (!dateString) return "";
 
-        const date = moment(dateString)
-            .tz('Asia/Kolkata')
+        const m = moment(dateString, "DD:MM:YY HH:mm", true);
+        const date = (m.isValid() ? m : moment(dateString))
             .format('HH:mm');
-        return date
+        return date;
     };
 
 

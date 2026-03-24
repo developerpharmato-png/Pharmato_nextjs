@@ -18,8 +18,8 @@ export interface ICoupon extends Document {
     includedProductIds: string[];
     includedCategoryIds: string[];
     excludedProductIds: string[];
-    startAt: Date;
-    endAt: Date;
+    startAt: string;
+    endAt: string;
     minOrderValue: number;
     totalUses: number;
     usedCount: number; 
@@ -31,7 +31,7 @@ export interface ICoupon extends Document {
     createdAt: Date;
     updatedAt: Date;
 }
-
+ 
 const CouponSchema = new Schema<ICoupon>({
     uniqueCode: {
         type: String
@@ -53,8 +53,8 @@ const CouponSchema = new Schema<ICoupon>({
     includedProductIds: [{ type: String }],
     includedCategoryIds: [{ type: String }],
     excludedProductIds: [{ type: String }],
-    startAt: { type: Date, required: true },
-    endAt: { type: Date, required: true },
+    startAt: { type: String, required: true },
+    endAt: { type: String, required: true },
     minOrderValue: { type: Number, required: true },
     totalUses: { type: Number, default: 0 },
     usedCount: { type: Number, default: 0 },

@@ -22,6 +22,7 @@ import { CouponCreateStore, CouponUpdateStore, CouponSGEtBYIDsStore } from "@/ap
 import { CouponCreatePath, CouponUpdatePath } from "@/app/dashboard/storeAPICall/API/BaseApi";
 import Toast from "@/utils/Toast";
 import { MdSave } from "react-icons/md";
+import moment from "moment-timezone";
 import { TextareaField } from "@/app/dashboard/components/skeleton/FieldCom";
 import { getCouponsValidationSchema } from "@/utils/validateCategory";
 import CoponSkeleton from "@/app/dashboard/components/skeleton/CoponSkeleton";
@@ -100,15 +101,13 @@ export default function CouponAddEditPage() {
                     if (data.success && data.data) {
                         const coupon = data.data;
                         const toDateTimeLocal = (dateStr?: string) => {
-                            const makeLocal = (d: Date) => {
-                                const tzOffsetMs = d.getTimezoneOffset() * 60000;
-                                return new Date(d.getTime() - tzOffsetMs).toISOString().slice(0, 16);
-                            };
-                            if (!dateStr) {
-                                return makeLocal(new Date());
+                            if (!dateStr) return moment().format("YYYY-MM-DDTHH:mm");
+                            // Try parsing with the custom format first, then fallback to default
+                            const m = moment(dateStr, "DD:MM:YY HH:mm", true);
+                            if (m.isValid()) {
+                                return m.format("YYYY-MM-DDTHH:mm");
                             }
-                            const date = new Date(dateStr);
-                            return makeLocal(date);
+                            return moment(dateStr).format("YYYY-MM-DDTHH:mm");
                         };
                         setFetchedInitialValues({
                             code: coupon.code || "",
@@ -158,8 +157,8 @@ export default function CouponAddEditPage() {
                     value: values.value,
                     minOrderValue: values.minOrderValue,
                     scope: values.scope,
-                    startAt: values.startAt,
-                    endAt: values.endAt,
+                    startAt: moment(values.startAt).format("DD:MM:YY HH:mm"),
+                    endAt: moment(values.endAt).format("DD:MM:YY HH:mm"),
                     totalUses: values.totalUses,
                     perUserLimit: values.perUserLimit,
                     isStackable: values.isStackable,
@@ -250,7 +249,7 @@ export default function CouponAddEditPage() {
                             }}
                             onBlur={formik.handleBlur}
                             placeholder="e.g., DAILY8"
-                            inputProps={{ 
+                            inputProps={{
                                 style: { textTransform: "uppercase" },
                                 maxLength: 8
                             }}
