@@ -238,7 +238,6 @@ export async function POST(req: NextRequest) {
     }
   ]);
 
-
   if (!orders.length) {
     return NextResponse.json(
       { status: false, message: 'Order not found' },
