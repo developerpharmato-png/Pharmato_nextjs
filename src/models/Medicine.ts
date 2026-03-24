@@ -110,8 +110,8 @@ const MedicineSchema = new Schema<IMedicine>({
     storeId: {
         type: Schema.Types.ObjectId,
         ref: 'Store',
-        default: null,
-        // default: () => new mongoose.Types.ObjectId('6926e27d3ea929638e7d091c'),
+        // default: null,
+        default: () => new mongoose.Types.ObjectId('6926e27d3ea929638e7d091c'),
     },
     isOTC: {
         type: Boolean,
