@@ -123,7 +123,7 @@ const CouponTable: React.FC<CouponTableProps> = ({
 
         const date = moment(dateString)
             .tz('Asia/Kolkata')
-            .format('MMM D, YYYY');
+            .format('DD MMM YYYY');
         return date
     };
 
@@ -132,7 +132,7 @@ const CouponTable: React.FC<CouponTableProps> = ({
 
         const date = moment(dateString)
             .tz('Asia/Kolkata')
-            .format('HH:mm z');
+            .format('HH:mm');
         return date
     };
 
