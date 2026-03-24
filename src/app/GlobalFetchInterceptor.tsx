@@ -8,11 +8,14 @@ export default function GlobalFetchInterceptor() {
     console.log("ssdfdfgdf");
     
     if (typeof window !== "undefined") {
+      const isAuthPage = window.location.pathname === "/" || window.location.pathname === "/login";
+
       // Axios interceptor for 401 errors
       axios.interceptors.response.use(
         (response) => response,
         (error) => {
-          if (error?.response?.status === 401) {
+          const isLoginApi = error.config?.url?.includes("/api/auth/login");
+          if (error?.response?.status === 401 && !isAuthPage && !isLoginApi) {
             window.location.href = "/";
           }
           return Promise.reject(error);
@@ -21,10 +24,12 @@ export default function GlobalFetchInterceptor() {
 
       const originalFetch = window.fetch;
       window.fetch = async (...args) => {
-        const response = await originalFetch(...args);
-        console.log(response,"responseresponse");
+        const url = typeof args[0] === 'string' ? args[0] : (args[0] as Request).url;
+        const isLoginApi = url.includes("/api/auth/login");
         
-        if (response.status === 401) {
+        const response = await originalFetch(...args);
+        
+        if (response.status === 401 && !isAuthPage && !isLoginApi) {
           window.location.href = "/";
           return response;
         }

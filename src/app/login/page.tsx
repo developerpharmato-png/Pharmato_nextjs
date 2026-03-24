@@ -14,13 +14,20 @@ export default function LoginPage() {
   const router = useRouter();
 
   const [showPassword, setShowPassword] = useState(false);
-
-  // Yup Validation Schema
-
+  const [isLeaving, setIsLeaving] = useState(false);
 
   return (
     <>
-      <div className="min-h-screen flex bg-gray-50">
+      <div className={`min-h-screen flex bg-gray-50 transition-all duration-700 ease-in-out ${isLeaving ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"}`}>
+        {/* Loading Overlay */}
+        {isLeaving && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm">
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+              <p className="mt-4 text-green-800 font-medium animate-pulse">Entering Dashboard...</p>
+            </div>
+          </div>
+        )}
         {/* Left Side - Welcome Section */}
         <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-green-600 via-green-700 to-emerald-800 p-12 items-center justify-center relative overflow-hidden">
           <div className="absolute inset-0 bg-black opacity-10"></div>
@@ -204,12 +211,13 @@ export default function LoginPage() {
                         icon: "success",
                         title: ToastMessages.LOGIN_SUCCESS,
                         showConfirmButton: false,
-                        timer: 2000,
+                        timer: 1500,
                       });
 
+                      setIsLeaving(true);
                       setTimeout(() => {
                         router.push("/dashboard/NewDashboard");
-                      }, 1000);
+                      }, 500);
                     }
                   } catch (err) {
                     Swal.fire({
