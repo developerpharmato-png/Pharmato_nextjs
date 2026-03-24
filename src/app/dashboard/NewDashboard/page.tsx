@@ -136,7 +136,7 @@ export default function NewDashboardPage() {
       setExportOrdersLoading(false);
     }
   }
- 
+
   async function exportInventory() {
     setExportInventoryLoading(true);
     try {
@@ -208,70 +208,57 @@ export default function NewDashboardPage() {
         </div> */}
 
         {/* Header Controls */}
-        <div className="flex flex-wrap items-center gap-2 bg-white p-2 px-3 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex items-center gap-2 pr-3 border-r border-slate-100">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-              Period
-            </label>
-            <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value as any)}
-              className="bg-transparent text-sm font-bold text-slate-700 focus:outline-none cursor-pointer"
-            >
-              <option value="today">Today</option>
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
-              <option value="all">All Time</option>
-              <option value="custom">Custom Range</option>
-            </select>
+        <div className="flex flex-wrap items-center gap-3 bg-white/80 backdrop-blur-md p-1.5 px-4 rounded-2xl border border-slate-200/60 shadow-md">
+          <div className="flex items-center gap-3 pr-4 border-r border-slate-200">
+            <div className="p-2 bg-slate-50 rounded-xl text-blue-600 shadow-inner">
+              <Calendar size={16} />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-[9px] font-black uppercase tracking-[0.1em] text-slate-400 leading-none mb-1">
+                Analysis Period
+              </label>
+              <select
+                value={period}
+                onChange={(e) => setPeriod(e.target.value as any)}
+                className="bg-transparent text-sm font-black text-slate-700 focus:outline-none cursor-pointer hover:text-blue-600 transition-colors"
+              >
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="all">All Time</option>
+                <option value="custom">Custom Range</option>
+              </select>
+            </div>
           </div>
 
           {period === "custom" && (
-            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2 pr-3 border-r border-slate-100">
+            <div className="flex items-center gap-3 animate-in fade-in slide-in-from-right-4 transition-all pr-4 border-r border-slate-200">
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="px-2 py-1 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
               />
-              <span className="text-slate-400">—</span>
+              <span className="text-slate-300 font-bold">—</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="px-2 py-1 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
               />
             </div>
           )}
 
-          <div className="flex items-center gap-2 pr-2 border-r border-slate-100">
-            {/* <button
-              onClick={() => exportOrders()}
-              disabled={exportOrdersLoading}
-              className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 disabled:opacity-50 shadow-sm transition-colors flex items-center gap-2"
-              title="Export Orders"
-            >
-              <ShoppingCart size={14} />
-              <span className="text-[10px] font-bold uppercase tracking-tight">Orders</span>
-            </button>
+          <div className="flex items-center pl-1">
             <button
-              onClick={() => exportInventory()}
-              disabled={exportInventoryLoading}
-              className="p-1.5 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 disabled:opacity-50 shadow-sm transition-colors flex items-center gap-2"
-              title="Export Inventory"
+              onClick={() => fetchAll()}
+              className="flex items-center gap-2.5 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white text-[13px] font-black rounded-xl transition-all shadow-lg hover:shadow-blue-200 shadow-blue-500/20 active:scale-95 group relative overflow-hidden"
             >
-              <Package size={14} />
-              <span className="text-[10px] font-bold uppercase tracking-tight">Stock</span>
-            </button> */}
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none" />
+              <RotateCcw size={16} className="group-hover:rotate-180 transition-transform duration-700 relative z-10" />
+              <span className="relative z-10">Refresh Dashboard</span>
+            </button>
           </div>
-
-          <button
-            onClick={() => fetchAll()}
-            className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm active:scale-95 group"
-          >
-            <RotateCcw size={14} className="group-hover:rotate-180 transition-transform duration-500" />
-            Refresh Data
-          </button>
         </div>
       </div>
 

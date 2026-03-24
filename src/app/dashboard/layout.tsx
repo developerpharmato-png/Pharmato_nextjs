@@ -88,7 +88,6 @@ export default function DashboardLayout({
     string,
     { view: boolean; edit: boolean }
   > | null>(null);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     requestPermissionAndGetToken();
@@ -196,10 +195,9 @@ export default function DashboardLayout({
       confirmText: "Logout",
       cancelText: "Cancel",
       onConfirm: async () => {
-        setIsLoggingOut(true);
         try {
           await fetch("/api/auth/logout", { method: "POST" });
-          
+
           // Clear all admin-related localStorage keys
           localStorage.removeItem("admin");
           localStorage.removeItem("adminId");
@@ -212,12 +210,9 @@ export default function DashboardLayout({
           localStorage.removeItem("managedStores");
           localStorage.removeItem("adminPermissions");
 
-          setTimeout(() => {
-            router.push("/login");
-          }, 600);
+          router.push("/login");
         } catch (error) {
           console.error("Logout failed:", error);
-          setIsLoggingOut(false);
         }
       },
     });
@@ -322,15 +317,7 @@ export default function DashboardLayout({
     .filter((item) => item.isVisible);
 
   return (
-    <div className={`flex h-screen w-full relative transition-all duration-700 ease-in-out ${isLoggingOut ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"}`}>
-      {isLoggingOut && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/60 backdrop-blur-sm">
-          <div className="flex flex-col items-center">
-            <div className="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 text-red-800 font-bold animate-pulse">Logging Out...</p>
-          </div>
-        </div>
-      )}
+    <div className="flex h-screen w-full relative">
       {isMobile && sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-30" onClick={() => setSidebarOpen(false)} />
       )}
