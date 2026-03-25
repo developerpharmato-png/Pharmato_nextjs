@@ -255,7 +255,7 @@ export async function POST(req: NextRequest) {
             price: Number(element.medicine.price),
             mrp: Number(element.medicine.mrp),
             discount: Number(element.medicine.discount),
-            couponDiscount: Number(couponDiscountAmount),
+            couponDiscount: Number(couponDiscountAmount).toFixed(2),
             isPrescription: element.medicine.isPrescription,
             status: 'pending'
         });
