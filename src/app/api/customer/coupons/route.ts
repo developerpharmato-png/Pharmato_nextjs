@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
         const coupons = await Coupon.find({
             isActive: true,
             isSecret: { $ne: true },
-            // startAt: { $lte: nowIST },
-            endAt: { $gte: nowIST }
+            startAt: { $gte: nowIST },
+            endAt: { $lte: nowIST }
         }).lean();
 
 
