@@ -939,6 +939,7 @@ export default function PartialCancelPage() {
                     const cancelQty = item.quantity - acceptQty;
 
                     // Entry for accepted part
+                    
                     processedMedicines.push({
                       ...baseMed,
                       quantity: acceptQty,
