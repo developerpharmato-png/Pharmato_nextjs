@@ -27,15 +27,15 @@ import moment from 'moment-timezone';
 
 export async function GET(request: NextRequest) {
     await connectDB();
-    
-        const nowIST = moment().tz("Asia/Kolkata").toDate();
-    
-        const coupons = await Coupon.find({
-            isActive: true,
-            isSecret: { $ne: true },
-            startAt: { $gte: nowIST },
-            endAt: { $lte: nowIST }
-        }).lean();
+
+    const nowIST = moment().tz("Asia/Kolkata").toDate();
+
+    const coupons = await Coupon.find({
+        isActive: true,
+        isSecret: { $ne: true },
+        startAt: { $lte: nowIST },
+        endAt: { $gte: nowIST }
+    }).lean();
 
 
     // const now = new Date();

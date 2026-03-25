@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
-import Coupon from '@/models/Coupon'; 
+import Coupon from '@/models/Coupon';
 
 /**
  * @swagger
@@ -62,12 +62,15 @@ import Coupon from '@/models/Coupon';
 
 export async function POST(request: NextRequest) {
     await dbConnect();
-    try {    
+    try {
         const body = await request.json();
         const { id, ...updateFields } = body;
         if (!id) {
             return NextResponse.json({ success: false, message: 'Coupon id is required' }, { status: 400 });
         }
+        // Ensure startAt and endAt are Date objects if present
+        if (updateFields.startAt) updateFields.startAt = new Date(updateFields.startAt);
+        if (updateFields.endAt) updateFields.endAt = new Date(updateFields.endAt);
         const coupon = await Coupon.findByIdAndUpdate(id, updateFields, { new: true });
         if (!coupon) {
             return NextResponse.json({ success: false, message: 'Coupon not found' }, { status: 404 });

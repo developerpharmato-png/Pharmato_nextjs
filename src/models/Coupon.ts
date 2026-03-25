@@ -18,30 +18,30 @@ export interface ICoupon extends Document {
     includedProductIds: string[];
     includedCategoryIds: string[];
     excludedProductIds: string[];
-    startAt: string;
-    endAt: string;
+    startAt: Date;
+    endAt: Date;
     minOrderValue: number;
     totalUses: number;
-    usedCount: number; 
+    usedCount: number;
     perUserLimit: number;
     usersOrGuestsUsed: IUserOrGuestCouponUsage[];
     isActive: boolean;
-    isStackable: boolean; 
+    isStackable: boolean;
     isSecret: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
- 
+
 const CouponSchema = new Schema<ICoupon>({
     uniqueCode: {
         type: String
     },
-    code: { 
-        type: String, 
-        required: true, 
-        uppercase: true, 
-        trim: true, 
-        maxlength: 8, 
+    code: {
+        type: String,
+        required: true,
+        uppercase: true,
+        trim: true,
+        maxlength: 8,
         match: [/^[A-Z0-9]+$/, 'Coupon code can only contain uppercase letters and numbers']
     },
     title: { type: String, default: '' },
@@ -53,8 +53,8 @@ const CouponSchema = new Schema<ICoupon>({
     includedProductIds: [{ type: String }],
     includedCategoryIds: [{ type: String }],
     excludedProductIds: [{ type: String }],
-    startAt: { type: String, required: true },
-    endAt: { type: String, required: true },
+    startAt: { type: Date, required: true },
+    endAt: { type: Date, required: true },
     minOrderValue: { type: Number, required: true },
     totalUses: { type: Number, default: 0 },
     usedCount: { type: Number, default: 0 },

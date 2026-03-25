@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Coupon from '@/models/Coupon';
+import moment from 'moment-timezone';
 
 /**
  * @swagger
@@ -31,9 +32,10 @@ import Coupon from '@/models/Coupon';
  */
 export async function POST() {
     await connectDB();
-    const now = new Date();
+    // const now = new Date();
+    const nowIST = moment().tz("Asia/Kolkata").toDate();
     const result = await Coupon.updateMany(
-        { endAt: { $lt: now }, isActive: true },
+        { endAt: { $lt: nowIST }, isActive: true },
         { $set: { isActive: false } }
     );
     return NextResponse.json({
