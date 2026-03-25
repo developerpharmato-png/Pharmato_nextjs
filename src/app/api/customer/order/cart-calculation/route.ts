@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
     if (((!userId || typeof userId !== 'string') && (!guestId || typeof guestId !== 'string')) || !storeId || typeof storeId !== 'string') {
         return NextResponse.json({ success: false, message: 'userId or guestId and storeId are required' }, { status: 400 });
     }
-    const discountValue = typeof discount === 'number' && discount > 0 ? discount : 0;
+    const discountValue: any = typeof discount === 'number' && discount > 0 ? Number(discount.toFixed(2)) : 0;
 
     let cartData;
     if (guestId) {
@@ -232,8 +232,19 @@ export async function POST(req: NextRequest) {
 
     // console.log("$$$$$$$$$cartData$$$$$$$$$",cartData);
 
+    const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
+
     for (const element of cartData) {
         medicineId.push(new mongoose.Types.ObjectId(element.medicine._id));
+
+        let couponDiscountAmount = 0;
+
+        if (discountValue > 0) {
+
+            couponDiscountAmount = (Number(element.medicine.price) / Number(priceTotalSumBeforeDiscount)) * discountValue;
+
+        }
+
         medicineQuantity.push({
             medicineId: `${element.medicine._id}`,
             name: element.medicine.name,
@@ -244,12 +255,12 @@ export async function POST(req: NextRequest) {
             price: Number(element.medicine.price),
             mrp: Number(element.medicine.mrp),
             discount: Number(element.medicine.discount),
+            couponDiscount: Number(couponDiscountAmount),
             isPrescription: element.medicine.isPrescription,
             status: 'pending'
         });
     }
 
-    const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
     const mrpTotalSum = cartData.reduce((sum, item) => sum + (item.medicine.mrp * item.quantity), 0);
     const platformFee = Number(calculationData.platformFeeInRupees) + (Number(calculationData.platformFeeInRupees) * Number(calculationData.platformFeeGstInPercent)) / 100;
     calculationData.priceTotalSumBeforeDiscount = Number(priceTotalSumBeforeDiscount.toFixed(2));
