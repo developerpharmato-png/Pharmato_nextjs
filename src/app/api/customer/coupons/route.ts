@@ -38,14 +38,5 @@ export async function GET(request: NextRequest) {
     }).lean();
 
 
-    // const now = new Date();
-    // const coupons = await Coupon.find({
-    //     isActive: true,
-    //     isSecret: { $ne: true },
-    //     // startAt: { $lte: now },
-    //     endAt: { $gte: now }
-    // }).lean();
-
-
     return NextResponse.json({ success: true, coupons });
 }
