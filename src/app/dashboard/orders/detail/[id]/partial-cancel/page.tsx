@@ -289,23 +289,25 @@ export default function PartialCancelPage() {
 
     (order?.medicineQuantity || []).forEach((q: any) => {
       const id = q.medicineId?.toString() || q.medicineId;
-      const med = order.medicineId.find(
-        (m: any) => (m._id?.toString() || m._id) === id
-      );
-      if (!med) return;
+      // const med = order.medicineId.find(
+      //   (m: any) => (m._id?.toString() || m._id) === id
+      // );
+      // if (!med) return;
+
+      q._id = id; // Ensure q has an id field for easier handling later
 
       if (selected.includes(id)) {
         const acceptedQty = acceptedQuantities[id] ?? q.quantity;
         const cancelledQty = q.quantity - acceptedQty;
 
         if (acceptedQty > 0) {
-          confirmItems.push({ ...med, displayQty: acceptedQty });
+          confirmItems.push({ ...q, displayQty: acceptedQty });
         }
         if (cancelledQty > 0) {
-          cancelItems.push({ ...med, displayQty: cancelledQty });
+          cancelItems.push({ ...q, displayQty: cancelledQty });
         }
       } else if (q.status === "pending") {
-        cancelItems.push({ ...med, displayQty: q.quantity });
+        cancelItems.push({ ...q, displayQty: q.quantity });
       }
     });
 
@@ -816,7 +818,8 @@ export default function PartialCancelPage() {
                       (sum, m) => {
                         const qty = m.displayQty || 1;
                         const price = Number(m.price) || 0;
-                        return sum + price * qty;
+                        const couponDiscount = Number(m.couponDiscount) || 0;
+                        return sum + (price - couponDiscount) * qty;
                       },
                       0,
                     );
@@ -939,7 +942,6 @@ export default function PartialCancelPage() {
                     const cancelQty = item.quantity - acceptQty;
 
                     // Entry for accepted part
-                    
                     processedMedicines.push({
                       ...baseMed,
                       quantity: acceptQty,
@@ -956,7 +958,9 @@ export default function PartialCancelPage() {
                         cancelReason: cancelReason || ""
                       });
                     }
+
                   } else {
+
                     // Fully cancelled
                     processedMedicines.push({
                       ...baseMed,
@@ -964,6 +968,7 @@ export default function PartialCancelPage() {
                       status: "cancelled",
                       cancelReason: cancelReason || ""
                     });
+
                   }
                 });
 
@@ -976,8 +981,11 @@ export default function PartialCancelPage() {
                     cancelReason
                   }),
                 });
+
                 const data = await res.json();
+
                 if (data.success) {
+
                   Swal.fire({
                     toast: true,
                     position: "top-end",
@@ -990,6 +998,7 @@ export default function PartialCancelPage() {
                   setCancelReason("");
                   setShowCancelReasonDialog(false);
                   fetchOrder();
+
                 } else {
                   setShowCancelReasonDialog(false);
                   Swal.fire(
@@ -998,6 +1007,7 @@ export default function PartialCancelPage() {
                     "error",
                   );
                 }
+
               } catch (e) {
                 setShowCancelReasonDialog(false);
                 Swal.fire("Error", "Failed to accept", "error");
