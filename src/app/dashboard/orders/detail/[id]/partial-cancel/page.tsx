@@ -909,19 +909,19 @@ export default function PartialCancelPage() {
                 const processedMedicines: any[] = [];
                 (order?.medicineQuantity || []).forEach((item: any) => {
                   const id = item.medicineId?.toString() || item.medicineId;
-                  const medInfo = order.medicineId.find((m: any) => m._id?.toString() === id);
 
                   // Extract common fields strictly following the requested format
                   const baseMed = {
-                    _id: medInfo?._id || id,
-                    name: medInfo?.name || item.name,
-                    manufacturer: medInfo?.manufacturer || item.manufacturer,
-                    price: medInfo?.price || item.price,
-                    mrp: medInfo?.mrp || item.mrp,
-                    images: medInfo?.images || item.images || [],
-                    coverImage: medInfo?.coverImage || item.coverImage,
-                    discount: medInfo?.discount || item.discount,
-                    isPrescription: medInfo?.isPrescription || item.isPrescription || false,
+                    _id: id,
+                    name: item.name,
+                    manufacturer: item.manufacturer,
+                    price: item.price,
+                    mrp: item.mrp,
+                    images: item.images || [],
+                    coverImage: item.coverImage,
+                    discount: item.discount,
+                    couponDiscount: item.couponDiscount || 0,
+                    isPrescription: item.isPrescription || false,
                   };
 
                   if (item.status !== "pending") {
@@ -1807,4 +1807,5 @@ export default function PartialCancelPage() {
       )}
     </div>
   );
+
 }

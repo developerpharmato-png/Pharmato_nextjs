@@ -235,10 +235,9 @@ export async function POST(req: NextRequest) {
     const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
 
     for (const element of cartData) {
+
         medicineId.push(new mongoose.Types.ObjectId(element.medicine._id));
-
         let couponDiscountAmount = 0;
-
         if (discountValue > 0) {
 
             couponDiscountAmount = (Number(element.medicine.price) / Number(priceTotalSumBeforeDiscount)) * discountValue;
@@ -259,6 +258,7 @@ export async function POST(req: NextRequest) {
             isPrescription: element.medicine.isPrescription,
             status: 'pending'
         });
+
     }
 
     const mrpTotalSum = cartData.reduce((sum, item) => sum + (item.medicine.mrp * item.quantity), 0);
