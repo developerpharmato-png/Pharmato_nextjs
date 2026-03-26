@@ -139,45 +139,6 @@ async function runBackground(body: any) {
           const updatedOrder = await Order.findOne({ order_id: orderId });
           const user = await User.findOne({ _id: checkOrder.userId })
 
-          // if (updatedOrder?.calculationData?.couponCode) {
-
-          //   const coupon: any = await Coupon.findOne({ code: updatedOrder?.calculationData?.couponCode.trim().toUpperCase() });
-
-          //   if (coupon) {
-
-          //     // Find usage for userId from checkOrder
-          //     const userOrGuestUsage = (coupon.usersOrGuestsUsed || []).find((obj: any) => obj.userId?.toString() === checkOrder.userId?.toString());
-
-          //     if (userOrGuestUsage) {
-
-          //       for (const obj of coupon.usersOrGuestsUsed || []) {
-
-          //         if (obj.userId?.toString() === checkOrder.userId?.toString()) {
-
-          //           obj.uses = (obj.uses || 0) + 1;
-
-          //         }
-
-          //       }
-
-          //     } else {
-
-          //       coupon.usersOrGuestsUsed.push({
-          //         userId: checkOrder.userId,
-          //         guestId: '',
-          //         uses: 1
-          //       });
-
-          //     }
-
-          //     coupon.usedCount = (coupon.usedCount || 0) + 1;
-
-          //     await coupon.save();
-
-          //   }
-
-          // }
-
           if (updatedOrder?.calculationData?.couponCode) {
 
             const code = updatedOrder.calculationData.couponCode.trim().toUpperCase();
