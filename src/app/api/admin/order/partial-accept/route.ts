@@ -1092,16 +1092,19 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
         let grandTotal: any = 0;
         let subTotal: any = 0;
         const deliveryFee = order.calculationData.deliveryFee || 0;
-        const discount = order.calculationData.discount || 0;
+        const discount = Number(((order.calculationData.discount || 0) - (Number(cancelledForRefund.reduce((sum: number, item: any) => sum + (item.couponDiscount) * item.quantity, 0)))).toFixed(2));
         const platformFee = order.calculationData.platformFee || 0;
         const razorPayCommissionAmount = order.calculationData.razorPayCommissionAmount || 0;
         const razorPayCommissionGstAmount = order.calculationData.razorPayCommissionGstAmount || 0;
         const allCharges = platformFee + razorPayCommissionAmount + razorPayCommissionGstAmount;
 
+        const cancelItemAmount = Number(cancelledForRefund.reduce((sum: number, item: any) => sum + (item.price - item.couponDiscount) * item.quantity, 0));
+
         grandTotal = order.calculationData.totalOrderAmount || 0;
-        subTotal = order.calculationData.priceTotalSumAfterDiscount || 0;
+        // subTotal = order.calculationData.priceTotalSumAfterDiscount || 0;
+        subTotal = Number(acceptedNames.reduce((sum: number, item: any) => sum + (item.price) * item.quantity, 0))
         grandTotal = Number(grandTotal - refundAmount).toFixed(2);
-        subTotal = Number(subTotal - refundAmount).toFixed(2);
+        // subTotal = Number(subTotal - refundAmount).toFixed(2);
 
         acceptedNames.forEach((m: any) => {
             invoiceMedicinesHtml += `<!-- LOOP START -->
