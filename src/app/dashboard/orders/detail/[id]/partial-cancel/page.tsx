@@ -717,7 +717,7 @@ export default function PartialCancelPage() {
             <div>
               <ProductManageTable
                 medicines={order?.medicineId || []}
-                medicineQuantity={order?.medicineId || []}
+                medicineQuantity={order?.medicineQuantity || []}
                 selected={selected}
                 setSelected={(s: string[]) => setSelected(s)}
                 acceptedQuantities={acceptedQuantities}

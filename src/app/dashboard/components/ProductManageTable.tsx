@@ -33,16 +33,17 @@ const ProductManageTable: React.FC<Props> = ({
     const accepted: any[] = [];
     const rejected: any[] = [];
 
-    medicines.forEach((med) => {
-      const q = (medicineQuantity || []).find(
-        (x: any) => x.medicineId === med._id || x.medicineId?.toString?.() === med._id?.toString?.()
-      );
-      const status = (q?.status || med.status || "pending").toLowerCase();
-      const itemWithData = { ...med, q, status };
+    medicineQuantity.forEach((med) => {
+      // const q = (medicineQuantity || []).find(
+      //   (x: any) => x.medicineId === med._id || x.medicineId?.toString?.() === med._id?.toString?.()
+      // );
+      med._id = med.medicineId
+      const status = (med.status).toLowerCase();
+      // const itemWithData = { ...med, q, status };
 
-      if (status === "pending") pending.push(itemWithData);
-      else if (status === "accepted" || status === "delivered") accepted.push(itemWithData);
-      else if (status === "rejected" || status === "cancelled") rejected.push(itemWithData);
+      if (status === "pending") pending.push(med);
+      else if (status === "accepted" || status === "delivered") accepted.push(med);
+      else if (status === "rejected" || status === "cancelled") rejected.push(med);
     });
 
     return { pending, accepted, rejected };
@@ -116,6 +117,7 @@ const ProductManageTable: React.FC<Props> = ({
                 <th className={`${!showCheckbox ? 'pl-6' : 'px-4'} py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest`}>Item Details</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Quantity</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Unit Price</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Coupon Discount</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Total</th>
                 <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Status</th>
                 <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Prescription Required</th>
@@ -124,9 +126,10 @@ const ProductManageTable: React.FC<Props> = ({
             <tbody className="divide-y divide-gray-50">
               {items.map((item) => {
                 const price = Number(item.price) || 0;
+                const couponDiscount = Number(item.couponDiscount) || 0;
                 const mrp = Number(item.mrp) || 0;
                 const qty = Number(item.q?.quantity || item.quantity || 1);
-                const total = price * qty;
+                const total = (price - couponDiscount) * qty;
 
                 return (
                   <tr key={item._id} className="hover:bg-gray-50/50 transition-colors">
@@ -173,6 +176,11 @@ const ProductManageTable: React.FC<Props> = ({
                     <td className="px-4 py-4 text-right">
                       <div className="flex flex-col items-end">
                         <span className={`text-[13px] font-bold ${theme === 'red' ? 'text-gray-400' : 'text-green-600'}`}>₹{price.toFixed(2)}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      <div className="flex flex-col items-end">
+                        <span className={`text-[13px] font-bold ${theme === 'red' ? 'text-gray-400' : 'text-green-600'}`}>₹{couponDiscount.toFixed(2)}</span>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-right">

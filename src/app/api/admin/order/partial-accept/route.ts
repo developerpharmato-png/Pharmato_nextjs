@@ -1098,13 +1098,9 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
         const razorPayCommissionGstAmount = order.calculationData.razorPayCommissionGstAmount || 0;
         const allCharges = platformFee + razorPayCommissionAmount + razorPayCommissionGstAmount;
 
-        const cancelItemAmount = Number(cancelledForRefund.reduce((sum: number, item: any) => sum + (item.price - item.couponDiscount) * item.quantity, 0));
-
         grandTotal = order.calculationData.totalOrderAmount || 0;
-        // subTotal = order.calculationData.priceTotalSumAfterDiscount || 0;
         subTotal = Number(acceptedNames.reduce((sum: number, item: any) => sum + (item.price) * item.quantity, 0))
         grandTotal = Number(grandTotal - refundAmount).toFixed(2);
-        // subTotal = Number(subTotal - refundAmount).toFixed(2);
 
         acceptedNames.forEach((m: any) => {
             invoiceMedicinesHtml += `<!-- LOOP START -->
