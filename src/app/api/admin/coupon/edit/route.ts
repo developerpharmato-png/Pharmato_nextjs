@@ -64,6 +64,8 @@ export async function POST(request: NextRequest) {
     await dbConnect();
     try {
         const body = await request.json();
+        // console.log('########body#########',body);
+
         const { id, ...updateFields } = body;
         if (!id) {
             return NextResponse.json({ success: false, message: 'Coupon id is required' }, { status: 400 });

@@ -159,6 +159,7 @@ export default function CouponAddEditPage() {
                     scope: values.scope,
                     startAt: new Date(values.startAt).toISOString(),
                     endAt: new Date(values.endAt).toISOString(),
+                    maxDiscountAmount: Number(values.maxDiscountAmount) || 0,
                     totalUses: values.totalUses,
                     perUserLimit: values.perUserLimit,
                     isStackable: values.isStackable,
@@ -267,10 +268,17 @@ export default function CouponAddEditPage() {
                             label="Coupon Title *"
                             name="title"
                             value={formik.values.title}
-                            onChange={formik.handleChange}
+                            onChange={(e) => {
+                                const val = e.target.value.slice(0, 40);
+                                formik.setFieldValue("title", val);
+                            }}
                             onBlur={formik.handleBlur}
                             placeholder="e.g., 20% Off All Daily OTC"
+                            inputProps={{ maxLength: 40 }}
                         />
+                        <div style={{ fontSize: '12px', color: '#888', textAlign: 'right' }}>
+                            {formik.values.title.length}/40
+                        </div>
                         {formik.touched.title && formik.errors.title && (
                             <ErrorMessageCom error={formik.errors.title} />
                         )}
@@ -285,15 +293,18 @@ export default function CouponAddEditPage() {
                         label="Description *"
                         value={formik.values.description}
                         onChange={(e) => {
-                            formik.setFieldValue("description", e.target.value);
+                            const val = e.target.value.slice(0, 150);
+                            formik.setFieldValue("description", val);
                         }}
                         placeholder="Enter message here"
-                        maxLength={500}
+                        maxLength={150}
                         rows={5}
                         showCount={true}
-
                         className=""
                     />
+                    <div style={{ fontSize: '12px', color: '#888', textAlign: 'right' }}>
+                        {formik.values.description.length}/150
+                    </div>
                     {formik.touched.description && formik.errors.description && (
                         <ErrorMessageCom error={formik.errors.description} />
                     )}

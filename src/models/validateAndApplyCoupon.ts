@@ -69,7 +69,7 @@ export async function validateAndApplyCoupon(
 
     // 4. Check minOrderValue
     if (cart.total < coupon.minOrderValue) {
-        return { discount: 0, eligibleAmount: 0, message: `Minimum order value is ${coupon.minOrderValue}` };
+        return { discount: 0, eligibleAmount: 0, message: `Minimum order value is ₹${coupon.minOrderValue}` };
     }
 
     // 5. Scope-based filtering

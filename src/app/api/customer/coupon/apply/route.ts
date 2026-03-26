@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     await connectDB();
     const { couponCode, cart } = await request.json();
     if (!couponCode || !cart) {
-        return NextResponse.json({ success: false, reason: 'couponCode and cart are required' }, { status: 400 });
+        return NextResponse.json({ success: false, message: 'couponCode and cart are required' }, { status: 400 });
     }
     const result = await validateAndApplyCoupon(couponCode, cart);
     return NextResponse.json({
