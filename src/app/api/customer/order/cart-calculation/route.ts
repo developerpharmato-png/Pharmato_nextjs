@@ -73,6 +73,9 @@ function getActiveSurge(surgePricing: any[]) {
  *               discount:
  *                 type: number
  *                 description: Discount amount to apply (optional)
+ *               couponCode:
+ *                 type: string
+ *                 description: Coupon code to apply (optional)
  *     responses:
  *       200:
  *         description: Calculation data returned
@@ -119,7 +122,7 @@ function getActiveSurge(surgePricing: any[]) {
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { userId, guestId, storeId, discount } = await req.json();
+    const { userId, guestId, storeId, discount, couponCode } = await req.json();
     if (((!userId || typeof userId !== 'string') && (!guestId || typeof guestId !== 'string')) || !storeId || typeof storeId !== 'string') {
         return NextResponse.json({ success: false, message: 'userId or guestId and storeId are required' }, { status: 400 });
     }
@@ -231,6 +234,8 @@ export async function POST(req: NextRequest) {
     }
 
     // console.log("$$$$$$$$$cartData$$$$$$$$$",cartData);
+
+    calculationData.couponCode = couponCode ? couponCode : "";
 
     const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
 

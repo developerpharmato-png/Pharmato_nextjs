@@ -1,5 +1,6 @@
 import Coupon, { ICoupon } from './Coupon';
 import mongoose from 'mongoose';
+import moment from 'moment-timezone';
 
 interface CartItem {
     medicineId: string;
@@ -47,10 +48,11 @@ export async function validateAndApplyCoupon(
     if (!coupon) return { discount: 0, eligibleAmount: 0, message: 'Coupon not found' };
 
     // 2. Check active, startAt, endAt
-    const now = new Date();
+    const nowIST = moment().tz("Asia/Kolkata").toDate();
+
     if (!coupon.isActive) return { discount: 0, eligibleAmount: 0, message: 'Coupon is not active' };
-    if (now < coupon.startAt) return { discount: 0, eligibleAmount: 0, message: 'Coupon not started yet' };
-    if (now > coupon.endAt) return { discount: 0, eligibleAmount: 0, message: 'Coupon expired' };
+    if (nowIST < coupon.startAt) return { discount: 0, eligibleAmount: 0, message: 'Coupon not started yet' };
+    if (nowIST > coupon.endAt) return { discount: 0, eligibleAmount: 0, message: 'Coupon expired' };
 
     // 3. Check totalUses and perUserLimit
     if (coupon.totalUses !== null && coupon.usedCount >= coupon.totalUses) {

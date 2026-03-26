@@ -13,6 +13,7 @@ import fs from 'fs';
 import path from 'path';
 import Medicine from '@/models/Medicine';
 import moment from 'moment-timezone';
+import Coupon from '@/models/Coupon';
 
 const razorpayInstance = new Razorpay({
   key_id: process.env.razorPay_Key_Id || '',
@@ -137,6 +138,85 @@ async function runBackground(body: any) {
         try {
           const updatedOrder = await Order.findOne({ order_id: orderId });
           const user = await User.findOne({ _id: checkOrder.userId })
+
+          // if (updatedOrder?.calculationData?.couponCode) {
+
+          //   const coupon: any = await Coupon.findOne({ code: updatedOrder?.calculationData?.couponCode.trim().toUpperCase() });
+
+          //   if (coupon) {
+
+          //     // Find usage for userId from checkOrder
+          //     const userOrGuestUsage = (coupon.usersOrGuestsUsed || []).find((obj: any) => obj.userId?.toString() === checkOrder.userId?.toString());
+
+          //     if (userOrGuestUsage) {
+
+          //       for (const obj of coupon.usersOrGuestsUsed || []) {
+
+          //         if (obj.userId?.toString() === checkOrder.userId?.toString()) {
+
+          //           obj.uses = (obj.uses || 0) + 1;
+
+          //         }
+
+          //       }
+
+          //     } else {
+
+          //       coupon.usersOrGuestsUsed.push({
+          //         userId: checkOrder.userId,
+          //         guestId: '',
+          //         uses: 1
+          //       });
+
+          //     }
+
+          //     coupon.usedCount = (coupon.usedCount || 0) + 1;
+
+          //     await coupon.save();
+
+          //   }
+
+          // }
+
+          if (updatedOrder?.calculationData?.couponCode) {
+
+            const code = updatedOrder.calculationData.couponCode.trim().toUpperCase();
+            const userId = checkOrder.userId.toString();
+
+            // Try updating existing user usage
+            const updatedCoupon = await Coupon.findOneAndUpdate(
+              {
+                code,
+                "usersOrGuestsUsed.userId": userId
+              },
+              {
+                $inc: {
+                  "usersOrGuestsUsed.$.uses": 1,
+                  usedCount: 1
+                }
+              },
+              { new: true }
+            );
+
+            // If user not found → push new entry
+            if (!updatedCoupon) {
+              await Coupon.findOneAndUpdate(
+                { code },
+                {
+                  $push: {
+                    usersOrGuestsUsed: {
+                      userId: userId,
+                      guestId: '',
+                      uses: 1
+                    }
+                  },
+                  $inc: { usedCount: 1 }
+                }
+              );
+            }
+
+          }
+
           // console.log("$$$updatedOrder$$$$$$$$$$$$$$user$$", updatedOrder, user);
           const amountValue = typeof entity.amount === 'number' ? entity.amount / 100 : 0;
           const subject = `Order Placed Successfully`;

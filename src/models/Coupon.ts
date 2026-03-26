@@ -61,7 +61,7 @@ const CouponSchema = new Schema<ICoupon>({
     perUserLimit: { type: Number, required: true },
     usersOrGuestsUsed: [
         {
-            userId: { type: Schema.Types.ObjectId, ref: 'User' },
+            userId: { type: String },
             guestId: { type: String },
             uses: { type: Number, default: 0 },
         },
