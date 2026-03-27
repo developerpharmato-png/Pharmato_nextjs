@@ -11,7 +11,7 @@ import Admin from '@/models/Admin';
 import Store from '@/models/Store';
 import Medicine from '@/models/Medicine';
 
-async function runBackground(order: any , status: string) {
+async function runBackground(order: any, status: string) {
 
   // Choose template based on create or update
   const headerPath = path.join(process.cwd(), 'src/app/api/admin/html-templates/emailHeader.html');
@@ -94,7 +94,7 @@ async function runBackground(order: any , status: string) {
   const acceptedNames = checkMedicineQuantity.filter((m: any) => m.status == 'accepted');
   const cancelledNames = checkMedicineQuantity.filter((m: any) => m.status == 'cancelled');
 
-  const refundAmount = cancelledNames.reduce((sum: number, m: any) => sum + (Number(m.price) * Number(m.quantity)), 0);
+  const refundAmount = Number(cancelledNames.reduce((sum: number, item: any) => sum + (item.price - item.couponDiscount) * item.quantity, 0));
 
   let itemsHtml = '';
 
@@ -679,7 +679,7 @@ export async function POST(req: NextRequest) {
     }
 
     setImmediate(() => {
-      runBackground(order , status);
+      runBackground(order, status);
     });
 
     return NextResponse.json({ success: true, message: 'Order status updated' });

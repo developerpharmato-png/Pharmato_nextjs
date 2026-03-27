@@ -170,13 +170,13 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                                <div>
                 <div style="font-weight:500;">${m.name}</div>
                 <div style="font-size:14px;color:#555;">
-                    Quantity: ${m.quantity}, Price: ₹${Number(m.price).toFixed(2)}
+                    Quantity: ${m.quantity}, Price: ₹${Number(m.price).toFixed(2)} 
                 </div>
             </div>
                 </li>`;
         });
         html += '</ul></p>';
-    }
+    }    
     if (cancelledNamesWithDetails.length > 0) {
         const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
         html += '<p><b>Cancelled Medicines:</b><ul style="list-style:none;padding:0;">';
@@ -268,7 +268,6 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
     } catch (err) {
         console.error('Firebase order status update failed:', err);
     }
-
 
     // Create in-app notification for customer and send push notification if device token exists
     try {
@@ -957,9 +956,8 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
 
         console.log("###acceptedNames######", acceptedNames);
 
-        let totalDiscount = 0;
-
-        totalDiscount = Number(acceptedNames.reduce((sum: number, item: any) => sum + ((item.mrp - item.price) * item.quantity), 0));
+        // let totalDiscount = 0;
+        // totalDiscount = Number(acceptedNames.reduce((sum: number, item: any) => sum + ((item.mrp - item.price) * item.quantity), 0));
 
         // 1️⃣ Extract batch numbers
         const batchNumbersArray = acceptedNames
