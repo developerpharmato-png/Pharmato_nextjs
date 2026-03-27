@@ -64,7 +64,7 @@ export async function validateAndApplyCoupon(
         (guestId && u.guestId === guestId)
     );
     if (coupon.perUserLimit != null && userOrGuestUsage && userOrGuestUsage.uses >= coupon.perUserLimit) {
-        return { discount: 0, eligibleAmount: 0, message: 'You have used this coupon maximum allowed times' };
+        return { discount: 0, eligibleAmount: 0, message: 'You’ve already used this coupon. Try another offer to save more!' };
     }
 
     // 4. Check minOrderValue
