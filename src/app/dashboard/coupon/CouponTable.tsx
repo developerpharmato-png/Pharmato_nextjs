@@ -15,7 +15,7 @@ import axios from "axios";
 import moment from 'moment-timezone';
 import { Edit3Icon, EditIcon } from "lucide-react";
 import { CouponUpdateStore } from "../storeAPICall/useUserStore";
-
+  
 interface Coupon {
     _id: string;
     code: string;
@@ -71,7 +71,8 @@ const CouponTable: React.FC<CouponTableProps> = ({
         data: ActiveInactivedata,
         clearData: ActiveInactiveDAta,
     } = CouponUpdateStore();
-
+ 
+    console.log(ActiveInactivedata,"ActiveInactivedata")
     const handleToggleStatus = async (coupon: Coupon) => {
         try {
             setTogglingId(coupon._id);
@@ -134,45 +135,6 @@ const CouponTable: React.FC<CouponTableProps> = ({
         const date = (m.isValid() ? m : moment(dateString))
             .format('HH:mm');
         return date;
-    };
-
-
-    const handleRestartCoupon = async (coupon: Coupon) => {
-        const result = await Swal.fire({
-            title: 'Restart Coupon?',
-            text: `Are you sure you want to reset usage for coupon ${coupon.code}?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, Restart',
-            cancelButtonText: 'Cancel',
-        });
-        if (result.isConfirmed) {
-            try {
-                const res = await axios.post('/api/admin/coupon/restart-coupon', { id: coupon._id });
-                if (res.data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Coupon restarted',
-                        text: 'Coupon usage has been reset.',
-                        timer: 1500,
-                        showConfirmButton: false,
-                    });
-                    if (onStatusChange) onStatusChange();
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Failed',
-                        text: res.data.message || 'Could not restart coupon.',
-                    });
-                }
-            } catch (err: any) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: err?.response?.data?.message || err.message || 'API error',
-                });
-            }
-        }
     };
 
     const columns: Column<Coupon>[] = [
@@ -294,19 +256,6 @@ const CouponTable: React.FC<CouponTableProps> = ({
                         disabled={togglingId !== null && togglingId !== row._id}
                     />
                 </ConfirmStatusAlertComponent>
-            ),
-        },
-        {
-            id: "restart",
-            label: "Coupon Restart",
-            minWidth: 100,
-            selector: (row) => (
-                <button
-                    className="px-2 py-1 sm:px-4 sm:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition shadow-md font-medium text-xs"
-                    onClick={() => handleRestartCoupon(row)}
-                >
-                    Restart
-                </button>
             ),
         },
         {

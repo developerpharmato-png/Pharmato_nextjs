@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         if (!code || typeof code !== 'string') {
             return NextResponse.json({ success: false, available: false, message: 'Code is required' }, { status: 400 });
         }
-        const exists = await Coupon.exists({ code });
+        const exists = await Coupon.exists({ code, isActive: true });
         if (exists) {
             return NextResponse.json({ success: true, available: false, message: 'Code is already taken' });
         }

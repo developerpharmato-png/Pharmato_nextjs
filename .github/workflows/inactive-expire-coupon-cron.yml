@@ -2,7 +2,7 @@ name: Call Cancel Payment Cron
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # Har 15 minute
+    - cron: "*/2 * * * *"   # Har 2 minute
 
   workflow_dispatch:
 

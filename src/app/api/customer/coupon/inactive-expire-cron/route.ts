@@ -34,10 +34,20 @@ export async function POST() {
     await connectDB();
     // const now = new Date();
     const nowIST = moment().tz("Asia/Kolkata").toDate();
+
     const result = await Coupon.updateMany(
-        { endAt: { $lt: nowIST }, isActive: true },
-        { $set: { isActive: false } }
+        {
+            isActive: true,
+            $or: [
+                { endAt: { $lt: nowIST } },
+                { $expr: { $gte: ["$usedCount", "$totalUses"] } }
+            ]
+        },
+        {
+            $set: { isActive: false }
+        }
     );
+
     return NextResponse.json({
         success: true,
         count: result.modifiedCount,

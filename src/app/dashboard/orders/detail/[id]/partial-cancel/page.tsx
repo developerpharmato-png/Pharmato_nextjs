@@ -1327,6 +1327,18 @@ export default function PartialCancelPage() {
                       {order?.order_status || "Pending"}
                     </span>
                   </div>
+
+                  {order?.calculationData?.couponCode ? <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                      Coupon Applied
+                    </p>
+                    <span
+                      className={`inline-flex px-3 py-1 rounded text-[10px] font-bold uppercase tracking-tighter status-default }`}
+                    >
+                      {order?.calculationData?.couponCode}
+                    </span>
+                  </div> : ""}
+
                 </div>
 
                 <div className="space-y-5">

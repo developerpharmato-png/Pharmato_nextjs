@@ -58,19 +58,22 @@ const initialValues: CouponFormValues = {
     title: "",
     description: "",
     type: "fixed",
-    value: undefined as any,
-    maxDiscountAmount: undefined,
-    minOrderValue: undefined as any,
+    value: 0,
+    maxDiscountAmount: 0,
+    minOrderValue: 0,
     scope: "global",
     startAt: "",
     endAt: "",
-    totalUses: undefined as any,
-    perUserLimit: undefined as any,
+    totalUses: 1,
+    perUserLimit: 1,
     isStackable: false,
     isSecret: false,
     isActive: true,
 };
 export default function CouponAddEditPage() {
+    const [codeAvailable, setCodeAvailable] = useState<null | boolean>(null);
+    const [codeCheckLoading, setCodeCheckLoading] = useState(false);
+    const [codeCheckMsg, setCodeCheckMsg] = useState<string>("");
     const router = useRouter();
     const params = useParams();
     const couponId = (params as any)?.id?.[0];
@@ -147,6 +150,14 @@ export default function CouponAddEditPage() {
         initialValues: fetchedInitialValues,
         validationSchema: getCouponsValidationSchema(isEdit),
         onSubmit: async (values) => {
+            if (!isEdit && codeAvailable === false) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Code not available",
+                    text: codeCheckMsg || "This coupon code is already taken.",
+                });
+                return;
+            }
             setLoading(true);
             try {
                 const payload = {
@@ -172,16 +183,13 @@ export default function CouponAddEditPage() {
                         id: couponId,
                         ...payload,
                     });
-                    // Toast.success("Coupon updated successfully");
                 } else {
                     await createCoupon(CouponCreatePath, payload);
-                    // Toast.success("Coupon created successfully");
                 }
 
                 setTimeout(() => router.push("/dashboard/coupon"), 1000);
             } catch (error) {
                 console.error("Error saving coupon:", error);
-                // Toast.error(isEdit ? "Failed to update coupon" : "Failed to create coupon");
             } finally {
                 setLoading(false);
             }
@@ -223,6 +231,35 @@ export default function CouponAddEditPage() {
         );
     }
 
+
+    // Coupon code check handler
+    const handleCodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+        if (val.length <= 8) {
+            formik.setFieldValue("code", val);
+            setCodeAvailable(null);
+            setCodeCheckMsg("");
+            if (val.length >= 3 && !isEdit) {
+                setCodeCheckLoading(true);
+                try {
+                    const res = await fetch("/api/admin/coupon/check-code", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ code: val })
+                    });
+                    const data = await res.json();
+                    setCodeAvailable(data.available);
+                    setCodeCheckMsg(data.message);
+                } catch (err) {
+                    setCodeAvailable(false);
+                    setCodeCheckMsg("Error checking code");
+                } finally {
+                    setCodeCheckLoading(false);
+                }
+            }
+        }
+    };
+
     return (
         <div className="containerStyle scrollbar-hide">
             <HeaderWithAction
@@ -231,23 +268,16 @@ export default function CouponAddEditPage() {
                 showBack={true}
             />
 
-
             <form onSubmit={formik.handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Code */}
-
                     <div>
                         <TextField
                             fullWidth
                             label="Coupon Code *"
                             name="code"
                             value={formik.values.code}
-                            onChange={(e) => {
-                                const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-                                if (val.length <= 8) {
-                                    formik.setFieldValue("code", val);
-                                }
-                            }}
+                            onChange={handleCodeChange}
                             onBlur={formik.handleBlur}
                             placeholder="e.g., DAILY8"
                             inputProps={{
@@ -255,6 +285,16 @@ export default function CouponAddEditPage() {
                                 maxLength: 8
                             }}
                             disabled={isEdit}
+                            error={codeAvailable === false}
+                            helperText={
+                                codeCheckLoading
+                                    ? "Checking..."
+                                    : codeAvailable === false
+                                        ? codeCheckMsg || "Code is not available"
+                                        : codeAvailable === true && formik.values.code.length >= 3
+                                            ? codeCheckMsg || "Code is available"
+                                            : ""
+                            }
                         />
                         {formik.touched.code && formik.errors.code && (
                             <ErrorMessageCom error={formik.errors.code} />
@@ -301,6 +341,7 @@ export default function CouponAddEditPage() {
                         rows={5}
                         showCount={true}
                         className=""
+                        disabled={isEdit ? false : false}
                     />
                     <div style={{ fontSize: '12px', color: '#888', textAlign: 'right' }}>
                         {formik.values.description.length}/150
@@ -328,6 +369,7 @@ export default function CouponAddEditPage() {
                                 }
                             }}
                             onBlur={formik.handleBlur}
+                            disabled={isEdit}
                         >
                             <MenuItem value="fixed">Fixed Amount (₹)</MenuItem>
                             <MenuItem value="percentage">Percentage (%)</MenuItem>
@@ -356,6 +398,7 @@ export default function CouponAddEditPage() {
                                 min: "0",
                                 max: formik.values.type === "percentage" ? "100" : undefined,
                             }}
+                            disabled={isEdit}
                         />
                         {formik.touched.value && formik.errors.value && (
                             <ErrorMessageCom error={formik.errors.value} />
@@ -380,6 +423,7 @@ export default function CouponAddEditPage() {
                                 formik.setFieldValue("minOrderValue", val);
                             }}
                             onBlur={formik.handleBlur}
+                            disabled={isEdit}
                         />
                         {formik.touched.minOrderValue && formik.errors.minOrderValue && (
                             <ErrorMessageCom error={formik.errors.minOrderValue} />
@@ -400,6 +444,7 @@ export default function CouponAddEditPage() {
                                 onBlur={formik.handleBlur}
                                 placeholder="e.g., 500"
                                 inputProps={{ min: "0" }}
+                                disabled={isEdit}
                             />
                             {formik.touched.maxDiscountAmount && formik.errors.maxDiscountAmount && (
                                 <ErrorMessageCom error={formik.errors.maxDiscountAmount} />
@@ -437,13 +482,10 @@ export default function CouponAddEditPage() {
                             label="Start Date *"
                             name="startAt"
                             type="datetime-local"
-                            // 1. Keep the value exactly as stored in Formik (local format)
                             value={formik.values.startAt || ""}
                             onChange={(e) => {
-                                const localVal = e.target.value; // Format: "YYYY-MM-DDTHH:mm"
+                                const localVal = e.target.value;
                                 formik.setFieldValue('startAt', localVal);
-
-                                // Auto-clear end date if it becomes invalid
                                 if (formik.values.endAt && localVal > formik.values.endAt) {
                                     formik.setFieldValue('endAt', "");
                                 }
@@ -451,11 +493,11 @@ export default function CouponAddEditPage() {
                             onBlur={formik.handleBlur}
                             InputLabelProps={{ shrink: true }}
                             inputProps={{
-                                // 2. Set min using a local date string to block past times correctly
                                 min: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
                                     .toISOString()
                                     .substring(0, 16)
                             }}
+                            disabled={isEdit}
                         />
                         {formik.touched.startAt && formik.errors.startAt && (
                             <ErrorMessageCom error={formik.errors.startAt} />
@@ -476,11 +518,11 @@ export default function CouponAddEditPage() {
                             onBlur={formik.handleBlur}
                             InputLabelProps={{ shrink: true }}
                             inputProps={{
-                                // 3. Min is either the Start Date or current Local Time
                                 min: formik.values.startAt || new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
                                     .toISOString()
                                     .substring(0, 16)
                             }}
+                            disabled={isEdit}
                         />
                         {formik.touched.endAt && formik.errors.endAt && (
                             <ErrorMessageCom error={formik.errors.endAt} />
@@ -501,6 +543,7 @@ export default function CouponAddEditPage() {
                             }}
                             onBlur={formik.handleBlur}
                             helperText="How many times one user can use this coupon"
+                            disabled={isEdit}
                         />
                         {formik.touched.perUserLimit && formik.errors.perUserLimit && (
                             <ErrorMessageCom error={formik.errors.perUserLimit} />
@@ -520,6 +563,7 @@ export default function CouponAddEditPage() {
                             }}
                             onBlur={formik.handleBlur}
                             helperText="Total number of times this coupon can be used"
+                            disabled={isEdit}
                         />
                         {formik.touched.totalUses && formik.errors.totalUses && (
                             <ErrorMessageCom error={formik.errors.totalUses} />
@@ -531,12 +575,13 @@ export default function CouponAddEditPage() {
                 <Box className="border-t pt-6">
                     <div className="space-y-4">
 
-                        <FormControlLabel
+                        {/* <FormControlLabel
                             control={
                                 <Switch
                                     name="isStackable"
                                     checked={formik.values.isStackable}
-                                    onChange={formik.handleChange}
+                                    onChange={undefined}
+                                    disabled={isEdit}
                                 />
                             }
                             label={
@@ -545,13 +590,14 @@ export default function CouponAddEditPage() {
                                     <p className="text-xs text-gray-600">Can be combined with other coupons</p>
                                 </div>
                             }
-                        />
+                        /> */}
                         <FormControlLabel
                             control={
                                 <Switch
                                     name="isSecret"
                                     checked={formik.values.isSecret}
-                                    onChange={formik.handleChange}
+                                    onChange={undefined}
+                                    disabled={isEdit}
                                 />
                             }
                             label={
@@ -568,7 +614,8 @@ export default function CouponAddEditPage() {
                                 <Switch
                                     name="isActive"
                                     checked={formik.values.isActive}
-                                    onChange={formik.handleChange}
+                                    onChange={undefined}
+                                    disabled={isEdit}
                                 />
                             }
                             label={
@@ -587,7 +634,7 @@ export default function CouponAddEditPage() {
                     {" "}
                     <div className="buttoninner  ">
                         <CustomButton type="submit"
-                            disabled={loading}
+                            disabled={loading || (!isEdit && codeAvailable === false)}
                             width="100%">
                             {loading ? (
                                 <CircularProgress size={24} color="inherit" />

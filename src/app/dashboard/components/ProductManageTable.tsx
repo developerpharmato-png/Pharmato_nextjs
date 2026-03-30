@@ -126,10 +126,11 @@ const ProductManageTable: React.FC<Props> = ({
             <tbody className="divide-y divide-gray-50">
               {items.map((item) => {
                 const price = Number(item.price) || 0;
-                const couponDiscount = Number(item.couponDiscount) || 0;
+                const unitCouponDiscount = Number(item.couponDiscount) || 0;
                 const mrp = Number(item.mrp) || 0;
                 const qty = Number(item.q?.quantity || item.quantity || 1);
-                const total = (price - couponDiscount) * qty;
+                const couponDiscount = Number(((item.couponDiscount) || 0) * qty);
+                const total = (price - unitCouponDiscount) * qty;
 
                 return (
                   <tr key={item._id} className="hover:bg-gray-50/50 transition-colors">
