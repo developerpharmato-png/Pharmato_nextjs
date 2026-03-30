@@ -1826,6 +1826,18 @@ export default function PartialCancelPage() {
               htmlContent={order.termAndCondition}
             />
           )}
+          {order?.termAndCondition && (
+            <PolicyExpandable
+              title="Return and Refund Policy"
+              htmlContent={order.returnAndRefundPolicy}
+            />
+          )}
+          {order?.termAndCondition && (
+            <PolicyExpandable
+              title="Other Policy"
+              htmlContent={order.otherPolicy}
+            />
+          )}
         </div>
       )}
     </div>

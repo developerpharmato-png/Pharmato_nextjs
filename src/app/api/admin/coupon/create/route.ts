@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
         if (body.startAt) body.startAt = new Date(body.startAt);
         if (body.endAt) body.endAt = new Date(body.endAt);
         const coupon = await Coupon.create(body);
-        return NextResponse.json({ success: true, data: coupon });
+        return NextResponse.json({ success: true, message: 'Coupon created successfully'}, { status: 200 });
     } catch (error: any) {
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }

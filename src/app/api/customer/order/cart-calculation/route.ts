@@ -215,7 +215,6 @@ export async function POST(req: NextRequest) {
     }
 
     calculationData.showDeliveryFee = deliveryFee
-
     const surge = getActiveSurge(surgePricing);
 
     //     Surge Active: {
@@ -248,7 +247,6 @@ export async function POST(req: NextRequest) {
             couponDiscountAmount = (Number(element.medicine.price) / Number(priceTotalSumBeforeDiscount)) * discountValue;
 
         }
-
         medicineQuantity.push({
             medicineId: `${element.medicine._id}`,
             name: element.medicine.name,
