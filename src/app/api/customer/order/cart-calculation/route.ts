@@ -6,6 +6,7 @@ import GuestCart from '@/models/GuestCart';
 import Medicine from '@/models/Medicine';
 import Setting from '@/models/Setting';
 import mongoose from 'mongoose';
+import { validateAndApplyCoupon } from '@/models/validateAndApplyCoupon';
 
 function calculateDeliveryFee(
     orderAmount: number,
@@ -126,7 +127,8 @@ export async function POST(req: NextRequest) {
     if (((!userId || typeof userId !== 'string') && (!guestId || typeof guestId !== 'string')) || !storeId || typeof storeId !== 'string') {
         return NextResponse.json({ success: false, message: 'userId or guestId and storeId are required' }, { status: 400 });
     }
-    const discountValue: any = typeof discount === 'number' && discount > 0 ? Number(discount.toFixed(2)) : 0;
+    // const discountValue: any = typeof discount === 'number' && discount > 0 ? Number(discount.toFixed(2)) : 0;
+    let discountValue = 0;
 
     let cartData;
     if (guestId) {
@@ -193,6 +195,21 @@ export async function POST(req: NextRequest) {
     if (!cartData || cartData.length === 0) {
         return NextResponse.json({ success: true, message: 'Cart data not found' });
     }
+
+    const cartFromApi = {
+        userId,
+        guestId,
+        items: cartData.map((item: any) => ({
+            medicineId: item.medicine,
+            quantity: item.quantity
+        }))
+    };
+
+    const result = await validateAndApplyCoupon(couponCode, cartFromApi);
+    discountValue = Number(result.discount.toFixed(2));
+
+    // console.log("#########cartData##########",cartData);
+    console.log("#########result##########",result);
 
     // Get settings
     const settings = await Setting.find().lean();
