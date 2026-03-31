@@ -72,6 +72,7 @@ export const deleteImageFromCloudinary = async (imageUrl: string) => {
         let publicIdWithVersion = urlParts.slice(uploadIndex + 1).join('/');
         publicIdWithVersion = publicIdWithVersion.replace(/v[0-9]+\//, '');
         const publicId = publicIdWithVersion.replace(/\.[^.]+$/, '');
+        console.log("Public ID:", publicId);
         const result = await cloudinary.uploader.destroy(publicId);
         return result;
     } catch (error) {

@@ -9,6 +9,8 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/
 import Toast from "@/utils/Toast";
 import CouponTable from "./CouponTable";
 
+import TextField from "@mui/material/TextField";
+
 interface CouponFormData {
   _id: string;
   code: string;
@@ -53,14 +55,14 @@ const CouponPage = () => {
 
     try {
       await deleteCoupon(CouponDeletePath, { _id: deletingCoupon._id });
-    //   Toast.success("Coupon deleted successfully");
+      //   Toast.success("Coupon deleted successfully");
       setDeletingCoupon(null);
       fetchData({
         url: CouponListPath,
         data: { search, limit: rowsPerPage, offset: page + 1 },
       });
     } catch (error) {
-    //   Toast.error("Failed to delete coupon");
+      //   Toast.error("Failed to delete coupon");
       console.error("Error deleting coupon:", error);
     }
   };
@@ -79,6 +81,21 @@ const CouponPage = () => {
         addShow={true}
         showBack={false}
       />
+
+      {/* Search Field */}
+      <div className="mt-6 flex justify-start">
+        <TextField
+          label="Search Coupons"
+          variant="outlined"
+          size="small"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(0); // Reset to first page on search
+          }}
+          style={{ minWidth: 250 }}
+        />
+      </div>
 
       <div className="mt-10">
         <CouponTable
