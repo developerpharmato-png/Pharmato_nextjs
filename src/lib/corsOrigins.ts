@@ -9,6 +9,6 @@ export const allowedOrigins = [
     'https://pharmatoindia.com',
     'https://pharmato-842d3.web.app',
     'https://pharmato-nextjs.vercel.app/',
-    'https://pharmatowebsite-oe53.vercel.app/',
+    'https://pharmatowebsite-oe53.vercel.app',
     'https://admin.technotoil.com:5175', 
 ];
