@@ -37,6 +37,7 @@ export interface IMedicine {
     isActive: boolean;
     isDeleted?: boolean;
     composition: { name: string; value: string }[];
+    saltComposition: string;
     coverImage?: string;
     images: string[];
     highlights: string[];
@@ -161,6 +162,11 @@ const MedicineSchema = new Schema<IMedicine>({
             value: { type: String, default: '' },
         }
     ],
+    saltComposition: {
+        type: String,
+        default: '',
+        maxlength: [500, 'Salt composition cannot be more than 500 characters'],
+    },
     images: [
         { type: String, default: '' }
     ],

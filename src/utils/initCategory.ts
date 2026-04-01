@@ -49,6 +49,7 @@ export const initialMedicineFormValues = {
   batchNumber: '',
   isOTC: false,
   isPrescription: true,
+  saltComposition: '',
   images: [],
   coverImage: undefined,
   highlights: [] as string[],

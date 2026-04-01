@@ -193,7 +193,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
             showConfirmButton: false,
             timer: 2000,
           });
-          setTimeout(() => router.push("/dashboard/medicines"), 1000);
+          // setTimeout(() => router.push("/dashboard/medicines"), 1000);
         }
       } catch (err) {
         setError(isEdit ? "Failed to update medicine" : "Failed to create medicine");
@@ -1219,8 +1219,26 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                       />
                     </div>
                   </div>
-                  {/* Composition Section Styling */}
                   <div>
+                    <TextareaField
+                      id="saltComposition"
+                      name="saltComposition"
+                      label="Salt Composition *"
+                      value={formik.values.saltComposition}
+                      onChange={(e) => {
+                        console.log("Salt composition updated:", e.target.value); // Debugging log
+                        formik.setFieldValue("saltComposition", e.target.value);
+                      }}
+                      onBlur={formik.handleBlur}
+                      placeholder="Enter salt composition here"
+                      maxLength={400}
+                      rows={5}
+                      showCount={true}
+                      error={formik.touched.saltComposition && formik.errors.saltComposition}
+                    />
+                  </div>
+                  {/* Composition Section Styling */}
+                  {/* <div>
                     <label className="block text-sm font-bold text-gray-800 mb-2">
                       Composition
                     </label>
@@ -1266,7 +1284,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                         <span className="text-xl">+</span> Add Composition
                       </button>
                     )}
-                  </div>
+                  </div> */}
                   {/* Highlights Section Styling */}
                   <div>
                     <label className="block text-sm font-bold text-gray-800 mb-2">
