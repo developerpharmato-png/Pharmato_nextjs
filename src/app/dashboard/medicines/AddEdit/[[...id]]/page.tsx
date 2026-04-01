@@ -193,7 +193,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
             showConfirmButton: false,
             timer: 2000,
           });
-          // setTimeout(() => router.push("/dashboard/medicines"), 1000);
+          setTimeout(() => router.push("/dashboard/medicines"), 1000);
         }
       } catch (err) {
         setError(isEdit ? "Failed to update medicine" : "Failed to create medicine");
