@@ -92,13 +92,14 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
     // Fetch medicine names for both accepted and cancelled
     // Fetch medicine names for both accepted and cancelled, and merge with quantity/price for accepted
     const [acceptedRaw, cancelledNames] = await Promise.all([
-        Medicine.find({ _id: { $in: unCancelledItems.map((i: any) => i.medicineId) } }).select('batchNumber unitPackFactor'),
-        Medicine.find({ _id: { $in: cancelledForRefund.map((i: any) => i.medicineId) } }).select('batchNumber unitPackFactor'),
+        Medicine.find({ _id: { $in: unCancelledItems.map((i: any) => i.medicineId) } }).select('batchNumber unitPackFactor expiryDate'),
+        Medicine.find({ _id: { $in: cancelledForRefund.map((i: any) => i.medicineId) } }).select('batchNumber unitPackFactor expiryDate'),
     ]);
 
     // Merge acceptedRaw with unCancelledItems to include quantity and price
     const acceptedNames = acceptedRaw.map((m: any) => {
         const item = unCancelledItems.find((i: any) => i.medicineId.toString() === m._id.toString());
+        m._doc.expiryDate = moment(m._doc.expiryDate).tz('Asia/Kolkata').format('YYYY-MM-DD');
         return {
             ...m._doc,
             name: item ? item.name : "",
@@ -176,7 +177,7 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                 </li>`;
         });
         html += '</ul></p>';
-    }    
+    }
     if (cancelledNamesWithDetails.length > 0) {
         const defaultImg = 'https://res.cloudinary.com/dqkyleb0t/image/upload/v1768817395/medicine_img-1_sg5xaj.jpg';
         html += '<p><b>Cancelled Medicines:</b><ul style="list-style:none;padding:0;">';
@@ -1106,6 +1107,12 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
                     <td style="border:1px solid #eaeaea;padding:10px;font-size:14px;color:#555;">
                         ${m.name}
                     </td>
+                    <td style="border:1px solid #eaeaea;padding:10px;font-size:14px;color:#555;">
+                        ${m.batchNumber}
+                    </td>
+                    <td style="border:1px solid #eaeaea;padding:10px;font-size:14px;color:#555;">
+                        ${m.expiryDate}
+                    </td>
                     <td style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#555;">
                         ${m.quantity}
                     </td>
@@ -1141,148 +1148,165 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Invoice</title>
+  <meta charset="UTF-8">
+  <title>Invoice</title>
 </head>
 
 <body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;">
 
-    <div style="max-width:800px;margin:24px auto;background-color:#ffffff;padding:32px;border-radius:8px;">
+  <div style="max-width:800px;margin:24px auto;background-color:#ffffff;padding:32px;border-radius:8px;">
 
- <!-- HEADER -->
+    <!-- HEADER -->
+    <div
+      style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333; max-width: 800px; margin: 0 auto; padding: 10px; border: 1px solid #eee;">
+
+      <div
+        style="text-align: center; letter-spacing: 2px; font-weight: bold; font-size: 20px; margin-bottom: 30px; color: #000; border-bottom: 2px solid #333; padding-bottom: 10px;">
+        INVOICE
+      </div>
+
+      <div
+        style="width: 100%; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px;">
+
+        <div style="flex: 1;">
+          <img src="https://res.cloudinary.com/dqkyleb0t/image/upload/v1768915476/Icon_wsihmm.png" alt="Apollo Pharmacy"
+            style="height: 50px; margin-bottom: 12px; display: block;">
+
+          <div style="font-size: 16px; font-weight: 700; color: #000; margin-bottom: 4px;">PHARMATO INDIA PRIVATE
+            LIMITED
+          </div>
+          <div style="font-size: 13px; line-height: 1.5; color: #555;">
+            KHASRA NO-84 GROUND FLOOR<br>
+            MUZAFFAR NAGAR GHUSWAL NEAR MADANTA HOSPITAL<br>
+            <span style="font-weight: 600;">Phone:</span> +91 91297-50250<br>
+            <span style="font-weight: 600;">Email:</span> kkn.pharmato@gmail.com
+          </div>
+        </div>
+
         <div
-            style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #eee;">
- 
-            <div
-                style="text-align: center; letter-spacing: 2px; font-weight: bold; font-size: 20px; margin-bottom: 30px; color: #000; border-bottom: 2px solid #333; padding-bottom: 10px;">
-                INVOICE
-            </div>
- 
-            <div
-                style="width: 100%; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
- 
-                <div style="flex: 1;">
-                    <img src="https://res.cloudinary.com/dqkyleb0t/image/upload/v1768915476/Icon_wsihmm.png"
-                        alt="Apollo Pharmacy" style="height: 50px; margin-bottom: 12px; display: block;">
- 
-                    <div style="font-size: 16px; font-weight: 700; color: #000; margin-bottom: 4px;">TREASURE FANTASY
-                    </div>
-                    <div style="font-size: 13px; line-height: 1.5; color: #555;">
-                        GF PLOT NO A-01, LABHAM GREEN GRAM,<br>
-                        <span style="font-weight: 600;">Phone:</span> +91-7225026829
-                    </div>
-                </div>
- 
-                <div
-                    style="flex: 1; text-align: right; font-size: 11px; line-height: 1.8; color: #444;  padding: 10px; border-radius: 4px;">
-                    <div><strong style="color: #000;">FSSAI No:</strong> 11424850000976</div>
-                    <div><strong style="color: #000;">D.L. No:</strong> 20/3838-41/110/2024-20,21,20B,21B</div>
-                    <div><strong style="color: #000;">GST No:</strong> 23AAPCA5954P1ZZ</div>
-                    <div><strong style="color: #000;">CIN:</strong> U52500TN2016PLC111328</div>
-                </div>
- 
-            </div>
+          style="flex: 1; text-align: right; font-size: 11px; line-height: 1.8; color: #444;  padding: 10px; border-radius: 4px;">
+          <div><strong style="color: #000;">Invoice No:</strong> ${invoiceNumber}</div>
+          <div><strong style="color: #000;">Bill Date:</strong> ${invoiceDate}</div>
+          <br><br>
+          <div><strong style="color: #000;">D.L. No:</strong> RLF20UP2025013478, RLF21UP2025013421</div>
+          <div><strong style="color: #000;">GST No:</strong> 09AAPCP6994G1ZJ</div>
+          <!-- <div><strong style="color: #000;">CIN:</strong> U52500TN2016PLC111328</div> -->
         </div>
 
-        <hr style="margin: 15px 0;">
-
-        <!-- CUSTOMER DETAILS -->
-        <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
-            <tr>
-                <td><strong>Name:</strong> ${userName}</td>
-                <td><strong>Invoice No:</strong> ${invoiceNumber}</td>
-            </tr>
-            <tr>
-                <td><strong>Mobile:</strong> +91-${userMobile}</td>
-                <td><strong>Bill Date:</strong> ${invoiceDate}</td>
-            </tr>
-            <tr>
-                <td><strong>Address:</strong> ${deliveryAddressText}</td>
-            </tr>
-        </table>
-
-        <hr style="margin: 15px 0;">
-
-        <!-- ITEMS TABLE -->
-        <table style="width:100%;border-collapse:collapse;">
-            <thead>
-                <tr style="background-color:#f8f9fa;">
-                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:left;color:#333;">Product
-                        Name</th>
-                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">
-                        Quantity</th>
-                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">MRP
-                    </th>
-                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Discount
-                    </th>
-                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">
-                        Discounted Price</th>
-                    <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">Amount
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-
-                ${invoiceMedicinesHtml}
-
-            </tbody>
-        </table>
-
-        <!-- SUMMARY -->
-        <table style="width:100%;margin-top:16px;border-collapse:collapse;">
-            <tr>
-                <td style="padding:6px 10px;text-align:right;font-size:14px;color:#333;">
-                    Subtotal:
-                </td>
-                <td style="padding:6px 10px;text-align:right;font-size:14px;font-weight:bold;">
-                    ₹${subTotal}
-                </td>
-            </tr>
-            ${discount == 0 ? '' : `<tr>
-                <td style="padding:6px 10px;text-align:right;font-size:14px;color:#333;">
-                    Discount:
-                </td>
-                <td style="padding:6px 10px;text-align:right;font-size:14px;font-weight:bold;">
-                    ₹${discount}
-                </td>
-            </tr>`}
-            ${allCharges == 0 ? '' : `<tr>
-                <td style="padding:6px 10px;text-align:right;font-size:14px;color:#333;">
-                    Platform Fee:
-                </td>
-                <td style="padding:6px 10px;text-align:right;font-size:14px;font-weight:bold;">
-                    ₹${allCharges}
-                </td>
-            </tr>`}
-            ${deliveryFee == 0 ? '' : `<tr>
-                <td style="padding:6px 10px;text-align:right;font-size:14px;color:#333;">
-                    Delivery Fee:
-                </td>
-                <td style="padding:6px 10px;text-align:right;font-size:14px;font-weight:bold;">
-                    ₹${deliveryFee}
-                </td>
-            </tr>`}
-            <tr>
-                <td style="padding:10px 10px;text-align:right;font-size:18px;font-weight:bold;color:#000;">
-                    Grand Total:
-                </td>
-                <td style="padding:10px 10px;text-align:right;font-size:18px;font-weight:bold;color:#000;">
-                    ₹${grandTotal}
-                </td>
-            </tr>
-        </table>
-
-        <!-- FOOTER -->
-        <div style="margin-top:32px;border-top:1px dashed #ddd;padding-top:16px;text-align:center;">
-            <p style="margin:6px 0;font-size:13px;color:#777;">
-                Thank you for your purchase!
-            </p>
-            <p style="margin:6px 0;font-size:13px;color:#777;">
-                This is a system generated invoice.
-            </p>
-        </div>
-
+      </div>
     </div>
+
+    <hr style="margin: 7px 0;">
+
+    <!-- CUSTOMER DETAILS -->
+    <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+      <tr>
+        <td><strong>Name:</strong> ${userName}</td>
+        <!-- <td><strong>Invoice No:</strong> ${invoiceNumber}</td> -->
+      </tr>
+      <tr>
+        <td><strong>Mobile:</strong> +91-${userMobile}</td>
+        <!-- <td><strong>Bill Date:</strong> ${invoiceDate}</td> -->
+      </tr>
+      <tr>
+        <td><strong>Address:</strong> ${deliveryAddressText}</td>
+      </tr>
+    </table>
+
+    <hr style="margin: 15px 0;">
+
+    <!-- ITEMS TABLE -->
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="background-color:#f8f9fa;">
+          <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:left;color:#333;">
+            Product Name
+          </th>
+          <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:left;color:#333;">
+            Batch No
+          </th>
+          <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:left;color:#333;">
+            Expiry Date
+          </th>
+          <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">
+            Quantity
+          </th>
+          <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">
+            MRP
+          </th>
+          <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">
+            Discount
+          </th>
+          <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">
+            Discounted Price
+          </th>
+          <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:right;color:#333;">
+            Amount
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+
+        ${invoiceMedicinesHtml}
+
+      </tbody>
+    </table>
+
+    <!-- SUMMARY -->
+    <table style="width:100%;margin-top:16px;border-collapse:collapse;">
+      <tr>
+        <td style="padding:6px 10px;text-align:right;font-size:14px;color:#333;">
+          Subtotal:
+        </td>
+        <td style="padding:6px 10px;text-align:right;font-size:14px;font-weight:bold;">
+          ₹${subTotal}
+        </td>
+      </tr>
+      ${discount == 0 ? '' : `<tr>
+        <td style="padding:6px 10px;text-align:right;font-size:14px;color:#333;">
+          Discount:
+        </td>
+        <td style="padding:6px 10px;text-align:right;font-size:14px;font-weight:bold;">
+          ₹${discount}
+        </td>
+      </tr>`}
+      ${allCharges == 0 ? '' : `<tr>
+        <td style="padding:6px 10px;text-align:right;font-size:14px;color:#333;">
+          Platform Fee:
+        </td>
+        <td style="padding:6px 10px;text-align:right;font-size:14px;font-weight:bold;">
+          ₹${allCharges}
+        </td>
+      </tr>`}
+      ${deliveryFee == 0 ? '' : `<tr>
+        <td style="padding:6px 10px;text-align:right;font-size:14px;color:#333;">
+          Delivery Fee:
+        </td>
+        <td style="padding:6px 10px;text-align:right;font-size:14px;font-weight:bold;">
+          ₹${deliveryFee}
+        </td>
+      </tr>`}
+      <tr>
+        <td style="padding:10px 10px;text-align:right;font-size:18px;font-weight:bold;color:#000;">
+          Grand Total:
+        </td>
+        <td style="padding:10px 10px;text-align:right;font-size:18px;font-weight:bold;color:#000;">
+          ₹${grandTotal}
+        </td>
+      </tr>
+    </table>
+
+    <!-- FOOTER -->
+    <div style="margin-top:32px;border-top:1px dashed #ddd;padding-top:16px;text-align:center;">
+      <p style="margin:6px 0;font-size:13px;color:#777;">
+        Thank you for your purchase!
+      </p>
+      <p style="margin:6px 0;font-size:13px;color:#777;">
+        This is a system generated invoice.
+      </p>
+    </div>
+
+  </div>
 
 </body>
 
