@@ -1101,9 +1101,12 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
         subTotal = Number(acceptedNames.reduce((sum: number, item: any) => sum + (item.price) * item.quantity, 0))
         grandTotal = Number(grandTotal - refundAmount).toFixed(2);
 
-        acceptedNames.forEach((m: any) => {
+        acceptedNames.forEach((m: any, index: number) => {
             invoiceMedicinesHtml += `<!-- LOOP START -->
                 <tr>
+                    <td style="border:1px solid #eaeaea;padding:10px;font-size:14px;color:#555;">
+                        ${index + 1}
+                    </td>
                     <td style="border:1px solid #eaeaea;padding:10px;font-size:14px;color:#555;">
                         ${m.name}
                     </td>
@@ -1219,6 +1222,9 @@ async function runBackground(order: any, user: any, unCancelledItems: any[], can
     <table style="width:100%;border-collapse:collapse;">
       <thead>
         <tr style="background-color:#f8f9fa;">
+          <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:left;color:#333;">
+            S.No
+          </th>
           <th style="border:1px solid #eaeaea;padding:10px;font-size:14px;text-align:left;color:#333;">
             Product Name
           </th>
