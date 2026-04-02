@@ -230,7 +230,7 @@ export default function AddStorePage() {
           // Clear file input after toast closes
           if (fileInputRef.current) {
             fileInputRef.current.value = "";
-          }
+          } 
           setPincodeFile(null);
         });
       } else {
