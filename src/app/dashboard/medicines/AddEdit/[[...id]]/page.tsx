@@ -32,6 +32,14 @@ import { initialMedicineFormValues } from "@/utils/initCategory";
 import { medicineFormValidationSchema } from "@/utils/validateCategory";
 import TextareaField from "@/app/dashboard/components/skeleton/FieldCom";
 import MedicineAddEditSkeleton from "@/app/dashboard/components/Skelton/MedicineAddEditSkeleton";
+import QuillEditor from "@/app/dashboard/components/QuillEditor";
+
+import dynamic from "next/dynamic";
+import "react-quill/dist/quill.snow.css";
+
+const ReactQuill = dynamic(() => import("react-quill"), {
+  ssr: false,
+});
 
 export default function MedicineAddEditForm({ id }: { id?: string }) {
   const router = useRouter();
@@ -1219,7 +1227,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                       />
                     </div>
                   </div>
-                  <div>
+                  {/* <div>
                     <TextareaField
                       id="saltComposition"
                       name="saltComposition"
@@ -1236,7 +1244,26 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                       showCount={true}
                       error={formik.touched.saltComposition && formik.errors.saltComposition}
                     />
+                  </div> */}
+
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-800 mb-2">
+                      Salt Composition *
+                    </label>
+                    <>
+                      <QuillEditor
+                        value={formik.values.saltComposition || ""}
+                        onChange={(val) => formik.setFieldValue("saltComposition", val)}
+                        minHeight={"150px"}
+                      />
+                      {formik.touched.saltComposition && formik.errors.saltComposition && (
+                        <ErrorMessageCom error={formik.errors.saltComposition as string} />
+                      )}
+                    </>
                   </div>
+
+
                   {/* Composition Section Styling */}
                   {/* <div>
                     <label className="block text-sm font-bold text-gray-800 mb-2">

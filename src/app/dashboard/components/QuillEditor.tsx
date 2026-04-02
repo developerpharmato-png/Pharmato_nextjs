@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useRef } from "react";
+import "quill/dist/quill.snow.css"; // ✅ FIX
 
 interface QuillEditorProps {
   value: string;
