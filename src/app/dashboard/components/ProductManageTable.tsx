@@ -174,9 +174,30 @@ const ProductManageTable: React.FC<Props> = ({
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-4 text-right">
+                    {/* <td className="px-4 py-4 text-right">
                       <div className="flex flex-col items-end">
                         <span className={`text-[13px] font-bold ${theme === 'red' ? 'text-gray-400' : 'text-green-600'}`}>₹{price.toFixed(2)}</span>
+                        {mrp > 0 && mrp !== price && (
+                          <span className="text-[11px] text-gray-400 line-through ml-1">₹{mrp.toFixed(2)}</span>
+                        )}
+                      </div>
+                    </td> */}
+                    <td className="px-4 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+
+                        {mrp > 0 && mrp !== price && (
+                          <span className="text-[12px] text-gray-400 line-through">
+                            ₹{mrp.toFixed(2)}
+                          </span>
+                        )}
+
+                        <span
+                          className={`text-[14px] font-bold ${theme === "red" ? "text-gray-400" : "text-green-600"
+                            }`}
+                        >
+                          ₹{price.toFixed(2)}
+                        </span>
+
                       </div>
                     </td>
                     <td className="px-4 py-4 text-right">
