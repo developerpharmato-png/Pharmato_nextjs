@@ -77,6 +77,9 @@ function getActiveSurge(surgePricing: any[]) {
  *               couponCode:
  *                 type: string
  *                 description: Coupon code to apply (optional)
+ *               couponId:
+ *                 type: string
+ *                 description: Coupon ID to apply (optional)
  *     responses:
  *       200:
  *         description: Calculation data returned
@@ -123,11 +126,10 @@ function getActiveSurge(surgePricing: any[]) {
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { userId, guestId, storeId, discount, couponCode } = await req.json();
+    const { userId, guestId, storeId, discount, couponCode, couponId } = await req.json();
     if (((!userId || typeof userId !== 'string') && (!guestId || typeof guestId !== 'string')) || !storeId || typeof storeId !== 'string') {
         return NextResponse.json({ success: false, message: 'userId or guestId and storeId are required' }, { status: 400 });
     }
-    // const discountValue: any = typeof discount === 'number' && discount > 0 ? Number(discount.toFixed(2)) : 0;
     let discountValue = 0;
 
     let cartData;
@@ -205,11 +207,11 @@ export async function POST(req: NextRequest) {
         }))
     };
 
-    const result = await validateAndApplyCoupon(couponCode, cartFromApi);
+    const result = await validateAndApplyCoupon(couponCode, cartFromApi, couponId);
     discountValue = Number(result.discount.toFixed(2));
 
     // console.log("#########cartData##########",cartData);
-    console.log("#########result##########",result);
+    console.log("#########result##########", result);
 
     // Get settings
     const settings = await Setting.find().lean();
@@ -252,6 +254,7 @@ export async function POST(req: NextRequest) {
     // console.log("$$$$$$$$$cartData$$$$$$$$$",cartData);
 
     calculationData.couponCode = couponCode ? couponCode : "";
+    calculationData.couponId = couponId ? couponId : "";
 
     const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
 

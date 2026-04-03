@@ -14,6 +14,10 @@
  *             properties:
  *               couponCode:
  *                 type: string
+ *                 description: Coupon code (optional if couponId is provided)
+ *               couponId:
+ *                 type: string
+ *                 description: Coupon ID (optional if couponCode is provided)
  *               cart:
  *                 type: object
  *                 description: Any cart object (structure may vary)
@@ -44,15 +48,17 @@ import { validateAndApplyCoupon } from '@/models/validateAndApplyCoupon';
 
 export async function POST(request: NextRequest) {
     await connectDB();
-    const { couponCode, cart } = await request.json();
-    if (!couponCode || !cart) {
-        return NextResponse.json({ success: false, message: 'couponCode and cart are required' }, { status: 400 });
+    const { couponCode, couponId, cart } = await request.json();
+    if ((!couponCode && !couponId) || !cart) {
+        return NextResponse.json({ success: false, message: 'couponCode or couponId and cart are required' }, { status: 400 });
     }
-    const result = await validateAndApplyCoupon(couponCode, cart);
+    // Pass both couponCode and couponId to the validator if needed
+    const result = await validateAndApplyCoupon(couponCode, cart, couponId);
     return NextResponse.json({
         success: result.discount > 0,
         discount: result.discount,
         eligibleAmount: result.eligibleAmount,
-        message: result.message || ''
+        message: result.message || '',
+        coupon: result.coupon || null
     });
 }

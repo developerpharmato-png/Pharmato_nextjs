@@ -24,7 +24,8 @@ interface CouponResult {
 
 export async function validateAndApplyCoupon(
     couponCode: string,
-    cartFromApi: any
+    cartFromApi: any,
+    couponId?: string
 ): Promise<CouponResult> {
     // Extract userId and guestId from cartFromApi
     const userId = cartFromApi.userId;
@@ -43,8 +44,8 @@ export async function validateAndApplyCoupon(
         )
     };
 
-    // 1. Check if coupon exists
-    const coupon = await Coupon.findOne({ code: couponCode.trim().toUpperCase() });
+    const coupon = await Coupon.findOne({ _id: couponId, code: couponCode.trim().toUpperCase() });
+
     if (!coupon) return { discount: 0, eligibleAmount: 0, message: 'Coupon not found' };
 
     // 2. Check active, startAt, endAt
@@ -112,5 +113,5 @@ export async function validateAndApplyCoupon(
         if (discount > eligibleAmount) discount = eligibleAmount;
     }
 
-    return { discount, eligibleAmount, message: 'Coupon applied successfully' };
+    return { discount, eligibleAmount, message: 'Coupon applied successfully', coupon };
 }
