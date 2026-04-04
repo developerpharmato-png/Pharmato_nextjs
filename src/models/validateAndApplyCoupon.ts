@@ -25,7 +25,8 @@ interface CouponResult {
 export async function validateAndApplyCoupon(
     couponCode: string,
     cartFromApi: any,
-    couponId?: string
+    couponId?: string,
+    isSecretCoupon: boolean = false
 ): Promise<CouponResult> {
     // Extract userId and guestId from cartFromApi
     const userId = cartFromApi.userId;
@@ -46,11 +47,22 @@ export async function validateAndApplyCoupon(
 
     let coupon = null;
 
-    if (couponId && mongoose.Types.ObjectId.isValid(couponId)) {
+    if (isSecretCoupon) {
+
         coupon = await Coupon.findOne({
-            _id: couponId,
+            isActive: true,
             code: couponCode.trim().toUpperCase()
         });
+
+    } else {
+
+        if (couponId && mongoose.Types.ObjectId.isValid(couponId)) {
+            coupon = await Coupon.findOne({
+                _id: couponId,
+                code: couponCode.trim().toUpperCase()
+            });
+        }
+
     }
 
     if (!coupon) return { discount: 0, eligibleAmount: 0, message: 'Coupon not found' };

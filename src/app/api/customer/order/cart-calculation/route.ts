@@ -80,6 +80,9 @@ function getActiveSurge(surgePricing: any[]) {
  *               couponId:
  *                 type: string
  *                 description: Coupon ID to apply (optional)
+ *               isSecretCoupon:
+ *                 type: boolean
+ *                 description: Set to true if the coupon is a secret coupon (optional)
  *     responses:
  *       200:
  *         description: Calculation data returned
@@ -126,7 +129,7 @@ function getActiveSurge(surgePricing: any[]) {
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { userId, guestId, storeId, discount, couponCode, couponId } = await req.json();
+    const { userId, guestId, storeId, discount, couponCode, couponId, isSecretCoupon } = await req.json();
     if (((!userId || typeof userId !== 'string') && (!guestId || typeof guestId !== 'string')) || !storeId || typeof storeId !== 'string') {
         return NextResponse.json({ success: false, message: 'userId or guestId and storeId are required' }, { status: 400 });
     }
@@ -207,7 +210,7 @@ export async function POST(req: NextRequest) {
         }))
     };
 
-    const result = await validateAndApplyCoupon(couponCode, cartFromApi, couponId);
+    const result = await validateAndApplyCoupon(couponCode, cartFromApi, couponId, isSecretCoupon);
     discountValue = Number(result.discount.toFixed(2));
 
     // console.log("#########cartData##########",cartData);
