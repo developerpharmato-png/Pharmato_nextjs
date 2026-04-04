@@ -44,7 +44,14 @@ export async function validateAndApplyCoupon(
         )
     };
 
-    const coupon = await Coupon.findOne({ _id: couponId, code: couponCode.trim().toUpperCase() });
+    let coupon = null;
+
+    if (couponId && mongoose.Types.ObjectId.isValid(couponId)) {
+        coupon = await Coupon.findOne({
+            _id: couponId,
+            code: couponCode.trim().toUpperCase()
+        });
+    }
 
     if (!coupon) return { discount: 0, eligibleAmount: 0, message: 'Coupon not found' };
 
