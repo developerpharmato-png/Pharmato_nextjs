@@ -235,6 +235,25 @@ const CouponTable: React.FC<CouponTableProps> = ({
                 </div>
             ),
         },
+        {
+            id: "usage",
+            label: "Is Exhausted?",
+            minWidth: 140,
+            selector: (row) => {
+                const used = row.usedCount || 0;
+                const totalUses = typeof row.totalUses === 'number' ? row.totalUses : undefined;
+                const total = totalUses ?? "∞";
+                const isFull =  used == total ? true : false;
+
+                return (
+                    <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-500 font-mono uppercase">
+                            {isFull ? "Yes" : "No"}
+                        </span>
+                    </div>
+                );
+            },
+        },
 
         {
             id: "isActive",

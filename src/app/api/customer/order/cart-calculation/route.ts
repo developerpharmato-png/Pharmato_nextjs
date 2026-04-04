@@ -223,7 +223,9 @@ export async function POST(req: NextRequest) {
     const medicineQuantity: any[] = [];
     let deliveryFee = 0;
     let deliveryFeeThreshold: any = "";
-    let surgePricing: any = [];
+    let surgePricing: any = [];  
+    calculationData.couponCode = couponCode ? couponCode : "";
+    calculationData.couponId = result.discount > 0 ? result.couponId : "";
 
     for (const setting of settings) {
         if (setting.type === 'gst') calculationData.gstInPercent = Number(setting.data);
@@ -255,9 +257,6 @@ export async function POST(req: NextRequest) {
     }
 
     // console.log("$$$$$$$$$cartData$$$$$$$$$",cartData);
-
-    calculationData.couponCode = couponCode ? couponCode : "";
-    calculationData.couponId = couponId ? couponId : "";
 
     const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
 
