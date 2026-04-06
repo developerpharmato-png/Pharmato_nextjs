@@ -1434,7 +1434,7 @@ export default function PartialCancelPage() {
                     <div className="flex justify-between text-sm">
                       <div>
                         <span className="text-gray-500">Discount</span><br />
-                        <span className={`inline-flex px-3 py-1 rounded text-[10px] font-bold uppercase tracking-tighter status-default }`}>{order?.calculationData?.couponCode}</span>
+                        <span className={`inline-flex px-2 py-1 rounded text-[10px] font-black tracking-wide uppercase tracking-tighter status-default }`}>{order?.calculationData?.couponCode}</span>
                       </div>
                       <span className="font-bold text-red-600 uppercase">
                         {" "}

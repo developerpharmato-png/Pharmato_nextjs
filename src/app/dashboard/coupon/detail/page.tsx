@@ -13,6 +13,8 @@ type Coupon = {
     type?: "fixed" | "percentage";
     value?: number;
     maxDiscountAmount?: number;
+    scope?: string;
+    minOrderValue?: number;
     startAt?: string;
     endAt?: string;
     maxCoupons?: number;
@@ -118,40 +120,88 @@ function CouponDetailContent() {
                 </Box>
                 <div className="mt-6">
                     {tabIndex === 0 && (
-                        <Card elevation={2}>
-                            <CardContent>
-                                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                                    <Typography variant="subtitle2" color="text.secondary">ID</Typography>
-                                    <Typography variant="body1" fontWeight={600}>{coupon._id}</Typography>
-                                    <Typography variant="subtitle2" color="text.secondary">Code</Typography>
-                                    <Typography variant="body1">{coupon.code}</Typography>
-                                    <Typography variant="subtitle2" color="text.secondary">Title</Typography>
-                                    <Typography variant="body1">{coupon.title || "-"}</Typography>
-                                    <Typography variant="subtitle2" color="text.secondary">Discount</Typography>
-                                    <Typography variant="body1">
-                                        {coupon.type === "percentage"
-                                            ? `${coupon.value ?? "-"}%`
-                                            : coupon.value !== undefined
-                                                ? `₹${coupon.value}`
-                                                : "-"}
-                                    </Typography>
-                                    <Typography variant="subtitle2" color="text.secondary">Usage</Typography>
-                                    <Typography variant="body1">
-                                        {coupon.usedCount ?? 0} / {coupon.totalUses ?? "∞"}
-                                    </Typography>
-                                    <Typography variant="subtitle2" color="text.secondary">Per User Limit</Typography>
-                                    <Typography variant="body1">{coupon.perUserLimit ?? "∞"}</Typography>
-                                    <Typography variant="subtitle2" color="text.secondary">Start Date</Typography>
-                                    <Typography variant="body1">{coupon.startAt ? new Date(coupon.startAt).toLocaleString() : "-"}</Typography>
-                                    <Typography variant="subtitle2" color="text.secondary">End Date</Typography>
-                                    <Typography variant="body1">{coupon.endAt ? new Date(coupon.endAt).toLocaleString() : "-"}</Typography>
-                                    <Typography variant="subtitle2" color="text.secondary">Status</Typography>
-                                    <Typography variant="body1">{coupon.isActive ? "Active" : "Inactive"}</Typography>
-                                    <Typography variant="subtitle2" color="text.secondary">Description</Typography>
-                                    <Typography variant="body1">{coupon.description || "-"}</Typography>
-                                </Box>
-                            </CardContent>
-                        </Card>
+                        <div className="space-y-6">
+                            <div className="flex flex-wrap gap-3 items-center">
+                                <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold">
+                                    <span className="material-icons text-sm">Code</span>
+                                    <span>{coupon?.code}</span>
+                                </span>
+                                <span className="inline-flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-semibold">
+                                    <span className="material-icons text-sm">Active</span>
+                                    <span>: {coupon?.isActive ? "Yes" : "No"}</span>
+                                </span>
+                                <span className="inline-flex items-center gap-2 px-3 py-1 bg-yellow-50 text-yellow-800 rounded-full text-xs font-semibold">
+                                    <span className="material-icons text-sm">Lock</span>
+                                    <span>Secret: {coupon?.isSecret ? "Yes" : "No"}</span>
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div className="bg-gray-50 p-3 rounded-md text-center">
+                                    <div className="text-xs text-gray-500">Code</div>
+                                    <div className="text-lg font-bold text-green-700">{coupon.code || "-"}</div>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-md text-center">
+                                    <div className="text-xs text-gray-500">Title</div>
+                                    <div className="text-sm font-semibold">{coupon?.title || "-"}</div>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-md text-center">
+                                    <div className="text-xs text-gray-500">Type</div>
+                                    <div className="text-sm">{coupon?.type || "-"}</div>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-md text-center">
+                                    <div className="text-xs text-gray-500">Value</div>
+                                    <div className="text-sm">{coupon?.value || "-"}</div>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-md text-center">
+                                    <div className="text-xs text-gray-500">Max Discount</div>
+                                    <div className="text-sm">{coupon?.maxDiscountAmount || "-"}</div>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-md text-center">
+                                    <div className="text-xs text-gray-500">Scope</div>
+                                    <div className="text-sm">{coupon?.scope || "-"}</div>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-md text-center">
+                                    <div className="text-xs text-gray-500">Start Date</div>
+                                    <div className="text-sm">{coupon?.startAt ? new Date(coupon.startAt).toLocaleString() : "-"}</div>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-md text-center">
+                                    <div className="text-xs text-gray-500">End Date</div>
+                                    <div className="text-sm">{coupon?.endAt ? new Date(coupon.endAt).toLocaleString() : "-"}</div>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-md text-center">
+                                    <div className="text-xs text-gray-500">Min Order Value</div>
+                                    <div className="text-sm">{`₹${coupon?.minOrderValue?.toFixed(2) || "0.00"}`}</div>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-md text-center">
+                                    <div className="text-xs text-gray-500">Total Uses</div>
+                                    <div className="text-sm">{coupon?.totalUses || "-"}</div>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-md text-center">
+                                    <div className="text-xs text-gray-500">Used Count</div>
+                                    <div className="text-sm">{coupon?.usedCount || 0}</div>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-md text-center">
+                                    <div className="text-xs text-gray-500">Per User Limit</div>
+                                    <div className="text-sm">{coupon?.perUserLimit || "-"}</div>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-md text-center">
+                                    <div className="text-xs text-gray-500">Unique Code</div>
+                                    <div className="text-sm">{coupon?.uniqueCode || "-"}</div>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-md text-center">
+                                    <div className="text-xs text-gray-500">Created At</div>
+                                    <div className="text-sm">{coupon?.createdAt ? new Date(coupon.createdAt).toLocaleString() : "-"}</div>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-md text-center">
+                                    <div className="text-xs text-gray-500">Updated At</div>
+                                    <div className="text-sm">{coupon?.updatedAt ? new Date(coupon.updatedAt).toLocaleString() : "-"}</div>
+                                </div>
+                            </div>
+                            <section className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
+                                <h2 className="text-lg font-semibold text-gray-800 inline-flex items-center gap-2">Overview</h2>
+                                <div className="mt-3 text-gray-700">{coupon?.description}</div>
+                            </section>
+                        </div>
                     )}
                     {tabIndex === 1 && (
                         <Card elevation={2}>
