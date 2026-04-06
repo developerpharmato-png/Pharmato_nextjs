@@ -35,7 +35,10 @@ type Coupon = {
 };
 
 
-export default function CouponDetailPage() {
+
+import { Suspense } from "react";
+
+function CouponDetailContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const couponId = searchParams.get("id");
@@ -196,5 +199,13 @@ export default function CouponDetailPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function CouponDetailPageWrapper() {
+    return (
+        <Suspense fallback={<div className="containerStyle scrollbar-hide"><Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}><CircularProgress /></Box></div>}>
+            <CouponDetailContent />
+        </Suspense>
     );
 }
