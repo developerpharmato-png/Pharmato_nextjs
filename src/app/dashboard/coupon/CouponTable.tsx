@@ -15,7 +15,7 @@ import axios from "axios";
 import moment from 'moment-timezone';
 import { Edit3Icon, EditIcon } from "lucide-react";
 import { CouponUpdateStore } from "../storeAPICall/useUserStore";
-  
+
 interface Coupon {
     _id: string;
     code: string;
@@ -71,8 +71,8 @@ const CouponTable: React.FC<CouponTableProps> = ({
         data: ActiveInactivedata,
         clearData: ActiveInactiveDAta,
     } = CouponUpdateStore();
- 
-    console.log(ActiveInactivedata,"ActiveInactivedata")
+
+    console.log(ActiveInactivedata, "ActiveInactivedata")
     const handleToggleStatus = async (coupon: Coupon) => {
         try {
             setTogglingId(coupon._id);
@@ -144,7 +144,12 @@ const CouponTable: React.FC<CouponTableProps> = ({
             minWidth: 80,
             selector: (row) => (
                 <CustomTooltip title={row.uniqueCode}>
-                    <span className="ID-List">{row.uniqueCode}</span>
+                    <span
+                        className="ID-List text-blue-600 cursor-pointer underline"
+                        onClick={() => router.push(`/dashboard/coupon/detail?id=${row._id}`)}
+                    >
+                        {row.uniqueCode}
+                    </span>
                 </CustomTooltip>
             ),
         },
@@ -243,7 +248,7 @@ const CouponTable: React.FC<CouponTableProps> = ({
                 const used = row.usedCount || 0;
                 const totalUses = typeof row.totalUses === 'number' ? row.totalUses : undefined;
                 const total = totalUses ?? "∞";
-                const isFull =  used == total ? true : false;
+                const isFull = used == total ? true : false;
 
                 return (
                     <div className="flex flex-col">
