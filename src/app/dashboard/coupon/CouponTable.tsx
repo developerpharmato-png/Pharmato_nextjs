@@ -259,6 +259,24 @@ const CouponTable: React.FC<CouponTableProps> = ({
                 );
             },
         },
+        {
+            id: "usage",
+            label: "Is Expired?",
+            minWidth: 140,
+            selector: (row) => {
+                const nowIST = moment().tz("Asia/Kolkata").toDate();
+                const endAt = moment(row.endAt).toDate();
+                const isExpired = nowIST > endAt;
+
+                return (
+                    <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-500 font-mono uppercase">
+                            {isExpired ? "Yes" : "No"}
+                        </span>
+                    </div>
+                );
+            },
+        },
 
         {
             id: "isActive",
