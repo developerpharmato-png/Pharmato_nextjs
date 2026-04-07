@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import HeaderWithAction from "../../components/HeaderWithAction";
 import { Box, Tabs, Tab, CircularProgress, Typography, Card, CardContent } from "@mui/material";
+import CouponOtherTab from "./CouponOtherTab";
 
 type Coupon = {
     _id: string;
@@ -39,6 +40,7 @@ type Coupon = {
 
 
 import { Suspense } from "react";
+import { Edit, Edit2, Edit2Icon } from "lucide-react";
 
 function CouponDetailContent() {
     const searchParams = useSearchParams();
@@ -103,8 +105,16 @@ function CouponDetailContent() {
                 subtitle={coupon.description || "View coupon details and status."}
                 showBack={true}
                 showSearch={false}
+                rightNode={
+                    <button
+                        className="p-2 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-md flex items-center gap-2 font-medium"
+                        onClick={() => router.push(`/dashboard/coupon/AddEdit/${coupon._id}`)}
+                    >
+                        <Edit /> <span>Edit</span>
+                    </button>
+                }
             />
-            <div className="bg-white rounded-xl p-6 md:p-8 grid gap-8">
+            <div className="bg-white rounded-xl p-1 grid gap-8">
                 <Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }}>
                     <Tabs
                         value={tabIndex}
@@ -115,10 +125,10 @@ function CouponDetailContent() {
                         aria-label="coupon details tabs"
                     >
                         <Tab label="Details" />
-                        <Tab label="Other" />
+                        <Tab label="Coupon Usage History" />
                     </Tabs>
                 </Box>
-                <div className="mt-6">
+                <div className="">
                     {tabIndex === 0 && (
                         <div className="space-y-6">
                             <div className="flex flex-wrap gap-3 items-center">
@@ -131,8 +141,8 @@ function CouponDetailContent() {
                                     <span>: {coupon?.isActive ? "Yes" : "No"}</span>
                                 </span>
                                 <span className="inline-flex items-center gap-2 px-3 py-1 bg-yellow-50 text-yellow-800 rounded-full text-xs font-semibold">
-                                    <span className="material-icons text-sm">Lock</span>
-                                    <span>Secret: {coupon?.isSecret ? "Yes" : "No"}</span>
+                                    <span className="material-icons text-sm">Secret</span>
+                                    <span>: {coupon?.isSecret ? "Yes" : "No"}</span>
                                 </span>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -203,48 +213,8 @@ function CouponDetailContent() {
                             </section>
                         </div>
                     )}
-                    {tabIndex === 1 && (
-                        <Card elevation={2}>
-                            <CardContent>
-                                <Typography variant="h6" gutterBottom>
-                                    Coupon Usage by Users/Guests
-                                </Typography>
-                                {coupon.usersOrGuestsUsed && coupon.usersOrGuestsUsed.length > 0 ? (
-                                    <Box sx={{ overflowX: 'auto' }}>
-                                        <table className="min-w-full divide-y divide-gray-200">
-                                            <thead>
-                                                <tr>
-                                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User ID</th>
-                                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
-                                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Uses</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="bg-white divide-y divide-gray-100">
-                                                {coupon.usersOrGuestsUsed.map((u, idx) => (
-                                                    <tr key={u.userId || idx}>
-                                                        <td className="px-4 py-2 text-sm text-blue-700 font-mono">{u.userId}</td>
-                                                        <td className="px-4 py-2 text-sm">{u.name || '-'}</td>
-                                                        <td className="px-4 py-2 text-sm">{u.email || '-'}</td>
-                                                        <td className="px-4 py-2 text-sm">
-                                                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200 text-xs font-semibold">
-                                                                {u.mobile || '-'}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-4 py-2 text-sm font-bold text-gray-800">{u.uses}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </Box>
-                                ) : (
-                                    <Typography variant="body2" color="text.secondary">
-                                        No usage data found.
-                                    </Typography>
-                                )}
-                            </CardContent>
-                        </Card>
+                    {tabIndex === 1 && couponId && (
+                        <CouponOtherTab couponId={couponId} />
                     )}
                 </div>
             </div>

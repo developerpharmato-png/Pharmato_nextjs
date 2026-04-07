@@ -68,5 +68,4 @@ export const CouponCreatePath = `/api/admin/coupon/create`;
 export const CouponUpdatePath = `/api/admin/coupon/edit`;
 export const CouponDeletePath = `/api/admin/coupon/delete`;
 export const CouponStatusPath = `/api/admin/coupon/status`;
-
-
+export const CouponOrderUsedListPath = `/api/admin/coupon/order-used-list`;

@@ -19,7 +19,7 @@ const handleUnauthorizedError = (error: AxiosError | any) => {
   if (error?.response?.status === 405) {
     handleAuthRefreshAndRetry(error);
   }
-};
+}; 
 
 async function handleAuthRefreshAndRetry<T>(
   originalRequest: () => Promise<any>

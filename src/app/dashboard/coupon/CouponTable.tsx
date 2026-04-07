@@ -241,39 +241,37 @@ const CouponTable: React.FC<CouponTableProps> = ({
             ),
         },
         {
-            id: "usage",
-            label: "Is Exhausted?",
-            minWidth: 140,
-            selector: (row) => {
-                const used = row.usedCount || 0;
-                const totalUses = typeof row.totalUses === 'number' ? row.totalUses : undefined;
-                const total = totalUses ?? "∞";
-                const isFull = used == total ? true : false;
-
-                return (
-                    <div className="flex flex-col">
-                        <span className="text-[10px] text-gray-500 font-mono uppercase">
-                            {isFull ? "Yes" : "No"}
-                        </span>
-                    </div>
-                );
-            },
-        },
-        {
-            id: "usage",
-            label: "Is Expired?",
+            id: "final_status",
+            label: "Coupon Status",
             minWidth: 140,
             selector: (row) => {
                 const nowIST = moment().tz("Asia/Kolkata").toDate();
                 const endAt = moment(row.endAt).toDate();
                 const isExpired = nowIST > endAt;
 
+                const usedCount = row.usedCount || 0;
+                const totalUses = typeof row.totalUses === 'number' ? row.totalUses : undefined;
+                const isExhausted = typeof totalUses === 'number' && totalUses > 0 && usedCount >= totalUses;
+
+                if (isExpired) return (
+                    <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-red-100 text-red-800 border border-red-200">
+                        Expired
+                    </span>
+                );
+                if (isExhausted) return (
+                    <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-yellow-100 text-yellow-800 border border-yellow-200">
+                        Exhausted
+                    </span>
+                );
+
                 return (
-                    <div className="flex flex-col">
-                        <span className="text-[10px] text-gray-500 font-mono uppercase">
-                            {isExpired ? "Yes" : "No"}
-                        </span>
-                    </div>
+                    <span className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide border ${
+                        row.isActive 
+                        ? "bg-green-100 text-green-800 border-green-200" 
+                        : "bg-gray-100 text-gray-800 border-gray-200"
+                    }`}>
+                        {row.isActive ? "Active" : "Inactive"}
+                    </span>
                 );
             },
         },
@@ -285,13 +283,13 @@ const CouponTable: React.FC<CouponTableProps> = ({
             selector: (row) => (
                 <ConfirmStatusAlertComponent
                     isActive={row.isActive}
-                    title={row.isActive ? "Deactivate?" : "Activate?"}
-                    text={``}
+                    title={row.isActive ? "Deactivate Coupon?" : "Activate Coupon?"}
+                    text={row.isActive ? "Are you sure you want to deactivate the coupon?" : "Are you sure you want to activate coupon?"}
                     confirmText={row.isActive ? "Deactivate" : "Activate"}
                     cancelText="Cancel"
                     onConfirm={() => handleToggleStatus(row)}
                 >
-                    <StatusToggleButton
+                     <StatusToggleButton
                         isActive={row.isActive}
                         onToggle={() => { }}
                         loading={togglingId === row._id}
@@ -299,7 +297,7 @@ const CouponTable: React.FC<CouponTableProps> = ({
                     />
                 </ConfirmStatusAlertComponent>
             ),
-        },
+        },  
         {
             id: "actions",
             label: "Edit",

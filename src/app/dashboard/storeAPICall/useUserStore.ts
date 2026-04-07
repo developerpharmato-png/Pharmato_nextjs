@@ -33,7 +33,7 @@ export const DashboardRevenueStore = createApiStore<any>();
 
 export const ProductDAshboardStore = createApiStore<any>();
 export const OrderDAshboardStore = createApiStore<any>();
-
+ 
 
 export const unreadNotificationStore = createApiStore<any>();
 export const NotificationsListStore = createApiStore<any>();
@@ -65,4 +65,5 @@ export const CouponUpdateStore = createApiStore<any>();
 export const CouponDeleteStore = createApiStore<any>();
 export const CouponStatusStore = createApiStore<any>();
 export const CouponSGEtBYIDsStore = createApiStore<any>();
+export const CouponOrderUsedListStore = createApiStore<any>();
 export const PincodeDetailStore = createApiStore<any>();
