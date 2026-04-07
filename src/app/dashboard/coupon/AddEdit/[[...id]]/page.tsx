@@ -32,9 +32,9 @@ interface CouponFormValues {
     title: string;
     description: string;
     type: "fixed" | "percentage";
-    value: number;
-    maxDiscountAmount?: number;
-    minOrderValue: number;
+    value: number | string;
+    maxDiscountAmount?: number | string;
+    minOrderValue: number | string;
     scope: string;
     startAt: string;
     endAt: string;
@@ -58,9 +58,9 @@ const initialValues: CouponFormValues = {
     title: "",
     description: "",
     type: "fixed",
-    value: 0,
-    maxDiscountAmount: 0,
-    minOrderValue: 0,
+    value: "",
+    maxDiscountAmount: "",
+    minOrderValue: "",
     scope: "global",
     startAt: "",
     endAt: "",
@@ -117,9 +117,9 @@ export default function CouponAddEditPage() {
                             title: coupon.title || "",
                             description: coupon.description || "",
                             type: coupon.type || "fixed",
-                            value: coupon.value || 0,
-                            maxDiscountAmount: coupon.maxDiscountAmount || undefined,
-                            minOrderValue: coupon.minOrderValue || 0,
+                            value: coupon.value !== undefined ? coupon.value : "",
+                            maxDiscountAmount: coupon.maxDiscountAmount !== undefined ? coupon.maxDiscountAmount : "",
+                            minOrderValue: coupon.minOrderValue !== undefined ? coupon.minOrderValue : "",
                             scope: coupon.scope || "global",
                             startAt: toDateTimeLocal(coupon.startAt),
                             endAt: toDateTimeLocal(coupon.endAt),
@@ -165,8 +165,8 @@ export default function CouponAddEditPage() {
                     title: values.title,
                     description: values.description,
                     type: values.type,
-                    value: values.value,
-                    minOrderValue: values.minOrderValue,
+                    value: Number(values.value) || 0,
+                    minOrderValue: Number(values.minOrderValue) || 0,
                     scope: values.scope,
                     startAt: new Date(values.startAt).toISOString(),
                     endAt: new Date(values.endAt).toISOString(),
