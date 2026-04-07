@@ -343,9 +343,9 @@ export default function CouponAddEditPage() {
                         className=""
                         disabled={isEdit ? false : false}
                     />
-                    <div style={{ fontSize: '12px', color: '#888', textAlign: 'right' }}>
+                    {/* <div style={{ fontSize: '12px', color: '#888', textAlign: 'right' }}>
                         {formik.values.description.length}/150
-                    </div>
+                    </div> */}
                     {formik.touched.description && formik.errors.description && (
                         <ErrorMessageCom error={formik.errors.description} />
                     )}
