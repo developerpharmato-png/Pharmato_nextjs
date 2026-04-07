@@ -69,7 +69,7 @@ export const PolicyExpandable: React.FC<PolicyExpandableProps> = ({
                         </>
                     ) : (
                         <>
-                                <span className="material-icons text-sm transform group-hover:translate-y-0.5 transition-transform"> Read More</span>
+                            <span className="material-icons text-sm transform group-hover:translate-y-0.5 transition-transform"> Read More</span>
                         </>
                     )}
                 </button>

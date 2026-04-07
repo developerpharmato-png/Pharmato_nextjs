@@ -596,7 +596,7 @@ export default function CouponAddEditPage() {
                                 <Switch
                                     name="isSecret"
                                     checked={formik.values.isSecret}
-                                    onChange={undefined}
+                                    onChange={formik.handleChange}
                                     disabled={isEdit}
                                 />
                             }
@@ -614,7 +614,7 @@ export default function CouponAddEditPage() {
                                 <Switch
                                     name="isActive"
                                     checked={formik.values.isActive}
-                                    onChange={undefined}
+                                    onChange={formik.handleChange}
                                     disabled={isEdit}
                                 />
                             }
