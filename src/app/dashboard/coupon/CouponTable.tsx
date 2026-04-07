@@ -286,7 +286,7 @@ const CouponTable: React.FC<CouponTableProps> = ({
                 <ConfirmStatusAlertComponent
                     isActive={row.isActive}
                     title={row.isActive ? "Deactivate?" : "Activate?"}
-                    text={`Toggle status for ${row.code}?`}
+                    text={``}
                     confirmText={row.isActive ? "Deactivate" : "Activate"}
                     cancelText="Cancel"
                     onConfirm={() => handleToggleStatus(row)}
