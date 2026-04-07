@@ -41,6 +41,7 @@ type Coupon = {
 
 import { Suspense } from "react";
 import { Edit, Edit2, Edit2Icon } from "lucide-react";
+import { CustomButton } from "../../components/miniComponents";
 
 function CouponDetailContent() {
     const searchParams = useSearchParams();
@@ -106,12 +107,12 @@ function CouponDetailContent() {
                 showBack={true}
                 showSearch={false}
                 rightNode={
-                    <button
-                        className="p-2 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-md flex items-center gap-2 font-medium"
-                        onClick={() => router.push(`/dashboard/coupon/AddEdit/${coupon._id}`)}
-                    >
-                        <Edit /> <span>Edit</span>
-                    </button>
+                    <CustomButton
+                            onClick={() => router.push(`/dashboard/coupon/AddEdit/${coupon._id}`)}
+                        icon={<Edit />}
+                        label="Edit"
+                        variant="primary"
+                    />
                 }
             />
             <div className="bg-white rounded-xl p-1 grid gap-8">
@@ -129,88 +130,103 @@ function CouponDetailContent() {
                     </Tabs>
                 </Box>
                 <div className="">
-                    {tabIndex === 0 && (
-                        <div className="space-y-6">
-                            <div className="flex flex-wrap gap-3 items-center">
-                                <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold">
-                                    <span className="material-icons text-sm">Code</span>
-                                    <span>{coupon?.code}</span>
-                                </span>
-                                <span className="inline-flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-semibold">
-                                    <span className="material-icons text-sm">Active</span>
-                                    <span>: {coupon?.isActive ? "Yes" : "No"}</span>
-                                </span>
-                                <span className="inline-flex items-center gap-2 px-3 py-1 bg-yellow-50 text-yellow-800 rounded-full text-xs font-semibold">
-                                    <span className="material-icons text-sm">Secret</span>
-                                    <span>: {coupon?.isSecret ? "Yes" : "No"}</span>
-                                </span>
+                    {tabIndex === 0 && coupon && (
+                        <div className="space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {/* Section: Primary Info */}
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider px-1">Basic Information</h3>
+                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
+                                        <div>
+                                            <div className="text-xs text-gray-500 mb-1">Coupon Code</div>
+                                            <div className="text-lg font-bold text-(--secondary) font-mono">{coupon.code}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-gray-500 mb-1">Title</div>
+                                            <div className="text-sm font-semibold text-gray-800">{coupon.title || "-"}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-gray-500 mb-1">Secret Coupon</div>
+                                            <div className={`text-sm font-bold ${coupon.isSecret ? "text-yellow-600" : "text-gray-600"}`}>
+                                                {coupon.isSecret ? "Yes" : "No"}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Section: Discount Rules */}
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider px-1">Discount Rules</h3>
+                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
+                                        <div>
+                                            <div className="text-xs text-gray-500 mb-1">Discount Type </div>
+                                            <div className="text-sm font-bold text-green-700 uppercase">{coupon.type === "percentage" ? "Percentage (%)" : "Flat Amount"}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-gray-500 mb-1">Min Order Value</div>
+                                            <div className="text-sm font-bold">₹{coupon.minOrderValue?.toLocaleString() || "0"}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-gray-500 mb-1">Maximum Rs. Discount</div>
+                                            <div className="text-sm font-bold">{coupon.maxDiscountAmount ? `₹${coupon.maxDiscountAmount.toLocaleString()}` : "No Limit"}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Section: Limits & Status */}
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider px-1">Usage & Status</h3>
+                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
+                                        <div>
+                                            <div className="text-xs text-gray-500 mb-1">Status </div>
+                                            <div className="text-sm">
+                                                {(() => {
+                                                    const now = new Date();
+                                                    const isExpired = coupon.endAt ? new Date(coupon.endAt) < now : false;
+                                                    const isExhausted = coupon.totalUses && coupon.usedCount ? coupon.usedCount >= coupon.totalUses : false;
+                                                    
+                                                    if (isExpired) return <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-bold uppercase tracking-wide">Expired</span>;
+                                                    if (isExhausted) return <span className="px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 text-xs font-bold uppercase tracking-wide">Exhausted</span>;
+                                                    return <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wide ${coupon.isActive ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"}`}>
+                                                        {coupon.isActive ? "Active" : "Inactive"}
+                                                    </span>;
+                                                })()}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-gray-500 mb-1">Total Usage Limit</div>
+                                            <div className="text-sm font-bold">{coupon.totalUses || "Unlimited"}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-gray-500 mb-1">Per User Limit</div>
+                                            <div className="text-sm font-bold">{coupon.perUserLimit || "No Limit"}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Section: Dates */}
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider px-1">Timeline</h3>
+                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
+                                        <div>
+                                            <div className="text-xs text-gray-500 mb-1">Start Date</div>
+                                            <div className="text-sm font-medium">{coupon.startAt ? new Date(coupon.startAt).toLocaleString('en-IN') : "-"}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-gray-500 mb-1">Expiry Date</div>
+                                            <div className="text-sm font-medium text-red-600">{coupon.endAt ? new Date(coupon.endAt).toLocaleString('en-IN') : "-"}</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                <div className="bg-gray-50 p-3 rounded-md text-center">
-                                    <div className="text-xs text-gray-500">Code</div>
-                                    <div className="text-lg font-bold text-green-700">{coupon.code || "-"}</div>
-                                </div>
-                                <div className="bg-gray-50 p-3 rounded-md text-center">
-                                    <div className="text-xs text-gray-500">Title</div>
-                                    <div className="text-sm font-semibold">{coupon?.title || "-"}</div>
-                                </div>
-                                <div className="bg-gray-50 p-3 rounded-md text-center">
-                                    <div className="text-xs text-gray-500">Type</div>
-                                    <div className="text-sm">{coupon?.type || "-"}</div>
-                                </div>
-                                <div className="bg-gray-50 p-3 rounded-md text-center">
-                                    <div className="text-xs text-gray-500">Value</div>
-                                    <div className="text-sm">{coupon?.value || "-"}</div>
-                                </div>
-                                <div className="bg-gray-50 p-3 rounded-md text-center">
-                                    <div className="text-xs text-gray-500">Max Discount</div>
-                                    <div className="text-sm">{coupon?.maxDiscountAmount || "-"}</div>
-                                </div>
-                                <div className="bg-gray-50 p-3 rounded-md text-center">
-                                    <div className="text-xs text-gray-500">Scope</div>
-                                    <div className="text-sm">{coupon?.scope || "-"}</div>
-                                </div>
-                                <div className="bg-gray-50 p-3 rounded-md text-center">
-                                    <div className="text-xs text-gray-500">Start Date</div>
-                                    <div className="text-sm">{coupon?.startAt ? new Date(coupon.startAt).toLocaleString() : "-"}</div>
-                                </div>
-                                <div className="bg-gray-50 p-3 rounded-md text-center">
-                                    <div className="text-xs text-gray-500">End Date</div>
-                                    <div className="text-sm">{coupon?.endAt ? new Date(coupon.endAt).toLocaleString() : "-"}</div>
-                                </div>
-                                <div className="bg-gray-50 p-3 rounded-md text-center">
-                                    <div className="text-xs text-gray-500">Min Order Value</div>
-                                    <div className="text-sm">{`₹${coupon?.minOrderValue?.toFixed(2) || "0.00"}`}</div>
-                                </div>
-                                <div className="bg-gray-50 p-3 rounded-md text-center">
-                                    <div className="text-xs text-gray-500">Total Uses</div>
-                                    <div className="text-sm">{coupon?.totalUses || "-"}</div>
-                                </div>
-                                <div className="bg-gray-50 p-3 rounded-md text-center">
-                                    <div className="text-xs text-gray-500">Used Count</div>
-                                    <div className="text-sm">{coupon?.usedCount || 0}</div>
-                                </div>
-                                <div className="bg-gray-50 p-3 rounded-md text-center">
-                                    <div className="text-xs text-gray-500">Per User Limit</div>
-                                    <div className="text-sm">{coupon?.perUserLimit || "-"}</div>
-                                </div>
-                                <div className="bg-gray-50 p-3 rounded-md text-center">
-                                    <div className="text-xs text-gray-500">Unique Code</div>
-                                    <div className="text-sm">{coupon?.uniqueCode || "-"}</div>
-                                </div>
-                                <div className="bg-gray-50 p-3 rounded-md text-center">
-                                    <div className="text-xs text-gray-500">Created At</div>
-                                    <div className="text-sm">{coupon?.createdAt ? new Date(coupon.createdAt).toLocaleString() : "-"}</div>
-                                </div>
-                                <div className="bg-gray-50 p-3 rounded-md text-center">
-                                    <div className="text-xs text-gray-500">Updated At</div>
-                                    <div className="text-sm">{coupon?.updatedAt ? new Date(coupon.updatedAt).toLocaleString() : "-"}</div>
-                                </div>
+
+                            {/* Section: Description/Overview */}
+                            <div className="bg-[#f0fff4] border border-green-100 rounded-xl p-6">
+                                <h3 className="text-sm font-bold text-(--secondary) uppercase tracking-wider mb-2">Description</h3>
+                                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                                    {coupon.description || "No description provided for this coupon."}
+                                </p>
                             </div>
-                            <section className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
-                                <h2 className="text-lg font-semibold text-gray-800 inline-flex items-center gap-2">Overview</h2>
-                                <div className="mt-3 text-gray-700">{coupon?.description}</div>
-                            </section>
                         </div>
                     )}
                     {tabIndex === 1 && couponId && (

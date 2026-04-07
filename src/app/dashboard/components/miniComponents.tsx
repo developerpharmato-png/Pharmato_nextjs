@@ -57,7 +57,10 @@ export const ErrorMessageCom = ({ error }: ErrorMessageComProps) => {
 };
 
 interface CustomButtonProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  icon?: React.ReactNode;
+  label?: string;
+  variant?: "primary" | "secondary" | "danger" | "warning";
   onClick?: () => void;
   disabled?: boolean;
   type?: "button" | "submit" | "reset";
@@ -67,6 +70,9 @@ interface CustomButtonProps {
 }
 export const CustomButton = ({
   children,
+  icon,
+  label,
+  variant = "primary",
   onClick,
   disabled,
   type = "button",
@@ -79,26 +85,33 @@ export const CustomButton = ({
     height: height,
   };
 
+  const getVariantStyles = () => {
+    if (disabled) return "bg-gray-400 cursor-not-allowed";
+    switch (variant) {
+      case "danger": return "bg-red-600 hover:bg-red-700";
+      case "warning": return "bg-yellow-500 hover:bg-yellow-600";
+      case "secondary": return "bg-gray-600 hover:bg-gray-700";
+      default: return "bg-(--primary) hover:bg-(--primary)";
+    }
+  };
+
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled}
       style={buttonStyle}
-      className={`relative cursor-pointer overflow-hidden px-8 py-2 rounded-xl font-semibold text-white shadow-lg 
-        ${disabled
-          ? "bg-gray-400 cursor-not-allowed"
-          : "bg-(--primary) hover:bg-(--primary)"
-        } 
+      className={`relative cursor-pointer overflow-hidden px-4 md:px-8 py-2 rounded-xl font-semibold text-white shadow-lg 
+        ${getVariantStyles()} 
         transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-(--primary) focus:ring-offset-2 group
         ${className}`}
     >
       <div className="absolute inset-x-0 top-0 h-0 bg-white/20 transition-all duration-300 group-hover:h-1/2"></div>
-
       <div className="absolute inset-x-0 bottom-0 h-0 bg-white/10 transition-all duration-300 group-hover:h-1/2"></div>
 
       <span className="relative z-10 flex items-center justify-center gap-2">
-        {children}
+        {icon}
+        {label || children}
       </span>
 
       <div className="absolute inset-0 -top-full bg-linear-to-b from-transparent via-white/10 to-transparent transform transition-transform duration-1000 group-hover:translate-y-full"></div>
