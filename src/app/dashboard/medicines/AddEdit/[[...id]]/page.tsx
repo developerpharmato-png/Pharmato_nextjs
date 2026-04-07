@@ -1227,7 +1227,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                       />
                     </div>
                   </div>
-                  {/* <div>
+                  <div>
                     <TextareaField
                       id="saltComposition"
                       name="saltComposition"
@@ -1244,10 +1244,10 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                       showCount={true}
                       error={formik.touched.saltComposition && formik.errors.saltComposition}
                     />
-                  </div> */}
+                  </div>
 
 
-                  <div>
+                  {/* <div>
                     <label className="block text-sm font-bold text-gray-800 mb-2">
                       Salt Composition *
                     </label>
@@ -1261,7 +1261,7 @@ export default function MedicineAddEditForm({ id }: { id?: string }) {
                         <ErrorMessageCom error={formik.errors.saltComposition as string} />
                       )}
                     </>
-                  </div>
+                  </div> */}
 
 
                   {/* Composition Section Styling */}

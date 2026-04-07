@@ -80,6 +80,9 @@ function getActiveSurge(surgePricing: any[]) {
  *               couponId:
  *                 type: string
  *                 description: Coupon ID to apply (optional)
+ *               isSecretCoupon:
+ *                 type: boolean
+ *                 description: Set to true if the coupon is a secret coupon (optional)
  *     responses:
  *       200:
  *         description: Calculation data returned
@@ -126,7 +129,7 @@ function getActiveSurge(surgePricing: any[]) {
 
 export async function POST(req: NextRequest) {
     await dbConnect();
-    const { userId, guestId, storeId, discount, couponCode, couponId } = await req.json();
+    const { userId, guestId, storeId, discount, couponCode, couponId, isSecretCoupon } = await req.json();
     if (((!userId || typeof userId !== 'string') && (!guestId || typeof guestId !== 'string')) || !storeId || typeof storeId !== 'string') {
         return NextResponse.json({ success: false, message: 'userId or guestId and storeId are required' }, { status: 400 });
     }
@@ -207,7 +210,7 @@ export async function POST(req: NextRequest) {
         }))
     };
 
-    const result = await validateAndApplyCoupon(couponCode, cartFromApi, couponId);
+    const result = await validateAndApplyCoupon(couponCode, cartFromApi, couponId, isSecretCoupon);
     discountValue = Number(result.discount.toFixed(2));
 
     // console.log("#########cartData##########",cartData);
@@ -220,7 +223,9 @@ export async function POST(req: NextRequest) {
     const medicineQuantity: any[] = [];
     let deliveryFee = 0;
     let deliveryFeeThreshold: any = "";
-    let surgePricing: any = [];
+    let surgePricing: any = [];  
+    calculationData.couponCode = couponCode ? couponCode : "";
+    calculationData.couponId = result.discount > 0 ? result.couponId : "";
 
     for (const setting of settings) {
         if (setting.type === 'gst') calculationData.gstInPercent = Number(setting.data);
@@ -252,9 +257,6 @@ export async function POST(req: NextRequest) {
     }
 
     // console.log("$$$$$$$$$cartData$$$$$$$$$",cartData);
-
-    calculationData.couponCode = couponCode ? couponCode : "";
-    calculationData.couponId = couponId ? couponId : "";
 
     const priceTotalSumBeforeDiscount = cartData.reduce((sum, item) => sum + (item.medicine.price * item.quantity), 0);
 

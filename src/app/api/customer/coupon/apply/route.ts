@@ -23,6 +23,9 @@
  *                 description: Any cart object (structure may vary)
  *                 additionalProperties: true
  *                 example: {}
+ *               isSecretCoupon:
+ *                 type: boolean
+ *                 description: Set to true if the coupon is a secret coupon (optional)
  *     responses:
  *       200:
  *         description: Coupon validation result
@@ -48,12 +51,12 @@ import { validateAndApplyCoupon } from '@/models/validateAndApplyCoupon';
 
 export async function POST(request: NextRequest) {
     await connectDB();
-    const { couponCode, couponId, cart } = await request.json();
+    const { couponCode, couponId, cart, isSecretCoupon } = await request.json();
     if ((!couponCode && !couponId) || !cart) {
         return NextResponse.json({ success: false, message: 'couponCode or couponId and cart are required' }, { status: 400 });
     }
     // Pass both couponCode and couponId to the validator if needed
-    const result = await validateAndApplyCoupon(couponCode, cart, couponId);
+    const result = await validateAndApplyCoupon(couponCode, cart, couponId, isSecretCoupon);
     return NextResponse.json({
         success: result.discount > 0,
         discount: result.discount,

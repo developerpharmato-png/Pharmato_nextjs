@@ -164,7 +164,9 @@ async function importMedicinesFromMarg() {
 
     const lastSyncDateTime = latestMarg ? moment(latestMarg.createdAt)
       .tz("Asia/Kolkata")
-      .format("YYYY-MM-DD HH:mm:ss") : '';
+      .format("YYYY-MM-DD HH:mm:ss") : moment()
+      .tz("Asia/Kolkata")
+      .format("YYYY-MM-DD HH:mm:ss");
 
     // console.log("&&&&&&&&&&&&&&lastSyncDateTime&&&&&&&&&&&&&",lastSyncDateTime);
 
@@ -462,10 +464,10 @@ export async function POST(request: NextRequest) {
     });
   } else {
 
-    // background me chala do
-    setImmediate(() => {
-      importMedicinesFromMarg();
-    });
+    // // background me chala do
+    // setImmediate(() => {
+    //   importMedicinesFromMarg();
+    // });
 
     return NextResponse.json({
       success: true,
