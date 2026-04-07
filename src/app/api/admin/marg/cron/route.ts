@@ -464,10 +464,10 @@ export async function POST(request: NextRequest) {
     });
   } else {
 
-    // // background me chala do
-    // setImmediate(() => {
-    //   importMedicinesFromMarg();
-    // });
+    // background me chala do
+    setImmediate(() => {
+      importMedicinesFromMarg();
+    });
 
     return NextResponse.json({
       success: true,
