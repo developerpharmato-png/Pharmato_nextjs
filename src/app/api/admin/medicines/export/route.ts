@@ -107,55 +107,74 @@ async function runBackground(email: string) {
   // Write workbook to buffer
   const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
-  // // Send email with the Excel attachment
-  // const transporter = nodemailer.createTransport({
-  //   host: 'mail.smtp2go.com',
-  //   port: 2525,
-  //   auth: {
-  //     user: 'sunil.patidar+2@technotoil.com',
-  //     pass: 'tJ2juQjWYyOPbUpM'
-  //   }
-  // });
+  if (email) {
 
-  // let mailOptions = {
-  //   from: 'sunil.patidar+2@technotoil.com',
-  //   to: email, // Use provided recipient email
-  //   subject: "Medicines Export",
-  //   text: 'Please find the attached Excel file.',
-  //   attachments: [
-  //     {
-  //       filename: `medicines_export.xlsx`,
-  //       content: buffer,
-  //     }
-  //   ]
-  // };
+    // // Send email with the Excel attachment
+    // const transporter = nodemailer.createTransport({
+    //   host: 'mail.smtp2go.com',
+    //   port: 2525,
+    //   auth: {
+    //     user: 'mayank.pawar+55@technotoil.com',
+    //     pass: 'e1nAdYQNgg3wQ9O7'
+    //   }
+    // });
 
-  // Send email with the Excel attachment
-  const transporter = nodemailer.createTransport({
-    host: 'mail.smtp2go.com',
-    port: 2525,
-    auth: {
-      user: 'mayank.pawar+55@technotoil.com',
-      pass: 'e1nAdYQNgg3wQ9O7'
+    // let mailOptions = {
+    //   // from: 'sunil.patidar+5@technotoil.com',
+    //   from: 'mayank.pawar+55@technotoil.com',
+    //   to: email, // Use provided recipient email
+    //   subject: "Medicines Export",
+    //   text: 'Please find the attached Excel file.',
+    //   attachments: [
+    //     {
+    //       filename: `medicines_export.xlsx`,
+    //       content: buffer,
+    //     }
+    //   ]
+    // };
+
+    // let response = await transporter.sendMail(mailOptions);
+    // console.log('Email sent successfully:', response);
+
+  }
+
+  if (email) {
+
+    try {
+      const response = await client.sendMail({
+        from: {
+          address: "noreply@pharmatoindia.com",
+          name: "Pharmato"
+        },
+        to: [
+          {
+            email_address: {
+              address: email,
+              name: "Pharmato"
+            }
+          }
+        ],
+        subject: "Medicines Export",
+        attachments: [
+          {
+            filename: `medicines_export.xlsx`,
+            content: buffer,
+          }
+        ]
+      });
+
+      console.log("✅ Email sent successfully:", response);
+
+    } catch (error: any) {
+
+      console.error(
+        "❌ Email Send Error:",
+        JSON.stringify(error.message || error, null, 2)
+      );
+
     }
-  });
 
-  let mailOptions = {
-    // from: 'sunil.patidar+5@technotoil.com',
-    from: 'mayank.pawar+55@technotoil.com',
-    to: email, // Use provided recipient email
-    subject: "Medicines Export",
-    text: 'Please find the attached Excel file.',
-    attachments: [
-      {
-        filename: `medicines_export.xlsx`,
-        content: buffer,
-      }
-    ]
-  };
-
-  let response = await transporter.sendMail(mailOptions);
-  console.log('Email sent successfully:', response);
+  }
 
 }
 
