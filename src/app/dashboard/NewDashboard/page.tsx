@@ -173,8 +173,8 @@ export default function NewDashboardPage() {
   }
 
   return (
-    <div className="containerStyle scrollbar-hide">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div className="containerStyle scrollbar-hide py-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
         <HeaderWithAction
           title="Pharmacy  Dashboard
 "
@@ -208,19 +208,19 @@ export default function NewDashboardPage() {
         </div> */}
 
         {/* Header Controls */}
-        <div className="flex flex-wrap items-center gap-3 bg-white/80 backdrop-blur-md p-1.5 px-4 rounded-2xl border border-slate-200/60 shadow-md">
-          <div className="flex items-center gap-3 pr-4 border-r border-slate-200">
-            <div className="p-2 bg-slate-50 rounded-xl text-blue-600 shadow-inner">
+        <div className="flex flex-wrap items-center gap-3 bg-white p-2 px-4 rounded-lg border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-3 pr-4 border-r border-slate-100">
+            <div className="p-1.5 bg-slate-100 rounded-lg text-slate-700">
               <Calendar size={16} />
             </div>
             <div className="flex flex-col">
-              <label className="text-[9px] font-black uppercase tracking-[0.1em] text-slate-400 leading-none mb-1">
+              <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 leading-none mb-1">
                 Analysis Period
               </label>
               <select
                 value={period}
                 onChange={(e) => setPeriod(e.target.value as any)}
-                className="bg-transparent text-sm font-black text-slate-700 focus:outline-none cursor-pointer hover:text-blue-600 transition-colors"
+                className="bg-transparent text-sm font-semibold text-slate-800 focus:outline-none cursor-pointer hover:text-blue-600 transition-colors"
               >
                 <option value="today">Today</option>
                 <option value="week">This Week</option>
@@ -232,19 +232,19 @@ export default function NewDashboardPage() {
           </div>
 
           {period === "custom" && (
-            <div className="flex items-center gap-3 animate-in fade-in slide-in-from-right-4 transition-all pr-4 border-r border-slate-200">
+            <div className="flex items-center gap-2 animate-in fade-in transition-all pr-4 border-r border-slate-100">
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                className="px-2 py-1 bg-white border border-slate-200 rounded-md text-xs font-medium text-slate-700 focus:ring-1 focus:ring-slate-300 outline-none transition-all"
               />
-              <span className="text-slate-300 font-bold">—</span>
+              <span className="text-slate-400 font-medium">—</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                className="px-2 py-1 bg-white border border-slate-200 rounded-md text-xs font-medium text-slate-700 focus:ring-1 focus:ring-slate-300 outline-none transition-all"
               />
             </div>
           )}
@@ -252,11 +252,10 @@ export default function NewDashboardPage() {
           <div className="flex items-center pl-1">
             <button
               onClick={() => fetchAll()}
-              className="flex items-center gap-2.5 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white text-[13px] font-black rounded-xl transition-all shadow-lg hover:shadow-blue-200 shadow-blue-500/20 active:scale-95 group relative overflow-hidden"
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--secondary)] hover:bg-[var(--primary)] text-white text-xs font-semibold rounded-md transition-all shadow-sm active:scale-95 group"
             >
-              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none" />
-              <RotateCcw size={16} className="group-hover:rotate-180 transition-transform duration-700 relative z-10" />
-              <span className="relative z-10">Refresh Dashboard</span>
+              <RotateCcw size={14} className="group-hover:rotate-180 transition-transform duration-500" />
+              <span>Refresh Dashboard</span>
             </button>
           </div>
         </div>
@@ -265,31 +264,30 @@ export default function NewDashboardPage() {
 
 
       {/* Analytics & Charts Section */}
-      <section className="mb-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <section className="mb-3">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           {/* Main Chart Card */}
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-4 border border-slate-200/80">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div>
-                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Orders Volume Trend
                 </h4>
 
               </div>
 
-              {/* Compact Summaries */}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-6">
                 {[
-                  { label: "Today", value: ordersData?.summary?.daily || 0, color: "blue" },
-                  { label: "Week", value: ordersData?.summary?.weekly || 0, color: "indigo" },
-                  { label: "Month", value: ordersData?.summary?.monthly || 0, color: "purple" },
+                  { label: "Today", value: ordersData?.summary?.daily || 0 },
+                  { label: "This Week", value: ordersData?.summary?.weekly || 0 },
+                  { label: "This Month", value: ordersData?.summary?.monthly || 0 },
                 ].map((card) => (
                   <div
                     key={card.label}
-                    className="bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-xl flex items-center gap-2 shrink-0"
+                    className="flex flex-col gap-0.5"
                   >
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{card.label}:</span>
-                    <span className={`text-sm font-black text-${card.color}-600`}>
+                    <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{card.label}</span>
+                    <span className={`text-[15px] font-bold text-slate-900`}>
                       {loading ? "—" : card.value}
                     </span>
                   </div>
@@ -297,7 +295,7 @@ export default function NewDashboardPage() {
               </div>
             </div>
 
-            <div className="h-[280px] w-full">
+            <div className="h-[200px] w-full">
               {loading ? (
                 <SkeletonLoader />
               ) : ordersData?.trend?.length ? (
@@ -332,15 +330,10 @@ export default function NewDashboardPage() {
                     <Line
                       type="monotone"
                       dataKey="value"
-                      stroke="#3b82f6"
-                      strokeWidth={4}
-                      dot={{
-                        r: 4,
-                        fill: "#3b82f6",
-                        strokeWidth: 2,
-                        stroke: "#fff",
-                      }}
-                      activeDot={{ r: 6, strokeWidth: 0 }}
+                      stroke="#2563eb"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 4, strokeWidth: 2, stroke: "#fff", fill: "#2563eb" }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -354,10 +347,10 @@ export default function NewDashboardPage() {
           </div>
 
           {/* Unified Order Status & Performance Card */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200 flex flex-col h-full">
+          <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200/80 flex flex-col h-full">
 
             {/* Donut Chart Area */}
-            <div className="h-[240px] w-full mb-6">
+            <div className="h-[180px] w-full mb-3">
               {loading ? (
                 <SkeletonLoader />
               ) : ordersData?.statusCounts?.length ? (
@@ -406,14 +399,14 @@ export default function NewDashboardPage() {
 
             {/* Total and List Section */}
             <div className="flex-1">
-              <div className="mb-4">
-                <h4 className="text-lg font-bold text-blue-600">Order Status</h4>
-                <p className="text-sm font-medium text-slate-500">
+              <div className="mb-2">
+                <h4 className="text-base font-bold text-blue-600">Order Status</h4>
+                <p className="text-xs font-medium text-slate-500">
                   Total Orders: <span className="text-slate-900 font-bold">{loading ? "—" : (ordersData?.kpis?.totalOrders ?? 0)}</span>
                 </p>
               </div>
 
-              <div className="border-t border-slate-100 pt-4 space-y-3">
+              <div className="border-t border-slate-100 pt-2 space-y-1">
                 {loading ? (
                   [1, 2, 3].map((i) => <div key={i} className="h-6 bg-slate-100 animate-pulse rounded" />)
                 ) : ordersData?.statusCounts?.length ? (
@@ -432,7 +425,7 @@ export default function NewDashboardPage() {
                     return (
                       <div
                         key={s._id}
-                        className="flex items-center justify-between group cursor-pointer hover:bg-slate-50 p-1 rounded-lg transition-colors"
+                        className="flex items-center justify-between group cursor-pointer hover:bg-slate-50 p-1.5 rounded-md transition-colors border border-transparent hover:border-slate-100"
                         onClick={() => {
                           const params = new URLSearchParams();
                           params.set("filter", s._id);
@@ -446,14 +439,14 @@ export default function NewDashboardPage() {
                       >
                         <div className="flex items-center gap-3">
                           <div
-                            className="w-3 h-3 rounded-sm shadow-sm"
+                            className="w-2.5 h-2.5 rounded-full"
                             style={{ backgroundColor: statusColor }}
                           />
                           <span className="text-sm font-medium text-slate-600 group-hover:text-slate-900 capitalize">
                             {s._id || "Unknown"}
                           </span>
                         </div>
-                        <span className="text-sm font-bold text-slate-900">
+                        <span className="text-sm font-semibold text-slate-800">
                           {s.count}
                         </span>
                       </div>
@@ -475,33 +468,34 @@ export default function NewDashboardPage() {
 
 
 
+      {/* Revenue & Inventory Container */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-3">
       {/* Unified Revenue & Growth Card */}
-      <section className="mb-6">
-        <div className="bg-white/70 backdrop-blur-md rounded-3xl shadow-sm p-5 border border-slate-200/60 transition-all hover:shadow-md">
+      <section className="xl:col-span-2 min-w-0 flex flex-col">
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200/80 transition-all hover:shadow-md">
           {/* Header Section */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
-              <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Revenue & Growth
               </h3>
 
             </div>
 
             {/* Compact Revenue Summaries */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-6">
               {[
-                { label: "Today", value: revenueData?.summary?.daily || 0, color: "emerald", periodVal: 'today' },
-                { label: "Week", value: revenueData?.summary?.weekly || 0, color: "indigo", periodVal: 'week' },
-                { label: "Month", value: revenueData?.summary?.monthly || 0, color: "blue", periodVal: 'month' },
-                { label: "Year", value: revenueData?.summary?.yearly || 0, color: "purple", periodVal: 'all' },
+                { label: "Today", value: revenueData?.summary?.daily || 0 },
+                { label: "This Week", value: revenueData?.summary?.weekly || 0 },
+                { label: "This Month", value: revenueData?.summary?.monthly || 0 },
+                { label: "This Year", value: revenueData?.summary?.yearly || 0 },
               ].map((card) => (
                 <div
                   key={card.label}
-                  // onClick={() => setPeriod(card.periodVal as any)}
-                  className="bg-white/50 border border-slate-100 px-3 py-1.5 rounded-xl flex items-center gap-2 shrink-0 cursor-pointer hover:bg-white hover:border-blue-200 transition-all group"
+                  className="flex flex-col gap-0.5 cursor-pointer group"
                 >
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{card.label}:</span>
-                  <span className={`text-sm font-black text-${card.color}-600 group-hover:scale-105 transition-transform`}>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider group-hover:text-blue-600 transition-colors">{card.label}</span>
+                  <span className={`text-[15px] font-bold text-slate-900 group-hover:text-blue-600 transition-colors`}>
                     {loading ? "—" : `₹${card.value.toLocaleString()}`}
                   </span>
                 </div>
@@ -509,19 +503,45 @@ export default function NewDashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
-            {/* Revenue Trend Chart - Occupies 3 columns */}
-            <div className="lg:col-span-3">
-              <div className="h-[350px] w-full">
-                {loading ? (
+          <div className="flex flex-col gap-4">
+            {/* Revenue KPIs Side-panel - Occupies top row */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* Filtered Revenue - Dynamic Card */}
+              <div className="p-4 rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] transition-transform bg-white border border-slate-100 flex flex-col justify-center min-w-[250px]">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 bg-[var(--secondary)] rounded-md">
+                    <BarChart3 size={14} className="text-white" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                    {period === 'all' ? 'All Time Revenue' : `Revenue (${period})`}
+                  </span>
+                </div>
+                <p className="text-2xl font-bold text-slate-800">
+                  {loading
+                    ? "—"
+                    : `₹${(revenueData?.kpis?.totalRevenue ?? 0).toLocaleString()}`}
+                </p>
+                <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between">
+                  <span className="text-[10px] text-slate-400 uppercase font-semibold">Growth</span>
+                  <div className={`flex items-center text-xs font-medium ${(revenueData?.previousPeriod?.growth ?? 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                    {(revenueData?.previousPeriod?.growth ?? 0) >= 0 ? <TrendingUp size={14} className="mr-1" /> : <TrendingDown size={14} className="mr-1" />}
+                    {Math.abs(revenueData?.previousPeriod?.growth ?? 0)}%
+                  </div>
+                </div> 
+              </div>
+            </div>
+
+            {/* Revenue Trend Chart - Occupies next row */}
+            <div className="h-[220px] w-full">
+              {loading ? (
                   <SkeletonLoader />
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={revenueData?.trend || []}>
                       <defs>
                         <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.1} />
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -548,61 +568,14 @@ export default function NewDashboardPage() {
                       <Area
                         type="monotone"
                         dataKey="revenue"
-                        stroke="#10b981"
-                        strokeWidth={3}
+                        stroke="#3b82f6"
+                        strokeWidth={2}
                         fillOpacity={1}
                         fill="url(#colorRevenue)"
                       />
                     </AreaChart>
                   </ResponsiveContainer>
                 )}
-              </div>
-            </div>
-
-            {/* Revenue KPIs Side-panel - Occupies 1 column */}
-            <div className="space-y-2.5">
-              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">Comparative Analysis</h4>
-
-              {/* Filtered Revenue - Dynamic Card */}
-              <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-4 rounded-xl shadow-lg text-white group hover:scale-[1.02] transition-transform">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-1.5 bg-white/20 rounded-lg text-white">
-                    <BarChart3 size={16} />
-                  </div>
-                  <span className="text-[10px] font-bold text-blue-100 uppercase tracking-wider">
-                    {period === 'all' ? 'All Time Revenue' : `Revenue (${period})`}
-                  </span>
-                </div>
-                <p className="text-xl font-black">
-                  {loading
-                    ? "—"
-                    : `₹${(revenueData?.kpis?.totalRevenue ?? 0).toLocaleString()}`}
-                </p>
-                <div className="mt-2 pt-2 border-t border-white/10 flex items-center justify-between">
-                  <span className="text-[9px] text-blue-100 uppercase font-bold">Growth</span>
-                  <div className={`flex items-center text-xs font-bold ${(revenueData?.previousPeriod?.growth ?? 0) >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
-                    {(revenueData?.previousPeriod?.growth ?? 0) >= 0 ? <TrendingUp size={12} className="mr-1" /> : <TrendingDown size={12} className="mr-1" />}
-                    {Math.abs(revenueData?.previousPeriod?.growth ?? 0)}%
-                  </div>
-                </div>
-              </div>
-
-              {/* Analysis Period */}
-              <div className="bg-white/50 p-3 rounded-xl border border-slate-100 shadow-sm transition-all hover:bg-white group">
-                <div className="flex items-center gap-3 mb-1.5">
-                  <div className="p-1 bg-blue-50 text-blue-600 rounded-lg group-hover:scale-110 transition-transform">
-                    <Calendar size={16} />
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Period Details
-                  </span>
-                </div>
-                <p className="text-xs font-bold text-slate-800 capitalize">
-                  {period === "custom" ? `${startDate} to ${endDate}` : period}
-                </p>
-              </div>
-
-
             </div>
           </div>
         </div>
@@ -616,12 +589,12 @@ export default function NewDashboardPage() {
       {/* Since we merged Performance into the card above, we can remove the old KPI section or repurpose it */}
 
       {/* Unified Inventory Health & Control Card */}
-      <section className="mb-6">
-        <div className="bg-white/70 backdrop-blur-md rounded-3xl shadow-sm p-5 border border-slate-200/60 transition-all hover:shadow-md">
+      <section className="xl:col-span-1 min-w-0 mb-0 flex flex-col">
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200/80 transition-all hover:shadow-md">
           {/* Header Section */}
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Inventory Health Status
               </h3>
               <p className="text-[12px] text-slate-400 mt-0.5">
@@ -630,45 +603,41 @@ export default function NewDashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+          <div className="flex flex-col gap-4 w-full">
             {/* Real-time stock analytics graph */}
-            <div className="lg:col-span-3">
-              <div className="h-[350px] w-full">
+            <div className="w-full">
+              <div className="h-[220px] w-full">
                 {loading ? (
                   <SkeletonLoader />
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={[
-                        {
-                          name: "Inventory",
-                          "In Stock": Math.max(
-                            0,
-                            (inventoryData?.kpis?.totalMedicines || 0) -
-                            (inventoryData?.kpis?.outOfStockMedicines || 0),
-                          ),
-                          "Low Stock": inventoryData?.kpis?.lowStockMedicines || 0,
-                          "Out of Stock":
-                            inventoryData?.kpis?.outOfStockMedicines || 0,
-                          Expired: inventoryData?.kpis?.expiredMedicines || 0,
-                        },
-                      ]}
-                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                      barGap={12}
-                    >
-                      <CartesianGrid
-                        strokeDasharray="4 4"
-                        vertical={false}
-                        stroke="#e2e8f0"
-                      />
-                      <XAxis dataKey="name" hide />
-                      <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: "#94a3b8", fontSize: 12 }}
-                      />
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: "In Stock", value: Math.max(0, (inventoryData?.kpis?.totalMedicines || 0) - (inventoryData?.kpis?.outOfStockMedicines || 0)), color: "#10b981" },
+                          { name: "Low Stock", value: inventoryData?.kpis?.lowStockMedicines || 0, color: "#f59e0b" },
+                          { name: "Out of Stock", value: inventoryData?.kpis?.outOfStockMedicines || 0, color: "#ef4444" },
+                          { name: "Expired", value: inventoryData?.kpis?.expiredMedicines || 0, color: "#64748b" }
+                        ].filter(d => d.value > 0)}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={70}
+                        outerRadius={95}
+                        stroke="none"
+                        paddingAngle={2}
+                      >
+                        {[
+                          { name: "In Stock", color: "#10b981" },
+                          { name: "Low Stock", color: "#f59e0b" },
+                          { name: "Out of Stock", color: "#ef4444" },
+                          { name: "Expired", color: "#64748b" }
+                        ].map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
                       <Tooltip
-                        cursor={{ fill: "#f1f5f9", opacity: 0.4 }}
                         contentStyle={{
                           borderRadius: "12px",
                           border: "none",
@@ -676,102 +645,71 @@ export default function NewDashboardPage() {
                           padding: "12px",
                         }}
                       />
-                      <Legend
-                        verticalAlign="top"
-                        align="right"
-                        iconType="circle"
-                        wrapperStyle={{
-                          paddingBottom: "20px",
-                          fontSize: "12px",
-                          fontWeight: "500",
-                        }}
-                      />
-                      <Bar
-                        dataKey="In Stock"
-                        fill="#10b981"
-                        radius={[6, 6, 0, 0]}
-                        barSize={50}
-                      />
-                      <Bar
-                        dataKey="Low Stock"
-                        fill="#f59e0b"
-                        radius={[6, 6, 0, 0]}
-                        barSize={50}
-                      />
-                      <Bar
-                        dataKey="Out of Stock"
-                        fill="#ef4444"
-                        radius={[6, 6, 0, 0]}
-                        barSize={50}
-                      />
-                      <Bar
-                        dataKey="Expired"
-                        fill="#64748b"
-                        radius={[6, 6, 0, 0]}
-                        barSize={50}
-                      />
-                    </BarChart>
+                    </PieChart>
                   </ResponsiveContainer>
                 )}
               </div>
             </div>
 
-            {/* Inventory Control Side-panel */}
-            <div className="space-y-2.5">
-              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">Inventory Control</h4>
+            {/* Inventory Control List Layout */}
+            <div className="flex flex-col mt-2 flex-1">
+              <div className="mb-3 pb-3 border-b border-slate-100">
+                <h4 className="text-[15px] font-bold text-blue-600">Inventory Status</h4>
+                <p className="text-xs font-medium text-slate-500 mt-1">
+                  Total Medicines: <span className="text-slate-900 font-bold">{loading ? "—" : (inventoryData?.kpis?.totalMedicines ?? 0)}</span>
+                </p>
+              </div>
+
+              <div className="space-y-1">
               {[
                 {
-                  label: "Total Medicines",
-                  value: inventoryData?.kpis?.totalMedicines,
-                  icon: <Package size={18} />,
-                  color: "purple",
+                  label: "In Stock",
+                  value: Math.max(0, (inventoryData?.kpis?.totalMedicines || 0) - (inventoryData?.kpis?.outOfStockMedicines || 0)),
+                  color: "#10b981",
                 },
                 {
                   label: "Low Stock",
                   value: inventoryData?.kpis?.lowStockMedicines,
-                  icon: <TrendingDown size={18} />,
-                  color: "amber",
+                  color: "#f59e0b",
                 },
                 {
                   label: "Out of Stock",
                   value: inventoryData?.kpis?.outOfStockMedicines,
-                  icon: <Box size={18} />,
-                  color: "rose",
+                  color: "#ef4444",
                 },
                 {
                   label: "Expired",
                   value: inventoryData?.kpis?.expiredMedicines,
-                  icon: <AlertCircle size={18} />,
-                  color: "pink",
+                  color: "#64748b",
                 },
               ].map((stat) => (
-                <button
+                <div
                   key={stat.label}
                   onClick={() =>
                     (window.location.href = `/dashboard/medicines?filter=${encodeURIComponent(stat.label)}`)
                   }
-                  className="w-full bg-white/50 p-3 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 hover:bg-white hover:border-blue-200 transition-all text-left group"
+                  className="flex items-center justify-between group cursor-pointer hover:bg-slate-50 p-2 rounded-md transition-colors border border-transparent hover:border-slate-100"
                 >
-                  <div
-                    className={`w-9 h-9 flex items-center justify-center rounded-lg bg-${stat.color}-50 text-${stat.color}-600 shadow-sm group-hover:scale-105 transition-transform`}
-                  >
-                    {stat.icon}
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-2.5 h-2.5 rounded-full shadow-sm"
+                      style={{ backgroundColor: stat.color }}
+                    />
+                    <span className="text-sm font-medium text-slate-600 group-hover:text-slate-900">
                       {stat.label}
-                    </p>
-                    <p className="text-lg font-black text-slate-800">
-                      {loading ? "—" : (stat.value ?? 0)}
-                    </p>
+                    </span>
                   </div>
-                </button>
+                  <span className="text-sm font-semibold text-slate-800">
+                    {loading ? "—" : (stat.value ?? 0)}
+                  </span>
+                </div>
               ))}
+              </div>
             </div>
           </div>
         </div>
       </section>
-
+      </div>
 
     </div>
   );
