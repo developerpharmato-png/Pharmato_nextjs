@@ -4,6 +4,7 @@ export const allowedOrigins = [
     'http://localhost:5175',
     'http://localhost:5174', 
     'http://localhost:3000',
+    'http://localhost:5100',
     'https://pharmatonextjs.vercel.app',
     'https://dev.api.pharmato.bareclearact.com',
     'https://pharmatoindia.com',

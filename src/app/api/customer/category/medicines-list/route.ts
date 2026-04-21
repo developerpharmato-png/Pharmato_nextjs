@@ -242,4 +242,5 @@ export async function POST(req: NextRequest) {
         totalCount,
         priceRange: `0,${maxPriceInList}`
     });
+    
 }
